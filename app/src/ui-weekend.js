@@ -98,7 +98,7 @@ ACT.stTyre = (el) => { G.weekend.strategy[el.dataset.d].startTyre = el.dataset.c
 ACT.stStops = (el) => { G.weekend.strategy[el.dataset.d].stops = +el.dataset.val; render(); };
 CHG.stWear = (el) => { G.weekend.strategy[el.dataset.d].pitWear = +el.value; const lab = el.closest('label').querySelector('span'); if (lab) lab.textContent = `Parar quando o desgaste chegar a ${el.value}%`; };
 CHG.stAuto = (el) => { G.weekend.strategy[el.dataset.d].auto = el.checked; };
-ACT.startRace = () => { Career.startRace(G); autosave(); UI.racePaused = true; go('race'); };
+ACT.startRace = () => { Career.startRace(G); autosave(); UI.racePaused = true; UI.raceError = null; go('race'); };
 
 /* ---------- corrida ao vivo ---------- */
 const SPEEDS = [[1, '1×', 1300], [2, '2×', 650], [4, '4×', 300], [8, '8×', 140], [20, '20×', 45]];
@@ -130,9 +130,11 @@ function scheduleTick() {
   UI.raceTimer = setTimeout(() => {
     if (UI.view !== 'race' || !G || !G.weekend || !G.weekend.race) return;
     if (UI.racePaused) return;
-    Career.stepRace(G);
+    // simulação e tela separadas: um erro de desenho não para a corrida; um erro na
+    // simulação pausa a corrida com aviso (sem repetir o mesmo passo quebrado sem parar)
+    try { Career.stepRace(G); } catch (e) { UI.racePaused = true; reportError('simulação da corrida', e); UI.raceError = String(e && e.message || e); try { updateRace(); } catch (x) { /* já registrado */ } return; }
     UI.tickStart = performance.now();
-    updateRace();
+    try { updateRace(); } catch (e) { reportError('tela da corrida', e); }
     if (G.weekend.race.finished) { UI.racePaused = true; autosave(); return; }
     scheduleTick();
   }, speedMs());
@@ -140,7 +142,7 @@ function scheduleTick() {
 function stopRaceLoop() { clearTimeout(UI.raceTimer); cancelAnimationFrame(UI.anim); UI.racePaused = true; }
 ACT.racePlay = () => { if (G.weekend.race.finished) return; UI.racePaused = !UI.racePaused; if (!UI.racePaused) { UI.tickStart = performance.now(); scheduleTick(); } updateRace(); };
 ACT.raceSpeed = (el) => { UI.raceSpeed = +el.dataset.val; if (!UI.racePaused) scheduleTick(); updateRace(); };
-ACT.raceStep = () => { if (G.weekend.race.finished) return; UI.racePaused = true; Career.stepRace(G); UI.tickStart = performance.now(); updateRace(); };
+ACT.raceStep = () => { if (G.weekend.race.finished) return; UI.racePaused = true; try { Career.stepRace(G); } catch (e) { reportError('simulação da corrida', e); UI.raceError = String(e && e.message || e); } UI.tickStart = performance.now(); updateRace(); };
 ACT.raceSkip = () => { UI.racePaused = true; clearTimeout(UI.raceTimer); Career.simRaceToEnd(G); autosave(); updateRace(true); };
 ACT.carMode = (el) => { const c = G.weekend.race.cars.find(x => x.did === el.dataset.d); if (c) c.mode = el.dataset.val; updateRace(); };
 ACT.carPit = (el) => { const c = G.weekend.race.cars.find(x => x.did === el.dataset.d); if (c && c.status === 'run') { c.pitReq = c.pitReq === el.dataset.c ? null : el.dataset.c; } updateRace(); };
@@ -249,7 +251,8 @@ function raceEndHtml(race) {
 function startRaceAnim() {
   cancelAnimationFrame(UI.anim);
   const wk = G.weekend; const tr = Career.track(G, wk.trackId);
-  const loop = () => {
+  const loop = () => { try { frame(); } catch (e) { reportError('mapa da corrida', e); } };
+  const frame = () => {
     const cv = $('#raceMap');
     if (!cv || !G || !G.weekend || !G.weekend.race) return;
     const race = G.weekend.race;
@@ -267,6 +270,7 @@ function startRaceAnim() {
     UI.anim = requestAnimationFrame(loop);
   };
   UI.anim = requestAnimationFrame(loop);
+  // se o desenho falhar, o frame registra o erro e o mapa fica parado (sem repetir 60 vezes por segundo)
 }
 
 ACT.finishWeekend = async () => {

@@ -1,7 +1,7 @@
 {
   "name": "pitwall-racing-simulator",
   "productName": "PitWall Racing Simulator",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Simulador de gestão de automobilismo (monopostos) para Windows",
   "author": "Moratelli Game Company",
   "license": "UNLICENSED",
@@ -11,7 +11,8 @@
     "build": "node scripts/build.js",
     "dev": "node scripts/build.js && electron . --dev",
     "start": "node scripts/build.js && electron .",
-    "test": "node scripts/sim-test.js 10 1 && node scripts/sim-test.js 4 42",
+    "test": "node scripts/check-scope.js && node scripts/sim-test.js 10 1 && node scripts/sim-test.js 4 42",
+    "test:ui": "node scripts/build.js && node scripts/ui-stress.js 50",
     "test:sim": "node scripts/sim-test.js",
     "test:smoke": "node scripts/build.js && node scripts/smoke.js",
     "icons": "node scripts/make-icons.js",
@@ -73,6 +74,8 @@
     }
   },
   "devDependencies": {
+    "acorn": "8.14.0",
+    "acorn-walk": "8.3.4",
     "electron": "33.2.1",
     "electron-builder": "25.1.8",
     "resedit": "2.0.3"

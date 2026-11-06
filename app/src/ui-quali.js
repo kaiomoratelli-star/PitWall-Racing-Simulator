@@ -140,10 +140,10 @@ function qLoop() {
     if ($('#modal')) { last = performance.now(); return; }
     const now = performance.now(); const dt = (now - last) / 1000; last = now;
     const seg = Quali.seg(ql);
-    Quali.advance(G, dt * UI.qSpeed);
+    try { Quali.advance(G, dt * UI.qSpeed); } catch (e) { qStop(); UI.qSpeed = 0; reportError('simulação da classificação', e); return; }
     const v = JSON.stringify([ql.log.length, ql.alive.map(d => [ql.cars[d].state, ql.cars[d].kind, ql.cars[d].secIdx]), seg.done]);
     const busy = document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName);
-    if (v !== lastV && !busy) { lastV = v; render(); }
+    if (v !== lastV && !busy) { lastV = v; try { render(); } catch (e) { reportError('tela da classificação', e); } }
     const c = $('#qClock'); if (c) c.textContent = qClock(seg);
     if (seg.done) { qStop(); UI.qSpeed = 0; autosave(); render(); }
   }, 200);

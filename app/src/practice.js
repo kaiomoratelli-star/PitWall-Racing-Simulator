@@ -184,7 +184,7 @@ Practice.advance = (G, secs, auto) => {
     while (ses.aiIdx < ses.ai.length && ses.ai[ses.aiIdx].t <= Math.min(next, end)) Practice.aiLap(wk, ses, ses.ai[ses.aiIdx++]);
     if (!who || next > end) break;
     ses.t = Math.max(ses.t, next);
-    if (kind === 'work') { Object.assign(wk.setups[who], wk.setups[who].pending); wk.setups[who].pending = null; Practice.log(ses, tr(`${Career.driver(G, who).name}: mecânicos terminaram as mudanças no carro.`, `${Career.driver(G, who).name}: mechanics have finished the changes on the car.`), who); }
+    if (kind === 'work') { Object.assign(wk.setups[who], wk.setups[who].pending); wk.setups[who].pending = null; Practice.log(ses, byLang(`${Career.driver(G, who).name}: mecânicos terminaram as mudanças no carro.`, `${Career.driver(G, who).name}: mechanics have finished the changes on the car.`), who); }
     else if (kind === 'lap') Practice.lapDone(G, who);
     else if (kind === 'auto') Practice.autopilot(G, who);
   }
@@ -238,9 +238,9 @@ Practice.runEnd = (G, did) => {
     s.sat = fb.satisfaction; s.tested = { ...run.setup };
     const perceived = {}; fb.items.forEach(i => (perceived[i.cat] = i.val));
     Setup.learn(s.win, { setup: run.setup, perceived, ctx }, (est) => Setup.bestFor(est, wk, s.focus), timed, skill, team.staff.engineering);
-    Practice.log(ses, tr(`${d.name} de volta à garagem: ${fb.summary[0] || 'carro equilibrado, sem queixas.'}`, `${d.name} back in the garage: ${fb.summary[0] || 'balanced car, no complaints.'}`), did);
+    Practice.log(ses, byLang(`${d.name} de volta à garagem: ${fb.summary[0] || 'carro equilibrado, sem queixas.'}`, `${d.name} back in the garage: ${fb.summary[0] || 'balanced car, no complaints.'}`), did);
   } else {
-    Practice.log(ses, tr(`${d.name} voltou à garagem sem voltas suficientes para dar feedback.`, `${d.name} came back without enough laps to give feedback.`), did);
+    Practice.log(ses, byLang(`${d.name} voltou à garagem sem voltas suficientes para dar feedback.`, `${d.name} came back without enough laps to give feedback.`), did);
   }
   s.runs.push(out);
 };

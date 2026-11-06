@@ -63,9 +63,11 @@ function hashStr(str) {
 }
 
 /* idioma do texto gerado pelo jogo (narração, rádio, eventos): 'pt' ou 'en'.
-   A interface troca por I18N (i18n.js); o núcleo usa tr() nas frases montadas no código. */
+   A interface troca por I18N (i18n.js); o núcleo usa byLang(pt, en) nas frases montadas no código.
+   O nome é longo de propósito: na 0.7 ele se chamava "tr" e colidia com variáveis locais de
+   circuito (const tr = Career.track(...)), travando a corrida. scripts/check-scope.js impede a volta. */
 let LANG = 'pt';
-const tr = (pt, en) => (LANG === 'en' && en != null ? en : pt);
+const byLang = (pt, en) => (LANG === 'en' && en != null ? en : pt);
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;

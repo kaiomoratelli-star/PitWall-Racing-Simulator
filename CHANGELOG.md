@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1 — Correção do congelamento da corrida
+- Corrigido o travamento da corrida ao vivo ("tr is not a function"), que aparecia sobretudo no modo Observador. A torre de tempos usava uma variável local `tr` (o circuito) e, na 0.7.0, passou a chamar a função de idioma com o mesmo nome sempre que um carro estava com o modo de ultrapassagem ativo. O desenho falhava a cada volta, o laço da corrida parava de avançar e o erro se repetia no log.
+- A função de idioma passou a se chamar `byLang`, e o `npm test` ganhou uma verificação estática de escopo (`scripts/check-scope.js`) que impede chamar uma função global quando uma variável local tem o mesmo nome, e chamar funções que não existem.
+- Laços ao vivo (corrida, mapa, treino e classificação) separam o passo da simulação do desenho da tela: erro de desenho é registrado e a corrida segue; erro na simulação pausa a corrida com aviso na tela. Erros repetidos geram um aviso só; a tela Diagnóstico lista os erros da sessão.
+- Novo teste de estresse da interface (`npm run test:ui`): temporadas completas pela tela de corrida nos modos Observador e Manager, em português e inglês, com chuva, Safety Car, abandonos em massa e Sprint. O teste do executável no Windows agora também roda uma corrida inteira em inglês pelo laço real.
+
 ## 0.7.0 — Fim de semana completo, Conselho da FIA e inglês
 **Acerto e treinos livres**
 - Novo modelo de acerto: asas dianteira e traseira, suspensão, altura do carro e balanço de freio (relações de marcha homologadas para a temporada). O piloto sente 5 áreas do carro: equilíbrio, frenagem, curvas, tração e retas; cada ajuste mexe em várias delas.

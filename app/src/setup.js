@@ -216,7 +216,7 @@ Setup.feedback = (st, setup, opt, ctx, laps, skill, r) => {
     }
     const item = { cat: c, lvl, dir, val: +perceived.toFixed(1) };
     if (lvl === 0) item.text = Setup.pick(st, c, 'ok', r);
-    else item.text = Setup.pick(st, c, dir, r) + (lvl >= 2 ? '' : tr(' Nada grave.', ' Nothing serious.'));
+    else item.text = Setup.pick(st, c, dir, r) + (lvl >= 2 ? '' : byLang(' Nada grave.', ' Nothing serious.'));
     if (changed && prev) {
       const name = Setup.CATS.find(x => x[0] === c)[1].toLowerCase();
       if (reason) {
@@ -229,12 +229,12 @@ Setup.feedback = (st, setup, opt, ctx, laps, skill, r) => {
           : (prev.lvl === 0 ? `Na saída anterior ${art} estava bom, mas agora, ${Setup.REASONS[reason]}, ` : `Antes eu reclamava de ${was}, mas agora, ${Setup.REASONS[reason]}, `)
           + (lvl === 0 ? 'ficou no ponto.' : `${now === was ? 'piorou' : 'apareceu ' + now}. É melhor ${Setup.ADVICE[c][dir]}.`);
         item.reason = reason;
-      } else item.text = (lvl === 0 ? tr('Agora sim, ', 'Now we are there: ') : tr('Mudou bastante desde a última saída: ', 'A lot has changed since the last run: ')) + item.text.charAt(0).toLowerCase() + item.text.slice(1);
+      } else item.text = (lvl === 0 ? byLang('Agora sim, ', 'Now we are there: ') : byLang('Mudou bastante desde a última saída: ', 'A lot has changed since the last run: ')) + item.text.charAt(0).toLowerCase() + item.text.slice(1);
       item.changed = true;
     } else if (prev && setupChanged && prev.lvl > 0 && lvl < prev.lvl) {
-      item.text = (lvl === 0 ? tr('A mudança funcionou: ', 'The change worked: ') : tr('Melhorou, mas ainda: ', 'Better, but still: ')) + item.text.charAt(0).toLowerCase() + item.text.slice(1);
+      item.text = (lvl === 0 ? byLang('A mudança funcionou: ', 'The change worked: ') : byLang('Melhorou, mas ainda: ', 'Better, but still: ')) + item.text.charAt(0).toLowerCase() + item.text.slice(1);
     } else if (prev && setupChanged && lvl > prev.lvl) {
-      item.text = tr('Piorou com a mudança: ', 'Worse with the change: ') + item.text.charAt(0).toLowerCase() + item.text.slice(1);
+      item.text = byLang('Piorou com a mudança: ', 'Worse with the change: ') + item.text.charAt(0).toLowerCase() + item.text.slice(1);
     }
     st.opinions[c] = { lvl, dir, val: perceived, setup: { ...setup }, ctx: { ...ctx } };
     items.push(item);

@@ -5,9 +5,9 @@ Uma produção **Moratelli Game Company (MGC)**. Dono: Kaio Moratelli.
 O marketing é feito em um Projeto separado no claude.ai, com os arquivos de `docs/marketing/` e `docs/brand/`.
 
 ## Regras do dono
-- Tudo em português do Brasil (interface, textos, commits, documentação). O jogo também tem inglês: todo texto novo da interface precisa de uma linha em `app/src/i18n-en.js`, e frases montadas no núcleo usam `tr(pt, en)` (ver `docs/ARQUITETURA.md`, seção Idiomas).
+- Tudo em português do Brasil (interface, textos, commits, documentação). O jogo também tem inglês: todo texto novo da interface precisa de uma linha em `app/src/i18n-en.js`, e frases montadas no núcleo usam `byLang(pt, en)` (ver `docs/ARQUITETURA.md`, seção Idiomas).
 - Dados reais são permitidos e desejados: pilotos, equipes, patrocinadores, imprensa, imagens. O jogo ainda não é vendido; no futuro será pago (não escrever que é gratuito). Antes de vender, imagens e marcas de terceiros precisarão de licença ou substituição.
-- Versão atual: 0.7 (em desenvolvimento).
+- Versão atual: 0.7.1 (em desenvolvimento; a 0.8 está em construção).
 - Não usar a palavra "IA" na interface do jogo.
 - Escândalos sempre com pessoas e organizações fictícias.
 - Identidade visual: vermelho `#E10600`, carbono `#15151E`, Titillium Web 900 itálico e IBM Plex Mono (ver `docs/marketing/2-GUIA-DA-MARCA.md`). Títulos em caixa alta no padrão F1; se os arquivos da Formula1 Display estiverem em `app/assets/fonts`, o build usa.
@@ -26,7 +26,8 @@ O marketing é feito em um Projeto separado no claude.ai, com os arquivos de `do
 ## Comandos
 ```
 node scripts/build.js            # app/dist/index.html (desktop) e dist-web/pitwall.html (web)
-npm test                         # 10 + 4 temporadas nos dois modos, diagnóstico e migrações
+npm test                         # verificação de escopo + 10 + 4 temporadas nos dois modos, diagnóstico e migrações
+npm run test:ui                  # estresse da corrida ao vivo pela interface (Playwright)
 node scripts/sim-test.js 20 99   # teste longo (20 temporadas)
 xvfb-run -a node scripts/smoke.js   # testa o app Electron de verdade
 npx electron-builder --win nsis --x64 --publish never   # instalador local (funciona no Linux)
