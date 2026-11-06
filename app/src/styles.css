@@ -541,3 +541,24 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .fp-log { max-height: 520px; overflow: auto; font-size: 12.5px; }
 .fp-log > div { padding: 7px 14px; border-bottom: 1px solid var(--line); color: var(--fg2); }
 .fp-log .num { display: inline-block; width: 34px; }
+
+/* ---------- classificação ao vivo ---------- */
+.q-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1100px) { .q-layout { grid-template-columns: 1fr; } }
+.qtower td, .qtower th { padding: 6px 8px; }
+.qtower tr.danger td { background: rgba(225, 6, 0, .08); }
+.qtower tr.out td { opacity: .45; }
+.qtower tr.cut td { padding: 2px 8px; background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.secs { display: inline-flex; gap: 3px; }
+.secs .sec { display: inline-block; width: 16px; height: 6px; border-radius: 2px; background: var(--line2); }
+.secs .sec.purple { background: var(--purple); } .secs .sec.green { background: var(--green); } .secs .sec.yellow { background: #ffd84a; }
+.q-feed { max-height: 460px; overflow: auto; font-size: 13px; }
+.q-feed .qf { padding: 7px 14px; border-bottom: 1px solid var(--line); color: var(--fg2); line-height: 1.4; }
+.q-feed .qf .num { display: inline-block; min-width: 72px; font-size: 11px; }
+.q-feed .qf.purple { border-left: 3px solid var(--purple); }
+.q-feed .qf.mine { border-left: 3px solid var(--accent); color: var(--fg); }
+.q-feed .qf.crash, .q-feed .qf.red { border-left: 3px solid var(--red); color: #fff; font-weight: 600; }
+.q-feed .qf.red { background: rgba(255, 84, 104, .1); }
+.q-feed .qf.penalty { border-left: 3px solid #ffd84a; }
+.q-feed .qf.flag { background: var(--panel2); color: #fff; font-weight: 600; }
+.q-car details summary { cursor: pointer; color: var(--fg2); }

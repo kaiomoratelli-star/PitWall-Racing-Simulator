@@ -49,6 +49,13 @@
 - Confiança do piloto: acerto, conhecimento da pista e familiaridade com o carro.
 - Dá para deixar um treino ou todos com o engenheiro, com foco em classificação, em corrida ou equilibrado.
 
+## Classificação ao vivo (versão 0.7)
+- Q1, Q2 e Q3 com o tempo real de cada sessão; nos fins de semana de Sprint, também SQ1, SQ2 e SQ3 no formato atual da F1.
+- Cronômetro ativo: tempo real ou saltos de 1, 3 e 5 minutos. Você escolhe a hora de ir para a pista, o pneu, o número de voltas e o quanto arriscar.
+- Dá para abortar a volta, voltar ao box e mexer no carro com o relógio correndo (respeitando o parque fechado).
+- Tráfego, erros, voltas deletadas por limite de pista e bandeira vermelha.
+- Narração de transmissão setor a setor, com o nome real das curvas (Eau Rouge, S do Senna, Parabolica...) e o efeito do acerto.
+
 ## Carro e regulamento
 - Desenvolvimento em 15 áreas: assoalho, asas, chassi, suspensão, freios, motor, câmbio, refrigeração, eficiência energética, confiabilidade e outras.
 - Cada área tem responsável, risco e impacto na confiabilidade.

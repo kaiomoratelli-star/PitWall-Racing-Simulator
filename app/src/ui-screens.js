@@ -236,7 +236,7 @@ ACT.toWeekend = () => {
   if (Career.isObs(G)) {
     // observador: treinos e classificação são decididos pela IA
     if (G.weekend.phase === 'practice') Career.finishPractice(G);
-    if (G.weekend.phase === 'quali' || !G.weekend.quali) Career.runQualifying(G);
+    if (['sq', 'quali'].includes(G.weekend.phase) || !G.weekend.quali) Career.runQualifying(G);
     if (G.weekend.phase !== 'race') Career.startRace(G);
     UI.racePaused = true;
     return go('race');
