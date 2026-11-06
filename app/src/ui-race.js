@@ -125,6 +125,7 @@ function updateRace(full) {
   if (hud) hud.innerHTML = `
     <div class="lapcount num">${Math.min(L, race.laps)}<small>/${race.laps}</small></div>
     ${flagHtml(race)}
+    ${UI.raceError ? `<span class="chip bad" title="${esc(UI.raceError)}">Simulação pausada por um erro (registrado em Diagnóstico)</span>` : ''}
     <span class="chip" style="${w > 0.2 ? 'color:var(--blue)' : ''}">Pista ${Engine.wetLabel(w).toLowerCase()}</span>
     ${race.fastest ? `<span class="chip"><span class="pur">Volta mais rápida</span> ${dName(race.fastest.did)} ${fmtLap(race.fastest.time)}</span>` : ''}
     <span class="spacer"></span>
@@ -150,7 +151,7 @@ function updateRace(full) {
     const ch = c.grid - c.pos;
     return `<tr class="${mine ? 'me' : ''} ${c.status === 'dnf' ? 'out' : ''} ${c._flash ? 'flash' : ''}">
       <td class="p">${c.pos}</td><td style="width:6px;padding:0"><span class="tcolor" style="background:${teamColor(c.tid)}"></span></td>
-      <td class="nm">${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ` <span class="chip good" title="${race.boostName}">${race.boostName === 'DRS' ? 'DRS' : tr('MU', 'OM')}</span>` : ''}</td>
+      <td class="nm">${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ` <span class="chip good" title="${race.boostName}">${race.boostName === 'DRS' ? 'DRS' : byLang('MU', 'OM')}</span>` : ''}</td>
       <td class="small ${ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'muted'} num">${L ? (ch > 0 ? '▲' + ch : ch < 0 ? '▼' + -ch : '–') : ''}</td>
       <td class="gp">${gap}</td><td class="gp muted">${intv}</td>
       <td>${c.status === 'dnf' ? '' : tyreIcon(c.tyre.c)}</td>

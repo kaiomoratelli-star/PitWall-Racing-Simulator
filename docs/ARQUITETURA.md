@@ -101,7 +101,8 @@ Um save de versão mais nova que o jogo é recusado com mensagem clara, em vez d
 |---|---|
 | `npm run dev` | Abre o jogo com DevTools (F12), recarga (Ctrl+R) e pasta de dados separada `PitWall Racing Simulator (dev)` |
 | `npm start` | Abre como em produção |
-| `npm test` | Simulação prolongada: 10 temporadas + 4 temporadas, modos Manager e Observador, diagnóstico a cada temporada, round-trip de save e migração |
+| `npm test` | Verificação de escopo (`scripts/check-scope.js`) e simulação prolongada: 10 temporadas + 4 temporadas, modos Manager e Observador, diagnóstico a cada temporada, round-trip de save e migração |
+| `npm run test:ui` | Estresse da interface ao vivo: temporadas completas pela tela de corrida, Observador e Manager, PT e EN (precisa do Playwright) |
 | `npm run test:smoke` | Abre o aplicativo real, cria carreira, disputa corridas pela interface, salva, fecha, reabre e continua |
 | `npm run dist` | Gera `release\PitWall-Racing-Simulator-Setup-<versão>.exe` (no Windows) |
 | `npm run dist:linux-host` | O mesmo, compilando a partir de Linux (exige Wine 32 e 64 bits) |
@@ -137,5 +138,5 @@ superlicença, sem imagens ou sons, sem histórico real desde 1950.
 
 - O jogador escolhe português (Brasil) ou inglês na primeira abertura, na tela inicial e em Salvar e opções. A escolha fica no `localStorage` (`pw-lang`) e vale para todas as carreiras.
 - Interface: o texto em português é a chave do catálogo (`I18N_EN` em `i18n-en.js`). Em inglês, `I18N` observa o DOM (`MutationObserver`) e traduz texto, `title`, `placeholder` e `aria-label`: primeiro pelo catálogo exato, depois pelos modelos com números e nomes (`I18N_PATS`), por fim frase a frase. Em português nada é observado.
-- Textos gerados pelo jogo: o núcleo usa `tr(pt, en)` nas frases montadas no código e `applyLang()` troca os modelos de narração, rádio, feedback do piloto, pneus e abandonos. O que já foi gerado (notícias, registros) fica no idioma em que foi escrito; as manchetes mais comuns também são traduzidas na exibição.
-- Para traduzir um texto novo: escreva em português como sempre e acrescente a linha em `i18n-en.js` (texto fixo) ou um modelo (texto com números). Textos gerados no núcleo usam `tr()`.
+- Textos gerados pelo jogo: o núcleo usa `byLang(pt, en)` nas frases montadas no código e `applyLang()` troca os modelos de narração, rádio, feedback do piloto, pneus e abandonos. O que já foi gerado (notícias, registros) fica no idioma em que foi escrito; as manchetes mais comuns também são traduzidas na exibição.
+- Para traduzir um texto novo: escreva em português como sempre e acrescente a linha em `i18n-en.js` (texto fixo) ou um modelo (texto com números). Textos gerados no núcleo usam `byLang()`. `npm test` roda `scripts/check-scope.js`, que impede chamar uma função global quando uma variável local tem o mesmo nome.

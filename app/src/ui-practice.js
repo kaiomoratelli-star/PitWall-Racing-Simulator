@@ -143,10 +143,10 @@ function fpLoop() {
     const ses = Practice.session(wk);
     const now = performance.now(); const dt = (now - last) / 1000; last = now;
     if ($('#modal')) return; // relógio para enquanto uma janela está aberta
-    Practice.advance(G, dt * UI.fpSpeed);
+    try { Practice.advance(G, dt * UI.fpSpeed); } catch (e) { fpStop(); UI.fpSpeed = 0; reportError('simulação do treino', e); return; }
     const v = JSON.stringify([ses.log.length, Object.values(wk.setups).map(s => [s.state, s.run && s.run.kind, s.run && s.run.times.length, !!s.pending]), ses.done]);
     const busy = document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName);
-    if (v !== lastV && !busy && !$('#modal')) { lastV = v; render(); }
+    if (v !== lastV && !busy && !$('#modal')) { lastV = v; try { render(); } catch (e) { reportError('tela do treino', e); } }
     const c = $('#fpClock'); if (c) c.textContent = fpClock(ses);
     if (ses.done) { fpStop(); UI.fpSpeed = 0; autosave(); render(); }
   }, 200);

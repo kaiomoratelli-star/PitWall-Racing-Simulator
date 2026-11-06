@@ -141,7 +141,7 @@ Engine.forecast = (weather, laps, strategy) => {
   };
 };
 
-Engine.wetLabel = (w) => w < 0.08 ? tr('Seca', 'Dry') : w < 0.25 ? tr('Úmida', 'Damp') : w < 0.55 ? tr('Molhada', 'Wet') : w < 0.8 ? tr('Chuva forte', 'Heavy rain') : tr('Temporal', 'Storm');
+Engine.wetLabel = (w) => w < 0.08 ? byLang('Seca', 'Dry') : w < 0.25 ? byLang('Úmida', 'Damp') : w < 0.55 ? byLang('Molhada', 'Wet') : w < 0.8 ? byLang('Chuva forte', 'Heavy rain') : byLang('Temporal', 'Storm');
 
 /* ---------- tempo de volta base ---------- */
 Engine.weatherPenalty = (compound, w) => {
@@ -337,15 +337,15 @@ Engine.stepLap = (race, wk) => {
   const db = wk.db;
   const w = race.wet[L] ?? 0;
   const prevW = race.wet[L - 1] ?? 0;
-  if (w > 0.2 && prevW <= 0.2) Engine.event(race, 'weather', tr(`Começa a chover! Pista ${Engine.wetLabel(w).toLowerCase()}.`, `It's starting to rain! Track ${Engine.wetLabel(w).toLowerCase()}.`));
-  if (w <= 0.12 && prevW > 0.12) Engine.event(race, 'weather', tr('A pista está secando, linha seca aparecendo.', 'The track is drying, a dry line is appearing.'));
+  if (w > 0.2 && prevW <= 0.2) Engine.event(race, 'weather', byLang(`Começa a chover! Pista ${Engine.wetLabel(w).toLowerCase()}.`, `It's starting to rain! Track ${Engine.wetLabel(w).toLowerCase()}.`));
+  if (w <= 0.12 && prevW > 0.12) Engine.event(race, 'weather', byLang('A pista está secando, linha seca aparecendo.', 'The track is drying, a dry line is appearing.'));
 
   // Safety car
   let scType = null;
   if (race.sc) {
     race.sc.left--;
     if (race.sc.left <= 0) {
-      Engine.event(race, 'sc', race.sc.type === 'SC' ? tr('Safety Car recolhe neste fim de volta. Relargada!', 'Safety Car in this lap. Restart!') : tr('Fim do Safety Car Virtual. Bandeira verde.', 'Virtual Safety Car ending. Green flag.'));
+      Engine.event(race, 'sc', race.sc.type === 'SC' ? byLang('Safety Car recolhe neste fim de volta. Relargada!', 'Safety Car in this lap. Restart!') : byLang('Fim do Safety Car Virtual. Bandeira verde.', 'Virtual Safety Car ending. Green flag.'));
       race.sc = null; race.restartLap = L;
     } else scType = race.sc.type;
   }
@@ -399,12 +399,12 @@ Engine.stepLap = (race, wk) => {
     if (RNG.chance(pFail)) {
       if (RNG.chance(0.72)) {
         c.status = 'dnf'; c.dnfReason = RNG.pick(FAILURES); c.T += t;
-        Engine.event(race, 'dnf', tr(`${wk.nameOf(c.did)} abandona: ${c.dnfReason.toLowerCase()}.`, `${wk.nameOf(c.did)} retires: ${c.dnfReason.toLowerCase()}.`), c.did);
-        if (RNG.chance(0.35) && !race.sc) Engine.deploySC(race, 'VSC', tr('carro parado na pista', 'car stopped on track'));
+        Engine.event(race, 'dnf', byLang(`${wk.nameOf(c.did)} abandona: ${c.dnfReason.toLowerCase()}.`, `${wk.nameOf(c.did)} retires: ${c.dnfReason.toLowerCase()}.`), c.did);
+        if (RNG.chance(0.35) && !race.sc) Engine.deploySC(race, 'VSC', byLang('carro parado na pista', 'car stopped on track'));
         continue;
       } else {
         c.damage.power = Math.min(3, c.damage.power + 1);
-        Engine.event(race, 'issue', tr(`${wk.nameOf(c.did)} relata perda de potência.`, `${wk.nameOf(c.did)} reports a loss of power.`), c.did);
+        Engine.event(race, 'issue', byLang(`${wk.nameOf(c.did)} relata perda de potência.`, `${wk.nameOf(c.did)} reports a loss of power.`), c.did);
       }
     }
     if (!scType) {
@@ -413,24 +413,24 @@ Engine.stepLap = (race, wk) => {
         incidentCars.add(c);
         const crash = RNG.chance(0.32 + w * 0.25 + (track.street ? 0.18 : 0));
         if (crash) {
-          c.status = 'dnf'; c.dnfReason = tr('Acidente', 'Accident'); c.T += t;
-          Engine.event(race, 'crash', tr(`${wk.nameOf(c.did)} bate sozinho e está fora da corrida!`, `${wk.nameOf(c.did)} crashes out on his own!`), c.did);
+          c.status = 'dnf'; c.dnfReason = byLang('Acidente', 'Accident'); c.T += t;
+          Engine.event(race, 'crash', byLang(`${wk.nameOf(c.did)} bate sozinho e está fora da corrida!`, `${wk.nameOf(c.did)} crashes out on his own!`), c.did);
           const r = RNG.next();
-          if (race.R.redFlags && (w > 0.75 || (L <= 2 && track.street)) && RNG.chance(0.35)) Engine.deploySC(race, 'RED', tr('barreira danificada', 'damaged barrier'), wk);
-          else if (r < 0.5 * track.scFactor * race.R.scMultiplier) Engine.deploySC(race, 'SC', tr('acidente', 'accident'));
-          else if (r < 0.8) Engine.deploySC(race, 'VSC', tr('detritos na pista', 'debris on track'));
+          if (race.R.redFlags && (w > 0.75 || (L <= 2 && track.street)) && RNG.chance(0.35)) Engine.deploySC(race, 'RED', byLang('barreira danificada', 'damaged barrier'), wk);
+          else if (r < 0.5 * track.scFactor * race.R.scMultiplier) Engine.deploySC(race, 'SC', byLang('acidente', 'accident'));
+          else if (r < 0.8) Engine.deploySC(race, 'VSC', byLang('detritos na pista', 'debris on track'));
           continue;
         } else {
           const loss = RNG.range(3, 11);
           t += loss;
-          if (RNG.chance(0.3)) { c.damage.wing = 1; Engine.event(race, 'issue', tr(`${wk.nameOf(c.did)} roda e danifica a asa dianteira.`, `${wk.nameOf(c.did)} spins and damages the front wing.`), c.did); }
-          else Engine.event(race, 'spin', tr(`${wk.nameOf(c.did)} roda e perde ${loss.toFixed(1)}s.`, `${wk.nameOf(c.did)} spins and loses ${loss.toFixed(1)}s.`), c.did);
+          if (RNG.chance(0.3)) { c.damage.wing = 1; Engine.event(race, 'issue', byLang(`${wk.nameOf(c.did)} roda e danifica a asa dianteira.`, `${wk.nameOf(c.did)} spins and damages the front wing.`), c.did); }
+          else Engine.event(race, 'spin', byLang(`${wk.nameOf(c.did)} roda e perde ${loss.toFixed(1)}s.`, `${wk.nameOf(c.did)} spins and loses ${loss.toFixed(1)}s.`), c.did);
         }
       }
     }
     if (c.tyre.wear > 92 && RNG.chance(0.08)) {
       c.tyre.puncture = true; t += RNG.range(14, 26);
-      Engine.event(race, 'issue', tr(`Pneu furado para ${wk.nameOf(c.did)}! Pneus totalmente gastos.`, `Puncture for ${wk.nameOf(c.did)}! Tyres completely worn.`), c.did);
+      Engine.event(race, 'issue', byLang(`Pneu furado para ${wk.nameOf(c.did)}! Pneus totalmente gastos.`, `Puncture for ${wk.nameOf(c.did)}! Tyres completely worn.`), c.did);
       if (!c.auto) { doPit = true; newC = newC || Engine.chooseCompound(race, c, wk, race.laps - L); }
     }
     // pit stop
@@ -450,14 +450,14 @@ Engine.stepLap = (race, wk) => {
       c.lastStop = +stop.toFixed(1);
       // toda parada fica registrada; o texto com a posição de volta é completado no fim da volta
       (race.pitLog = race.pitLog || []).push({ lap: L, did: c.did, tid: c.tid, stop: +stop.toFixed(1), loss: +(loss + stop).toFixed(1), from: fromC, fromAge, to: newC, posIn: c.pos, slow, sc: scType || null });
-      Engine.event(race, 'pit', tr(`${wk.nameOf(c.did)} para nos boxes: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`, `${wk.nameOf(c.did)} pits: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`), c.did, { stop: +stop.toFixed(1), slow, tyre: newC, imp: true }); c._pitEvIdx = race.events.length - 1;
+      Engine.event(race, 'pit', byLang(`${wk.nameOf(c.did)} para nos boxes: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`, `${wk.nameOf(c.did)} pits: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`), c.did, { stop: +stop.toFixed(1), slow, tyre: newC, imp: true }); c._pitEvIdx = race.events.length - 1;
     }
     // limites de pista: três advertências e a quarta vira punição
     if (!scType && RNG.chance(0.006 * ((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120) * (track.street ? 0.4 : 1))) {
       c.tl++;
       const tlw = race.R.trackLimitWarnings;
-      if (c.tl === tlw) Engine.event(race, 'flag', tr(`Bandeira preta e branca para ${wk.nameOf(c.did)}: ${tlw}ª advertência por limite de pista.`, `Black and white flag for ${wk.nameOf(c.did)}: track limits warning number ${tlw}.`), c.did);
-      if (c.tl === tlw + 1) { c.pendingPen += 5; c.penalty += 5; Engine.event(race, 'penalty', tr(`5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, `5s penalty for ${wk.nameOf(c.did)} for exceeding track limits.`), c.did); }
+      if (c.tl === tlw) Engine.event(race, 'flag', byLang(`Bandeira preta e branca para ${wk.nameOf(c.did)}: ${tlw}ª advertência por limite de pista.`, `Black and white flag for ${wk.nameOf(c.did)}: track limits warning number ${tlw}.`), c.did);
+      if (c.tl === tlw + 1) { c.pendingPen += 5; c.penalty += 5; Engine.event(race, 'penalty', byLang(`5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, `5s penalty for ${wk.nameOf(c.did)} for exceeding track limits.`), c.did); }
     }
     c.lapTime = t;
     if (!scType) { c.lastS = Engine.sectorSplit(track, t - (pitted.has(c) ? (t - pc.total) * 0.8 : 0), sd); c.secs[L] = c.lastS; } else c.lastS = null;
@@ -543,7 +543,7 @@ Engine.stepLap = (race, wk) => {
       c.lastLap = c.lapTime;
       if (!scType && !pitted.has(c) && (c.best == null || c.lapTime < c.best)) c.best = c.lapTime;
       if (!scType && !pitted.has(c) && (!race.fastest || c.lapTime < race.fastest.time)) {
-        if (race.fastest && L > 5) Engine.event(race, 'fastest', tr(`Volta mais rápida: ${wk.nameOf(c.did)} ${fmtLap(c.lapTime)}.`, `Fastest lap: ${wk.nameOf(c.did)} ${fmtLap(c.lapTime)}.`), c.did);
+        if (race.fastest && L > 5) Engine.event(race, 'fastest', byLang(`Volta mais rápida: ${wk.nameOf(c.did)} ${fmtLap(c.lapTime)}.`, `Fastest lap: ${wk.nameOf(c.did)} ${fmtLap(c.lapTime)}.`), c.did);
         race.fastest = { did: c.did, time: c.lapTime, lap: L };
       }
       if (c.lastS) c.lastS.forEach((v, k) => { if (c.bestS[k] == null || v < c.bestS[k]) c.bestS[k] = v; if (race.bestS[k] == null || v < race.bestS[k]) race.bestS[k] = v; });
@@ -559,25 +559,25 @@ Engine.collision = (race, wk, a, b) => {
   const blameA = RNG.chance(clamp(0.5 + (da.aggression - dbb.aggression) / 120, 0.2, 0.85));
   const culprit = blameA ? a : b;
   const sev = RNG.next();
-  const names = `${wk.nameOf(a.did)} ${tr('e', 'and')} ${wk.nameOf(b.did)}`;
+  const names = `${wk.nameOf(a.did)} ${byLang('e', 'and')} ${wk.nameOf(b.did)}`;
   (race.clashes = race.clashes || []).push([a.did, b.did, culprit.did, sev < 0.22 ? 'crash' : 'contact']);
   if (sev < 0.22) {
     const victim = RNG.chance(0.5) ? a : b;
-    victim.status = 'dnf'; victim.dnfReason = tr('Colisão', 'Collision');
-    Engine.event(race, 'crash', tr(`Batida entre ${names}! ${wk.nameOf(victim.did)} está fora.`, `Crash between ${names}! ${wk.nameOf(victim.did)} is out.`), victim.did);
-    if (RNG.chance(0.55 * wk.track.scFactor)) Engine.deploySC(race, 'SC', tr('colisão', 'collision')); else Engine.deploySC(race, 'VSC', tr('detritos', 'debris'));
+    victim.status = 'dnf'; victim.dnfReason = byLang('Colisão', 'Collision');
+    Engine.event(race, 'crash', byLang(`Batida entre ${names}! ${wk.nameOf(victim.did)} está fora.`, `Crash between ${names}! ${wk.nameOf(victim.did)} is out.`), victim.did);
+    if (RNG.chance(0.55 * wk.track.scFactor)) Engine.deploySC(race, 'SC', byLang('colisão', 'collision')); else Engine.deploySC(race, 'VSC', byLang('detritos', 'debris'));
   } else if (sev < 0.6) {
     const victim = RNG.chance(0.5) ? a : b;
     victim.damage.wing = 1; victim.T += RNG.range(1, 4);
-    Engine.event(race, 'contact', tr(`Toque entre ${names}. ${wk.nameOf(victim.did)} com asa danificada.`, `Contact between ${names}. ${wk.nameOf(victim.did)} has a damaged wing.`), victim.did);
+    Engine.event(race, 'contact', byLang(`Toque entre ${names}. ${wk.nameOf(victim.did)} com asa danificada.`, `Contact between ${names}. ${wk.nameOf(victim.did)} has a damaged wing.`), victim.did);
   } else {
     a.T += RNG.range(0.5, 2); b.T += RNG.range(0.5, 2);
-    Engine.event(race, 'contact', tr(`Roda a roda e toque leve entre ${names}. Os dois seguem.`, `Wheel to wheel and light contact between ${names}. Both continue.`), a.did);
+    Engine.event(race, 'contact', byLang(`Roda a roda e toque leve entre ${names}. Os dois seguem.`, `Wheel to wheel and light contact between ${names}. Both continue.`), a.did);
   }
   if (RNG.chance(clamp(0.45 * (race.R ? race.R.penaltyStrictness : 1), 0, 0.95))) {
     const pen = RNG.chance(0.7) ? 5 : 10;
     culprit.pendingPen += pen; culprit.penalty += pen;
-    Engine.event(race, 'penalty', tr(`Comissários: ${pen}s de punição para ${wk.nameOf(culprit.did)} por causar a colisão.`, `Stewards: ${pen}s penalty for ${wk.nameOf(culprit.did)} for causing a collision.`), culprit.did);
+    Engine.event(race, 'penalty', byLang(`Comissários: ${pen}s de punição para ${wk.nameOf(culprit.did)} por causar a colisão.`, `Stewards: ${pen}s penalty for ${wk.nameOf(culprit.did)} for causing a collision.`), culprit.did);
   }
 };
 
@@ -590,11 +590,11 @@ Engine.deploySC = (race, type, why, wk) => {
   race.scHistory.push({ type, from: race.lap, to: race.lap + left });
   if (type === 'RED') {
     // bandeira vermelha: corrida suspensa, troca de pneus livre e relargada
-    Engine.event(race, 'flag', tr(`BANDEIRA VERMELHA (${why}). Corrida suspensa; equipes podem trocar pneus.`, `RED FLAG (${why}). Race suspended; teams may change tyres.`));
+    Engine.event(race, 'flag', byLang(`BANDEIRA VERMELHA (${why}). Corrida suspensa; equipes podem trocar pneus.`, `RED FLAG (${why}). Race suspended; teams may change tyres.`));
     if (wk) race.cars.filter(c => c.status === 'run').forEach(c => { const nc = Engine.chooseCompound(race, c, wk, race.laps - race.lap); c.stints[c.stints.length - 1].to = race.lap; c.stints.push({ c: nc, from: race.lap, to: null }); c.tyre = { c: nc, wear: 0, age: 0, temp: 70 }; c.used.push(nc); });
     return;
   }
-  Engine.event(race, 'sc', type === 'SC' ? tr(`SAFETY CAR na pista (${why}).`, `SAFETY CAR deployed (${why}).`) : tr(`Safety Car Virtual acionado (${why}).`, `Virtual Safety Car deployed (${why}).`), null, { deploy: true });
+  Engine.event(race, 'sc', type === 'SC' ? byLang(`SAFETY CAR na pista (${why}).`, `SAFETY CAR deployed (${why}).`) : byLang(`Safety Car Virtual acionado (${why}).`, `Virtual Safety Car deployed (${why}).`), null, { deploy: true });
 };
 
 Engine.finishRace = (race, wk) => {

@@ -414,6 +414,22 @@ function autosave() {
   Store.saveGame(SLOT, G).then(where => { UI.lastSave = { at: Date.now(), where }; }).catch(e => { Store.log('error', 'autosave: ' + (e && e.message)); toast('Não foi possível salvar o jogo. Veja Diagnóstico.', 'bad'); });
 }
 
-/* erros inesperados: registra no log e avisa sem derrubar o jogo */
-window.addEventListener('error', (e) => { Store.log('error', `${e.message} @ ${e.filename}:${e.lineno}`); try { toast('Ocorreu um erro inesperado. Ele foi registrado no log.', 'bad'); } catch (x) { /* ignore */ } });
+/* erros inesperados: registra no log (com a pilha) e avisa sem derrubar o jogo.
+   O mesmo erro repetido (ex.: dentro de um laço ao vivo) gera um aviso só e uma linha
+   no log a cada 30 s, com a contagem; nada é escondido: tudo aparece em Diagnóstico. */
+UI.errors = [];
+function reportError(where, e) {
+  const msg = String((e && e.message) || e);
+  const key = where + '|' + msg;
+  const now = Date.now();
+  let rec = UI.errors.find(x => x.key === key);
+  if (!rec) { rec = { key, where, msg, stack: String((e && e.stack) || '').split('\n').slice(0, 6).join(' | '), count: 0, first: now, logged: 0 }; UI.errors.unshift(rec); if (UI.errors.length > 30) UI.errors.length = 30; }
+  rec.count++; rec.last = now;
+  if (now - rec.logged > 30000) {
+    rec.logged = now;
+    try { Store.log('error', `[${where}] ${msg}${rec.count > 1 ? ` (x${rec.count})` : ''} :: ${rec.stack}`); } catch (x) { /* sem log */ }
+    try { toast(`Erro em ${where}. Registrado no log (Diagnóstico).`, 'bad'); } catch (x) { /* ignore */ }
+  }
+}
+window.addEventListener('error', (e) => reportError('interface', e.error || new Error(`${e.message} @ ${e.filename}:${e.lineno}`)));
 window.addEventListener('unhandledrejection', (e) => { Store.log('error', 'promessa: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason)); });

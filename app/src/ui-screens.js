@@ -753,6 +753,8 @@ CHG.logFilter = (el) => { const p = { ...UI.params }; p[el.dataset.k] = el.value
 SCREENS.diag = {
   html() {
     const r = Diag.run(G);
+    const errs = (UI.errors || []).map(x => `<tr><td class="small">${esc(x.where)}</td><td class="small">${esc(x.msg)}</td><td class="r num">${x.count}</td><td class="small muted">${new Date(x.last).toLocaleTimeString()}</td></tr>`).join('');
+    UI._diagErrs = errs ? `<div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Erros desta sessão</h3><span class="small muted">também gravados no log</span></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Onde</th><th>Mensagem</th><th class="r">Vezes</th><th>Última</th></tr></thead><tbody>${errs}</tbody></table></div></div>` : '';
     return `<div class="page-head"><div><div class="eyebrow">Sistema</div><h1>Diagnóstico</h1></div><div class="row"><button class="btn" data-act="diagRepair" ${r.errors.length || r.warns.length ? '' : 'disabled'}>Corrigir automaticamente</button>${Store.native ? '<button class="btn" data-act="openDir" data-w="logs">Abrir logs</button>' : ''}</div></div>
     <div class="grid g4">
       <div class="panel"><div class="panel-b stack"><span class="label">Erros</span><span class="stat-big ${r.errors.length ? 'neg' : 'pos'}">${r.errors.length}</span></div></div>
@@ -764,7 +766,7 @@ SCREENS.diag = {
       ${r.errors.map(e => `<div class="neg">✕ ${esc(e)}</div>`).join('')}${r.warns.map(e => `<div class="acc">! ${esc(e)}</div>`).join('')}
       ${!r.errors.length && !r.warns.length ? '<p class="pos">Tudo consistente.</p>' : ''}
       <p class="small muted">Versão do save: v${G.version}. Semente: ${G.seed}. Modo: ${G.mode === 'observer' ? 'Observador' : 'Manager'}.</p>
-    </div></div>`;
+    </div></div>${UI._diagErrs || ''}`;
   },
 };
 ACT.diagRepair = () => { const f = Diag.repair(G); Store.log('info', 'reparo: ' + f.join('; ')); autosave(); toast(f.length ? f.join('. ') : 'Nada para corrigir.', 'good'); render(); };

@@ -18,6 +18,17 @@ const Smoke = {
         ACT.raceSkip(); await ACT.finishWeekend(); step('GP 1 disputado pela interface');
         for (let i = 0; i < 3; i++) simulateRound();
         step(`${G.season.round} etapas concluídas`);
+        // regressão da 0.7.0 ("tr is not a function"): corrida inteira pelo laço real da tela,
+        // em inglês, no ritmo mais rápido, com o modo de ultrapassagem ativo nos carros
+        I18N.set('en');
+        Career.startWeekend(G); Career.finishPractice(G); Career.runQualifying(G); ACT.startRace();
+        UI.raceSpeed = SPEEDS[SPEEDS.length - 1][0]; UI.racePaused = false; UI.tickStart = performance.now(); scheduleTick();
+        const t0 = Date.now();
+        while (!G.weekend.race.finished && Date.now() - t0 < 180000) { G.weekend.race.cars.forEach(c => { if (c.status === 'run') c.drs = true; }); await new Promise(r => setTimeout(r, 50)); if (UI.racePaused && !G.weekend.race.finished) break; }
+        if (!G.weekend.race.finished) throw new Error(`corrida ao vivo parou na volta ${G.weekend.race.lap}: ${UI.raceError || 'sem erro registrado'}`);
+        if ((UI.errors || []).length) throw new Error('erros na corrida ao vivo: ' + UI.errors.map(e => `${e.where}: ${e.msg}`).join('; '));
+        await ACT.finishWeekend(); I18N.set('pt');
+        step('corrida ao vivo em inglês pelo laço real, sem erros');
         for (const v of ['hub', 'standings', 'calendar', 'team', 'dev', 'finance', 'market', 'analysis', 'paddock', 'log', 'diag', 'history', 'news', 'inbox', 'saves', 'editor']) go(v);
         step('todas as telas renderizadas');
         const d = Diag.run(G); if (d.errors.length) throw new Error('diagnóstico: ' + d.errors.join('; '));

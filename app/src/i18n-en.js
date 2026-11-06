@@ -422,3 +422,5 @@ I18N_PATS.unshift(
   [/^contra$/, 'against'],
   [/^Critério: (.+)$/, (m, a) => `Criterion: ${txIn(a)}`],
 );
+Object.assign(I18N_EN, { 'Simulação pausada por um erro (registrado em Diagnóstico)': 'Simulation paused by an error (logged in Diagnostics)', 'Erros desta sessão': 'Errors in this session', 'também gravados no log': 'also written to the log', 'Onde': 'Where', 'Mensagem': 'Message', 'Vezes': 'Count' });
+I18N_PATS.push([/^Erro em (.+)\. Registrado no log \(Diagnóstico\)\.$/, (m, w) => `Error in ${({ 'interface': 'the interface', 'simulação da corrida': 'the race simulation', 'tela da corrida': 'the race screen', 'mapa da corrida': 'the race map', 'simulação da classificação': 'the qualifying simulation', 'tela da classificação': 'the qualifying screen', 'simulação do treino': 'the practice simulation', 'tela do treino': 'the practice screen' })[w] || w}. Logged (Diagnostics).`]);
