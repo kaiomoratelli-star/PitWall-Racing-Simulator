@@ -23,7 +23,14 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**Calendário por dia, notificações e navegação**
+- O tempo passa dia a dia. A central mostra a data de hoje, os próximos acontecimentos (fim de semana de corrida, projetos e peças) e o botão "Avançar", que pula para o próximo dia com algo relevante. O fim de semana começa na sexta e, depois da corrida, o dia passa a ser a segunda-feira seguinte. A data aparece no topo da tela.
+- Caixa de entrada com prioridade: vermelho para decisões pendentes e amarelo para mensagens importantes não lidas (projeto pronto, peça nova instalada). As duas travam o avanço do tempo até serem resolvidas ou lidas; um aviso na central leva direto para elas.
+- Botão Voltar no topo (e Alt + seta para a esquerda) para retornar à tela anterior.
+- Simular etapas (modo Observador) continua igual: os dias passam sem parar.
+
 **P&D por peça (Fase 4)**
+- Projetos andam em dias: projeto (dias definidos pela peça, ambição e recursos) e depois fabricação, uma peça por carro. Escolha fabricar para 1 ou 2 carros e qual carro recebe a primeira. Até a segunda peça ficar pronta, só um carro tem a evolução (diferença real de ritmo entre os dois carros); dá para fabricar a peça do outro carro depois, sem ocupar vaga de projeto.
 - O projeto "pequeno, médio, grande" virou projeto por peça: asa dianteira, asa traseira, assoalho, sidepods e carenagem, suspensão, chassi, redução de peso, freios, refrigeração, câmbio, gestão térmica de pneus, unidade de potência (só fábrica), eficiência energética, confiabilidade, pit stop e instalações.
 - Cada projeto é configurado: alvo (carro atual, com projeto e fabricação, ou carro do ano seguinte), foco (peças aerodinâmicas: carga, eficiência ou equilíbrio e pneus; mecânicas: desempenho, confiabilidade ou pneus), ambição (conservador, equilibrado ou agressivo) e quanto túnel de vento e CFD usar. A previsão mostra custo, prazo (GPs de projeto + fabricação), ganho por atributo, risco e aproveitamento dos recursos.
 - Túnel de vento e CFD vêm de uma cota por período de 4 GPs, que segue a regra de restrição de testes aerodinâmicos do regulamento (quem terminou atrás tem mais). Peças aerodinâmicas dependem mais do túnel, as mecânicas do CFD; menos recurso que o ideal deixa o projeto mais fraco e mais arriscado.
