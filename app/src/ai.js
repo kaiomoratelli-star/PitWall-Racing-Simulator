@@ -32,6 +32,7 @@ AI.init = (G) => {
 AI.persona = (t) => AI.PERSONAS[(t.ai && t.ai.persona) || 'balanced'] || AI.PERSONAS.balanced;
 
 AI.areaGain = (t, area, money) => {
+  const regMul = AI.G && typeof Regs !== 'undefined' ? Regs.atrFactor(AI.G, t.id) * (area === 'aero' ? Regs.aeroMul(AI.G) : 1) : 1;
   // mesma conversão dinheiro → desempenho dos projetos do jogador (~0,16 ponto por milhão)
   const staffKey = { aero: 'aero', chassis: 'engineering', reliability: 'technical' }[area];
   // eficiência: staff e instalações fazem diferença quando todos gastam até o teto
@@ -41,11 +42,12 @@ AI.areaGain = (t, area, money) => {
   // retornos decrescentes medidos contra a média do grid (não contra um valor fixo)
   const ref = (AI.gridAvg && AI.gridAvg[area]) || 85;
   const dimin = clamp(1 - (cur - ref) / 70, 0.8, 1.1);
-  return money * 0.085 / (AI.costScale || 1) * sk * fac * dimin;
+  return money * 0.085 / (AI.costScale || 1) * sk * fac * dimin * (area === 'reliability' ? 1 : regMul);
 };
 
 /* uma rodada de decisões por corrida para cada equipe da IA */
 AI.raceTick = (G) => {
+  AI.G = G;
   AI.costScale = Career.costScale(G);
   AI.gridAvg = {}; ['aero', 'chassis', 'reliability'].forEach(k => (AI.gridAvg[k] = avg(G.db.teams.map(x => x.car[k]))));
   const races = G.season.calendar.length;
@@ -59,7 +61,7 @@ AI.raceTick = (G) => {
     const income = t.budget * 0.82 / races; // receita livre depois de impostos, juros e custos fora do teto
     const salaries = sum(Career.teamDrivers(G, t.id).map(d => d.salary)) / races;
     const staffCost = (t.staffList ? Staff.payroll(t) : sum(Object.values(t.staff)) * 0.1) / races;
-    const ops = (1.25 + t.facilities * 0.006) * (t.staffList ? Staff.opsMul(t) : 1);
+    const ops = (1.25 + t.facilities * 0.006 + CircuitGen.freight(CircuitGen.legKm(G))) * (t.staffList ? Staff.opsMul(t) : 1);
     const engine = t.works ? 0 : Engine.engineOf(G.db, t).cost / races;
     t.cash = +(t.cash + income - salaries - staffCost - ops - engine).toFixed(3);
     t.spent += ops;
@@ -79,7 +81,8 @@ AI.raceTick = (G) => {
       // foco no próximo ano: quem está longe do objetivo na reta final pensa no carro novo
       const pos = sc.findIndex(x => x.tid === t.id) + 1;
       const hopeless = late > 0.55 && (pos > 3 || P.ambition < 0.5);
-      const focus = late > 0.45 ? clamp((hopeless ? 0.6 : 0.25) + (late - 0.45), 0, 0.85) : 0;
+      const nys = (typeof Regs !== 'undefined' ? Regs.r(G).nextYearStartPct : 45) / 100;
+      const focus = late > nys ? clamp((hopeless ? 0.6 : 0.25) + (late - nys), 0, 0.85) : 0;
       let g = AI.areaGain(t, area, spend) * clamp(RNG.normal(1, 0.35 + P.risk * 0.2), -0.2, 2.2);
       const now = g * (area === 'reliability' ? 1 : 1 - focus);
       const bank = area === 'reliability' ? 0 : g * focus * 1.3;

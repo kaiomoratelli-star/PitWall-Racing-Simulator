@@ -99,9 +99,10 @@ Engine.topSpeed = (db, team, track, setupQ, boost, w) => {
   return Math.round(base + (boost ? 11 : 0) - w * 18 + RNG.normal(0, 1.6) + (setupQ - 0.7) * 6);
 };
 /* bateria: 2026 com metade da potência vinda do elétrico */
-Engine.socStep = (car, drv, mode, boost, sc) => {
-  const en = (drv.energy ?? 75) / 100;
-  let d = mode === 'push' ? -9 + en * 3 : mode === 'save' ? 7 + en * 2 : -0.5 + en * 1.5;
+Engine.socStep = (car, drv, mode, boost, sc, share = 50, carEnergy = 80) => {
+  const en = (drv.energy ?? 75) / 100 * 0.6 + carEnergy / 100 * 0.4;
+  const scale = share / 50;
+  let d = (mode === 'push' ? -9 + en * 3 : mode === 'save' ? 7 + en * 2 : -0.5 + en * 1.5) * scale;
   if (boost) d -= 4;
   if (sc) d = 9;
   car.soc = clamp((car.soc ?? 100) + d, 0, 100);

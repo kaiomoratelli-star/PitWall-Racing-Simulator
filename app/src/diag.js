@@ -39,7 +39,8 @@ Diag.run = (G) => {
   if (!G.season.calendar.length) errors.push('Calendário vazio');
   // pontuação: tabela = soma das corridas
   const fromRes = {}, fromResC = {};
-  G.season.results.forEach(r => [...r.cls, ...(r.sprint || [])].forEach(c => { fromRes[c.did] = (fromRes[c.did] || 0) + c.pts; fromResC[c.tid] = (fromResC[c.tid] || 0) + c.pts; }));
+  G.season.results.forEach(r => [...r.cls, ...(r.sprint || []), ...(r.bonus || [])].forEach(c => { fromRes[c.did] = (fromRes[c.did] || 0) + c.pts; fromResC[c.tid] = (fromResC[c.tid] || 0) + c.pts; }));
+  if (G.weekend && G.weekend.bonus) G.weekend.bonus.forEach(c => { fromRes[c.did] = (fromRes[c.did] || 0) + c.pts; fromResC[c.tid] = (fromResC[c.tid] || 0) + c.pts; });
   if (G.weekend && G.weekend.sprintResult) G.weekend.sprintResult.cls.forEach(c => { fromRes[c.did] = (fromRes[c.did] || 0) + c.pts; fromResC[c.tid] = (fromResC[c.tid] || 0) + c.pts; });
   Object.entries(fromRes).forEach(([did, p]) => { if ((G.season.standD[did] || 0) !== p) errors.push(`Pontos de ${(Career.driver(G, did) || {}).name || did} não batem (${G.season.standD[did]} vs ${p})`); });
   Object.entries(fromResC).forEach(([tid, p]) => { if ((G.season.standC[tid] || 0) !== p) errors.push(`Pontos da equipe ${tid} não batem`); });
@@ -72,7 +73,7 @@ Diag.repair = (G) => {
   const sd = {}, sc = {};
   G.db.teams.forEach(t => (sc[t.id] = 0));
   Object.keys(G.season.standD).forEach(k => (sd[k] = 0));
-  G.season.results.forEach(r => [...r.cls, ...(r.sprint || [])].forEach(c => { sd[c.did] = (sd[c.did] || 0) + c.pts; sc[c.tid] = (sc[c.tid] || 0) + c.pts; }));
+  G.season.results.forEach(r => [...r.cls, ...(r.sprint || []), ...(r.bonus || [])].forEach(c => { sd[c.did] = (sd[c.did] || 0) + c.pts; sc[c.tid] = (sc[c.tid] || 0) + c.pts; }));
   if (G.weekend && G.weekend.sprintResult) G.weekend.sprintResult.cls.forEach(c => { sd[c.did] = (sd[c.did] || 0) + c.pts; sc[c.tid] = (sc[c.tid] || 0) + c.pts; });
   if (JSON.stringify(sd) !== JSON.stringify(G.season.standD) || JSON.stringify(sc) !== JSON.stringify(G.season.standC)) { G.season.standD = sd; G.season.standC = sc; fixed.push('Tabelas recalculadas a partir dos resultados'); }
   G.season.calendar = G.season.calendar.filter(id => Career.track(G, id));

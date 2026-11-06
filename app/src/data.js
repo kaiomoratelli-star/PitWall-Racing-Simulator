@@ -260,6 +260,8 @@ function normalizeDb(src) {
     overtaking: num(t.overtaking, .5), tyreStress: num(t.tyreStress, 1), rain: num(t.rain, .15), scFactor: num(t.scFactor, 1), pitLoss: num(t.pitLoss, 21), drs: num(t.drs, 2), street: !!t.street,
     shapeSeed: num(t.shapeSeed, hashStr(String(t.id || i)) % 100000),
   }));
+  db.teams.forEach(t => { if (t.car.cooling == null) t.car.cooling = 80; if (t.car.energy == null) t.car.energy = 80; });
+  if (typeof Regs !== 'undefined') Regs.ensure(db.rules);
   const trids = new Set(db.tracks.map(t => t.id));
   db.calendar = (db.calendar && db.calendar.length ? db.calendar : db.tracks.map(t => t.id)).filter(id => trids.has(id));
   return db;

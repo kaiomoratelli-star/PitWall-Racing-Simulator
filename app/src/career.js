@@ -166,6 +166,7 @@ Career.expectedRanks = (G) => {
 /* ---------- temporada ---------- */
 Career.startSeason = (G, first = false) => {
   const year = G.season ? G.season.year + 1 : G.db.rules.startYear;
+  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (v && v.reset) G.db.teams.forEach(t => { t.car.aero = +(82 + (t.car.aero - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); t.car.chassis = +(82 + (t.car.chassis - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); }); }
   const calendar = (G.db.calendar && G.db.calendar.length ? G.db.calendar : G.db.tracks.map(t => t.id)).filter(id => Career.track(G, id));
   G.season = {
     year, round: 0, calendar, results: [],
@@ -287,6 +288,8 @@ Career.runQualifying = (G) => {
   wk.phase = 'strategy';
   if (wk.sprint && !wk.sprintResult) Career.runSprint(G);
   const pole = q.order[0];
+  const pp = G.db.rules.regs ? G.db.rules.regs.polePoints || 0 : 0;
+  if (pp) { const pt = Career.driver(G, pole).team; wk.bonus = [{ did: pole, tid: (q.res[pole] || {}).tid || pt, pts: pp }]; G.season.standD[pole] = (G.season.standD[pole] || 0) + pp; G.season.standC[wk.bonus[0].tid] = (G.season.standC[wk.bonus[0].tid] || 0) + pp; if (G.season.stats[pole]) G.season.stats[pole].points += pp; }
   G.season.stats[pole] && G.season.stats[pole].poles++;
   const pd = Career.driver(G, pole); if (pd) pd.career.poles++;
   // estratégia padrão para o jogador
@@ -306,7 +309,9 @@ Career.runSprint = (G) => {
   const ctx = Career.ctx(G);
   const entries = Career.entries(G);
   const w0 = wk.weather.wet[1] || 0;
-  const grid = wk.quali.order.map(did => ({ ...entries.find(x => x.did === did), startTyre: w0 > 0.62 ? 'W' : w0 > 0.2 ? 'I' : 'M', auto: true }));
+  const rev = G.db.rules.regs ? G.db.rules.regs.reverseGrid || 0 : 0;
+  const order = rev ? [...wk.quali.order.slice(0, rev).reverse(), ...wk.quali.order.slice(rev)] : wk.quali.order;
+  const grid = order.map(did => ({ ...entries.find(x => x.did === did), startTyre: w0 > 0.62 ? 'W' : w0 > 0.2 ? 'I' : 'M', auto: true }));
   const race = Engine.createRace({ ...ctx, weather: wk.weather }, grid, { sprint: true });
   let guard = 0;
   while (!race.finished && guard++ < 200) Engine.stepLap(race, { ...ctx, weather: wk.weather });
@@ -393,11 +398,14 @@ Career.finishWeekend = (G) => {
   G.lastRace = {
     round: season.round, year: season.year, trackId: track.id, gp: track.gp, laps: race.laps, wet: race.wet, scHistory: race.scHistory,
     events: race.events,
-    cars: race.cars.map(c => ({ did: c.did, tid: c.tid, grid: c.grid, pos: c.pos, status: c.status, times: c.times, positions: c.positions, gaps: c.gaps, stints: c.stints, best: c.best, pits: c.pits, overtakes: c.overtakes, setupQ: c.setupQ })),
+    cars: race.cars.map(c => ({ did: c.did, tid: c.tid, grid: c.grid, pos: c.pos, status: c.status, times: c.times, positions: c.positions, gaps: c.gaps, stints: c.stints, best: c.best, pits: c.pits, overtakes: c.overtakes, setupQ: c.setupQ, secs: c.secs, bestS: c.bestS, vmax: c.vmax })),
+    bestS: race.bestS, weather: { air: wk.weather.air ? wk.weather.air[1] : null, track: wk.weather.trackT ? wk.weather.trackT[1] : null },
     quali: wk.quali,
   };
 
   Career.record(G, 'corrida', `${track.gp}: vitória de ${Career.driver(G, summary.winner).name} (${Career.team(G, cls[0].tid).name}), pole de ${Career.driver(G, summary.pole).name}.`, { drivers: [summary.winner], teams: [cls[0].tid] });
+  if (wk.bonus) summary.bonus = wk.bonus;
+  if (typeof Regs !== 'undefined') Regs.puTick(G, race);
   const report = Career.postRaceEffects(G, summary, race);
   season.round++;
   G.weekend = null;
@@ -457,6 +465,8 @@ Career.postRaceEffects = (G, summary, race) => {
   const staffCost = Staff.payroll(team) / races;
   Career.ledger(G, 'Folha da equipe técnica', -staffCost, 'salário');
   Career.ledger(G, `Logística e operação — ${track.gp}`, -(1.25 + team.facilities * 0.006 + (track.street ? 0.2 : 0)) * Staff.opsMul(team), 'operação');
+  const legKm = CircuitGen.legKm(G);
+  if (legKm) Career.ledger(G, `Frete e viagem (${legKm.toLocaleString('pt-BR')} km)`, -CircuitGen.freight(legKm) * Staff.opsMul(team), 'operação');
   Career.ledger(G, 'Arrendamento de motor', -(Engine.engineOf(G.db, team).cost / races), 'motor');
   my.forEach(r => {
     if (r.status === 'dnf' && /Acidente|Colisão/.test(r.reason || '')) {
@@ -539,14 +549,25 @@ Career.makeSponsor = (G, team, name, tier) => {
 };
 
 /* ---------- P&D ---------- */
+/* áreas de P&D: campo afetado, staff responsável (cargo), multiplicador e impacto na confiabilidade */
 Career.AREAS = {
-  aero: { name: 'Aerodinâmica', staff: 'aero', field: 'aero' },
-  chassis: { name: 'Chassi e suspensão', staff: 'engineering', field: 'chassis' },
-  reliability: { name: 'Confiabilidade', staff: 'technical', field: 'reliability' },
-  tyreCare: { name: 'Gestão térmica de pneus', staff: 'engineering', field: 'tyreCare' },
-  pitCrew: { name: 'Treino de pit stop', staff: 'technical', field: 'pitCrew' },
-  facilities: { name: 'Instalações (túnel, simulador)', staff: 'technical', field: 'facilities' },
+  aero: { name: 'Aerodinâmica geral', staff: 'aero', role: 'aero', field: 'aero', aeroReg: true, rel: -0.1 },
+  floor: { name: 'Assoalho', staff: 'aero', role: 'aero', field: 'aero', mul: 1.15, aeroReg: true, rel: -0.15 },
+  wings: { name: 'Asas dianteira e traseira', staff: 'aero', role: 'aero', field: 'aero', mul: 0.9, aeroReg: true },
+  chassis: { name: 'Chassi', staff: 'engineering', role: 'chiefEngineer', field: 'chassis', atr: true },
+  suspension: { name: 'Suspensão', staff: 'engineering', role: 'chiefEngineer', field: 'chassis', mul: 0.9, atr: true },
+  weight: { name: 'Redução de peso', staff: 'engineering', role: 'engineeringDir', field: 'chassis', mul: 0.7, rel: -0.2 },
+  brakes: { name: 'Sistema de freios', staff: 'technical', role: 'engineeringDir', field: 'chassis', mul: 0.5, rel: 0.25 },
+  cooling: { name: 'Refrigeração', staff: 'technical', role: 'technical', field: 'cooling', rel: 0.3 },
+  engine: { name: 'Motor (unidade de potência)', staff: 'technical', role: 'engine', field: 'engineBonus', mul: 0.5, works: true, rel: -0.2 },
+  gearbox: { name: 'Câmbio', staff: 'technical', role: 'engineeringDir', field: 'reliability', mul: 0.8, chassisToo: 0.2 },
+  energy: { name: 'Eficiência energética', staff: 'technical', role: 'engine', field: 'energy' },
+  reliability: { name: 'Confiabilidade', staff: 'technical', role: 'technical', field: 'reliability' },
+  tyreCare: { name: 'Gestão térmica de pneus', staff: 'engineering', role: 'performance', field: 'tyreCare' },
+  pitCrew: { name: 'Treino de pit stop', staff: 'technical', role: 'chiefMechanic', field: 'pitCrew', team: true },
+  facilities: { name: 'Instalações (túnel, simulador)', staff: 'technical', role: 'operations', field: 'facilities', team: true },
 };
+Career.carVal = (t, A) => A.team ? t[A.field] : A.field === 'engineBonus' ? (t.car.engineBonus || 0) + 85 : (t.car[A.field] ?? 80);
 Career.SIZES = {
   small: { name: 'Pequeno', cost: 2.8, races: 2, min: 0.2, max: 0.65 },
   medium: { name: 'Médio', cost: 6.5, races: 4, min: 0.55, max: 1.45 },
@@ -559,24 +580,28 @@ Career.costScale = (G) => clamp((G.db.rules.budgetCap || 145) / 145, 0.4, 4);
 Career.projectQuote = (G, area, size) => {
   const team = Career.team(G);
   const A = Career.AREAS[area], S = Career.SIZES[size];
-  const staff = team.staff[A.staff];
-  const cur = A.field === 'pitCrew' || A.field === 'facilities' ? team[A.field] : team.car[A.field];
-  const ref = avg(G.db.teams.map(t => (A.field === 'pitCrew' || A.field === 'facilities' ? t[A.field] : t.car[A.field])));
+  const staffR = team.staffList && A.role ? Staff.r(team, A.role, team.staff[A.staff]) : team.staff[A.staff];
+  const staffP = team.staffList && A.role ? Staff.get(team, A.role) : null;
+  const cur = Career.carVal(team, A);
+  const ref = avg(G.db.teams.map(t => Career.carVal(t, A)));
   const dimin = clamp(1 - (cur - ref) / 50, 0.55, 1.2);
-  const sk = (0.45 + staff / 100 * 0.75) * (0.8 + team.facilities / 250);
-  const costMul = area === 'facilities' ? 1.8 : area === 'pitCrew' ? 0.6 : 1;
+  const atr = (A.aeroReg || A.atr) && typeof Regs !== 'undefined' ? Regs.atrFactor(G, team.id) : 1;
+  const aeroReg = A.aeroReg && typeof Regs !== 'undefined' ? Regs.aeroMul(G) : 1;
+  const sk = (0.45 + staffR / 100 * 0.75) * (0.8 + team.facilities / 250) * atr * aeroReg * (A.mul || 1);
+  const costMul = area === 'facilities' ? 1.8 : area === 'pitCrew' ? 0.6 : area === 'engine' ? 1.4 : 1;
   return {
     area, size, name: `${A.name} — pacote ${S.name.toLowerCase()}`,
     cost: +(S.cost * costMul * Career.costScale(G)).toFixed(1), races: S.races + (area === 'facilities' ? 2 : 0),
     min: +(S.min * sk * dimin).toFixed(2), max: +(S.max * sk * dimin).toFixed(2),
-    risk: Math.round(clamp(18 - staff / 8 + (size === 'large' ? 6 : 0), 3, 30)),
+    risk: Math.round(clamp(18 - staffR / 8 + (size === 'large' ? 6 : 0) + (A.rel < 0 ? 3 : 0), 3, 32)),
+    staffName: staffP ? staffP.name : null, rel: A.rel || 0, atr: +(atr * 100).toFixed(0), blocked: A.works && !team.works ? 'Só equipes de fábrica desenvolvem o motor.' : null,
   };
 };
-
 Career.startProject = (G, area, size) => {
   const team = Career.team(G);
   if (G.projects.length >= Career.slots(team)) return 'Sem vagas de projeto. Aumente as instalações ou termine um projeto.';
   const q = Career.projectQuote(G, area, size);
+  if (q.blocked) return q.blocked;
   if (G.finances.spent + q.cost > G.db.rules.budgetCap) return `O projeto estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
   if (G.finances.balance - q.cost < -15) return 'Caixa insuficiente para este projeto.';
   Career.ledger(G, `P&D: ${q.name}`, -q.cost, 'P&D');
@@ -597,10 +622,13 @@ Career.advanceProjects = (G, report) => {
     const failed = RNG.chance(p.risk / 100);
     if (failed) gain = RNG.range(-0.4, p.min * 0.4);
     let now = gain, bank = 0;
-    if (p.area === 'aero' || p.area === 'chassis') { now = gain * (1 - focus); bank = gain * focus * 1.35; }
+    if (A.field === 'aero' || A.field === 'chassis') { now = gain * (1 - focus); bank = gain * focus * 1.35; }
     G.nextYearBank += bank;
-    if (A.field === 'pitCrew' || A.field === 'facilities') team[A.field] = +clamp(team[A.field] + now * (A.field === 'facilities' ? 1.6 : 1.4), 30, 100).toFixed(1);
-    else team.car[A.field] = +clamp(team.car[A.field] + now, 30, A.field === 'reliability' || A.field === 'tyreCare' ? 99 : 110).toFixed(2);
+    if (A.team) team[A.field] = +clamp(team[A.field] + now * (A.field === 'facilities' ? 1.6 : 1.4), 30, 100).toFixed(1);
+    else if (A.field === 'engineBonus') team.car.engineBonus = +((team.car.engineBonus || 0) + now).toFixed(2);
+    else team.car[A.field] = +clamp((team.car[A.field] ?? 80) + now, 30, ['reliability', 'tyreCare', 'cooling', 'energy'].includes(A.field) ? 99 : 110).toFixed(2);
+    if (A.chassisToo) team.car.chassis = +(team.car.chassis + now * A.chassisToo).toFixed(2);
+    if (A.rel && !failed) team.car.reliability = +clamp(team.car.reliability + A.rel * Career.SIZES[p.size].races / 2, 40, 99).toFixed(2);
     const txt = failed
       ? `O projeto "${p.name}" decepcionou: ganho de apenas ${now.toFixed(2)} ponto(s).`
       : `Projeto "${p.name}" concluído: +${now.toFixed(2)} em ${A.name.toLowerCase()}${bank ? ` (+${bank.toFixed(2)} guardado para o carro do ano que vem)` : ''}.`;
@@ -810,7 +838,7 @@ Career.endSeason = (G) => {
   });
   AI.applyNextYear(G);
   if (team && G.nextYearBank > 0) { team.car.aero += G.nextYearBank * 0.55; team.car.chassis += G.nextYearBank * 0.45; summary.bankUsed = +G.nextYearBank.toFixed(2); G.nextYearBank = 0; }
-  G.db.engines.forEach(e => { e.power = +clamp(e.power + RNG.normal(0.3, reg ? 2.5 : 1), 75, 100).toFixed(1); e.reliability = +clamp(e.reliability + RNG.normal(0.5, 1.4), 70, 98).toFixed(1); });
+  if (!(G.db.rules.regs && G.db.rules.regs.engineFreeze)) G.db.engines.forEach(e => { e.power = +clamp(e.power + RNG.normal(0.3, reg ? 2.5 : 1), 75, 100).toFixed(1); e.reliability = +clamp(e.reliability + RNG.normal(0.5, 1.4), 70, 98).toFixed(1); });
   // pilotos: idade, contratos, aposentadoria
   const retired = [];
   G.db.drivers.forEach(d => {
