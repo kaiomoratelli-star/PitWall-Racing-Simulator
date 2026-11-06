@@ -5,18 +5,18 @@ Uma produção **Moratelli Game Company (MGC)**. Dono: Kaio Moratelli.
 O marketing é feito em um Projeto separado no claude.ai, com os arquivos de `docs/marketing/` e `docs/brand/`.
 
 ## Regras do dono
-- Tudo em português do Brasil (interface, textos, commits, documentação).
+- Tudo em português do Brasil (interface, textos, commits, documentação). O jogo também tem inglês: todo texto novo da interface precisa de uma linha em `app/src/i18n-en.js`, e frases montadas no núcleo usam `tr(pt, en)` (ver `docs/ARQUITETURA.md`, seção Idiomas).
 - Dados reais são permitidos e desejados: pilotos, equipes, patrocinadores, imprensa, imagens. O jogo ainda não é vendido; no futuro será pago (não escrever que é gratuito). Antes de vender, imagens e marcas de terceiros precisarão de licença ou substituição.
-- Versão atual: 0.6 (em desenvolvimento).
+- Versão atual: 0.7 (em desenvolvimento).
 - Não usar a palavra "IA" na interface do jogo.
 - Escândalos sempre com pessoas e organizações fictícias.
-- Identidade visual: vermelho `#E10600`, carbono `#15151E`, Titillium Web 900 itálico e IBM Plex Mono (ver `docs/marketing/2-GUIA-DA-MARCA.md`).
+- Identidade visual: vermelho `#E10600`, carbono `#15151E`, Titillium Web 900 itálico e IBM Plex Mono (ver `docs/marketing/2-GUIA-DA-MARCA.md`). Títulos em caixa alta no padrão F1; se os arquivos da Formula1 Display estiverem em `app/assets/fonts`, o build usa.
 - Quando um recurso novo do jogo for criado, atualize `docs/marketing/3-SOBRE-O-JOGO.md` e o `CHANGELOG.md`.
 
 ## Estrutura
 - `app/src/`: código do jogo em JS puro. A ordem de carregamento fica em `scripts/modules.js` e o build é `node scripts/build.js`.
-  - Núcleo: `util`, `data`, `engine`, `physics`, `regs`, `circuitgen`, `migrate`, `ai`, `staff`, `market`, `career`, `events`, `media`, `cats`, `diag`.
-  - Interface: `ui-*.js`, `sound.js`, `main.js`, `styles.css`.
+  - Núcleo: `util`, `data`, `engine`, `physics`, `regs`, `setup`, `practice`, `narrator`, `quali`, `racelog`, `circuitgen`, `migrate`, `ai`, `staff`, `market`, `career`, `events`, `media`, `cats`, `sisters`, `council`, `lang-en`, `diag`.
+  - Interface: `ui-*.js`, `i18n.js`, `i18n-en.js`, `sound.js`, `main.js`, `styles.css`.
 - `app/data/`: dados reais gerados por scripts. Não editar à mão; usar `scripts/import_real_data.py`, `import_records.py` e `import_categories.py`.
 - `desktop/`: Electron (janela, tela de abertura, saves em `%APPDATA%`, logs).
 - `build/`: ícone, imagens do instalador NSIS e `installer.nsh`. Gerados por `node scripts/make-brand.js`.
