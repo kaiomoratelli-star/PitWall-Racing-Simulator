@@ -65,7 +65,7 @@ Store.cloudDelete = async (key) => {
 
 Store.metaOf = (G) => {
   const t = Career.isObs(G) ? null : Career.team(G);
-  return { player: G.player.name, team: t ? t.name : 'Modo Observador', color: t ? t.color : '#ffb81c', mode: G.mode, year: G.season.year, round: G.season.round, total: G.season.calendar.length, seed: G.seed };
+  return { player: G.player.name, team: t ? t.name : 'Modo Observador', color: t ? t.color : '#e10600', mode: G.mode, year: G.season.year, round: G.season.round, total: G.season.calendar.length, seed: G.seed };
 };
 
 /* ---- API do jogo ---- */

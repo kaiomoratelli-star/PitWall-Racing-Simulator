@@ -50,7 +50,9 @@ const NAV = [
   ['g', 'Dados'],
   ['analysis', 'Análise de dados', 'M3 3v18h18M7 15l4-4 3 3 5-6'],
   ['news', 'Notícias', 'M4 5h13v14H6a2 2 0 0 1-2-2zm13 3h3v9a2 2 0 0 1-2 2'],
-  ['history', 'Histórico', 'M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5'],
+  ['history', 'Minha carreira', 'M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5'],
+  ['seasons', 'Temporadas desde 1950', 'M4 4h16v16H4zM4 9h16M9 4v16'],
+  ['hall', 'Hall da Fama', 'M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4m10-4h3a3 3 0 0 1-3 4'],
   ['g', 'Sistema'],
   ['editor', 'Editor da base', 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4'],
   ['saves', 'Salvar e opções', 'M5 3h11l3 3v15H5zM8 3v5h7V3M8 14h8'],
@@ -146,19 +148,37 @@ function shellObsHtml(inner) {
   </div>`;
 }
 
+/* ---------- imagens reais (empacotadas na versão desktop) ---------- */
+const ACCENT = '#E10600';
+function imgUrl(p) { return (typeof HAS_IMG !== 'undefined' && HAS_IMG && p) ? 'assets/img/' + p : null; }
+function initials(name) { return String(name || '?').split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
+function headshot(d, cls = '') {
+  const u = d && imgUrl(d.img);
+  const tc = d && d.team && G ? teamColor(d.team) : '#3a3a44';
+  if (u) return `<span class="hs ${cls}" style="--tc:${tc}"><img src="${u}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg');this.remove()"></span>`;
+  return `<span class="hs noimg ${cls}" style="--tc:${tc}"><b>${esc(initials(d && d.name))}</b></span>`;
+}
+function teamLogo(t, cls = '') {
+  const u = t && imgUrl(t.logo);
+  if (u) return `<span class="tlogo ${cls}" style="--tc:${t.color}"><img src="${u}" alt="" loading="lazy" onerror="this.remove()"></span>`;
+  return `<span class="tlogo txt ${cls}" style="--tc:${t ? t.color : '#555'}">${esc(t ? t.short : '')}</span>`;
+}
+function carImg(t, cls = '') { const u = t && imgUrl(t.carImg); return u ? `<img class="carimg ${cls}" src="${u}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()">` : ''; }
+
 /* ---------- componentes ---------- */
 function teamColor(tid) { const t = G ? Career.team(G, tid) : null; return t ? t.color : '#888'; }
 function dName(did, full = false) {
   const d = Career.driver(G, did);
   if (!d) return esc(did);
-  return esc(full ? d.name : d.name.split(' ').slice(-1)[0]);
+  return esc(full ? d.name : shortName(d));
 }
-function rawName(did) { const d = Career.driver(G, did); return d ? d.name.split(' ').slice(-1)[0] : String(did); }
+function shortName(d) { return d.lastName || d.name.replace(/\s+(Jr\.?|Sr\.?|II|III)$/i, '').split(' ').slice(-1)[0]; }
+function rawName(did) { const d = Career.driver(G, did); return d ? shortName(d) : String(did); }
 function dTag(did, full = true) {
   const d = Career.driver(G, did);
   if (!d) return esc(did);
   const tc = d.team ? teamColor(d.team) : '#556';
-  return `<span class="row lnk" style="gap:7px;flex-wrap:nowrap" data-act="driverPage" data-id="${esc(d.id)}" title="Ver carreira"><span class="tcolor" style="background:${tc}"></span><span>${esc(full ? d.name : d.name.split(' ').slice(-1)[0])}</span></span>`;
+  return `<span class="row lnk" style="gap:7px;flex-wrap:nowrap" data-act="driverPage" data-id="${esc(d.id)}" title="Ver carreira"><span class="tcolor" style="background:${tc}"></span><span>${esc(full ? d.name : shortName(d))}</span></span>`;
 }
 function tTag(tid) {
   const t = Career.team(G, tid);
@@ -259,8 +279,16 @@ ACT.toggleSeries = (el) => {
 /* ---------- mapa de pista procedural ---------- */
 const TRACK_CACHE = {};
 function trackPath(track) {
-  const key = track.id + ':' + track.shapeSeed;
+  const key = track.id + ':' + track.shapeSeed + ':' + (track.shape ? track.shape.length : 0);
   if (TRACK_CACHE[key]) return TRACK_CACHE[key];
+  if (track.shape && track.shape.length > 8) {
+    // traçado real (coordenadas geográficas do circuito)
+    const norm = track.shape.map(p => [p[0], p[1]]);
+    const w = Math.max(...norm.map(p => p[0])), h = Math.max(...norm.map(p => p[1]));
+    const cum = [0];
+    for (let i = 1; i <= norm.length; i++) { const a = norm[i - 1], b = norm[i % norm.length]; cum.push(cum[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
+    return (TRACK_CACHE[key] = { pts: norm, cum, len: cum[cum.length - 1], w, h, real: true });
+  }
   const r = localRng(track.shapeSeed || hashStr(track.id));
   const n = 9 + Math.floor(r() * 6);
   const pts = [];
@@ -316,15 +344,20 @@ function drawTrack(canvas, track, cars, opts = {}) {
   const P = (p) => [ox + p[0] * s, oy + p[1] * s];
   const path = () => { ctx.beginPath(); tp.pts.forEach((p, i) => { const q = P(p); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.closePath(); };
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  path(); ctx.strokeStyle = opts.wet ? '#24384f' : '#2a3442'; ctx.lineWidth = opts.thick || 14; ctx.stroke();
-  path(); ctx.strokeStyle = '#0d1015'; ctx.lineWidth = (opts.thick || 14) - 5; ctx.stroke();
-  path(); ctx.strokeStyle = opts.lineColor || 'rgba(233,237,242,.55)'; ctx.lineWidth = 1.4; ctx.setLineDash([]); ctx.stroke();
+  if (opts.outline) {
+    path(); ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = (opts.thick || 10) + 6; ctx.stroke();
+    path(); ctx.strokeStyle = opts.outline; ctx.lineWidth = opts.thick || 10; ctx.stroke();
+  } else {
+    path(); ctx.strokeStyle = opts.wet ? '#26334a' : '#38383f'; ctx.lineWidth = opts.thick || 14; ctx.stroke();
+    path(); ctx.strokeStyle = '#15151e'; ctx.lineWidth = (opts.thick || 14) - 5; ctx.stroke();
+    path(); ctx.strokeStyle = opts.lineColor || 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; ctx.setLineDash([]); ctx.stroke();
+  }
   // setores
   [0.33, 0.66].forEach(f => { const q = P(trackPointAt(tp, f)); ctx.fillStyle = '#556172'; ctx.beginPath(); ctx.arc(q[0], q[1], 2.5, 0, Math.PI * 2); ctx.fill(); });
   // largada/chegada
   const sf = P(trackPointAt(tp, 0)), sf2 = P(trackPointAt(tp, 0.004));
   const ang = Math.atan2(sf2[1] - sf[1], sf2[0] - sf[0]) + Math.PI / 2;
-  ctx.strokeStyle = '#ffb81c'; ctx.lineWidth = 3;
+  ctx.strokeStyle = opts.outline ? '#15151e' : ACCENT; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(sf[0] - Math.cos(ang) * 11, sf[1] - Math.sin(ang) * 11); ctx.lineTo(sf[0] + Math.cos(ang) * 11, sf[1] + Math.sin(ang) * 11); ctx.stroke();
   if (opts.revealLen != null) {
     // animação de desenho (tela título)
@@ -333,9 +366,9 @@ function drawTrack(canvas, track, cars, opts = {}) {
     const q = P(trackPointAt(tp, c.frac));
     ctx.beginPath(); ctx.arc(q[0], q[1], c.me ? 6.5 : 5, 0, Math.PI * 2);
     ctx.fillStyle = c.color; ctx.fill();
-    ctx.lineWidth = c.me ? 2.5 : 1.2; ctx.strokeStyle = c.me ? '#ffb81c' : '#0d1015'; ctx.stroke();
+    ctx.lineWidth = c.me ? 2.5 : 1.2; ctx.strokeStyle = c.me ? '#ffffff' : '#15151e'; ctx.stroke();
     if (c.label) {
-      ctx.font = '600 11px "IBM Plex Mono", monospace'; ctx.fillStyle = c.me ? '#ffb81c' : 'rgba(233,237,242,.8)';
+      ctx.font = '700 11px "Titillium Web", sans-serif'; ctx.fillStyle = c.me ? '#ffffff' : 'rgba(255,255,255,.75)';
       ctx.fillText(c.label, q[0] + 8, q[1] - 7);
     }
   });

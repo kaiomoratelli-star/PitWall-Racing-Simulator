@@ -23,3 +23,9 @@ npm run test:smoke # testa o aplicativo real
 npm run dist       # gera o instalador (no Windows)
 ```
 Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md) e próximos passos em [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## Créditos dos dados
+- Resultados, pilotos, equipes e circuitos de 1950 até hoje: [f1db](https://github.com/f1db/f1db) (CC BY 4.0).
+- Fotos de pilotos, carros, logos e mapas oficiais: formula1.com (uso pessoal, sem fins comerciais).
+- Geometria real dos circuitos: [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT).
+- Para atualizar os dados: `python3 scripts/import_real_data.py`.

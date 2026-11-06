@@ -34,14 +34,20 @@ AI.persona = (t) => AI.PERSONAS[(t.ai && t.ai.persona) || 'balanced'] || AI.PERS
 AI.areaGain = (t, area, money) => {
   // mesma conversão dinheiro → desempenho dos projetos do jogador (~0,16 ponto por milhão)
   const staffKey = { aero: 'aero', chassis: 'engineering', reliability: 'technical' }[area];
-  const sk = 0.7 + (t.staff[staffKey] || 75) / 100 * 0.5;
+  // eficiência: staff e instalações fazem diferença quando todos gastam até o teto
+  const sk = 0.3 + (t.staff[staffKey] || 75) / 100 * 0.9;
+  const fac = 0.6 + (t.facilities || 70) / 200;
   const cur = t.car[area];
-  const dimin = clamp(1 - (cur - 82) / 40, 0.3, 1.25);
-  return money * 0.15 * sk * dimin;
+  // retornos decrescentes medidos contra a média do grid (não contra um valor fixo)
+  const ref = (AI.gridAvg && AI.gridAvg[area]) || 85;
+  const dimin = clamp(1 - (cur - ref) / 70, 0.8, 1.1);
+  return money * 0.085 / (AI.costScale || 1) * sk * fac * dimin;
 };
 
 /* uma rodada de decisões por corrida para cada equipe da IA */
 AI.raceTick = (G) => {
+  AI.costScale = Career.costScale(G);
+  AI.gridAvg = {}; ['aero', 'chassis', 'reliability'].forEach(k => (AI.gridAvg[k] = avg(G.db.teams.map(x => x.car[k]))));
   const races = G.season.calendar.length;
   const cap = G.db.rules.budgetCap;
   const late = G.season.round / races;
@@ -50,7 +56,7 @@ AI.raceTick = (G) => {
     if (t.id === G.player.teamId) return;
     const P = AI.persona(t);
     // receitas e custos fixos
-    const income = t.budget * 0.97 / races;
+    const income = t.budget * 0.82 / races; // receita livre depois de impostos, juros e custos fora do teto
     const salaries = sum(Career.teamDrivers(G, t.id).map(d => d.salary)) / races;
     const staffCost = sum(Object.values(t.staff)) * 0.0042 * 24 / races;
     const ops = 1.25 + t.facilities * 0.006;
@@ -61,7 +67,8 @@ AI.raceTick = (G) => {
     const reserve = t.budget * (0.04 + P.thrift * 0.08);
     const available = Math.max(0, t.cash - reserve);
     const capLeft = Math.max(0, cap - t.spent);
-    let spend = Math.min(available * (0.25 + P.ambition * 0.35), capLeft * 0.12, t.budget * 0.06);
+    const racesLeft = Math.max(1, races - G.season.round);
+    let spend = Math.min(available * (0.25 + P.ambition * 0.35), capLeft / racesLeft * (0.8 + P.ambition * 0.4), t.budget * 0.06);
     if (spend < 0.3) spend = 0;
     if (spend > 0) {
       // prioridade: área mais fraca em relação ao grid, com viés da personalidade

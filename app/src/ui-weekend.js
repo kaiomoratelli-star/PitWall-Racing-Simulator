@@ -93,6 +93,10 @@ ACT.runQuali = () => { Career.runQualifying(G); G.weekend.phase = 'quali'; autos
 ACT.toStrategy = () => { G.weekend.phase = 'strategy'; render(); };
 
 /* ---------- estratégia ---------- */
+function sprintPanel(cls, title = 'Resultado da corrida Sprint') {
+  if (!cls) return '';
+  return `<div class="panel"><div class="panel-h"><h3>${title}</h3><span class="chip acc">Sprint</span></div><div class="panel-b tight tbl-wrap"><table class="tbl">${cls.slice(0, 10).map(c => `<tr class="${c.tid === G.player.teamId ? 'me' : ''}"><td class="num">${c.status === 'dnf' ? 'AB' : c.pos}</td><td>${dTag(c.did)}</td><td class="small muted">${esc(Career.team(G, c.tid).name)}</td><td class="r num"><b>${c.pts || ''}</b></td></tr>`).join('')}</table></div></div>`;
+}
 function strategyHtml() {
   const wk = G.weekend;
   const tr = Career.track(G, wk.trackId);
@@ -102,6 +106,7 @@ function strategyHtml() {
   const ctx = Career.ctx(G);
   const life = (c, d) => Math.round(70 / Engine.wearRate(c, tr, ctx.effOf(d.id), team, 'normal', 0));
   return `${wkHead()}
+  ${wk.sprintResult ? sprintPanel(wk.sprintResult.cls) : ''}
   <div class="grid g2">${lineup.map(d => {
     const st = wk.strategy[d.id];
     return `<div class="panel"><div class="panel-h">${dTag(d.id)}<span class="chip acc">Larga em ${ordinal(wk.grid.indexOf(d.id) + 1)}</span></div><div class="panel-b stack">
@@ -246,7 +251,7 @@ function updateRace(full) {
   const mine = race.cars.filter(c => c.tid === G.player.teamId);
   if (ctl && Career.isObs(G)) {
     // observador: acompanha as estratégias dos 6 primeiros, sem controles
-    ctl.innerHTML = `<div class="panel-h"><h3>Muro dos boxes · acompanhamento</h3><span class="small muted">Decisões tomadas pela IA de cada equipe</span></div><div class="panel-b tight"><table class="tbl">${cars.filter(c => c.status !== 'dnf').slice(0, 6).map(c => `<tr><td class="num">P${c.pos}</td><td>${dTag(c.did, false)}</td><td>${tyreIcon(c.tyre.c)}</td><td class="num small">${Math.round(c.tyre.wear)}% · ${c.tyre.age}v</td><td class="small muted">${c.pits} parada(s) · plano ${c.plan.stops}</td><td class="small">${c.mode === 'push' ? 'atacando' : c.mode === 'save' ? 'poupando' : ''}</td></tr>`).join('')}</table></div>`;
+    ctl.innerHTML = `<div class="panel-h"><h3>Muro dos boxes · acompanhamento</h3><span class="small muted">Decisões tomadas pelos estrategistas de cada equipe</span></div><div class="panel-b tight"><table class="tbl">${cars.filter(c => c.status !== 'dnf').slice(0, 6).map(c => `<tr><td class="num">P${c.pos}</td><td>${dTag(c.did, false)}</td><td>${tyreIcon(c.tyre.c)}</td><td class="num small">${Math.round(c.tyre.wear)}% · ${c.tyre.age}v</td><td class="small muted">${c.pits} parada(s) · plano ${c.plan.stops}</td><td class="small">${c.mode === 'push' ? 'atacando' : c.mode === 'save' ? 'poupando' : ''}</td></tr>`).join('')}</table></div>`;
   } else if (ctl) ctl.innerHTML = `<div class="panel-h"><h3>Muro dos boxes</h3>${mine.filter(c => c.status === 'run').length === 2 ? '<button class="btn sm" data-act="teamOrder">Ordem de equipe: trocar posições</button>' : ''}</div>` + mine.map(c => {
     const radio = c.status === 'run' ? Events.radio(race, c, wk) : [];
     return `<div class="car-ctl">
@@ -307,7 +312,7 @@ ACT.finishWeekend = async () => {
   // evento escrito pela IA (no máximo um por corrida, com chance por frequência)
   if (G.options.aiEvents && Store.sample && RNG.chance(0.45 * (G.options.eventRate || 1))) {
     const ok = await generateAIEvent(G.season.results[G.season.results.length - 1]);
-    if (ok) { toast('A IA escreveu um novo acontecimento. Veja a caixa de entrada.', 'good'); if (UI.view === 'post') render(); }
+    if (ok) { toast('Novidade do paddock na caixa de entrada.', 'good'); if (UI.view === 'post') render(); }
   }
 };
 
@@ -334,10 +339,11 @@ SCREENS.post = {
         ${rep.lines.length ? rep.lines.map(l => `<p>${esc(l)}</p>`).join('') : '<p class="muted">Nada fora do normal na fábrica.</p>'}
         <p class="small muted">Receitas, salários e custos foram lançados nas Finanças.</p>
       </div></div>`}
-      <div class="panel"><div class="panel-h"><h3>Imprensa</h3>${Store.sample && G.options.aiEvents ? `<button class="btn sm" data-act="aiArticle" ${article ? 'disabled' : ''}>${article ? 'Matéria publicada' : 'Gerar matéria com IA'}</button>` : ''}</div><div class="panel-b stack">
+      <div class="panel"><div class="panel-h"><h3>Imprensa</h3>${Store.sample && G.options.aiEvents ? `<button class="btn sm" data-act="aiArticle" ${article ? 'disabled' : ''}>${article ? 'Matéria publicada' : 'Pedir matéria à redação'}</button>` : ''}</div><div class="panel-b stack">
         ${article ? `<h3>${esc(article.title)}</h3><p style="white-space:pre-wrap">${esc(article.body)}</p>` : G.news.slice(0, 4).map(n => `<p><b>${esc(n.title)}</b>${n.body ? `<br><span class="small muted">${esc(n.body)}</span>` : ''}</p>`).join('')}
       </div></div>
     </div>
+    ${res.sprint ? sprintPanel(res.sprint) : ''}
     <div class="panel"><div class="panel-h"><h3>Classificação da corrida</h3></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Pos</th><th>Piloto</th><th>Equipe</th><th class="r">Largada</th><th class="r">Gap</th><th class="r">Melhor volta</th><th class="r">Paradas</th><th class="r">Pts</th></tr></thead><tbody>
       ${res.cls.map((c, i) => `<tr class="${team && c.tid === team.id ? 'me' : ''}"><td class="num">${c.status === 'dnf' ? 'AB' : c.pos}</td><td>${dTag(c.did)}</td><td class="small muted">${esc(Career.team(G, c.tid).name)}</td><td class="r num">${c.grid}</td><td class="r num">${c.status === 'dnf' ? esc(c.reason) : i === 0 ? fmtRaceTime(c.T) : c.lapsDown ? `+${c.lapsDown} v` : fmtGap(c.T - res.cls[0].T)}</td><td class="r num ${res.fastest && res.fastest.did === c.did ? 'pur' : ''}">${fmtLap(c.best)}</td><td class="r num">${c.pits}</td><td class="r num"><b>${c.pts || ''}</b></td></tr>`).join('')}
     </tbody></table></div></div>`;
@@ -365,8 +371,8 @@ ACT.aiArticle = async (el) => {
     Career.news(G, G.lastRace.article.title, 'imprensa');
     autosave(); render();
   } catch (e) {
-    toast(e && e.code === 'not_granted' ? 'Permissão para usar a IA negada.' : 'A IA não conseguiu escrever agora.', 'bad');
-    el.disabled = false; el.textContent = 'Gerar matéria com IA';
+    toast(e && e.code === 'not_granted' ? 'Permissão negada para a redação.' : 'A redação não conseguiu escrever agora.', 'bad');
+    el.disabled = false; el.textContent = 'Pedir matéria à redação';
   }
 };
 

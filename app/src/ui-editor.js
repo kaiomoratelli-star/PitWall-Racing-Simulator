@@ -4,43 +4,6 @@
    ============================================================ */
 'use strict';
 
-/* Completa campos faltando em bases importadas ou feitas à mão */
-function normalizeDb(src) {
-  const def = buildDefaultDB();
-  const db = deepClone(src);
-  db.version = DB_VERSION;
-  db.name = db.name || 'Base personalizada';
-  db.rules = Object.assign(deepClone(def.rules), db.rules || {});
-  db.engines = (db.engines && db.engines.length ? db.engines : def.engines).map((e, i) => ({ id: e.id || 'eng' + i, name: e.name || 'Motor ' + (i + 1), power: num(e.power, 88), reliability: num(e.reliability, 86), cost: num(e.cost, 14) }));
-  const eng0 = db.engines[0].id;
-  db.teams = (db.teams || []).map((t, i) => ({
-    id: t.id || 'team' + i, name: t.name || 'Equipe ' + (i + 1), short: (t.short || (t.name || 'EQP').slice(0, 3)).toUpperCase(), country: t.country || 'GBR',
-    color: t.color || '#888888', color2: t.color2 || '#222222', engine: db.engines.some(e => e.id === t.engine) ? t.engine : eng0,
-    budget: num(t.budget, 110), reputation: num(t.reputation, 70),
-    car: { aero: num(t.car && t.car.aero, 84), chassis: num(t.car && t.car.chassis, 84), reliability: num(t.car && t.car.reliability, 85), tyreCare: num(t.car && t.car.tyreCare, 82), engineBonus: num(t.car && t.car.engineBonus, 0) },
-    pitCrew: num(t.pitCrew, 82), facilities: num(t.facilities, 76), principal: t.principal || 'Chefe',
-    staff: { technical: num(t.staff && t.staff.technical, 78), aero: num(t.staff && t.staff.aero, 78), strategy: num(t.staff && t.staff.strategy, 78), engineering: num(t.staff && t.staff.engineering, 78) },
-  }));
-  const tids = new Set(db.teams.map(t => t.id));
-  db.drivers = (db.drivers || []).map((d, i) => {
-    const o = { id: d.id || 'drv' + i, name: d.name || 'Piloto ' + (i + 1), nat: d.nat || 'BRA', age: num(d.age, 25), number: num(d.number, i + 2), style: STYLE_PROFILES[d.style] ? d.style : 'complete', team: tids.has(d.team) ? d.team : null, salary: num(d.salary, 2), contractYears: num(d.contractYears, 1) };
-    ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending'].forEach(k => (o[k] = num(d[k], 78)));
-    o.aggression = num(d.aggression, 50); o.experience = num(d.experience, 40); o.potential = num(d.potential, Math.max(80, o.pace)); o.morale = num(d.morale, 70); o.popularity = num(d.popularity, 50);
-    if (d.seat != null) o.seat = d.seat;
-    return o;
-  });
-  db.tracks = (db.tracks || []).map((t, i) => ({
-    id: t.id || 'trk' + i, gp: t.gp || 'Grande Prêmio ' + (i + 1), circuit: t.circuit || 'Circuito', country: t.country || 'BRA', laps: num(t.laps, 55), length: num(t.length, 5), baseLap: num(t.baseLap, 88),
-    weights: { aero: num(t.weights && t.weights.aero, .34), chassis: num(t.weights && t.weights.chassis, .33), engine: num(t.weights && t.weights.engine, .33) },
-    overtaking: num(t.overtaking, .5), tyreStress: num(t.tyreStress, 1), rain: num(t.rain, .15), scFactor: num(t.scFactor, 1), pitLoss: num(t.pitLoss, 21), drs: num(t.drs, 2), street: !!t.street,
-    shapeSeed: num(t.shapeSeed, hashStr(String(t.id || i)) % 100000),
-  }));
-  const trids = new Set(db.tracks.map(t => t.id));
-  db.calendar = (db.calendar && db.calendar.length ? db.calendar : db.tracks.map(t => t.id)).filter(id => trids.has(id));
-  return db;
-}
-function num(v, d) { const n = Number(v); return isFinite(n) && v !== '' && v != null ? n : d; }
-
 const ED = { tab: 'teams', target: 'base', track: null };
 function edDb() { return ED.target === 'career' && G ? G.db : BASE; }
 
@@ -228,7 +191,7 @@ function edIO(db) {
 }
 ACT.edExport = async () => { const r = await Store.exportFile(`pitwall-base-${(edDb().name || 'base').replace(/\W+/g, '-').toLowerCase()}.json`, exportableDb(edDb())); if (!r.ok) toast(r.msg, 'bad'); };
 ACT.edCopy = () => copyText(JSON.stringify(exportableDb(edDb()), null, 1));
-ACT.edReset = async () => { BASE = buildDefaultDB(); await Store.saveBaseDb(BASE); toast('Base padrão restaurada.', 'good'); if (ED.target === 'base') render(); };
+ACT.edReset = async () => { BASE = defaultDb(); await Store.saveBaseDb(BASE); toast('Base padrão restaurada.', 'good'); if (ED.target === 'base') render(); };
 function exportableDb(db) {
   const o = deepClone(db);
   o.drivers = o.drivers.filter(d => !d.retired).map(d => { delete d.career; delete d.injured; delete d.futureTeam; delete d.rookie; return d; });
