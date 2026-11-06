@@ -41,10 +41,21 @@ jobs:
           Write-Host "Instalador: $($setup.Name) ($([math]::Round($setup.Length/1MB,1)) MB)"
           Start-Process $setup.FullName -ArgumentList '/S' -Wait
           $exe = "$env:LOCALAPPDATA\Programs\PitWall Racing Simulator\PitWall Racing Simulator.exe"
-          # o NSIS pode devolver o controle antes de terminar: espera até 3 minutos
-          for ($i = 0; $i -lt 90 -and !((Test-Path $exe) -and (Get-Process -Name ($setup.BaseName) -ErrorAction SilentlyContinue) -eq $null); $i++) { Start-Sleep 2 }
-          Get-Process | Where-Object { $_.Name -like 'PitWall-Racing-Simulator-Setup*' } | Wait-Process -Timeout 180 -ErrorAction SilentlyContinue
-          if (!(Test-Path $exe)) { throw "Executável não foi instalado em $exe" }
+          $alt = "$env:ProgramFiles\PitWall Racing Simulator\PitWall Racing Simulator.exe"
+          # O NSIS pode devolver o controle antes de terminar, e no runner a verificação do instalador
+          # (90 MB, sem assinatura) às vezes leva minutos: espera até 10 minutos, mostrando o progresso.
+          for ($i = 0; $i -lt 300; $i++) {
+            $busy = Get-Process | Where-Object { $_.Name -like 'PitWall-Racing-Simulator-Setup*' }
+            if (((Test-Path $exe) -or (Test-Path $alt)) -and !$busy) { break }
+            if ($i % 15 -eq 0) { Write-Host "aguardando instalação ($($i * 2) s; instalador ativo: $([bool]$busy))" }
+            Start-Sleep 2
+          }
+          if (!(Test-Path $exe) -and (Test-Path $alt)) { Write-Host "Instalado para todos os usuários em $alt"; $exe = $alt }
+          if (!(Test-Path $exe)) {
+            Get-Process | Where-Object { $_.Name -like '*Setup*' -or $_.Name -like '*PitWall*' } | Format-Table Name, Id, StartTime -AutoSize | Out-String | Write-Host
+            Get-ChildItem "$env:LOCALAPPDATA\Programs" -ErrorAction SilentlyContinue | Format-Table Name | Out-String | Write-Host
+            throw "Executável não foi instalado em $exe"
+          }
           $desk = @("$env:USERPROFILE\Desktop\PitWall Racing Simulator.lnk", "$env:PUBLIC\Desktop\PitWall Racing Simulator.lnk") | Where-Object { Test-Path $_ }
           if (!$desk) { throw "Atalho da área de trabalho não foi criado" }
           if (!(Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\PitWall Racing Simulator.lnk")) { throw "Atalho do menu Iniciar não foi criado" }
@@ -62,14 +73,14 @@ jobs:
           Start-Sleep 2
           if (!(Test-Path "$data\saves\slot3.json")) { throw "Save não foi criado na pasta de dados do Windows" }
           Start-Process "${{ env.SETUP }}" -ArgumentList '/S' -Wait
-          Get-Process | Where-Object { $_.Name -like 'PitWall-Racing-Simulator-Setup*' } | Wait-Process -Timeout 180 -ErrorAction SilentlyContinue
-          for ($i = 0; $i -lt 60 -and !(Test-Path "${{ env.EXE }}"); $i++) { Start-Sleep 2 }
+          Get-Process | Where-Object { $_.Name -like 'PitWall-Racing-Simulator-Setup*' } | Wait-Process -Timeout 600 -ErrorAction SilentlyContinue
+          for ($i = 0; $i -lt 300 -and !(Test-Path "${{ env.EXE }}"); $i++) { Start-Sleep 2 }
           if (!(Test-Path "$data\saves\slot3.json")) { throw "Atualização apagou o save" }
           Start-Process "${{ env.EXE }}" -ArgumentList '--smoke-verify' -Wait
           Start-Sleep 2
           $v = Get-Content "$data\smoke-verify.json" | ConvertFrom-Json
           if (!$v.ok) { throw "Save não abriu após a atualização: $($v.error)" }
-          Start-Process "$env:LOCALAPPDATA\Programs\PitWall Racing Simulator\Uninstall PitWall Racing Simulator.exe" -ArgumentList '/S' -Wait
+          Start-Process (Join-Path (Split-Path "${{ env.EXE }}") "Uninstall PitWall Racing Simulator.exe") -ArgumentList '/S' -Wait
           Start-Sleep 3
           if (!(Test-Path "$data\saves\slot3.json")) { throw "Desinstalar apagou os saves" }
           Write-Host "Saves preservados após atualizar e desinstalar."
