@@ -28,6 +28,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { height: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.45;
@@ -353,3 +354,33 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .title-screen.photo > * { position: relative; }
 .title-screen.photo .title-right { background: transparent; border-left: 0; }
 .title-car { position: absolute; left: 6%; right: 6%; bottom: 8%; z-index: 2; }
+
+/* ---------- corrida (V1) ---------- */
+.race-intro { overflow: hidden; }
+.intro-hero { min-height: 230px; display: flex; align-items: flex-end; padding: 20px; background-color: #000; }
+.intro-title h1 { font-size: clamp(2rem, 4vw, 3rem); }
+.flag.red { background: var(--accent); color: #fff; }
+.tower th { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 6px; text-align: left; font-weight: 600; }
+.tower .secs { white-space: nowrap; }
+.sec { display: inline-block; width: 14px; height: 6px; border-radius: 2px; margin-right: 2px; background: var(--line2); vertical-align: middle; }
+.sec.p { background: var(--purple); } .sec.g { background: var(--green); } .sec.y { background: var(--yellow); }
+.cold { color: var(--blue); } .hot { color: var(--red); } .ok { color: var(--green); }
+.tower tr.flash td { animation: flashrow 1.2s ease-out; }
+@keyframes flashrow { from { background: rgba(34,197,94,.28); } to { background: transparent; } }
+.trackbox .wx { position: absolute; left: 10px; bottom: 8px; display: flex; gap: 12px; font-size: 11.5px; color: var(--fg2); background: rgba(15,15,21,.7); padding: 4px 8px; border-radius: 4px; }
+.leadstrip { display: flex; height: 12px; border-radius: 3px; overflow: hidden; margin-bottom: 8px; background: var(--bg); }
+.leadstrip i { flex: 1; }
+.pitwall { margin-top: 14px; border-top: 3px solid var(--accent); }
+.pw-cars { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.pw-car { padding: 14px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid var(--line); }
+.pw-car:last-child { border-right: 0; }
+.pw-car .big { font-size: 26px; font-weight: 900; }
+.pw-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 14px; }
+.pw-grid > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pw-grid b { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.lights { position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; background: rgba(5,5,8,.55); pointer-events: none; }
+.lights-row { display: flex; gap: 18px; padding: 22px 28px; background: #0b0b10; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.7); }
+.lamp { display: flex; flex-direction: column; gap: 10px; padding: 10px; background: #15151e; border-radius: 10px; }
+.lamp i { width: 46px; height: 46px; border-radius: 50%; background: #2a0606; box-shadow: inset 0 -4px 10px rgba(0,0,0,.6); transition: background .05s; }
+.lamp.on i { background: radial-gradient(circle at 40% 35%, #ff6b5e, #e10600 60%, #8a0400); box-shadow: 0 0 26px rgba(225,6,0,.9); }
+@media (max-width: 860px) { .pw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pw-cars { grid-template-columns: minmax(0, 1fr); } .lamp i { width: 30px; height: 30px; } }

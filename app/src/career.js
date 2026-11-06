@@ -193,7 +193,10 @@ Career.seasonOver = (G) => G.season.round >= G.season.calendar.length;
 Career.startWeekend = (G) => {
   const track = Career.currentTrack(G);
   const team = Career.isObs(G) ? null : Career.team(G);
-  const weather = Engine.genWeather(track, Math.round(track.laps * (G.db.rules.raceDistancePct || 100) / 100), G.options.rainMult);
+  const wlaps = Math.round(track.laps * (G.db.rules.raceDistancePct || 100) / 100);
+  const weather = Engine.genWeather(track, wlaps, G.options.rainMult);
+  const month = track.date ? Number(track.date.slice(5, 7)) : 3 + Math.round(G.season.round / Math.max(1, G.season.calendar.length) * 9);
+  Engine.addTemps(weather, track, month, wlaps);
   const lineup = team ? Career.lineup(G, team.id) : [];
   const wk = {
     round: G.season.round, trackId: track.id, phase: 'practice', weather,
