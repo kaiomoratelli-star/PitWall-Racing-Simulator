@@ -323,6 +323,8 @@ def main():
                             dest = os.path.join(IMG_DIR, C['id'], 'cars', tid + '.webp'); os.makedirs(os.path.dirname(dest), exist_ok=True)
                             if download(url, dest, 900): car = 'cats/%s/cars/%s.webp' % (C['id'], tid)
                             break
+                local = os.path.join(IMG_DIR, C['id'], 'cars', tid + '.webp')
+                if not car and os.path.exists(local): car = 'cats/%s/cars/%s.webp' % (C['id'], tid)  # fotos já baixadas (ex.: Fórmula E, site oficial)
                 teams.append({'id': tid, 'name': e['team'], 'nat': e['tnat'], 'color': team_color(e['team'], len(teams)), 'carImg': car})
         drivers = []
         for e in ents:

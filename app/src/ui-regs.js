@@ -88,6 +88,7 @@ function genParams() {
   return { name: v('gn-name'), city: v('gn-city'), country: v('gn-country').toUpperCase().slice(0, 3), type: v('gn-type'), length: Number(v('gn-length')), turns: Number(v('gn-turns')), fast: Number(v('gn-fast')), slow: Number(v('gn-slow')), straights: Number(v('gn-straights')), longest: Number(v('gn-longest')), elevation: Number(v('gn-elev')), abrasion: Number(v('gn-abr')), rain: Number(v('gn-rain')), lat: isFinite(ll[0]) ? ll[0] : null, lon: isFinite(ll[1]) ? ll[1] : null };
 }
 ACT.genPreview = () => {
+  if (!$('#gn-name')) return;
   const t = CircuitGen.create(genParams()); UI.genTrack = t;
   const cv = $('#gn-prev'); if (cv) drawTrack(cv, t, [], { pad: 20 });
   $('#gn-info').innerHTML = `Perfil: aero ${Math.round(t.weights.aero * 100)}% · chassi ${Math.round(t.weights.chassis * 100)}% · motor ${Math.round(t.weights.engine * 100)}% · ultrapassagem ${Math.round(t.overtaking * 100)}% · desgaste ${t.tyreStress}× · volta de referência ${fmtLap(t.baseLap)} · ${t.laps} voltas · pneus ${Engine.alloc(t).map(c => 'C' + c).join('/')}`;

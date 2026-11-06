@@ -23,7 +23,7 @@ for (const mode of modes) {
     while (!Career.seasonOver(G)) {
       Career.startWeekend(G); Career.finishPractice(G); Career.runQualifying(G); Career.startRace(G); Career.simRaceToEnd(G);
       Career.finishWeekend(G);
-      G.inbox.forEach(m => { if (m.choices && m.resolved == null) Events.resolve(G, m.id, Math.floor(Math.random() * m.choices.length)); });
+      G.inbox.forEach(m => { if (m.choices && m.resolved == null) Events.resolve(G, m.id, [...String(m.id) + seed].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % m.choices.length); });
     }
     const d = Diag.run(G);
     const sum = Career.endSeason(G);

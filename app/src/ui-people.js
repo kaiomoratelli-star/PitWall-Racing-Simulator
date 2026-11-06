@@ -105,9 +105,11 @@ SCREENS.market = {
     if (f === 'expiring') ds = ds.filter(d => d.team && d.contractYears <= 0);
     if (f === 'sl') ds = ds.filter(d => Market.slEligible(G, d));
     if (f === 'academy') ds = ds.filter(d => Market.academyOf(G, d));
+    const cf = UI.params.c;
+    if (cf && typeof Cats !== 'undefined' && Cats.on(G)) ds = ds.filter(d => cf === 'f1' ? d.team : d.cat === cf || (Cats.get(G, cf) && Cats.get(G, cf).entries.some(e => e.did === d.id)));
     const key = { ovr: d => -driverOverall(d), pot: d => -d.potential, age: d => d.age, val: d => -Market.value(d), until: d => d.team ? d.contractYears : -9 }[sort];
     ds.sort((a, b) => key(a) - key(b));
-    const P = (o) => JSON.stringify({ f, s: sort, ...o });
+    const P = (o) => JSON.stringify({ f, s: sort, c: UI.params.c, ...o });
     const M = Market.state(G);
     const talks = M.talks.filter(x => x.status === 'talks').slice(-8).reverse();
     const signed = G.db.drivers.filter(d => d.futureTeam).slice(0, 12);

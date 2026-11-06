@@ -18,6 +18,7 @@ function wkHead(sub) {
 
 SCREENS.weekend = {
   html() {
+    if (Career.isObs(G)) { setTimeout(() => go(G.weekend && G.weekend.race ? 'race' : 'hub'), 0); return ''; }
     if (!G.weekend) return `<div class="empty">Nenhum fim de semana em andamento. <button class="btn" data-act="toWeekend">Começar</button></div>`;
     const ph = G.weekend.phase;
     if (ph === 'practice') return practiceHtml();

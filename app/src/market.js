@@ -281,7 +281,7 @@ Market.midSeasonSackings = (G, p) => {
       if (ratio < 0.15 && gap > 25 && d.morale < 55 && RNG.chance(0.06 + P.risk * 0.08)) {
         const res = Career.teamDrivers(G, t.id).find(x => x.seat === 'R' && Market.slEligible(G, x));
         const ac = (G.academies || []).find(a => a.team === t.id || (t.partnerOf || []).includes(a.team));
-        const junior = ac && G.db.drivers.find(x => ac.members.includes(x.id) && !x.team && Market.slEligible(G, x));
+        const junior = ac && G.db.drivers.find(x => ac.members.includes(x.id) && !x.team && !x.retired && !x.injured && Market.slEligible(G, x));
         const sub = res || junior;
         if (!sub) return;
         const seat = d.seat;
