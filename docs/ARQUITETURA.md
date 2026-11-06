@@ -20,6 +20,11 @@ app/src/        código do jogo (módulos carregados nesta ordem)
   engine.js     simulação: carro, acerto, clima, classificação, corrida volta a volta
   physics.js    compostos C1–C5, temperatura de pneu e pista, clima, setores, bateria
   regs.js       regulamento técnico/esportivo e versões por temporada
+  setup.js      modelo de acerto (5 ajustes × 5 sensações), memória e feedback do piloto, janela do engenheiro
+  practice.js   treinos livres com relógio (60 min), programas, garagem, alocação de pneus, simulação pelo engenheiro
+  narrator.js   narração de transmissão com nomes reais de curvas e controle de repetição
+  quali.js      classificação ao vivo Q1/Q2/Q3 e SQ1/SQ2/SQ3, tráfego, voltas deletadas, bandeira vermelha
+  racelog.js    relatório volta a volta: rádio, ordens de equipe, undercut, resumo narrado de cada volta
   circuitgen.js gerador de circuitos e logística do calendário
   migrate.js    versão do save + migrações
   ai.js         IA dos chefes de equipe (caixa, personalidade, investimentos, staff)
@@ -30,14 +35,23 @@ app/src/        código do jogo (módulos carregados nesta ordem)
   events.js     eventos com decisões + notícias baseadas em fatos
   media.js      imprensa, rede social, memória de histórias, rivalidades, escândalos fictícios
   cats.js       outras categorias: simulação por data, superlicença, progressão, novos talentos
+  sisters.js    equipes irmãs: compra, academia compartilhada, promoções, parceria técnica
+  council.js    Conselho da FIA (Comissão de F1): propostas, impacto por equipe, votos, negociação, aplicação
+  lang-en.js    textos do núcleo em inglês (narração, rádio, feedback); applyLang() troca os modelos
   diag.js       verificação de integridade e reparos seguros
   storage.js    salvamento (disco no desktop, nuvem no Claude, navegador)
   sound.js      sons sintetizados (WebAudio)
+  i18n.js       idiomas: o português é a chave; em inglês, um observador traduz o que entra na tela
+  i18n-en.js    catálogo em inglês (textos fixos) e modelos para textos com números e nomes
   ui-*.js       interface
   main.js       inicialização + testes automáticos do executável
 app/data/       dados reais: real-db (F1 2026), real-extra (contratos, staff, academias),
                 history (1950–hoje), records (recordes e linhagens), team-lore, categories
-app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias)
+app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias).
+                Fonte oficial da F1: copie os arquivos Formula1-Display-*.woff2/.ttf/.otf para
+                app/assets/fonts; o build detecta (Regular 400, Bold 700, Black 900, Wide) e usa nos
+                títulos. Sem eles, vale a Titillium Web Black em caixa alta. A Formula1 Display é da
+                Formula One Management: precisa de licença antes da venda.
 desktop/        processo principal do Electron
   main.js       janela, tela de abertura, tela cheia, IPC, erros, testes
   preload.js    ponte segura com o jogo (contextIsolation + sandbox)
@@ -118,3 +132,10 @@ encadeadas.
 **Ainda limitado (próximas fases):** uma categoria só (F1 genérica), pneus em 3 compostos
 secos (não C1–C5), clima sem temperatura e umidade, staff com 4 cargos, sem academias, sem
 superlicença, sem imagens ou sons, sem histórico real desde 1950.
+
+## 7. Idiomas (desde a v0.7)
+
+- O jogador escolhe português (Brasil) ou inglês na primeira abertura, na tela inicial e em Salvar e opções. A escolha fica no `localStorage` (`pw-lang`) e vale para todas as carreiras.
+- Interface: o texto em português é a chave do catálogo (`I18N_EN` em `i18n-en.js`). Em inglês, `I18N` observa o DOM (`MutationObserver`) e traduz texto, `title`, `placeholder` e `aria-label`: primeiro pelo catálogo exato, depois pelos modelos com números e nomes (`I18N_PATS`), por fim frase a frase. Em português nada é observado.
+- Textos gerados pelo jogo: o núcleo usa `tr(pt, en)` nas frases montadas no código e `applyLang()` troca os modelos de narração, rádio, feedback do piloto, pneus e abandonos. O que já foi gerado (notícias, registros) fica no idioma em que foi escrito; as manchetes mais comuns também são traduzidas na exibição.
+- Para traduzir um texto novo: escreva em português como sempre e acrescente a linha em `i18n-en.js` (texto fixo) ou um modelo (texto com números). Textos gerados no núcleo usam `tr()`.

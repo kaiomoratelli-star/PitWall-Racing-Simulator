@@ -45,7 +45,7 @@ RaceLog.afterLap = (race, wk) => {
     if (e && pl) {
       pl.posOut = c.pos;
       const tpl = pl.slow ? Narr.R.slowPit : Narr.R.pit;
-      e.text = Narr.fill(Narr.pick(pl.slow ? 'rPs' : 'rP', tpl, r), { a: name(c.did), t: pl.stop.toFixed(1), tyre: Engine.tyreLabel(track, pl.to).replace(/^./, (ch) => ch.toLowerCase()), p: c.pos }) + (pl.sc ? ` Aproveitou o ${pl.sc === 'SC' ? 'Safety Car' : 'Safety Car Virtual'}.` : '');
+      e.text = Narr.fill(Narr.pick(pl.slow ? 'rPs' : 'rP', tpl, r), { a: name(c.did), t: pl.stop.toFixed(1), tyre: Engine.tyreLabel(track, pl.to).replace(/^./, (ch) => ch.toLowerCase()), p: c.pos }) + (pl.sc ? tr(` Aproveitou o ${pl.sc === 'SC' ? 'Safety Car' : 'Safety Car Virtual'}.`, ` Used the ${pl.sc === 'SC' ? 'Safety Car' : 'Virtual Safety Car'}.`) : '');
       e.posOut = c.pos;
     }
     // chamada de box do engenheiro, logo antes da parada (só para os carros acompanhados de perto)
@@ -54,7 +54,7 @@ RaceLog.afterLap = (race, wk) => {
   });
   boxCalls.sort((a, b) => b[0] - a[0]).forEach(([idx, did, sc]) => {
     const list = sc === 'SC' ? RaceLog.RADIO.boxSC : RaceLog.RADIO.box;
-    race.events.splice(idx, 0, { lap: L, type: 'radio', text: `Rádio para ${name(did)}: "${list[Math.floor(r() * list.length)]}"`, did, imp: true });
+    race.events.splice(idx, 0, { lap: L, type: 'radio', text: `${tr('Rádio para', 'Radio to')} ${name(did)}: "${list[Math.floor(r() * list.length)]}"`, did, imp: true });
   });
   // undercut / overcut: quem parou antes e voltou à frente de quem estava à frente
   (race.pitLog || []).filter(p => p.lap === L).forEach(p => {
@@ -84,7 +84,7 @@ RaceLog.afterLap = (race, wk) => {
     if ('SMH'.includes(c.tyre.c) && c.tyre.wear > 72 && !c.rd['tyre' + c.pits] && r() < 0.5) {
       c.rd['tyre' + c.pits] = 1; radios++;
       const [, txt] = RaceLog.RADIO.tyres[Math.floor(r() * RaceLog.RADIO.tyres.length)];
-      RaceLog.radio(race, c.did, `${name(c.did)}: "${txt}" — Engenheiro: "${RaceLog.RADIO.tyresReply[Math.floor(r() * RaceLog.RADIO.tyresReply.length)]}"`);
+      RaceLog.radio(race, c.did, `${name(c.did)}: "${txt}" — ${tr('Engenheiro', 'Engineer')}: "${RaceLog.RADIO.tyresReply[Math.floor(r() * RaceLog.RADIO.tyresReply.length)]}"`);
       return;
     }
     // preso atrás de alguém
@@ -96,10 +96,10 @@ RaceLog.afterLap = (race, wk) => {
         // companheiros de equipe: ordem de equipe
         const swap = c.plan && ahead.plan && c.plan.stops !== ahead.plan.stops;
         const msg = swap ? Narr.fill(RaceLog.RADIO.teamOrderAsk, { m: name(c.did) }) : RaceLog.RADIO.teamOrderHold;
-        RaceLog.radio(race, ahead.did, `Rádio para ${name(ahead.did)}: "${msg}"`);
+        RaceLog.radio(race, ahead.did, `${tr('Rádio para', 'Radio to')} ${name(ahead.did)}: "${msg}"`);
         const [, rep] = RaceLog.RADIO.teamOrderReply[Math.floor(r() * 3)];
         RaceLog.radio(race, ahead.did, `${name(ahead.did)}: "${rep}"`);
-        if (swap && !ahead.isPlayer) { ahead.T = c.T + 0.4; Engine.event(race, 'teamorder', `Ordem de equipe na ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} abre passagem para ${name(c.did)}.`, c.did, { imp: true }); }
+        if (swap && !ahead.isPlayer) { ahead.T = c.T + 0.4; Engine.event(race, 'teamorder', tr(`Ordem de equipe na ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} abre passagem para ${name(c.did)}.`, `Team order at ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} lets ${name(c.did)} through.`), c.did, { imp: true }); }
       } else {
         const [, txt] = RaceLog.RADIO.faster[Math.floor(r() * RaceLog.RADIO.faster.length)];
         RaceLog.radio(race, c.did, `${name(c.did)}: "${Narr.fill(txt, { b: name(ahead.did) })}"`);
@@ -118,7 +118,7 @@ RaceLog.afterLap = (race, wk) => {
   const wxEv = race.events.find(e => e.lap === L && e.type === 'weather');
   if (wxEv && run.length) {
     const c = run[Math.floor(r() * Math.min(6, run.length))];
-    const wet = /chuva|molhad|garoa|chove/i.test(wxEv.text);
+    const wet = /chuva|molhad|garoa|chove|rain/i.test(wxEv.text);
     const list = wet ? RaceLog.RADIO.rain : RaceLog.RADIO.dry;
     RaceLog.radio(race, c.did, `${name(c.did)}: "${Narr.fill(list[Math.floor(r() * list.length)][1], { c: Narr.corner(track, Math.floor(r() * 3), r) })}"`);
   }
@@ -130,19 +130,19 @@ RaceLog.afterLap = (race, wk) => {
       const dPace = (f.pure || 0) - (c.pure || 0);
       txt = dPace > 0.05 ? Narr.fill(RaceLog.RADIO.gap[0], { a: (c.T - f.T).toFixed(1), f: name(f.did), d: dPace.toFixed(1) + 's' }) : Narr.fill(RaceLog.RADIO.gap[1], { a: (c.T - f.T).toFixed(1), f: name(f.did) });
     } else if (g) txt = Narr.fill(RaceLog.RADIO.gap[2], { b: (g.T - c.T).toFixed(1), g: name(g.did) });
-    if (txt) RaceLog.radio(race, c.did, `Rádio para ${name(c.did)}: "${txt}"`);
+    if (txt) RaceLog.radio(race, c.did, `${tr('Rádio para', 'Radio to')} ${name(c.did)}: "${txt}"`);
   });
   // volta mais rápida
   const flEv = race.events.find(e => e.lap === L && e.type === 'fastest');
-  if (flEv) { const c = race.cars.find(x => x.did === flEv.did); if (c && (c.isPlayer || c.pos <= 5) && r() < 0.5) RaceLog.radio(race, c.did, `Rádio para ${name(c.did)}: "${RaceLog.RADIO.fl[Math.floor(r() * 2)]}"`); }
+  if (flEv) { const c = race.cars.find(x => x.did === flEv.did); if (c && (c.isPlayer || c.pos <= 5) && r() < 0.5) RaceLog.radio(race, c.did, `${tr('Rádio para', 'Radio to')} ${name(c.did)}: "${RaceLog.RADIO.fl[Math.floor(r() * 2)]}"`); }
   // Safety Car: quem não parou reclama
-  const scNow = race.sc && race.events.some(e => e.lap === L && e.type === 'sc' && !/recolhe|Fim/.test(e.text));
+  const scNow = race.sc && race.events.some(e => e.lap === L && e.type === 'sc' && e.deploy);
   if (scNow) {
     const pittedNow = new Set((race.pitLog || []).filter(p => p.lap === L).map(p => p.did));
     const stay = run.filter(c => c.pos <= 8 && !pittedNow.has(c.did) && c.tyre.wear > 30);
     if (stay.length && r() < 0.6) {
       const c = stay[Math.floor(r() * stay.length)];
-      RaceLog.radio(race, c.did, `${name(c.did)}: "${RaceLog.RADIO.scNoPit[Math.floor(r() * 2)][1]}" — Engenheiro: "${RaceLog.RADIO.scNoPitReply[Math.floor(r() * 2)]}"`);
+      RaceLog.radio(race, c.did, `${name(c.did)}: "${RaceLog.RADIO.scNoPit[Math.floor(r() * 2)][1]}" — ${tr('Engenheiro', 'Engineer')}: "${RaceLog.RADIO.scNoPitReply[Math.floor(r() * 2)]}"`);
     }
   }
   // depois de toques: a vítima reclama
@@ -151,11 +151,11 @@ RaceLog.afterLap = (race, wk) => {
     const [a, b, culprit] = x;
     const victim = culprit === a ? b : a;
     const v = race.cars.find(c => c.did === victim);
-    if (v && (v.isPlayer || v.pos <= 12)) RaceLog.radio(race, victim, `${name(victim)}: "${RaceLog.RADIO.contact[Math.floor(r() * 3)][1].replace('Ele', name(culprit))}"`);
+    if (v && (v.isPlayer || v.pos <= 12)) RaceLog.radio(race, victim, `${name(victim)}: "${RaceLog.RADIO.contact[Math.floor(r() * 3)][1].replace(/^Ele|^He/, name(culprit))}"`);
   });
   // reta final
   const left = race.laps - L;
-  if (left === 5 && !race.sprint) { const lead = run[0]; if (lead) RaceLog.radio(race, lead.did, `Rádio para ${name(lead.did)}: "${Narr.fill(RaceLog.RADIO.push[Math.floor(r() * 2)], { n: 5 })}"`); }
+  if (left === 5 && !race.sprint) { const lead = run[0]; if (lead) RaceLog.radio(race, lead.did, `${tr('Rádio para', 'Radio to')} ${name(lead.did)}: "${Narr.fill(RaceLog.RADIO.push[Math.floor(r() * 2)], { n: 5 })}"`); }
   // resumo narrado da volta
   RaceLog.summary(race, wk, L, run, r);
 };
@@ -167,26 +167,26 @@ RaceLog.summary = (race, wk, L, run, r) => {
   const lead = run[0], p2 = run[1];
   if (L === 1) {
     const gain = run.map(c => ({ c, g: c.grid - c.pos })).sort((a, b) => b.g - a.g);
-    parts.push(`LARGADA! ${name(lead.did)} ${lead.grid === 1 ? 'mantém a ponta' : `pula de ${lead.grid}º para a liderança`}.`);
-    if (gain[0] && gain[0].g >= 2) parts.push(`${name(gain[0].c.did)} ganha ${gain[0].g} posições na primeira volta.`);
+    parts.push(tr(`LARGADA! ${name(lead.did)} ${lead.grid === 1 ? 'mantém a ponta' : `pula de ${lead.grid}º para a liderança`}.`, `LIGHTS OUT! ${name(lead.did)} ${lead.grid === 1 ? 'keeps the lead' : `jumps from P${lead.grid} into the lead`}.`));
+    if (gain[0] && gain[0].g >= 2) parts.push(tr(`${name(gain[0].c.did)} ganha ${gain[0].g} posições na primeira volta.`, `${name(gain[0].c.did)} gains ${gain[0].g} places on the opening lap.`));
     const lost = gain[gain.length - 1];
-    if (lost && lost.g <= -3) parts.push(`${name(lost.c.did)} perde ${-lost.g} posições.`);
+    if (lost && lost.g <= -3) parts.push(tr(`${name(lost.c.did)} perde ${-lost.g} posições.`, `${name(lost.c.did)} loses ${-lost.g} places.`));
   } else {
     const prevLeader = race.cars.find(c => c.positions[L - 1] === 1);
-    if (prevLeader && prevLeader.did !== lead.did) parts.push(`TROCA DE LIDERANÇA: ${name(lead.did)} assume a ponta.`);
-    else if (p2) parts.push(`${name(lead.did)} lidera com ${(p2.T - lead.T).toFixed(1)}s sobre ${name(p2.did)}.`);
+    if (prevLeader && prevLeader.did !== lead.did) parts.push(tr(`TROCA DE LIDERANÇA: ${name(lead.did)} assume a ponta.`, `LEAD CHANGE: ${name(lead.did)} takes the lead.`));
+    else if (p2) parts.push(tr(`${name(lead.did)} lidera com ${(p2.T - lead.T).toFixed(1)}s sobre ${name(p2.did)}.`, `${name(lead.did)} leads by ${(p2.T - lead.T).toFixed(1)}s from ${name(p2.did)}.`));
     // maior ganho/perda da volta
     const moves = race.cars.filter(c => c.positions[L] && c.positions[L - 1]).map(c => ({ c, g: c.positions[L - 1] - c.positions[L] })).sort((a, b) => b.g - a.g);
-    if (moves[0] && moves[0].g >= 2) parts.push(`${name(moves[0].c.did)} sobe ${moves[0].g} posições (${moves[0].c.positions[L]}º).`);
+    if (moves[0] && moves[0].g >= 2) parts.push(tr(`${name(moves[0].c.did)} sobe ${moves[0].g} posições (${moves[0].c.positions[L]}º).`, `${name(moves[0].c.did)} climbs ${moves[0].g} places (P${moves[0].c.positions[L]}).`));
     // brigas: diferença menor que 1 s no top 10
     const fights = [];
     // a briga pela liderança já aparece na diferença do líder; aqui, do 2º ao 10º
-    for (let i = 2; i < Math.min(run.length, 10); i++) if (run[i].T - run[i - 1].T < 1.0 && !race.sc) fights.push(`${name(run[i].did)} a ${(run[i].T - run[i - 1].T).toFixed(1)}s de ${name(run[i - 1].did)} pelo ${i}º`);
-    if (p2 && p2.T - lead.T < 1.0 && !race.sc && prevLeader && prevLeader.did === lead.did) parts[0] = `${name(lead.did)} lidera sob pressão: ${name(p2.did)} está a ${(p2.T - lead.T).toFixed(1)}s, dentro da zona de ataque.`;
-    if (fights.length) parts.push('Briga: ' + fights.slice(0, 2).join('; ') + '.');
+    for (let i = 2; i < Math.min(run.length, 10); i++) if (run[i].T - run[i - 1].T < 1.0 && !race.sc) fights.push(tr(`${name(run[i].did)} a ${(run[i].T - run[i - 1].T).toFixed(1)}s de ${name(run[i - 1].did)} pelo ${i}º`, `${name(run[i].did)} ${(run[i].T - run[i - 1].T).toFixed(1)}s behind ${name(run[i - 1].did)} for P${i}`));
+    if (p2 && p2.T - lead.T < 1.0 && !race.sc && prevLeader && prevLeader.did === lead.did) parts[0] = tr(`${name(lead.did)} lidera sob pressão: ${name(p2.did)} está a ${(p2.T - lead.T).toFixed(1)}s, dentro da zona de ataque.`, `${name(lead.did)} leads under pressure: ${name(p2.did)} is ${(p2.T - lead.T).toFixed(1)}s behind, inside the attack zone.`);
+    if (fights.length) parts.push(tr('Briga: ', 'Battles: ') + fights.slice(0, 2).join('; ') + '.');
   }
-  const sc = race.sc ? (race.sc.type === 'SC' ? ' Safety Car na pista.' : ' Safety Car Virtual.') : '';
-  Engine.event(race, 'narr', `Volta ${L}/${race.laps}. ${parts.join(' ')}${sc}`, lead.did, { order: run.slice(0, 22).map(c => c.did) });
+  const sc = race.sc ? (race.sc.type === 'SC' ? tr(' Safety Car na pista.', ' Safety Car on track.') : tr(' Safety Car Virtual.', ' Virtual Safety Car.')) : '';
+  Engine.event(race, 'narr', `${tr('Volta', 'Lap')} ${L}/${race.laps}. ${parts.join(' ')}${sc}`, lead.did, { order: run.slice(0, 22).map(c => c.did) });
 };
 
 /* acopla ao motor: depois de cada volta, o relatório */

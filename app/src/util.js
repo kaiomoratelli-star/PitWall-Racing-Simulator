@@ -62,6 +62,11 @@ function hashStr(str) {
   return h >>> 0;
 }
 
+/* idioma do texto gerado pelo jogo (narração, rádio, eventos): 'pt' ou 'en'.
+   A interface troca por I18N (i18n.js); o núcleo usa tr() nas frases montadas no código. */
+let LANG = 'pt';
+const tr = (pt, en) => (LANG === 'en' && en != null ? en : pt);
+
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const sum = arr => arr.reduce((a, b) => a + b, 0);

@@ -45,6 +45,7 @@ const Smoke = {
 async function boot(hotData) {
   BASE = defaultDb();
   render(); // primeira tela imediata, sem esperar a nuvem
+  if (typeof I18N !== 'undefined') I18N.firstRun();
   await Store.init();
   const saved = await Store.loadBaseDb();
   if (saved && saved.teams && saved.drivers && saved.tracks) { try { BASE = normalizeDb(saved); } catch (e) { BASE = buildDefaultDB(); } }

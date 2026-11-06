@@ -5,10 +5,23 @@
    ============================================================ */
 'use strict';
 
-const SAVE_VERSION = 4;
+const SAVE_VERSION = 5;
 
 const Migrate = {
   steps: {
+    // v4 -> v5 (v0.7): treinos com relógio e acerto com memória, classificação ao vivo, relatório da
+    // corrida, Conselho da FIA e equipes irmãs
+    4: (G) => {
+      G.options = G.options || {};
+      if (!G.options.practiceFormat) G.options.practiceFormat = 'real';
+      // fim de semana no formato antigo (sem treino com relógio): recomeça no novo formato.
+      // Se a corrida já tinha começado, ela segue como estava.
+      const wk = G.weekend;
+      if (wk && !wk.race && (!wk.fp || !wk.setups)) { G.weekend = null; Career.startWeekend(G); }
+      if (G.lastRace) G.lastRace.pitLog = G.lastRace.pitLog || [];
+      if (typeof Sisters !== 'undefined') Sisters.ensure(G);
+      if (typeof Council !== 'undefined') Council.ensure(G);
+    },
     // v3 -> v4 (v0.5): outras categorias, imprensa/rede social, recordes de pista
     3: (G) => {
       G.options = G.options || {};

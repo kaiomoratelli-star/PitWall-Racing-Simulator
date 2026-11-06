@@ -150,7 +150,7 @@ function updateRace(full) {
     const ch = c.grid - c.pos;
     return `<tr class="${mine ? 'me' : ''} ${c.status === 'dnf' ? 'out' : ''} ${c._flash ? 'flash' : ''}">
       <td class="p">${c.pos}</td><td style="width:6px;padding:0"><span class="tcolor" style="background:${teamColor(c.tid)}"></span></td>
-      <td class="nm">${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ` <span class="chip good" title="${race.boostName}">${race.boostName === 'DRS' ? 'DRS' : 'MU'}</span>` : ''}</td>
+      <td class="nm">${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ` <span class="chip good" title="${race.boostName}">${race.boostName === 'DRS' ? 'DRS' : tr('MU', 'OM')}</span>` : ''}</td>
       <td class="small ${ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'muted'} num">${L ? (ch > 0 ? '▲' + ch : ch < 0 ? '▼' + -ch : '–') : ''}</td>
       <td class="gp">${gap}</td><td class="gp muted">${intv}</td>
       <td>${c.status === 'dnf' ? '' : tyreIcon(c.tyre.c)}</td>

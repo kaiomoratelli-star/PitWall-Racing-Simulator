@@ -18,7 +18,8 @@
   --red: #ff4b55;
   --blue: #3b9bff;
   --yellow: #ffd200;
-  --f-display: 'Titillium Web', 'Segoe UI', system-ui, sans-serif;
+  --f-display: 'Formula1 Display', 'Titillium Web', 'Segoe UI', system-ui, sans-serif;
+  --f-wide: 'Formula1 Display Wide', 'Formula1 Display', 'Titillium Web', 'Segoe UI', system-ui, sans-serif;
   --f-body: 'Titillium Web', 'Segoe UI', system-ui, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, 'Consolas', monospace;
   --r: 6px;
@@ -592,3 +593,13 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 
 .btn.opt { justify-content: space-between; text-align: left; white-space: normal; gap: 14px; }
 .btn.opt > span:first-child { flex: 1; } .btn.opt > span:last-child { flex-shrink: 0; white-space: nowrap; }
+
+/* ---------- tipografia no padrão das transmissões da F1 ----------
+   Títulos em caixa alta, peso Black/Bold. Com a Formula1 Display instalada
+   (classe has-f1), sem itálico forçado e com o espaçamento da fonte original. */
+h1, .page-head h1 { text-transform: uppercase; letter-spacing: -0.005em; }
+.panel-h h3, .tabs button, .stat-big, .eyebrow { text-transform: uppercase; }
+.panel-h h3 { font-weight: 800; letter-spacing: 0.01em; }
+.tabs button { letter-spacing: 0.03em; }
+body.has-f1 h1, body.has-f1 .logo-big, body.has-f1 .brand { font-family: var(--f-wide); font-style: normal; font-weight: 700; letter-spacing: 0; }
+body.has-f1 .panel-h h3, body.has-f1 .stat-big { font-family: var(--f-display); font-weight: 700; letter-spacing: 0; }

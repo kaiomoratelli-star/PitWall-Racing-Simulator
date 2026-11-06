@@ -34,6 +34,7 @@ SCREENS.title = {
             <label class="btn" for="importSave">Importar jogo salvo</label>
             <input type="file" id="importSave" accept=".json,application/json" hidden data-chg="importSave">
           </div>
+          ${I18N.pickerHtml()}
         </div>
         <div class="timing-strip">
           <span>BASE <b>${esc(db.name)}</b></span>${db.ref ? `<span>DADOS ATÉ <b>${esc(db.ref)}</b></span>` : ''}
@@ -661,6 +662,7 @@ SCREENS.saves = {
   html() {
     const o = G.options;
     return `<div class="page-head"><div><div class="eyebrow">Sistema</div><h1>Salvar e opções</h1></div></div>
+    <div class="panel" style="margin-bottom:14px"><div class="panel-b row between" style="gap:14px"><div class="stack" style="gap:2px"><b>Idioma / Language</b><span class="small muted">Interface, narração, rádio e treinos. Notícias e registros já gerados ficam no idioma em que foram escritos.</span></div>${I18N.pickerHtml()}</div></div>
     <div class="grid g2">
       <div class="panel"><div class="panel-h"><h3>Jogo salvo</h3><span class="chip">${Store.where()}</span></div><div class="panel-b stack">
         ${Store.native && UI.appInfo ? `<dl class="kv"><dt>Versão do jogo</dt><dd>${esc(UI.appInfo.version)}</dd><dt>Pasta dos saves</dt><dd style="word-break:break-all">${esc(UI.appInfo.dataDir)}</dd></dl>

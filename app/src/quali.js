@@ -96,7 +96,7 @@ Quali.abort = (G, did) => {
   if (c.state !== 'track') return;
   c.pushLeft = 0; c.abort = true;
   if (c.kind === 'push') { const lap = Career.track(G, G.weekend.trackId).baseLap; c.kind = 'in'; c.cur = null; c.secStatus = []; c.next = seg.t + lap * (1 - c.secIdx / 3) * 1.15; }
-  Quali.log(ql, `${Quali.nameOf(G, did)} aborta a volta e volta aos boxes.`, did, 'team');
+  Quali.log(ql, tr(`${Quali.nameOf(G, did)} aborta a volta e volta aos boxes.`, `${Quali.nameOf(G, did)} aborts the lap and returns to the pits.`), did, 'team');
 };
 Quali.garageMinutes = (G, did, next) => {
   const s = G.weekend.setups[did];
@@ -115,7 +115,7 @@ Quali.applySetup = (G, did, next) => {
   c.workUntil = seg.t + min * 60;
   c.setupChanged = true;
   s.qQ = +Setup.quality(s, wk.optimum[c.tid], Setup.CTX_QUALI(wk)).toFixed(3);
-  Quali.log(ql, `Garagem: ajuste no carro de ${Quali.nameOf(G, did)} (${min} min de trabalho).`, did, 'team');
+  Quali.log(ql, tr(`Garagem: ajuste no carro de ${Quali.nameOf(G, did)} (${min} min de trabalho).`, `Garage: changes on ${Quali.nameOf(G, did)}'s car (${min} min of work).`), did, 'team');
   return { ok: true, min };
 };
 
@@ -202,7 +202,7 @@ Quali.autoLeave = (G, did) => {
   if (p.late) {
     // segunda saída: quem está seguro na frente pode poupar pneus (só Q1/Q2)
     const pos = Quali.order(ql).indexOf(did) + 1;
-    if (seg.keep && pos > 0 && pos <= seg.keep - 4 && RNG.chance(0.45)) { Quali.log(ql, `${Quali.nameOf(G, did)} fica nos boxes: tempo garantido.`, did); return; }
+    if (seg.keep && pos > 0 && pos <= seg.keep - 4 && RNG.chance(0.45)) { Quali.log(ql, tr(`${Quali.nameOf(G, did)} fica nos boxes: tempo garantido.`, `${Quali.nameOf(G, did)} stays in the pits: time is safe.`), did); return; }
   }
   Quali.takeSet(G, did, 'S');
   c.pushLeft = p.push; c.risk = p.late && seg.keep ? (RNG.chance(0.4) ? 'push' : 'normal') : c.risk;
@@ -217,7 +217,7 @@ Quali.event = (G, did) => {
   if (c.kind !== 'push') {
     if (c.tyre) c.tyre.laps += 1;
     // fim de volta de saída / resfriamento / entrada
-    if (c.kind === 'in' || c.abort || seg.t >= seg.dur) { const wasIn = c.kind === 'in'; c.state = 'garage'; c.kind = null; c.abort = false; c.next = Infinity; if (wasIn && mine) Quali.log(ql, `${nm} de volta à garagem.`, did, 'team'); if (c.auto && !c.plan.length && seg.t < seg.dur - 150) Quali.setAuto(G, did, true); return; }
+    if (c.kind === 'in' || c.abort || seg.t >= seg.dur) { const wasIn = c.kind === 'in'; c.state = 'garage'; c.kind = null; c.abort = false; c.next = Infinity; if (wasIn && mine) Quali.log(ql, tr(`${nm} de volta à garagem.`, `${nm} back in the garage.`), did, 'team'); if (c.auto && !c.plan.length && seg.t < seg.dur - 150) Quali.setAuto(G, did, true); return; }
     if (c.pushLeft > 0) return Quali.beginLap(G, did, 'push');
     return Quali.beginLap(G, did, 'in');
   }
@@ -227,7 +227,7 @@ Quali.event = (G, did) => {
   if (cur.crash && cur.crash.s === s) {
     const corner = Narr.corner(track, s, r);
     ql.res[did].inc.push(`${seg.name}: batida ${Narr.at(corner)}`);
-    Quali.log(ql, `BATIDA! ${nm} perde o carro ${Narr.at(corner)} e vai para o muro. Fim de sessão para ele.`, did, 'crash');
+    Quali.log(ql, tr(`BATIDA! ${nm} perde o carro ${Narr.at(corner)} e vai para o muro. Fim de sessão para ele.`, `CRASH! ${nm} loses the car ${Narr.at(corner)} and hits the wall. Session over for him.`), did, 'crash');
     c.state = 'out'; c.kind = null; c.next = Infinity; ql.cars[did].crashed = true;
     if (RNG.chance(0.7)) Quali.redFlag(G, did, corner);
     return;
@@ -272,7 +272,7 @@ Quali.event = (G, did) => {
 };
 Quali.redFlag = (G, did, corner) => {
   const ql = G.weekend.ql, seg = Quali.seg(ql);
-  Quali.log(ql, `BANDEIRA VERMELHA no ${seg.name}: carro de ${Quali.nameOf(G, did)} parado ${Narr.at(corner)}. Todos para os boxes; o relógio para.`, did, 'red');
+  Quali.log(ql, tr(`BANDEIRA VERMELHA no ${seg.name}: carro de ${Quali.nameOf(G, did)} parado ${Narr.at(corner)}. Todos para os boxes; o relógio para.`, `RED FLAG in ${seg.name}: ${Quali.nameOf(G, did)}'s car stopped ${Narr.at(corner)}. Everyone back to the pits; the clock stops.`), did, 'red');
   // voltas em andamento são abortadas; a sessão volta com o mesmo tempo restante
   ql.alive.forEach(x => { const c = ql.cars[x]; if (c.state === 'track') { c.state = 'garage'; c.kind = null; c.next = Infinity; c.cur = null; c.secStatus = []; } });
   const restart = 150;
@@ -292,9 +292,9 @@ Quali.endSeg = (G) => {
     const out = order.slice(seg.keep);
     out.forEach(did => (ql.res[did].elim = seg.name));
     ql.alive = order.slice(0, seg.keep);
-    Quali.log(ql, `Fim do ${seg.name}. Eliminados: ${out.map(d => Quali.nameOf(G, d)).join(', ')}.`, null, 'flag');
+    Quali.log(ql, tr(`Fim do ${seg.name}. Eliminados: ${out.map(d => Quali.nameOf(G, d)).join(', ')}.`, `End of ${seg.name}. Eliminated: ${out.map(d => Quali.nameOf(G, d)).join(', ')}.`), null, 'flag');
   } else {
-    Quali.log(ql, `Fim do ${seg.name}! ${Quali.nameOf(G, order[0])} conquista a ${ql.kind === 'SQ' ? 'pole da Sprint' : 'pole position'}.`, order[0], 'flag');
+    Quali.log(ql, tr(`Fim do ${seg.name}! ${Quali.nameOf(G, order[0])} conquista a ${ql.kind === 'SQ' ? 'pole da Sprint' : 'pole position'}.`, `End of ${seg.name}! ${Quali.nameOf(G, order[0])} takes ${ql.kind === 'SQ' ? 'Sprint pole' : 'pole position'}.`), order[0], 'flag');
     ql.done = true;
   }
 };

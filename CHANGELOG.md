@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.0 — em desenvolvimento
+## 0.7.0 — Fim de semana completo, Conselho da FIA e inglês
 **Acerto e treinos livres**
 - Novo modelo de acerto: asas dianteira e traseira, suspensão, altura do carro e balanço de freio (relações de marcha homologadas para a temporada). O piloto sente 5 áreas do carro: equilíbrio, frenagem, curvas, tração e retas; cada ajuste mexe em várias delas.
 - O ideal muda com o contexto (tanque, borracha na pista, temperatura, vento, ritmo): o acerto de classificação e o de corrida não são o mesmo.
@@ -40,6 +40,14 @@
 - Promoções no estilo Red Bull: você troca pilotos entre as duas equipes a qualquer momento entre os GPs, inclusive no meio da temporada. As famílias controladas pelo jogo também promovem e rebaixam pelo rendimento; se a sua equipe for a irmã, a principal pode levar o seu piloto da academia dela.
 - Parceria técnica: a irmã usa peças da principal e se aproxima dela a cada temporada; no Conselho da FIA, vota com a principal.
 - Dá para vender a irmã por 85% do valor de mercado.
+
+**Idiomas e tipografia**
+- Jogo em português (Brasil) ou inglês: escolha na primeira abertura, na tela inicial ou em Salvar e opções.
+- Em inglês: interface, narração da classificação e da corrida, rádio, resumo das voltas, retorno do piloto no treino, pneus, abandonos, Conselho da FIA e as manchetes mais comuns. Notícias e registros antigos ficam no idioma em que foram escritos.
+- Títulos em caixa alta no padrão das transmissões da F1 (Titillium Web Black). Se os arquivos da fonte Formula1 Display forem colocados em `app/assets/fonts`, o jogo passa a usá-la.
+
+**Compatibilidade**
+- Saves da 0.6 abrem normalmente (save v5): fim de semana em andamento no formato antigo recomeça no formato novo, e o Conselho da FIA e as equipes irmãs são criados.
 
 ## 0.6.0 — Moratelli Game Company
 - Numeração das versões revista: o jogo segue em desenvolvimento (as versões publicadas como 1.0.0 e 1.0.1 passam a ser a 0.5 e a 0.6).
