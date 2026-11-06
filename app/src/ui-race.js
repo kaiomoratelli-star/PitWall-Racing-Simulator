@@ -122,9 +122,13 @@ function updateRace(full) {
   const L = race.lap;
   const w = race.wet[Math.max(1, L)] || 0;
   const hud = $('#hud');
+  // bordas amarelas (ou vermelhas) enquanto o Safety Car, o VSC ou a bandeira vermelha estiverem ativos
+  const fl = race.sc && !race.finished ? race.sc.type : null;
+  document.body.classList.toggle('flag-sc', fl === 'SC'); document.body.classList.toggle('flag-vsc', fl === 'VSC'); document.body.classList.toggle('flag-red', fl === 'RED');
   if (hud) hud.innerHTML = `
     <div class="lapcount num">${Math.min(L, race.laps)}<small>/${race.laps}</small></div>
     ${flagHtml(race)}
+    ${race.sc && !race.finished ? `<span class="chip sc-info">${race.sc.type === 'RED' ? 'Corrida suspensa · troca de pneus liberada' : race.sc.type === 'SC' ? 'Ritmo reduzido · pelotão agrupado · pit stop custa ~50% menos' : 'Ritmo controlado · pit stop custa ~40% menos'}</span>` : ''}
     ${UI.raceError ? `<span class="chip bad" title="${esc(UI.raceError)}">Simulação pausada por um erro (registrado em Diagnóstico)</span>` : ''}
     <span class="chip" style="${w > 0.2 ? 'color:var(--blue)' : ''}">Pista ${Engine.wetLabel(w).toLowerCase()}</span>
     ${race.fastest ? `<span class="chip"><span class="pur">Volta mais rápida</span> ${dName(race.fastest.did)} ${fmtLap(race.fastest.time)}</span>` : ''}
@@ -140,7 +144,10 @@ function updateRace(full) {
   const cars = race.cars.slice().sort((a, b) => a.pos - b.pos);
   const lead = cars[0];
   const tower = $('#tower');
-  if (tower) tower.innerHTML = `<table><thead><tr><th></th><th></th><th></th><th></th><th class="gp">Líder</th><th class="gp">Int.</th><th>Pneu</th><th></th><th>Setores</th><th class="gp">Última</th><th></th></tr></thead><tbody>${cars.map((c, i) => {
+  const ptsTable = race.sprint ? (G.db.rules.sprintPoints || []) : (G.db.rules.points || []);
+  if (tower) tower.innerHTML = `<table><thead><tr><th></th><th></th><th class="no">Nº</th><th></th><th></th><th class="gp">Líder</th><th class="gp">Int.</th><th>Pneu</th><th></th><th>Setores</th><th class="gp">Última</th><th></th><th class="pts">Pts</th></tr></thead><tbody>${cars.map((c, i) => {
+    const drv = Career.driver(G, c.did), tm = Career.team(G, c.tid);
+    const ptsNow = c.status === 'dnf' ? 0 : (race.finished && race.points ? (race.points[c.did] || 0) : (ptsTable[c.pos - 1] || 0));
     const mine = c.tid === G.player.teamId, prev = cars[i - 1];
     let gap = '';
     if (c.status === 'dnf') gap = '<span class="neg">AB</span>';
@@ -151,14 +158,16 @@ function updateRace(full) {
     const ch = c.grid - c.pos;
     return `<tr class="${mine ? 'me' : ''} ${c.status === 'dnf' ? 'out' : ''} ${c._flash ? 'flash' : ''}">
       <td class="p">${c.pos}</td><td style="width:6px;padding:0"><span class="tcolor" style="background:${teamColor(c.tid)}"></span></td>
-      <td class="nm">${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ` <span class="chip good" title="${race.boostName}">${race.boostName === 'DRS' ? 'DRS' : byLang('MU', 'OM')}</span>` : ''}</td>
+      <td class="no num">${drv && drv.number != null ? drv.number : ''}</td>
+      <td class="nm"><span class="tw-id">${flagOnly(drv && drv.nat)}${teamLogo(tm, 'xs')}</span>${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ` <span class="chip good" title="${race.boostName}">${race.boostName === 'DRS' ? 'DRS' : byLang('MU', 'OM')}</span>` : ''}</td>
       <td class="small ${ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'muted'} num">${L ? (ch > 0 ? '▲' + ch : ch < 0 ? '▼' + -ch : '–') : ''}</td>
       <td class="gp">${gap}</td><td class="gp muted">${intv}</td>
       <td>${c.status === 'dnf' ? '' : tyreIcon(c.tyre.c)}</td>
       <td class="num small ${c.status === 'dnf' ? 'muted' : tempClass(tr, c.tyre.c, c.tyre.temp)}" title="Desgaste ${Math.round(c.tyre.wear)}% · ${Math.round(c.tyre.temp)}°C">${c.status === 'dnf' ? esc((c.dnfReason || '').split(' ')[0]) : Math.round(c.tyre.wear) + '%'}</td>
       <td class="secs">${c.status === 'dnf' ? '' : [0, 1, 2].map(k => secCell(c, k, race)).join('')}</td>
       <td class="num small ${c.best && race.fastest && c.best === race.fastest.time ? 'pur' : 'muted'}">${c.lastLap && c.status !== 'dnf' ? fmtLap(c.lastLap) : ''}</td>
-      <td class="num small muted">${c.pits ? 'P' + c.pits : ''}</td></tr>`;
+      <td class="num small muted">${c.pits ? 'P' + c.pits : ''}</td>
+      <td class="pts num ${ptsNow ? '' : 'muted'}">${L ? ptsNow : ''}</td></tr>`;
   }).join('')}</tbody></table>`;
   cars.forEach(c => { c._flash = false; });
   // gráfico de líderes (atualiza a cada 2 voltas)
@@ -195,7 +204,12 @@ function pitWallHtml(race, wk, tr, cars) {
   const card = (c) => {
     const i = cars.indexOf(c), ahead = cars[i - 1], behind = cars[i + 1];
     const props = Engine.tprops(tr, c.tyre.c);
-    const wearRate = Engine.wearRate(c.tyre.c, tr, Career.ctx(G).effOf(c.did), Career.team(G, c.tid), c.mode, race.wet[race.lap] || 0, c.tyre.temp);
+    const drvE = Career.ctx(G).effOf(c.did), teamC = Career.team(G, c.tid);
+    const wearRate = Engine.wearRate(c.tyre.c, tr, drvE, teamC, Engine.tyreModeOf(c), race.wet[race.lap] || 0, c.tyre.temp);
+    const share = race.R ? race.R.electricShare : 50;
+    const ovtUse = -Engine.ersDelta(drvE, teamC.car.energy ?? 80, 'overtake', share);
+    const autonomy = ovtUse > 0 ? Math.floor((c.soc ?? 100) / ovtUse) : null;
+    const spark = (c.ersH || []).map(v => `<i class="${v >= 0 ? 'up' : 'dn'}" style="height:${Math.min(100, Math.abs(v) * 9)}%" title="${v > 0 ? '+' : ''}${v}%"></i>`).join('');
     const lapsTo70 = Math.max(0, Math.round((70 - c.tyre.wear) / Math.max(0.3, wearRate)));
     const radio = c.status === 'run' ? Events.radio(race, c, wk) : [];
     if (c.status === 'run' && c.tyre.temp > props.hi) radio.push(`Pneus superaquecendo (${Math.round(c.tyre.temp)}°C).`);
@@ -213,12 +227,15 @@ function pitWallHtml(race, wk, tr, cars) {
         <div><span class="label">Pneu</span><b>${tyreIcon(c.tyre.c)} ${props.name} · ${c.tyre.age}v</b></div>
         <div><span class="label">Desgaste</span>${bar(c.tyre.wear, 100, c.tyre.wear > 70 ? 'r' : '')}<span class="small num">${Math.round(c.tyre.wear)}% · ~${lapsTo70} v até 70%</span></div>
         <div><span class="label">Temperatura</span><b class="${tempClass(tr, c.tyre.c, c.tyre.temp)}">${Math.round(c.tyre.temp)}°C</b><span class="small muted"> janela ${props.lo}–${props.hi}</span></div>
-        <div><span class="label">Bateria</span>${bar(c.soc ?? 100, 100, (c.soc ?? 100) < 20 ? 'r' : 'g')}<span class="small num">${Math.round(c.soc ?? 100)}%</span></div>
+        ${share > 0 ? `<div><span class="label">Bateria</span>${bar(c.soc ?? 100, 100, (c.soc ?? 100) < 20 ? 'r' : 'g')}<span class="small num">${Math.round(c.soc ?? 100)}% · +${Math.round(c.ersIn || 0)} / −${Math.round(c.ersOut || 0)}</span><div class="ers-spark" title="Saldo de energia por volta (últimas 15)">${spark}</div><span class="small muted">${autonomy != null ? `~${autonomy} v em ultrapassagem` : ''}</span></div>` : ''}
         <div><span class="label">Plano</span><b>${c.plan.stops} parada(s)${c.auto ? ' · automático' : ' · manual'}</b></div>
         <div><span class="label">Velocidade máx.</span><b class="num">${c.vmax || '—'} km/h</b></div>
       </div>` : ''}
-      ${ctrl ? `<div class="row">${segBtns('carMode', c.mode, [['save', 'Poupar energia'], ['normal', 'Normal'], ['push', 'Atacar']], `data-d="${c.did}"`)}
-        <button class="btn sm ${c.auto ? '' : 'primary'}" data-act="carAuto" data-d="${c.did}">${c.auto ? 'Paradas: automático' : 'Paradas: manual'}</button></div>
+      ${ctrl ? `<div class="pw-modes">
+        <div><span class="label">Pneus</span>${segBtns('carTyreMode', Engine.tyreModeOf(c), [['save', 'Conservar'], ['normal', 'Equilibrado'], ['push', 'Atacar']], `data-d="${c.did}"`)}</div>
+        ${share > 0 ? `<div><span class="label">Energia (ERS)</span>${segBtns('carErsMode', Engine.ersModeOf(c), [['harvest', 'Recarregar'], ['balanced', 'Neutro'], ['overtake', 'Ultrapassagem']], `data-d="${c.did}"`)}</div>` : ''}
+        <div class="row" style="gap:6px"><button class="btn sm ${c.autoModes ? 'primary' : ''}" data-act="carAutoModes" data-d="${c.did}" title="O engenheiro escolhe os modos de pneu e de energia a cada volta">${c.autoModes ? 'Modos: engenheiro' : 'Modos: manual'}</button>
+        <button class="btn sm ${c.auto ? '' : 'primary'}" data-act="carAuto" data-d="${c.did}">${c.auto ? 'Paradas: automático' : 'Paradas: manual'}</button></div></div>
       <div class="row"><span class="small muted">Box:</span>${['S', 'M', 'H', 'I', 'W'].map(t => `<button class="btn sm ${c.pitReq === t ? 'primary' : ''}" data-act="carPit" data-d="${c.did}" data-c="${t}" title="${esc(Engine.tyreLabel(tr, t))}">${tyreIcon(t)}</button>`).join('')}${c.pitReq ? `<span class="chip acc">Box nesta volta: ${esc(Engine.tyreLabel(tr, c.pitReq))}</span>` : ''}</div>` : ''}
       ${radio.length && c.status === 'run' ? `<div class="radio">Engenheiro${(() => { const s = Staff.get(Career.team(G, c.tid), mine.indexOf(c) === 0 ? 'raceEng1' : 'raceEng2'); return s ? ` (${esc(s.name)})` : ''; })()}: ${esc(radio.join(' '))}</div>` : ''}
     </div>`;
@@ -237,3 +254,8 @@ Career.stepRace = (G2) => {
   r.cars.forEach(c => { if (before[c.did] && c.pos < before[c.did] && c.status === 'run') c._flash = true; });
   return r;
 };
+
+/* modos de pneu e de energia (o mesmo controle que os estrategistas das outras equipes usam) */
+ACT.carTyreMode = (el) => { const c = G.weekend.race.cars.find(x => x.did === el.dataset.d); if (c) { c.tyreMode = el.dataset.val; c.mode = c.tyreMode; c.autoModes = false; } updateRace(); };
+ACT.carErsMode = (el) => { const c = G.weekend.race.cars.find(x => x.did === el.dataset.d); if (c) { c.ersMode = el.dataset.val; c.autoModes = false; } updateRace(); };
+ACT.carAutoModes = (el) => { const c = G.weekend.race.cars.find(x => x.did === el.dataset.d); if (c) c.autoModes = !c.autoModes; updateRace(); };

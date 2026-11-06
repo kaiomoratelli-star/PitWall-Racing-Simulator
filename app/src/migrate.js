@@ -5,10 +5,17 @@
    ============================================================ */
 'use strict';
 
-const SAVE_VERSION = 5;
+const SAVE_VERSION = 6;
 
 const Migrate = {
   steps: {
+    // v5 -> v6 (v0.8): identidade das equipes por temporada (ex.: Gucci Racing Alpine em 2027),
+    // modos de pneu e de energia separados (a corrida em andamento converte o modo antigo sozinha)
+    5: (G) => {
+      if (G.season && typeof Identity !== 'undefined') Identity.apply(G, G.season.year);
+      const r = G.weekend && G.weekend.race;
+      if (r) r.cars.forEach(c => { c.tyreMode = c.tyreMode || Engine.tyreModeOf(c); c.ersMode = c.ersMode || Engine.ersModeOf(c); });
+    },
     // v4 -> v5 (v0.7): treinos com relógio e acerto com memória, classificação ao vivo, relatório da
     // corrida, Conselho da FIA e equipes irmãs
     4: (G) => {

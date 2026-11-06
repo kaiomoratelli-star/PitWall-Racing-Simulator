@@ -157,11 +157,40 @@ Engine.wearRate = (compound, track, drv, team, mode, w, temp) => {
   let base = props && 'SMH'.includes(compound) ? props.wear : TYRES[compound].wear;
   if (props && temp != null && temp > props.hi) base *= 1 + (temp - props.hi) / 45;
   if ((compound === 'I' || compound === 'W') && w < 0.18) base *= compound === 'W' ? 3.2 : 2.4; // superaquece no seco
-  const modeMul = mode === 'push' ? 1.35 : mode === 'save' ? 0.72 : 1;
+  const modeMul = Engine.tyreWearMul(mode);
   const styleMul = (drv.b && drv.b.wear) || 1;
   return base * track.tyreStress * (1.25 - drv.tyre * 0.004) * (1.2 - team.car.tyreCare * 0.0035) * modeMul * styleMul;
 };
 
+/* ---------- gestão de pneus e de energia (mesmos controles para jogador e equipes do jogo) ----------
+   Pneus: CONSERVAR desgasta ~30% menos e custa 0,4–0,7 s; ATACAR ganha 0,5–0,8 s e desgasta até ~45% mais.
+   O efeito depende do piloto (controle de pneus), do desgaste, da janela de temperatura e da pista.
+   Energia (ERS): RECARREGAR enche a bateria e custa tempo; ULTRAPASSAGEM gasta energia e ganha tempo e
+   chance de ultrapassar. A escala segue a parte elétrica do regulamento da temporada. */
+Engine.TYRE_MODES = ['save', 'normal', 'push'];
+Engine.ERS_MODES = ['harvest', 'balanced', 'overtake'];
+Engine.tyreModeOf = (c) => c.tyreMode || (c.mode === 'push' ? 'push' : c.mode === 'save' ? 'save' : 'normal');
+Engine.ersModeOf = (c) => c.ersMode || (c.mode === 'push' ? 'overtake' : c.mode === 'save' ? 'harvest' : 'balanced');
+Engine.tyreWearMul = (m) => (m === 'push' ? 1.42 : m === 'save' ? 0.7 : 1);
+Engine.tyreModeDelta = (ctx) => {
+  const m = ctx.tyreMode || (ctx.mode === 'push' ? 'push' : ctx.mode === 'save' ? 'save' : 'normal');
+  if (m === 'normal' || ctx.quali) return 0;
+  const sc = ctx.track.baseLap / 90;
+  const tyreSkill = (ctx.drv.tyre ?? 75) / 100;
+  const dry = 'SMH'.includes(ctx.compound);
+  if (m === 'save') return (0.7 - tyreSkill * 0.3) * sc;           // 0,4 s (bom gestor) a 0,7 s
+  const props = Engine.CPROPS && dry ? Engine.tprops(ctx.track, ctx.compound) : null;
+  const overheated = props && ctx.ttemp != null && ctx.ttemp > props.hi;
+  const fresh = 1 - clamp((ctx.wear || 0) / 100, 0, 1);
+  return -(0.5 + 0.3 * fresh) * (overheated ? 0.5 : 1) * sc;     // pneu gasto ou superaquecido rende menos
+};
+Engine.ersModeDelta = (ctx) => {
+  const m = ctx.ersMode || (ctx.mode === 'push' ? 'overtake' : ctx.mode === 'save' ? 'harvest' : 'balanced');
+  if (m === 'balanced' || ctx.quali || !(ctx.share > 0)) return 0;
+  const k = ctx.share / 50;
+  const en = (ctx.drv.energy ?? 75) / 100;
+  return m === 'overtake' ? -0.22 * (0.8 + en * 0.4) * k : 0.28 * (1.15 - en * 0.3) * k;
+};
 Engine.paceComponents = (ctx) => {
   // ctx: {db, track, team, drv(eff), setupQ, compound, wear, fuel, w, mode, quali, carPerf}
   const sc = ctx.track.baseLap / 90;
@@ -182,8 +211,7 @@ Engine.paceComponents = (ctx) => {
   const fuel = ctx.fuel * 0.031 * ((R.fuelLimit || 70) / 70) + ((R.minWeight || 768) - 768) * 0.003;
   const weather = ctx.w * 7.5 * sc + Engine.weatherPenalty(ctx.compound, ctx.w) * sc;
   // modo de ataque rende mais para quem gerencia bem a energia (bateria/ERS)
-  const en = ctx.drv.energy ?? 75;
-  const mode = ctx.mode === 'push' ? -0.32 * (0.8 + en / 250) : ctx.mode === 'save' ? 0.42 * (1.15 - en / 400) : 0;
+  const mode = Engine.tyreModeDelta(ctx) + Engine.ersModeDelta(ctx);
   return { car, driver, setup, tyre, fuel, weather, mode, total: ctx.track.baseLap + car + driver + setup + tyre + fuel + weather + mode };
 };
 
@@ -361,7 +389,12 @@ Engine.stepLap = (race, wk) => {
   order.forEach((c, i) => { c.lastGapAhead = i === 0 ? 99 : c.T - order[i - 1].T; c.lastGapBehind = i === order.length - 1 ? 99 : order[i + 1].T - c.T; });
   const trackT = wk.weather && wk.weather.trackT ? wk.weather.trackT[L] : 32;
   // estrategistas da IA escolhem o modo de pilotagem (ataque, normal, economia de energia)
-  order.forEach(c => { if (!c.isPlayer && Engine.aiMode) c.mode = Engine.aiMode(race, c, c.lastGapAhead, c.lastGapBehind); });
+  order.forEach(c => {
+    if (!c.tyreMode) c.tyreMode = Engine.tyreModeOf(c);
+    if (!c.ersMode) c.ersMode = Engine.ersModeOf(c);
+    if ((!c.isPlayer || c.autoModes) && Engine.aiModes) { const m = Engine.aiModes(race, c, c.lastGapAhead, c.lastGapBehind); c.tyreMode = m.tyre; c.ersMode = m.ers; }
+    c.mode = c.tyreMode; // compatibilidade com telas e saves antigos
+  });
 
   for (const c of order) {
     const team = byId(db.teams, c.tid);
@@ -374,8 +407,8 @@ Engine.stepLap = (race, wk) => {
       doPit = true; newC = Engine.chooseCompound(race, c, wk, race.laps - L);
     }
     // tempo de volta
-    const lowBatt = c.mode === 'push' && (c.soc ?? 100) < 8;
-    const pc = Engine.paceComponents({ db, track, team, drv, setupQ: c.setupQ, compound: c.tyre.c, wear: c.tyre.wear, fuel: c.fuel, w, mode: lowBatt ? 'normal' : c.mode, quali: false, carPerf: c.carPerf - c.damage.power * 2, ttemp: c.tyre.temp, trackT, evo: L });
+    const lowBatt = c.ersMode === 'overtake' && (c.soc ?? 100) < 8;
+    const pc = Engine.paceComponents({ db, track, team, drv, setupQ: c.setupQ, compound: c.tyre.c, wear: c.tyre.wear, fuel: c.fuel, w, tyreMode: scType ? 'normal' : c.tyreMode, ersMode: lowBatt || scType ? 'balanced' : c.ersMode, share: race.R.electricShare, quali: false, carPerf: c.carPerf - c.damage.power * 2, ttemp: c.tyre.temp, trackT, evo: L });
     let t = pc.total + c.damage.wing * 0.9 + (lowBatt ? 0.25 : 0) + ((c.soc ?? 100) < 3 ? 0.4 : 0);
     c.pure = t; // ritmo limpo, sem tráfego (usado no rádio e no relatório)
     const sd = (0.14 + (100 - drv.consistency) * 0.009 + w * 0.3) * ((drv.b && drv.b.sd) || 1);
@@ -395,7 +428,7 @@ Engine.stepLap = (race, wk) => {
     const rel = Engine.reliability(db, team);
     const air = wk.weather && wk.weather.air ? wk.weather.air[L] : 22;
     const heat = air > 28 ? 1 + (air - 28) * 0.05 * clamp(1 - ((team.car.cooling ?? 80) - 80) / 40, 0.3, 1.5) : 1;
-    const pFail = 0.000042 * Math.max(4, 106 - rel) * (c.mode === 'push' ? 1.25 : 1) * heat;
+    const pFail = 0.000042 * Math.max(4, 106 - rel) * (c.tyreMode === 'push' ? 1.12 : 1) * (c.ersMode === 'overtake' ? 1.1 : 1) * heat;
     if (RNG.chance(pFail)) {
       if (RNG.chance(0.72)) {
         c.status = 'dnf'; c.dnfReason = RNG.pick(FAILURES); c.T += t;
@@ -408,7 +441,7 @@ Engine.stepLap = (race, wk) => {
       }
     }
     if (!scType) {
-      const errP = (0.00035 + (100 - drv.consistency) * 0.00006) * ((drv.b && drv.b.err) || 1) * (1.35 - drv.concentration / 100 * 0.45) * (c.mode === 'push' ? 1.8 : c.mode === 'save' ? 0.6 : 1) * (1 + w * 4 + Engine.weatherPenalty(c.tyre.c, w) * 0.6) * (L === 1 ? 3 : 1);
+      const errP = (0.00035 + (100 - drv.consistency) * 0.00006) * ((drv.b && drv.b.err) || 1) * (1.35 - drv.concentration / 100 * 0.45) * (c.tyreMode === 'push' ? 1.6 : c.tyreMode === 'save' ? 0.7 : 1) * (1 + w * 4 + Engine.weatherPenalty(c.tyre.c, w) * 0.6) * (L === 1 ? 3 : 1);
       if (RNG.chance(errP)) {
         incidentCars.add(c);
         const crash = RNG.chance(0.32 + w * 0.25 + (track.street ? 0.18 : 0));
@@ -462,12 +495,14 @@ Engine.stepLap = (race, wk) => {
     c.lapTime = t;
     if (!scType) { c.lastS = Engine.sectorSplit(track, t - (pitted.has(c) ? (t - pc.total) * 0.8 : 0), sd); c.secs[L] = c.lastS; } else c.lastS = null;
     c.vlap = Engine.topSpeed(db, team, track, c.setupQ, c.drs, w); if (!scType && c.vlap > c.vmax) c.vmax = c.vlap;
-    Engine.tyreTempStep(c, track, Engine.tprops(track, c.tyre.c), trackT, c.mode, w, scType);
-    if (race.R.electricShare > 0) Engine.socStep(c, drv, c.mode, c.drs, scType, race.R.electricShare, team.car.energy); else c.soc = 100;
+    Engine.tyreTempStep(c, track, Engine.tprops(track, c.tyre.c), trackT, c.tyreMode, w, scType);
+    if (race.R.electricShare > 0) { const s0 = c.soc ?? 100; Engine.socStep(c, drv, c.ersMode, c.drs, scType, race.R.electricShare, team.car.energy); const dS = c.soc - s0; c.ersH = (c.ersH || []).concat([+dS.toFixed(1)]).slice(-15); c.ersIn = +((c.ersIn || 0) + Math.max(0, dS)).toFixed(1); c.ersOut = +((c.ersOut || 0) + Math.max(0, -dS)).toFixed(1); } else c.soc = 100;
     c.T += t;
     c.laps = L;
     // pneus e combustível
-    c.tyre.wear = clamp(c.tyre.wear + Engine.wearRate(c.tyre.c, track, drv, team, scType ? 'save' : c.mode, w, c.tyre.temp) * (scType ? 0.45 : 1), 0, 100);
+    const wr = Engine.wearRate(c.tyre.c, track, drv, team, scType ? 'save' : c.tyreMode, w, c.tyre.temp) * (scType ? 0.45 : 1);
+    c.tyre.wear = clamp(c.tyre.wear + wr, 0, 100);
+    if (!scType) c.wearPerLap = +(wr / Engine.tyreWearMul(c.tyreMode)).toFixed(2); // ritmo de desgaste no modo equilibrado (base da estratégia)
     c.tyre.age++;
     c.fuel = Math.max(0, c.fuel - 100 / race.laps);
   }
@@ -497,7 +532,7 @@ Engine.stepLap = (race, wk) => {
         }
         const dc = wk.effOf(cur.did), da = wk.effOf(ahead.did);
         const adv = (ahead.T + 0.25 - cur.T);
-        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.mode === 'push' ? 0.25 : 0);
+        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.ersMode === 'overtake' ? 0.35 : 0) + (cur.tyreMode === 'push' ? 0.12 : 0);
         const p = 1 / (1 + Math.exp(-x));
         if (RNG.chance(p)) {
           cur.overtakes++;

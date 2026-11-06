@@ -179,6 +179,7 @@ Career.startSeason = (G, first = false) => {
   };
   G.db.drivers.forEach(d => (G.season.stats[d.id] = { starts: 0, wins: 0, podiums: 0, poles: 0, dnfs: 0, fl: 0, points: 0, best: null, sumPos: 0, finishes: 0, beatMate: 0 }));
   G.db.teams.forEach(t => (G.season.standC[t.id] = 0));
+  if (typeof Identity !== 'undefined') Identity.apply(G, year);
   G.db.drivers.filter(d => d.team && d.seat !== 'R').forEach(d => (G.season.standD[d.id] = 0));
   G.finances.spent = 0;
   if (typeof Cats !== 'undefined' && !first && Cats.on(G)) Cats.startSeason(G, year);

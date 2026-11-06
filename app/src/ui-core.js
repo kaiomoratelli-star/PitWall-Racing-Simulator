@@ -66,7 +66,7 @@ NAV.splice(NAV.findIndex(n => n[0] === 'news') + 1, 0,
   ['log', 'Registro do universo', 'M6 4h12v16H6zM9 8h6M9 12h6M9 16h4']);
 
 function go(view, params = {}) {
-  if (UI.view === 'race' && view !== 'race') stopRaceLoop();
+  if (UI.view === 'race' && view !== 'race') { stopRaceLoop(); document.body.classList.remove('flag-sc', 'flag-vsc', 'flag-red'); }
   UI.view = view; UI.params = params; UI.navOpen = false;
   render();
   window.scrollTo(0, 0);
@@ -198,7 +198,8 @@ function tyreIcon(c, title) {
   if (!title && G && G.weekend && 'SMH'.includes(c) && typeof Engine.tprops === 'function') { const tr = Career.track(G, G.weekend.trackId); if (tr) title = Engine.tyreLabel(tr, c); }
   return `<span class="tyre" style="color:${T.color}" title="${esc(title || T.name)}">${T.short}</span>`;
 }
-function natTag(n) { return `<span class="nat" title="${esc(NAT_NAMES[n] || n)}">${esc(n)}</span>`; }
+function natTag(n) { return `<span class="nat" title="${esc(NAT_NAMES[n] || n)}">${typeof Assets !== 'undefined' ? Assets.flag(n) : ''}${esc(n)}</span>`; }
+function flagOnly(n) { return typeof Assets !== 'undefined' ? Assets.flag(n, 'sm') : ''; }
 function bar(v, max = 100, cls = '') { return `<div class="bar ${cls}"><i style="width:${clamp(v / max * 100, 0, 100)}%"></i></div>`; }
 function attrRow(label, v, cls = '') { return `<div class="attr"><span>${label}</span><span class="num r" style="text-align:right">${Math.round(v)}</span>${bar(v, 100, cls)}</div>`; }
 function ratingClass(v) { return v >= 90 ? 'pur' : v >= 84 ? 'pos' : v >= 78 ? '' : 'neg'; }

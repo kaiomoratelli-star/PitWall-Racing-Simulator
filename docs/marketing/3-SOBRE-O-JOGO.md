@@ -19,7 +19,7 @@
 
 ## Ponto de partida real
 - Temporada 2026 com dados reais:
-  - 11 equipes, incluindo Audi e Cadillac;
+  - 11 equipes, incluindo Audi e Cadillac (a Alpine corre como Gucci Racing Alpine a partir de 2027, como anunciado);
   - 22 pilotos titulares e os reservas;
   - motores, chefes de equipe, diretores técnicos e patrocinadores;
   - calendário com as Sprints;
@@ -88,6 +88,8 @@
   - gráfico de liderança;
   - rádio e direção de prova.
 - Velocidades de ½× a 30× e "simular até o fim".
+- (Versão 0.8) Pneus e bateria controlados separadamente: conservar, equilibrado ou atacar nos pneus; recarregar, neutro ou ultrapassagem na energia. As outras equipes usam os mesmos controles.
+- (Versão 0.8) Torre com número, bandeira, logo e pontos; bordas amarelas no Safety Car; cerimônia de pódio animada.
 - (Versão 0.7) Narração volta a volta: cada ultrapassagem com o local da manobra, defesas, toques, resumo da volta com as brigas e as mudanças de posição.
 - (Versão 0.7) Rádio das equipes: chamada de box, pneus no fim, ordens de equipe, reclamações depois de toques, Safety Car, chuva.
 - (Versão 0.7) Relatório pós-corrida no formato oficial da F1: classificação, volta a volta com filtros, gráfico de posições, pit stops e voltas mais rápidas.

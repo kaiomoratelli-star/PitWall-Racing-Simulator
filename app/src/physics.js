@@ -99,15 +99,37 @@ Engine.topSpeed = (db, team, track, setupQ, boost, w) => {
   return Math.round(base + (boost ? 11 : 0) - w * 18 + RNG.normal(0, 1.6) + (setupQ - 0.7) * 6);
 };
 /* bateria: 2026 com metade da potência vinda do elétrico */
-Engine.socStep = (car, drv, mode, boost, sc, share = 50, carEnergy = 80) => {
+/* variação da bateria numa volta (% do total) por modo de energia */
+Engine.ersDelta = (drv, carEnergy, mode, share = 50) => {
   const en = (drv.energy ?? 75) / 100 * 0.6 + carEnergy / 100 * 0.4;
-  const scale = share / 50;
-  let d = (mode === 'push' ? -9 + en * 3 : mode === 'save' ? 7 + en * 2 : -0.5 + en * 1.5) * scale;
+  const m = mode === 'push' ? 'overtake' : mode === 'save' ? 'harvest' : mode === 'normal' ? 'balanced' : mode;
+  return (m === 'overtake' ? -9 + en * 3 : m === 'harvest' ? 7 + en * 2 : -0.5 + en * 1.5) * (share / 50);
+};
+Engine.socStep = (car, drv, mode, boost, sc, share = 50, carEnergy = 80) => {
+  let d = Engine.ersDelta(drv, carEnergy, mode, share);
   if (boost) d -= 4;
   if (sc) d = 9;
   car.soc = clamp((car.soc ?? 100) + d, 0, 100);
 };
-/* decisão de modo da IA (ataque/defesa/economia) */
+/* decisão dos estrategistas (equipes do jogo e "automático" do jogador): pneus e energia separados */
+Engine.aiModes = (race, car, gapAhead, gapBehind) => {
+  const soc = car.soc ?? 100;
+  if (race.sc) return { tyre: 'normal', ers: 'harvest' };
+  const lapsLeft = race.laps - race.lap;
+  const wear = car.tyre.wear;
+  const lastStint = !car.plan || car.plan.stops <= car.pits;
+  let ers = 'balanced';
+  if (soc < 18) ers = 'harvest';
+  else if ((gapAhead < 1.0 && soc > 35) || (gapBehind < 0.7 && soc > 28)) ers = 'overtake';
+  else if (soc < 40 && gapAhead > 2 && gapBehind > 2) ers = 'harvest';
+  let tyre = 'normal';
+  const lifeLeft = (100 - wear) / Math.max(0.5, car.wearPerLap || 1.8);
+  if (lastStint && lifeLeft < lapsLeft * 1.05) tyre = 'save';                // não chega ao fim: poupar
+  else if (wear > 74 && lastStint) tyre = 'save';
+  else if (gapAhead < 1.3 && wear < 58 && lifeLeft > lapsLeft * 1.25) tyre = 'push';
+  else if (lapsLeft <= 5 && wear < 80) tyre = 'push';
+  return { tyre, ers };
+};
 Engine.aiMode = (race, car, gapAhead, gapBehind) => {
   const soc = car.soc ?? 100;
   if (race.sc) return 'normal';

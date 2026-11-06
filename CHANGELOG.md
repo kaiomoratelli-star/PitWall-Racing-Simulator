@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.8.0 — em desenvolvimento
+**Corrida**
+- Pneus e energia viraram controles separados nos cards do Pit Wall. Pneus: Conservar (cerca de 30% menos desgaste, 0,4 a 0,7 s mais lento), Equilibrado e Atacar (0,5 a 0,8 s mais rápido, até ~45% mais desgaste). Energia (ERS): Recarregar, Neutro e Ultrapassagem. O efeito depende do piloto, do desgaste, da temperatura do pneu, da pista e da parte elétrica do regulamento.
+- A bateria mostra a carga, a energia recuperada e gasta na corrida, o saldo das últimas 15 voltas e quantas voltas dá para manter em ultrapassagem. Botão "Modos: engenheiro" entrega as decisões ao engenheiro a cada volta.
+- As outras equipes usam exatamente os mesmos controles: os estrategistas decidem pneu e energia separadamente (poupam quando o pneu não chega ao fim, atacam colados no carro da frente, recarregam com a bateria baixa).
+- Torre de tempos com número do piloto, bandeira, logo da equipe e, na última coluna, os pontos da posição atual.
+- Safety Car, VSC e bandeira vermelha acendem as bordas da tela (amarelo ou vermelho) enquanto estão ativos, com aviso de ritmo reduzido e pit stop mais barato.
+- Pós-corrida abre na cerimônia de pódio: degraus, fotos, bandeiras, logos, troféu e confete, com destaque quando a sua equipe sobe ao pódio. Abas para classificação, volta a volta, gráfico, pit stops, voltas rápidas e análise completa.
+
+**Identidade e imagens**
+- Alpine vira Gucci Racing Alpine Formula One Team a partir de 2027 (anúncio oficial de 27/05/2026): a Gucci assume o title partnership no lugar da BWT, a equipe segue inscrita como Alpine e o histórico anterior fica guardado. As cores de 2027 ficam provisórias até a apresentação do carro.
+- Identidade das equipes por temporada (nome, title partner, patrocinadores e cores, com fonte e data de verificação).
+- Bandeiras em SVG em todas as telas (flag-icons, licença MIT), iguais no Windows, que não desenha emojis de bandeira.
+- Registro central de imagens com origem, licença, data e fallback de cada arquivo (`scripts/make-asset-registry.js`).
+
+**Compatibilidade**
+- Save v6: carreiras em andamento recebem a identidade da temporada; corrida em andamento converte o modo antigo nos modos novos de pneu e energia.
+
 ## 0.7.1 — Correção do congelamento da corrida
 - Corrigido o travamento da corrida ao vivo ("tr is not a function"), que aparecia sobretudo no modo Observador. A torre de tempos usava uma variável local `tr` (o circuito) e, na 0.7.0, passou a chamar a função de idioma com o mesmo nome sempre que um carro estava com o modo de ultrapassagem ativo. O desenho falhava a cada volta, o laço da corrida parava de avançar e o erro se repetia no log.
 - A função de idioma passou a se chamar `byLang`, e o `npm test` ganhou uma verificação estática de escopo (`scripts/check-scope.js`) que impede chamar uma função global quando uma variável local tem o mesmo nome, e chamar funções que não existem.
