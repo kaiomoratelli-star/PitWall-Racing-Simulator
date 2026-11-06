@@ -6,7 +6,8 @@ O marketing é feito em um Projeto separado no claude.ai, com os arquivos de `do
 
 ## Regras do dono
 - Tudo em português do Brasil (interface, textos, commits, documentação).
-- Dados reais são permitidos e desejados: pilotos, equipes, patrocinadores, imprensa, imagens. O projeto não tem fins comerciais.
+- Dados reais são permitidos e desejados: pilotos, equipes, patrocinadores, imprensa, imagens. O jogo ainda não é vendido; no futuro será pago (não escrever que é gratuito). Antes de vender, imagens e marcas de terceiros precisarão de licença ou substituição.
+- Versão atual: 0.6 (em desenvolvimento).
 - Não usar a palavra "IA" na interface do jogo.
 - Escândalos sempre com pessoas e organizações fictícias.
 - Identidade visual: vermelho `#E10600`, carbono `#15151E`, Titillium Web 900 itálico e IBM Plex Mono (ver `docs/marketing/2-GUIA-DA-MARCA.md`).

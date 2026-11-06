@@ -30,6 +30,7 @@ SCREENS.title = {
           <button class="btn primary lg" data-act="go" data-v="newcareer">Nova carreira</button>
           <div class="row">
             <button class="btn" data-act="openEditorBase">Editor da base</button>
+            <button class="btn" data-act="openAccount">Perfil e ativação</button>
             <label class="btn" for="importSave">Importar jogo salvo</label>
             <input type="file" id="importSave" accept=".json,application/json" hidden data-chg="importSave">
           </div>

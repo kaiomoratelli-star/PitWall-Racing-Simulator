@@ -38,7 +38,7 @@ Logo da Moratelli Game Company, ícone, tela de abertura e imagens do instalador
 
 ## Créditos dos dados
 - Resultados, pilotos, equipes e circuitos de 1950 até hoje: [f1db](https://github.com/f1db/f1db) (CC BY 4.0).
-- Fotos de pilotos, carros, logos e mapas oficiais: formula1.com (uso pessoal, sem fins comerciais).
+- Fotos de pilotos, carros, logos e mapas oficiais: formula1.com (uso em desenvolvimento; a versão comercial precisará de licença ou de imagens próprias).
 - Geometria real dos circuitos: [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT).
 - Outras categorias (grids, calendários e classificações 2026): Wikipedia; datas de nascimento e redes sociais: Wikidata; fotos: sites oficiais da F2, F3 e Fórmula E e Wikimedia Commons.
 - Para atualizar os dados: `python3 scripts/import_real_data.py`, `python3 scripts/import_records.py` e `python3 scripts/import_categories.py`.

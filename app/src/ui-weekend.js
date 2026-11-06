@@ -501,7 +501,7 @@ function h2hHtml() {
   }).join('')}</tbody></table></div>`;
 }
 
-/* ---------- telemetria (V1) ---------- */
+/* ---------- telemetria ---------- */
 const stdev = (a) => { const m = avg(a); return Math.sqrt(avg(a.map(x => (x - m) * (x - m)))); };
 function cleanLaps(lr, c) {
   const sc = new Set(); (lr.scHistory || []).forEach(s => { for (let l = s.from; l <= s.to + 1; l++) sc.add(l); });
