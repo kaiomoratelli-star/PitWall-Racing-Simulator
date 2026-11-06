@@ -57,7 +57,7 @@ for (const mode of modes) {
   // save da 0.6 (v4) no meio de um fim de semana no formato antigo: sem treino com relógio,
   // Conselho, equipes irmãs nem registro de pit stops
   const v4 = JSON.parse(JSON.stringify(G)); v4.version = 4;
-  delete v4.council; delete v4.sisters; delete v4.sisterInfo; delete v4.options.practiceFormat; if (v4.lastRace) delete v4.lastRace.pitLog;
+  delete v4.council; delete v4.sisters; v4.db.teams.forEach(t => { if (t.identityYear) { const h = t.identityHistory[t.identityHistory.length - 1]; Object.assign(t, { name: h.name, fullName: h.fullName, sponsors: h.sponsors }); delete t.identityYear; delete t.titleSponsor; t.identityHistory = []; } }); delete v4.sisterInfo; delete v4.options.practiceFormat; if (v4.lastRace) delete v4.lastRace.pitLog;
   try {
     if (!Career.seasonOver(v4)) { Career.startWeekend(v4); delete v4.weekend.fp; delete v4.weekend.setups; }
     Migrate.run(v4);
@@ -66,7 +66,9 @@ for (const mode of modes) {
     if (!Career.seasonOver(v4)) { Career.finishPractice(v4); Career.runQualifying(v4); Career.startRace(v4); Career.simRaceToEnd(v4); Career.finishWeekend(v4); }
     const dg = Diag.run(v4);
     if (dg.errors.length) throw new Error(dg.errors.join('; '));
-    console.log(`[${mode}] migração v4→v${v4.version} ok (fim de semana convertido, Conselho e equipes irmãs)`);
+    const alp = v4.db.teams.find(t => t.id === 'alpine');
+    if (alp && v4.season.year >= 2027 && alp.titleSponsor !== 'Gucci') throw new Error('identidade 2027 da Alpine não aplicada');
+    console.log(`[${mode}] migração v4→v${v4.version} ok (fim de semana convertido, Conselho, equipes irmãs, identidade ${alp ? alp.name : '-'})`);
   } catch (e) { console.log('ERRO migração v4', e.message); failures++; }
 }
 if (failures) { console.log(`FALHOU: ${failures} problema(s)`); process.exit(1); }
