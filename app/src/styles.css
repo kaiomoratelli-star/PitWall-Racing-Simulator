@@ -656,3 +656,48 @@ body.flag-red .main::after { border-color: var(--red); box-shadow: inset 0 0 60p
 .spons-row { display: inline-flex; flex-wrap: wrap; gap: 6px 14px; vertical-align: middle; }
 .catgroup.main .catchip { font-size: 14px; padding: 7px 14px; font-weight: 800; }
 .catgroup.main .label { color: var(--fg); }
+
+/* ---------- P&D visual (0.8) ---------- */
+.devslots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.devslot { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-height: 104px; }
+.devslot.busy { background: var(--panel2); border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
+.devslot.free { border-style: dashed; }
+.devslot.locked { opacity: .55; background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(127,127,127,.08) 8px 16px); }
+.devcarwrap { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: center; }
+.devcar { width: 170px; height: auto; }
+.devcar .cz { cursor: pointer; }
+.devcar .cz > * { fill: var(--panel2); stroke: var(--line); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
+.devcar .cz path[fill="none"] { fill: none; stroke: var(--muted); }
+.devcar .cz:hover > * { stroke: var(--fg); }
+.devcar .cz.run > * { fill: color-mix(in srgb, var(--green) 35%, var(--panel2)); stroke: var(--green); animation: devpulse 1.6s ease-in-out infinite; }
+.devcar .cz.sel > * { fill: color-mix(in srgb, var(--accent) 55%, var(--panel2)); stroke: var(--accent); }
+.devcar .cz.sel path[fill="none"], .devcar .cz.run path[fill="none"] { fill: none; }
+.devcar .cockpit { fill: var(--bg); stroke: var(--line); pointer-events: none; }
+@keyframes devpulse { 50% { opacity: .55; } }
+.lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: middle; margin: 0 4px 0 8px; }
+.lg.sel { background: var(--accent); } .lg.run { background: var(--green); }
+.devdone { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+.devdone.fresh { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.devba { display: grid; grid-template-columns: 40px 1fr 40px; gap: 8px; align-items: center; }
+.devdone.fresh .bar i { animation: devgrow 1.4s cubic-bezier(.2,.7,.2,1) .2s both; }
+@keyframes devgrow { from { width: var(--b); } to { width: var(--a); } }
+@media (max-width: 900px) { .devslots { grid-template-columns: repeat(2, minmax(0, 1fr)); } .devcarwrap { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .devcar .cz.run > *, .devdone.fresh .bar i { animation: none; } }
+.devba .bar { position: relative; overflow: visible; }
+.devba .bar s { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fg2); opacity: .7; }
+.devcar .cz.sel.run > * { animation: devpulse 1.6s ease-in-out infinite; }
+.devcar .cz[data-z="floor"] > * { fill: var(--bg2); }
+.devcar .cz[data-z="floor"].sel > * { fill: color-mix(in srgb, var(--accent) 55%, var(--panel2)); }
+.devcar .cz[data-z="floor"].run:not(.sel) > * { fill: color-mix(in srgb, var(--green) 35%, var(--panel2)); }
+.devcfg { display: grid; grid-template-columns: 180px minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+.devcarcol { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.devcar { width: 170px; }
+.devcar .deco { pointer-events: none; }
+.devcar .halo { fill: none; stroke: var(--fg2); stroke-width: 3; stroke-linecap: round; }
+.devcar .mir { fill: var(--line2); }
+.devprev { background: var(--panel2); margin: 0; }
+.devslot.next { border-color: color-mix(in srgb, var(--blue) 55%, var(--line)); }
+.devcfg .seg { flex-wrap: wrap; }
+.devcfg input[type=range] { width: 100%; }
+@media (max-width: 1100px) { .devcfg { grid-template-columns: 170px minmax(0, 1fr); } .devprev { grid-column: 1 / -1; } }
+@media (max-width: 700px) { .devcfg { grid-template-columns: 1fr; } }

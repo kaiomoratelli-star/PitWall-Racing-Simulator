@@ -23,6 +23,18 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**P&D por peça (Fase 4)**
+- O projeto "pequeno, médio, grande" virou projeto por peça: asa dianteira, asa traseira, assoalho, sidepods e carenagem, suspensão, chassi, redução de peso, freios, refrigeração, câmbio, gestão térmica de pneus, unidade de potência (só fábrica), eficiência energética, confiabilidade, pit stop e instalações.
+- Cada projeto é configurado: alvo (carro atual, com projeto e fabricação, ou carro do ano seguinte), foco (peças aerodinâmicas: carga, eficiência ou equilíbrio e pneus; mecânicas: desempenho, confiabilidade ou pneus), ambição (conservador, equilibrado ou agressivo) e quanto túnel de vento e CFD usar. A previsão mostra custo, prazo (GPs de projeto + fabricação), ganho por atributo, risco e aproveitamento dos recursos.
+- Túnel de vento e CFD vêm de uma cota por período de 4 GPs, que segue a regra de restrição de testes aerodinâmicos do regulamento (quem terminou atrás tem mais). Peças aerodinâmicas dependem mais do túnel, as mecânicas do CFD; menos recurso que o ideal deixa o projeto mais fraco e mais arriscado.
+- A pesquisa do carro do ano seguinte é feita peça por peça e ocupa uma vaga como qualquer projeto (rende 35% a mais, só projeto, sem fabricação). Substitui o antigo controle de foco geral; o carro novo estreia com cada pesquisa no atributo certo.
+- Vagas de projeto visíveis (ocupadas, livres e bloqueadas, com a nota de instalações que abre cada uma, até 4) e um projeto por peça e alvo de cada vez.
+- Carro visto de cima com proporções do regulamento de 2026 (mais curto e mais estreito): a peça escolhida acende, as peças em projeto pulsam e clicar numa peça escolhe o projeto.
+- Atualizações concluídas mostram antes e depois de cada atributo, com a barra animada na primeira vez.
+- Projetos antigos de saves anteriores terminam normalmente.
+- Editor de categorias: grid invertido editável em cada corrida do fim de semana (Sprint da F2/F3 e corridas das regionais e F4).
+- Inglês: frases com "·" passam a usar primeiro os modelos específicos (antes alguns textos ficavam em português).
+
 **Corrida**
 - Pneus e energia viraram controles separados nos cards do Pit Wall. Pneus: Conservar (cerca de 30% menos desgaste, 0,4 a 0,7 s mais lento), Equilibrado e Atacar (0,5 a 0,8 s mais rápido, até ~45% mais desgaste). Energia (ERS): Recarregar, Neutro e Ultrapassagem. O efeito depende do piloto, do desgaste, da temperatura do pneu, da pista e da parte elétrica do regulamento.
 - A bateria mostra a carga, a energia recuperada e gasta na corrida, o saldo das últimas 15 voltas e quantas voltas dá para manter em ultrapassagem. Botão "Modos: engenheiro" entrega as decisões ao engenheiro a cada volta.
