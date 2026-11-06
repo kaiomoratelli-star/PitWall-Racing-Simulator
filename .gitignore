@@ -4,3 +4,4 @@ dist-web/
 release/
 *.log
 .smoke/
+__pycache__/

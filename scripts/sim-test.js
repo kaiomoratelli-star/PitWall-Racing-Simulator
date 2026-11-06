@@ -43,6 +43,17 @@ for (const mode of modes) {
   // migração: simula save v1 e atualiza
   const old = JSON.parse(JSON.stringify(G)); old.version = 1; delete old.log; delete old.archive;
   try { Migrate.run(old); console.log(`[${mode}] migração v1→v${old.version} ok`); } catch (e) { console.log('ERRO migração', e.message); failures++; }
+  // save da V0.3 (sem outras categorias): a migração cria as categorias e o jogo segue
+  const v3 = JSON.parse(JSON.stringify(G)); v3.version = 3; delete v3.cats; delete v3.options.categories; delete v3.social;
+  v3.db.drivers = v3.db.drivers.filter(d => !d.id.startsWith('c-')); v3.db.drivers.forEach(d => { delete d.cat; });
+  try {
+    Migrate.run(v3);
+    if (!v3.cats || !v3.cats.byId.f2 || !v3.cats.byId.f2.entries.length) throw new Error('categorias não criadas');
+    if (!Career.seasonOver(v3)) { Career.startWeekend(v3); Career.finishPractice(v3); Career.runQualifying(v3); Career.startRace(v3); Career.simRaceToEnd(v3); Career.finishWeekend(v3); }
+    const dg = Diag.run(v3);
+    if (dg.errors.length) throw new Error(dg.errors.join('; '));
+    console.log(`[${mode}] migração v3→v${v3.version} ok (${v3.cats.order.length} categorias)`);
+  } catch (e) { console.log('ERRO migração v3', e.message); failures++; }
 }
 if (failures) { console.log(`FALHOU: ${failures} problema(s)`); process.exit(1); }
 console.log('OK');

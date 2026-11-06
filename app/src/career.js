@@ -48,7 +48,7 @@ Career.create = (baseDb, opts) => {
     version: SAVE_VERSION, seed, createdAt: Date.now(), savedAt: null, mode: obs ? 'observer' : 'manager',
     log: [], archive: [],
     player: { name: opts.name || (obs ? 'Observador' : 'Chefe de Equipe'), nat: opts.nat || 'BRA', teamId: obs ? null : opts.teamId, fired: false, careerWins: 0, titles: 0 },
-    options: { aiEvents: opts.aiEvents !== false, eventRate: opts.eventRate ?? 1, difficulty: opts.difficulty || 'normal', rainMult: opts.rainMult ?? 1 },
+    options: { aiEvents: opts.aiEvents !== false, eventRate: opts.eventRate ?? 1, difficulty: opts.difficulty || 'normal', rainMult: opts.rainMult ?? 1, categories: opts.categories !== false },
     db,
     season: null, history: [],
     finances: { balance: obs ? 0 : Math.round(team.budget * 0.32), ledger: [], spent: 0 },
@@ -90,6 +90,7 @@ Career.initPeople = (G) => {
   Market.initAcademies(G);
   Market.state(G);
   Staff.refreshMarket(G);
+  if (typeof Cats !== 'undefined' && G.options.categories !== false) Cats.init(G);
 };
 Career.isObs = (G) => G.mode === 'observer';
 
@@ -179,6 +180,7 @@ Career.startSeason = (G, first = false) => {
   G.db.teams.forEach(t => (G.season.standC[t.id] = 0));
   G.db.drivers.filter(d => d.team && d.seat !== 'R').forEach(d => (G.season.standD[d.id] = 0));
   G.finances.spent = 0;
+  if (typeof Cats !== 'undefined' && !first && Cats.on(G)) Cats.startSeason(G, year);
   if (Career.isObs(G)) { if (G.db.teams[0].staffList) Staff.refreshMarket(G); return; }
   const ranks = Career.expectedRanks(G);
   const exp = ranks[G.player.teamId];
@@ -409,6 +411,8 @@ Career.finishWeekend = (G) => {
 
   Career.record(G, 'corrida', `${track.gp}: vitória de ${Career.driver(G, summary.winner).name} (${Career.team(G, cls[0].tid).name}), pole de ${Career.driver(G, summary.pole).name}.`, { drivers: [summary.winner], teams: [cls[0].tid] });
   if (wk.bonus) summary.bonus = wk.bonus;
+  // outras categorias: tudo o que aconteceu até a data deste GP
+  if (typeof Cats !== 'undefined') Cats.advanceTo(G, Cats.f1Date(G, track, season.round));
   // recordes da pista nesta carreira (volta de corrida e de classificação em pista seca)
   G.trackRecords = G.trackRecords || {};
   const trec = G.trackRecords[track.id] || (G.trackRecords[track.id] = {});
@@ -654,7 +658,7 @@ Career.driverGrowth = (G) => {
   G.db.drivers.forEach(d => {
     if (d.age < 27 && driverOverall(d) < d.potential) {
       const k = RNG.pick(Career.ATTRS_GROW);
-      const g = RNG.range(0, 0.55) * (d.team ? 1.2 : 0.6) * (d.age < 23 ? 1.3 : 1);
+      const g = RNG.range(0, 0.55) * (d.team ? 1.2 : d.cat ? 0.9 : 0.6) * (d.age < 23 ? 1.3 : 1);
       d[k] = +clamp(d[k] + g, 30, 99).toFixed(2);
     }
     d.experience = clamp(+(d.experience + (d.team && d.seat !== 'R' ? 0.35 : 0.08)).toFixed(2), 1, 99);
@@ -860,7 +864,7 @@ Career.endSeason = (G) => {
     d.age++;
     if (d.age >= 33) Career.ATTRS_GROW.forEach(k => (d[k] = +clamp(d[k] - RNG.range(0, (d.age - 31) * 0.45), 30, 99).toFixed(2)));
     if (d.retiring) { d.retiring = false; d.retired = true; d.retiredYear = s.year; retired.push(d); }
-    else if (!d.team && d.age >= 33 && RNG.chance(0.35 + (d.age - 33) * 0.1)) { d.retired = true; d.retiredYear = s.year; retired.push(d); }
+    else if (!d.team && !d.cat && d.age >= 33 && RNG.chance(0.35 + (d.age - 33) * 0.1)) { d.retired = true; d.retiredYear = s.year; retired.push(d); }
     if (d.team) d.contractYears--;
   });
   retired.forEach(d => { Career.news(G, `${d.name} anuncia aposentadoria aos ${d.age} anos`, 'mercado'); Career.record(G, 'aposentadoria', `${d.name} se aposentou aos ${d.age} anos: ${d.career.starts} GPs, ${d.career.wins} vitórias, ${d.career.titles} títulos.`, { drivers: [d.id] }); if (d.team) { const tid = d.team, seat = d.seat; d.team = null; d.seat = null; if (seat !== 'R' && tid !== G.player.teamId) Career.aiFillSeat(G, tid, seat); else if (tid === G.player.teamId) Career.mail(G, { from: 'Diretor esportivo', tag: 'team', title: `${d.name} se aposentou`, body: 'Você precisa de um novo piloto. Veja o Mercado.' }); } });
@@ -868,8 +872,9 @@ Career.endSeason = (G) => {
   G.db.drivers.filter(d => d.futureTeam).forEach(d => { const f = d.futureTeam; d.futureTeam = null; if (d.retired) return; Career.placeDriver(G, d, f.team, f.role, f.salary, Math.max(0, f.years - 1)); });
   // novatos
   const rookies = [];
-  for (let i = 0; i < RNG.int(4, 6); i++) { const r = Career.genRookie(G); G.db.drivers.push(r); rookies.push(r); }
-  Career.record(G, 'novato', `Novos talentos disponíveis: ${rookies.map(r => `${r.name} (${r.nat}, ${r.age} anos, potencial ${r.potential})`).join('; ')}.`, { drivers: rookies.map(r => r.id), year: s.year });
+  // com as categorias de base ativas, os novos talentos chegam pela F4 (ver Cats.progression)
+  for (let i = 0; i < (typeof Cats !== 'undefined' && Cats.on(G) ? 0 : RNG.int(4, 6)); i++) { const r = Career.genRookie(G); G.db.drivers.push(r); rookies.push(r); }
+  if (rookies.length) Career.record(G, 'novato', `Novos talentos disponíveis: ${rookies.map(r => `${r.name} (${r.nat}, ${r.age} anos, potencial ${r.potential})`).join('; ')}.`, { drivers: rookies.map(r => r.id), year: s.year });
   // academias: investimento anual
   (G.academies || []).forEach(a => {
     if (!a.active || !a.budget) return;
@@ -877,6 +882,8 @@ Career.endSeason = (G) => {
     else { const at = Career.team(G, a.team); if (at) at.cash -= a.budget; }
     a.level = Math.round(clamp(a.level + (a.budget - 5) * 0.4, 20, 99));
   });
+  // outras categorias: fecha o ano (campeões e superlicença contam para o mercado da F1)
+  if (typeof Cats !== 'undefined') Cats.finishYear(G);
   // mercado IA: contratos vencidos e vagas restantes
   Career.aiMarket(G);
   Market.endSeason(G);
@@ -888,6 +895,7 @@ Career.endSeason = (G) => {
     const f = Career.aiFillSeat(G, t.id, seat);
     if (f && t.id === G.player.teamId) Career.mail(G, { from: 'Diretor esportivo', tag: 'team', title: `${f.name} assume o carro #${seat}`, body: `O carro #${seat} estava sem piloto para ${G.season.year + 1}. ${f.name} foi contratado provisoriamente; você pode procurar outro nome no Mercado.` });
   }));
+  if (typeof Cats !== 'undefined') Cats.progression(G);
   if (obs) { G.offersThisRound = {}; Career.startSeason(G); return summary; }
   // patrocinadores
   G.sponsors.forEach(sp => sp.seasons--);

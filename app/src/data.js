@@ -213,6 +213,30 @@ function driverOverall(d) {
     x('start') * 0.03 + x('energy') * 0.03 + x('adaptability') * 0.02 + x('concentration') * 0.02);
 }
 
+/* um piloto: completa atributos a partir da nota geral (ovr) e do estilo */
+function normalizeDriver(d, i, tids) {
+  const o = { ...d, id: d.id || 'drv' + i, name: d.name || 'Piloto ' + (i + 1), nat: d.nat || 'BRA', age: num(d.age, 25), number: num(d.number, i + 2), style: STYLE_PROFILES[d.style] ? d.style : 'complete', team: tids.has(d.team) ? d.team : null, salary: num(d.salary, 2), contractYears: num(d.contractYears, 1) };
+  // bases reais trazem só a nota geral (ovr) e o estilo: os atributos são expandidos de forma estável
+  const prof = STYLE_PROFILES[o.style] || STYLE_PROFILES.complete;
+  const r = localRng('attrs:' + o.id);
+  const base = num(d.ovr, 78);
+  ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending'].forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 4, 40, 99)))));
+  NEW_ATTRS.forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 5, 40, 99)))));
+  const starts = d.career ? d.career.starts || 0 : 0;
+  if (!d.personality) {
+    const ag = num(d.aggression, 50);
+    o.personality = { ambition: Math.round(clamp(85 - (o.age - 18) * 1.6 + (base - 80) + (r() - 0.5) * 20, 15, 99)), loyalty: Math.round(clamp(45 + (o.age - 25) * 1.2 + (r() - 0.5) * 30, 10, 95)), temper: Math.round(clamp(ag * 0.7 + (r() - 0.5) * 30, 5, 95)), media: Math.round(clamp(40 + (d.career ? d.career.titles * 8 + d.career.wins * 0.4 : 0) + (r() - 0.5) * 30, 5, 99)) };
+  }
+  o.aggression = num(d.aggression, Math.round(clamp(50 + (prof.aggression || 0) * 2.5 + (r() - 0.5) * 14, 10, 95)));
+  o.experience = num(d.experience, Math.round(clamp(starts ? 20 + starts / 4 : (o.age - 17) * 5, 5, 99)));
+  o.potential = num(d.potential, Math.max(80, o.pace)); o.morale = num(d.morale, 70);
+  o.popularity = num(d.popularity, Math.round(clamp(20 + (d.career ? d.career.wins * 1.2 + d.career.titles * 6 : 0) + base - 75, 5, 99)));
+  if (d.salary == null && d.ovr != null) { o.salary = +Math.max(0.6, Math.pow(Math.max(0, base - 70) / 25, 2.4) * 42).toFixed(1); }
+  if (d.contractYears == null) o.contractYears = o.team ? (base >= 87 ? 2 : 1) : 0;
+  if (d.seat != null) o.seat = d.seat;
+  return o;
+}
+
 /* Completa campos faltando em bases importadas ou feitas à mão */
 function normalizeDb(src) {
   const def = { rules: DEFAULT_RULES, engines: ENGINES };
@@ -232,28 +256,7 @@ function normalizeDb(src) {
     staff: { technical: num(t.staff && t.staff.technical, 78), aero: num(t.staff && t.staff.aero, 78), strategy: num(t.staff && t.staff.strategy, 78), engineering: num(t.staff && t.staff.engineering, 78) },
   }));
   const tids = new Set(db.teams.map(t => t.id));
-  db.drivers = (db.drivers || []).map((d, i) => {
-    const o = { ...d, id: d.id || 'drv' + i, name: d.name || 'Piloto ' + (i + 1), nat: d.nat || 'BRA', age: num(d.age, 25), number: num(d.number, i + 2), style: STYLE_PROFILES[d.style] ? d.style : 'complete', team: tids.has(d.team) ? d.team : null, salary: num(d.salary, 2), contractYears: num(d.contractYears, 1) };
-    // bases reais trazem só a nota geral (ovr) e o estilo: os atributos são expandidos de forma estável
-    const prof = STYLE_PROFILES[o.style] || STYLE_PROFILES.complete;
-    const r = localRng('attrs:' + o.id);
-    const base = num(d.ovr, 78);
-    ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending'].forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 4, 40, 99)))));
-    NEW_ATTRS.forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 5, 40, 99)))));
-    const starts = d.career ? d.career.starts || 0 : 0;
-    if (!d.personality) {
-      const ag = num(d.aggression, 50);
-      o.personality = { ambition: Math.round(clamp(85 - (o.age - 18) * 1.6 + (base - 80) + (r() - 0.5) * 20, 15, 99)), loyalty: Math.round(clamp(45 + (o.age - 25) * 1.2 + (r() - 0.5) * 30, 10, 95)), temper: Math.round(clamp(ag * 0.7 + (r() - 0.5) * 30, 5, 95)), media: Math.round(clamp(40 + (d.career ? d.career.titles * 8 + d.career.wins * 0.4 : 0) + (r() - 0.5) * 30, 5, 99)) };
-    }
-    o.aggression = num(d.aggression, Math.round(clamp(50 + (prof.aggression || 0) * 2.5 + (r() - 0.5) * 14, 10, 95)));
-    o.experience = num(d.experience, Math.round(clamp(starts ? 20 + starts / 4 : (o.age - 17) * 5, 5, 99)));
-    o.potential = num(d.potential, Math.max(80, o.pace)); o.morale = num(d.morale, 70);
-    o.popularity = num(d.popularity, Math.round(clamp(20 + (d.career ? d.career.wins * 1.2 + d.career.titles * 6 : 0) + base - 75, 5, 99)));
-    if (d.salary == null && d.ovr != null) { o.salary = +Math.max(0.6, Math.pow(Math.max(0, base - 70) / 25, 2.4) * 42).toFixed(1); }
-    if (d.contractYears == null) o.contractYears = o.team ? (base >= 87 ? 2 : 1) : 0;
-    if (d.seat != null) o.seat = d.seat;
-    return o;
-  });
+  db.drivers = (db.drivers || []).map((d, i) => normalizeDriver(d, i, tids));
   db.tracks = (db.tracks || []).map((t, i) => ({ ...t,
     id: t.id || 'trk' + i, gp: t.gp || 'Grande Prêmio ' + (i + 1), circuit: t.circuit || 'Circuito', country: t.country || 'BRA', laps: num(t.laps, 55), length: num(t.length, 5), baseLap: num(t.baseLap, 88),
     weights: { aero: num(t.weights && t.weights.aero, .34), chassis: num(t.weights && t.weights.chassis, .33), engine: num(t.weights && t.weights.engine, .33) },

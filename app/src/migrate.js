@@ -5,10 +5,18 @@
    ============================================================ */
 'use strict';
 
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 4;
 
 const Migrate = {
   steps: {
+    // v3 -> v4 (V1.0): outras categorias, imprensa/rede social, recordes de pista
+    3: (G) => {
+      G.options = G.options || {};
+      if (G.options.categories == null) G.options.categories = true;
+      G.social = G.social || [];
+      G.trackRecords = G.trackRecords || {};
+      if (typeof Cats !== 'undefined' && G.options.categories && !G.cats) Cats.init(G);
+    },
     // v1 (primeira versão web) -> v2 (desktop + memória do universo)
     // v2 -> v3 (V1): atributos novos, personalidade, funcionários, academias, mercado e superlicença
     2: (G) => {

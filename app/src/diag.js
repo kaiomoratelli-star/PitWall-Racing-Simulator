@@ -34,6 +34,24 @@ Diag.run = (G) => {
     if (d.team && d.seat == null) warns.push(`${d.name} tem equipe sem assento definido`);
     if (Career.ATTRS_GROW.some(k => !isFinite(d[k]))) errors.push(`${d.name}: atributo inválido`);
   });
+  // outras categorias
+  if (G.cats) {
+    const primary = {};
+    Object.values(G.cats.byId).forEach(cat => {
+      const seen = new Set();
+      cat.entries.forEach(e => {
+        const d = Career.driver(G, e.did);
+        if (!d) { errors.push(`${cat.short}: inscrição de piloto inexistente (${e.did})`); return; }
+        if (seen.has(e.did)) errors.push(`${cat.short}: ${d.name} inscrito duas vezes`);
+        seen.add(e.did);
+        if (d.retired) warns.push(`${cat.short}: ${d.name} aposentado mas inscrito`);
+        if (!cat.teams.some(t => t.id === e.team)) errors.push(`${cat.short}: ${d.name} em equipe inexistente (${e.team})`);
+        if (!cat.secondary) { if (primary[e.did]) errors.push(`${d.name} inscrito em ${primary[e.did]} e ${cat.short} ao mesmo tempo`); primary[e.did] = cat.short; }
+      });
+      if (cat.entries.length > cat.seats + 2) warns.push(`${cat.short}: ${cat.entries.length} inscritos para ${cat.seats} vagas`);
+      if (cat.season) Object.values(cat.season.pts).forEach(p => { if (!isFinite(p)) errors.push(`${cat.short}: pontuação inválida`); });
+    });
+  }
   // calendário
   (G.season.calendar || []).forEach(id => { if (!Career.track(G, id)) errors.push(`Calendário cita pista inexistente: ${id}`); });
   if (!G.season.calendar.length) errors.push('Calendário vazio');
