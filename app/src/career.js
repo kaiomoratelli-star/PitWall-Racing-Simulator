@@ -61,6 +61,7 @@ Career.create = (baseDb, opts) => {
   AI.init(G);
   if (obs) {
     Career.startSeason(G, true);
+    Career.initPeople(G);
     Career.mail(G, { from: 'Paddock', tag: 'market', title: `Temporada ${G.season.year}: você é o observador`, body: `As ${db.teams.length} equipes são administradas pelos próprios chefes de equipe: pilotos, contratos, desenvolvimento, finanças e estratégias. Acompanhe as corridas, as tabelas, as notícias e o registro do universo. Use "Avançar" na Central para seguir o campeonato.` });
     Career.record(G, 'inicio', `Universo criado em modo Observador (semente ${seed}).`);
     G.rngState = RNG.state;
@@ -68,6 +69,7 @@ Career.create = (baseDb, opts) => {
   }
   team.principal = G.player.name;
   Career.startSeason(G, true);
+  Career.initPeople(G);
   G.sponsors = Career.genSponsors(G, team, 3);
   Career.record(G, 'inicio', `${G.player.name} assume a ${team.name} (semente ${seed}).`, { teams: [team.id] });
   Career.mail(G, {
@@ -81,6 +83,14 @@ Career.create = (baseDb, opts) => {
 };
 
 Career.nextId = (G, p) => `${p}${G.seq++}`;
+/* funcionários, academias e mercado (módulos staff.js e market.js) */
+Career.initPeople = (G) => {
+  G.db.drivers.forEach(d => { d.sl = d.sl || []; });
+  Staff.init(G);
+  Market.initAcademies(G);
+  Market.state(G);
+  Staff.refreshMarket(G);
+};
 Career.isObs = (G) => G.mode === 'observer';
 
 /* Registro permanente do universo: toda decisão relevante entra aqui */
@@ -165,7 +175,7 @@ Career.startSeason = (G, first = false) => {
   G.db.teams.forEach(t => (G.season.standC[t.id] = 0));
   G.db.drivers.filter(d => d.team && d.seat !== 'R').forEach(d => (G.season.standD[d.id] = 0));
   G.finances.spent = 0;
-  if (Career.isObs(G)) { Career.refreshStaffMarket(G); return; }
+  if (Career.isObs(G)) { if (G.db.teams[0].staffList) Staff.refreshMarket(G); return; }
   const ranks = Career.expectedRanks(G);
   const exp = ranks[G.player.teamId];
   G.board.target = clamp(exp - (RNG.chance(0.5) ? 1 : 0), 1, G.db.teams.length);
@@ -173,7 +183,7 @@ Career.startSeason = (G, first = false) => {
   if (!first) {
     Career.mail(G, { from: 'Diretoria', tag: 'board', title: `Objetivos para ${year}`, body: `Para a temporada ${year} esperamos terminar em ${ordinal(G.board.target)} no Mundial de Construtores. Confiança atual da diretoria: ${Math.round(G.board.confidence)}%.` });
   }
-  Career.refreshStaffMarket(G);
+  if (G.db.teams[0].staffList) Staff.refreshMarket(G);
 };
 
 Career.currentTrack = (G) => Career.track(G, G.season.calendar[G.season.round]);
@@ -226,7 +236,7 @@ Career.practiceRun = (G, did, setup) => {
   return run;
 };
 
-Career.aiSetupQ = (team) => clamp(0.5 + team.staff.engineering * 0.0042 + RNG.normal(0, 0.07), 0.35, 0.97);
+Career.aiSetupQ = (team, d) => clamp(0.5 + team.staff.engineering * 0.0042 + (d ? ((d.feedback ?? 75) - 78) * 0.0025 + ((d.adaptability ?? 75) - 78) * 0.0015 + (((typeof STYLE_BEHAVIOR !== 'undefined' && STYLE_BEHAVIOR[d.style]) || {}).setup || 0) : 0) + RNG.normal(0, 0.07), 0.35, 0.97);
 
 Career.finishPractice = (G) => {
   const wk = G.weekend;
@@ -245,7 +255,7 @@ Career.entries = (G) => {
   const ctx = Career.ctx(G);
   if (!wk.aiSetups) {
     wk.aiSetups = {};
-    G.db.teams.forEach(t => { if (t.id !== G.player.teamId) Career.lineup(G, t.id).forEach(d => (wk.aiSetups[d.id] = Career.aiSetupQ(t))); });
+    G.db.teams.forEach(t => { if (t.id !== G.player.teamId) Career.lineup(G, t.id).forEach(d => (wk.aiSetups[d.id] = Career.aiSetupQ(t, d))); });
   }
   return Career.grid(G).map(({ d, t }) => ({
     did: d.id, tid: t.id, team: t, drv: ctx.effOf(d.id),
@@ -409,13 +419,16 @@ Career.postRaceEffects = (G, summary, race) => {
       if (r.pos === 1) dm += 6;
       const mate = rs.find(x => x.did !== r.did);
       if (mate) dm += r.pos < mate.pos ? 1.5 : -1.5;
-      d.morale = clamp(Math.round((d.morale + dm) * 10) / 10, 5, 100);
+      d.morale = clamp(Math.round((d.morale + dm + (66 - d.morale) * 0.07) * 10) / 10, 5, 100);
       d.popularity = clamp(d.popularity + (r.pos <= 3 ? 1.5 : r.pos <= 10 ? 0.3 : -0.2), 1, 100);
     });
   });
 
   // IA dos chefes de equipe: caixa, investimentos, staff
   AI.raceTick(G);
+  Staff.tick(G);
+  Market.tick(G);
+  Market.academyTick(G);
   Career.driverGrowth(G);
   G.db.drivers.forEach(d => { if (d.injured > 0) { d.injured--; if (d.injured === 0 && team && d.team === team.id) Career.mail(G, { from: 'Departamento médico', tag: 'team', title: `${d.name} liberado`, body: `${d.name} está recuperado e liberado para correr.` }); } });
   const wn0 = Career.driver(G, summary.winner);
@@ -428,7 +441,7 @@ Career.postRaceEffects = (G, summary, race) => {
   const tvShare = team.budget * 0.36 / races;
   Career.ledger(G, `Direitos comerciais — ${track.gp}`, tvShare, 'receita');
   G.sponsors.forEach(s => {
-    Career.ledger(G, `Patrocínio: ${s.name}`, s.perRace, 'receita');
+    Career.ledger(G, `Patrocínio: ${s.name}`, s.perRace * Staff.commercialMul(team), 'receita');
     report.money += s.perRace;
     const met = Career.sponsorObjectiveMet(s, my);
     s.satisfaction = clamp((s.satisfaction ?? 70) + (met ? 4 : -3), 0, 100);
@@ -438,9 +451,9 @@ Career.postRaceEffects = (G, summary, race) => {
   if (myPts > 0) Career.ledger(G, 'Prêmio por pontos', myPts * 0.09, 'receita');
   const sal = sum(Career.teamDrivers(G, team.id).map(d => d.salary)) / races;
   Career.ledger(G, 'Salários dos pilotos', -sal, 'salário');
-  const staffCost = sum(Object.values(team.staff)) * 0.0042 * 24 / races;
+  const staffCost = Staff.payroll(team) / races;
   Career.ledger(G, 'Folha da equipe técnica', -staffCost, 'salário');
-  Career.ledger(G, `Logística e operação — ${track.gp}`, -(1.25 + team.facilities * 0.006 + (track.street ? 0.2 : 0)), 'operação');
+  Career.ledger(G, `Logística e operação — ${track.gp}`, -(1.25 + team.facilities * 0.006 + (track.street ? 0.2 : 0)) * Staff.opsMul(team), 'operação');
   Career.ledger(G, 'Arrendamento de motor', -(Engine.engineOf(G.db, team).cost / races), 'motor');
   my.forEach(r => {
     if (r.status === 'dnf' && /Acidente|Colisão/.test(r.reason || '')) {
@@ -595,7 +608,7 @@ Career.advanceProjects = (G, report) => {
 };
 
 /* ---------- evolução dos pilotos ---------- */
-Career.ATTRS_GROW = ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending'];
+Career.ATTRS_GROW = ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending', 'start', 'energy', 'adaptability', 'concentration', 'feedback'];
 Career.driverGrowth = (G) => {
   G.db.drivers.forEach(d => {
     if (d.age < 27 && driverOverall(d) < d.potential) {
@@ -690,25 +703,32 @@ Career.placeDriver = (G, d, tid, role, salary, years) => {
   }
   const prevTeam = d.team && d.team !== tid ? d.team : null;
   d.team = tid; d.seat = role; d.salary = salary; d.contractYears = years; d.morale = clamp(d.morale + 8, 0, 100);
+  d.contract = { until: G.season.year + years, salary: +(+salary).toFixed(2), signed: { y: G.season.year, r: G.season.round }, loanFrom: (() => { const ac = typeof Market !== 'undefined' && Market.academyOf(G, d); return ac && ac.team !== tid ? ac.team : null; })() };
   d.transfers = d.transfers || [];
   d.transfers.push({ y: G.season.year, r: G.season.round, to: tid, from: prevTeam, salary: +(+salary).toFixed(2), until: G.season.year + years });
   Career.record(G, 'contrato', `${d.name} assinou com a ${Career.team(G, tid).name} até ${G.season.year + years} (${role === 'R' ? 'reserva' : 'carro #' + role}, ${fmtMoney(salary)}/ano).`, { teams: [tid], drivers: [d.id] });
   if (G.season.standD[d.id] == null && role !== 'R') G.season.standD[d.id] = 0;
 };
 Career.aiFillSeat = (G, tid, seat) => {
-  const res = G.db.drivers.find(x => x.team === tid && x.seat === 'R');
-  if (res) { res.seat = seat; if (G.season.standD[res.id] == null) G.season.standD[res.id] = 0; return res; }
   const team = Career.team(G, tid);
-  const free = G.db.drivers.filter(x => !x.team && !x.retired && !x.futureTeam).sort((a, b) => (driverOverall(b) + (b.potential - 80) * 0.2) - (driverOverall(a) + (a.potential - 80) * 0.2));
-  const afford = Math.max(1.5, Math.min(team.budget * 0.2, (team.cash != null ? Math.max(team.cash, 0) * 0.5 + team.budget * 0.08 : team.budget * 0.2)));
-  const pickD = free.find(x => Career.marketValue(x) <= afford) || free.slice().sort((a, b) => Career.marketValue(a) - Career.marketValue(b))[0];
+  const ok = (x) => typeof Market === 'undefined' || Market.slEligible(G, x);
+  const res = G.db.drivers.find(x => x.team === tid && x.seat === 'R' && ok(x));
+  if (res) { res.seat = seat; if (G.season.standD[res.id] == null) G.season.standD[res.id] = 0; Career.record(G, 'contrato', `${team.name} promoveu o reserva ${res.name} ao carro #${seat}.`, { teams: [tid], drivers: [res.id] }); return res; }
+  const free = G.db.drivers.filter(x => !x.team && !x.retired && !x.retiring && !x.futureTeam && ok(x));
+  const budget = typeof Market !== 'undefined' ? Market.driverBudget(G, team) : team.budget * 0.2;
+  const score = (x) => (typeof Market !== 'undefined' ? Market.candidateScore(G, team, x) : driverOverall(x)) - Math.max(0, (typeof Market !== 'undefined' ? Market.ask(x) : Career.marketValue(x)) - budget) * 0.2;
+  let pickD = free.sort((a, b) => score(b) - score(a))[0];
+  if (!pickD && typeof Market !== 'undefined') {
+    // ninguém elegível livre: a FIA concede superlicença ao livre com mais pontos (situação excepcional)
+    pickD = G.db.drivers.filter(x => !x.team && !x.retired && !x.retiring && !x.futureTeam && x.age >= 18).sort((a, b) => Market.slPoints(G, b) - Market.slPoints(G, a) || driverOverall(b) - driverOverall(a))[0];
+    if (pickD) { pickD.slEligible = true; Career.record(G, 'decisao', `A FIA concedeu superlicença excepcional a ${pickD.name} (${Market.slPoints(G, pickD)} pontos) para a ${team.name}.`, { teams: [tid], drivers: [pickD.id] }); }
+  }
   if (!pickD) return null;
-  pickD.team = tid; pickD.seat = seat; pickD.salary = +Math.max(0.6, Career.marketValue(pickD) * 0.8).toFixed(2); pickD.contractYears = RNG.int(0, 1);
-  pickD.transfers = pickD.transfers || [];
-  pickD.transfers.push({ y: G.season.year, r: G.season.round, to: tid, from: null, salary: pickD.salary, until: G.season.year + pickD.contractYears });
-  if (G.season.standD[pickD.id] == null) G.season.standD[pickD.id] = 0;
+  const ac = typeof Market !== 'undefined' ? Market.academyOf(G, pickD) : null;
+  const salary = +Math.max(0.6, (typeof Market !== 'undefined' ? Market.ask(pickD) : Career.marketValue(pickD)) * 0.85).toFixed(2);
+  Career.placeDriver(G, pickD, tid, seat, salary, RNG.int(0, 1));
   Career.news(G, `${team.name} anuncia ${pickD.name}`, 'mercado');
-  Career.record(G, 'contrato', `${team.name} contratou ${pickD.name} (overall ${driverOverall(pickD)}, ${fmtMoney(pickD.salary)}/ano) para o carro #${seat}: melhor piloto livre dentro do orçamento.`, { teams: [tid], drivers: [pickD.id] });
+  Career.record(G, 'contrato', `Motivo da escolha de ${pickD.name} pela ${team.name}: ${ac && (ac.team === tid || (team.partnerOf || []).includes(ac.team)) ? `piloto da ${ac.name}` : 'melhor piloto livre dentro do orçamento'} (nota ${driverOverall(pickD)}).`, { teams: [tid], drivers: [pickD.id] });
   return pickD;
 };
 Career.releaseDriver = (G, did) => {
@@ -794,18 +814,35 @@ Career.endSeason = (G) => {
     if (d.retired) return;
     d.age++;
     if (d.age >= 33) Career.ATTRS_GROW.forEach(k => (d[k] = +clamp(d[k] - RNG.range(0, (d.age - 31) * 0.45), 30, 99).toFixed(2)));
-    if (d.age >= 35 && RNG.chance((d.age - 34) * 0.2 + (driverOverall(d) < 80 ? 0.2 : 0))) { d.retired = true; retired.push(d); }
+    if (d.retiring) { d.retiring = false; d.retired = true; d.retiredYear = s.year; retired.push(d); }
+    else if (!d.team && d.age >= 33 && RNG.chance(0.35 + (d.age - 33) * 0.1)) { d.retired = true; d.retiredYear = s.year; retired.push(d); }
     if (d.team) d.contractYears--;
   });
   retired.forEach(d => { Career.news(G, `${d.name} anuncia aposentadoria aos ${d.age} anos`, 'mercado'); Career.record(G, 'aposentadoria', `${d.name} se aposentou aos ${d.age} anos: ${d.career.starts} GPs, ${d.career.wins} vitórias, ${d.career.titles} títulos.`, { drivers: [d.id] }); if (d.team) { const tid = d.team, seat = d.seat; d.team = null; d.seat = null; if (seat !== 'R' && tid !== G.player.teamId) Career.aiFillSeat(G, tid, seat); else if (tid === G.player.teamId) Career.mail(G, { from: 'Diretor esportivo', tag: 'team', title: `${d.name} se aposentou`, body: 'Você precisa de um novo piloto. Veja o Mercado.' }); } });
   // pré-contratos
-  G.db.drivers.filter(d => d.futureTeam).forEach(d => { const f = d.futureTeam; d.futureTeam = null; Career.placeDriver(G, d, f.team, f.role, f.salary, Math.max(0, f.years - 1)); });
+  G.db.drivers.filter(d => d.futureTeam).forEach(d => { const f = d.futureTeam; d.futureTeam = null; if (d.retired) return; Career.placeDriver(G, d, f.team, f.role, f.salary, Math.max(0, f.years - 1)); });
   // novatos
   const rookies = [];
   for (let i = 0; i < RNG.int(4, 6); i++) { const r = Career.genRookie(G); G.db.drivers.push(r); rookies.push(r); }
   Career.record(G, 'novato', `Novos talentos disponíveis: ${rookies.map(r => `${r.name} (${r.nat}, ${r.age} anos, potencial ${r.potential})`).join('; ')}.`, { drivers: rookies.map(r => r.id), year: s.year });
-  // mercado IA: contratos vencidos
+  // academias: investimento anual
+  (G.academies || []).forEach(a => {
+    if (!a.active || !a.budget) return;
+    if (a.team === G.player.teamId) Career.ledger(G, `Investimento na ${a.name}`, -a.budget, 'academia');
+    else { const at = Career.team(G, a.team); if (at) at.cash -= a.budget; }
+    a.level = Math.round(clamp(a.level + (a.budget - 5) * 0.4, 20, 99));
+  });
+  // mercado IA: contratos vencidos e vagas restantes
   Career.aiMarket(G);
+  Market.endSeason(G);
+  Staff.aiDecisions(G, 'end');
+  Market.syncAcademies(G);
+  // verificação final: nenhum carro fica sem piloto na temporada seguinte
+  G.db.teams.forEach(t => [1, 2].forEach(seat => {
+    if (G.db.drivers.some(x => x.team === t.id && x.seat === seat)) return;
+    const f = Career.aiFillSeat(G, t.id, seat);
+    if (f && t.id === G.player.teamId) Career.mail(G, { from: 'Diretor esportivo', tag: 'team', title: `${f.name} assume o carro #${seat}`, body: `O carro #${seat} estava sem piloto para ${G.season.year + 1}. ${f.name} foi contratado provisoriamente; você pode procurar outro nome no Mercado.` });
+  }));
   if (obs) { G.offersThisRound = {}; Career.startSeason(G); return summary; }
   // patrocinadores
   G.sponsors.forEach(sp => sp.seasons--);
@@ -837,33 +874,27 @@ Career.genRookie = (G) => {
     team: null, seat: null, salary: 0.5, contractYears: 0,
     pace: a('pace'), qualifying: a('qualifying'), racecraft: a('racecraft'), consistency: a('consistency'), tyre: a('tyre'), wet: a('wet'),
     overtaking: a('overtaking'), defending: a('defending'), aggression: Math.round(clamp(50 + (prof.aggression || 0) * 2.5 + RNG.range(-10, 10), 10, 95)),
+    start: a('start'), energy: a('energy'), adaptability: a('adaptability'), concentration: a('concentration'), feedback: a('feedback'),
+    personality: { ambition: RNG.int(55, 95), loyalty: RNG.int(20, 70), temper: RNG.int(15, 85), media: RNG.int(10, 50) },
     experience: RNG.int(5, 18), potential: pot, morale: 75, popularity: RNG.int(5, 30), injured: 0, rookie: true, regen: true,
+    // carreira de base simulada: os melhores chegam com pontos de superlicença (F2/F3)
+    sl: ovr >= 74 ? [{ y: (G.season ? G.season.year : 2026) - 1, cat: 'f2', pts: ovr >= 76 ? 40 : 30 }, { y: G.season ? G.season.year : 2026, cat: 'f3', pts: 12 }] : [{ y: G.season ? G.season.year : 2026, cat: 'f3', pts: ovr >= 71 ? 20 : 7 }],
     career: { starts: 0, wins: 0, podiums: 0, poles: 0, titles: 0, points: 0 },
   };
 };
 
 Career.aiMarket = (G) => {
   const pt = G.player.teamId;
+  // equipes da IA: quem não foi renovado durante a temporada (Market.tick) sai; vagas são preenchidas
   G.db.teams.forEach(t => {
     if (t.id === pt) return;
     Career.teamDrivers(G, t.id).forEach(d => {
       if (d.contractYears >= 0) return;
-      // renova se for bom o bastante
-      const ovr = driverOverall(d);
-      const others = G.db.drivers.filter(x => !x.team && !x.retired);
-      const bestFree = others.reduce((m, x) => Math.max(m, driverOverall(x)), 0);
-      const ask = Math.max(0.6, Career.marketValue(d) * RNG.range(0.8, 1.1));
-      const affordable = ask <= t.budget * 0.28;
-      const best = others.slice().sort((a, b) => driverOverall(b) - driverOverall(a))[0];
-      if (affordable && (ovr >= bestFree - 1.5 || RNG.chance(0.4 * AI.persona(t).thrift + 0.15))) {
-        d.contractYears = RNG.int(0, 2); d.salary = +ask.toFixed(2);
-        Career.record(G, 'contrato', AI.whyRenew(t, d) + ` Novo contrato até ${G.season.year + 1 + d.contractYears}.`, { teams: [t.id], drivers: [d.id] });
-      } else {
-        const seat = d.seat; d.team = null; d.seat = null;
-        Career.record(G, 'rescisao', affordable ? AI.whyRelease(t, d, best) : `${t.name} não renovou com ${d.name}: o salário pedido (${fmtMoney(ask)}) não cabe no orçamento.`, { teams: [t.id], drivers: [d.id] });
-        if (seat !== 'R') Career.aiFillSeat(G, t.id, seat);
-      }
+      const seat = d.seat; d.team = null; d.seat = null; d.contract = null;
+      Career.record(G, 'rescisao', `${d.name} deixou a ${t.name} ao fim do contrato.`, { teams: [t.id], drivers: [d.id] });
+      if (seat !== 'R') Career.aiFillSeat(G, t.id, seat);
     });
+    [1, 2].forEach(seat => { if (!G.db.drivers.some(x => x.team === t.id && x.seat === seat)) Career.aiFillSeat(G, t.id, seat); });
   });
   // jogador: contratos vencidos viram livres, avisa
   if (!pt) return;
