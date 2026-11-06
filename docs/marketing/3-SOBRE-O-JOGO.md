@@ -1,7 +1,7 @@
 # Sobre o jogo — ficha de fatos (PitWall Racing Simulator)
 
 > Fonte de verdade para o marketing. Atualize quando o jogo mudar.
-> Última atualização: versão 1.0.1, novembro de 2026.
+> Última atualização: versão 0.6, novembro de 2026.
 
 ## Identidade
 - **Nome:** PitWall Racing Simulator
@@ -9,8 +9,8 @@
 - **Gênero:** simulador de gestão de automobilismo (monopostos)
 - **Plataforma:** Windows 10 e 11 (64 bits); também existe uma versão de navegador para testes
 - **Idioma:** português do Brasil
-- **Preço:** gratuito, projeto sem fins comerciais
-- **Situação:** versão 1.0.1, com instalador próprio; divulgação pública "em breve"
+- **Preço:** a definir. Hoje é uma versão de desenvolvimento, sem venda; no futuro o jogo será pago.
+- **Situação:** versão 0.6 (em desenvolvimento), com instalador próprio; divulgação pública "em breve"
 - **Download:** github.com/kaiomoratelli-star/PitWall-Racing-Simulator (Releases)
 
 ## Modos de jogo
