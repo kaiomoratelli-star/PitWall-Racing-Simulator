@@ -10,6 +10,13 @@
 - Treinos de 60 minutos com relógio (tempo real a 60×), 1, 2, 3 sessões ou formato vida real, programas de acerto, simulação de classificação e de corrida, tempo de garagem por ajuste, alocação oficial de pneus, tabela de tempos de todos os carros e rádio.
 - Simular pelo engenheiro (uma sessão ou todas) com diretriz: equilibrado, só classificação ou só corrida.
 
+**Classificação ao vivo**
+- Q1/Q2/Q3 (18, 15 e 12 min) e, nos fins de semana de Sprint, SQ1/SQ2/SQ3 (12, 10 e 8 min) no formato atual: TL1 → Classificação Sprint → Sprint → Classificação → Corrida.
+- Cronômetro com tempo real, 3×, 10× e saltos de +1, +3 e +5 minutos; volta de saída, lançada, resfriamento e entrada; volta iniciada antes da bandeira vale.
+- Você decide quando sair, quantas voltas lançadas, o pneu (jogos da alocação) e o risco; pode abortar a volta e mexer no carro na garagem com o relógio correndo (parque fechado: só asa dianteira e freio).
+- Pista evolui, tráfego, erros, voltas deletadas por limite de pista, batidas e bandeira vermelha. A IA faz dois ataques e poupa pneus quando está segura.
+- Torre de cronometragem com setores roxo/verde/amarelo e zona de eliminação; narração ao vivo setor a setor com nomes reais das curvas e o efeito do acerto.
+
 ## 0.6.0 — Moratelli Game Company
 - Numeração das versões revista: o jogo segue em desenvolvimento (as versões publicadas como 1.0.0 e 1.0.1 passam a ser a 0.5 e a 0.6).
 - Nova tela **Perfil e ativação** (menu Sistema e tela inicial): perfil do jogador e campo para a chave do produto. Ainda sem efeito no jogo.

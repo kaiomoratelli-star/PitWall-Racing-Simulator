@@ -242,7 +242,7 @@ Career.finishPractice = (G, focus) => {
     wk.fp.sessions.forEach((s, i) => { wk.fp.cur = i; if (!s.done) { s.ai = Practice.aiPlan(G, wk, s); s.aiIdx = 0; Practice.endSession(G); } });
   }
   Practice.aiConfidence(G, wk);
-  wk.phase = 'quali';
+  wk.phase = wk.sprint ? 'sq' : 'quali';
 };
 
 Career.entries = (G, phase = 'race') => {
@@ -262,10 +262,29 @@ Career.entries = (G, phase = 'race') => {
   }));
 };
 
+/* Classificação Sprint (SQ1/SQ2/SQ3) e a corrida Sprint, no formato atual da F1 */
+Career.runSprintQuali = (G) => {
+  const wk = G.weekend;
+  if (!wk.ql || wk.ql.kind !== 'SQ') Quali.init(G, 'SQ');
+  if (!wk.ql.done) Quali.simulate(G, true);
+  wk.sq = Quali.result(G);
+  wk.ql = null;
+  if (!wk.sprintResult) Career.runSprint(G);
+  wk.phase = 'quali';
+  return wk.sq;
+};
 Career.runQualifying = (G) => {
   const wk = G.weekend;
+  if (wk.sprint && !wk.sprintResult) Career.runSprintQuali(G);
+  if (!wk.ql || wk.ql.kind !== 'Q') Quali.init(G, 'Q');
+  if (!wk.ql.done) Quali.simulate(G, true);
+  return Career.finishQualifying(G);
+};
+Career.finishQualifying = (G) => {
+  const wk = G.weekend;
   const ctx = Career.ctx(G);
-  const q = Engine.runQualifying({ ...ctx, weather: wk.weather }, Career.entries(G, 'quali'));
+  const q = Quali.result(G);
+  wk.ql = null;
   // punições de grid por eventos (ex.: troca de motor)
   wk.quali = q;
   wk.grid = q.order.slice();
@@ -277,7 +296,6 @@ Career.runQualifying = (G) => {
     G.gridPenalties = null;
   }
   wk.phase = 'strategy';
-  if (wk.sprint && !wk.sprintResult) Career.runSprint(G);
   const pole = q.order[0];
   const pp = G.db.rules.regs ? G.db.rules.regs.polePoints || 0 : 0;
   if (pp) { const pt = Career.driver(G, pole).team; wk.bonus = [{ did: pole, tid: (q.res[pole] || {}).tid || pt, pts: pp }]; G.season.standD[pole] = (G.season.standD[pole] || 0) + pp; G.season.standC[wk.bonus[0].tid] = (G.season.standC[wk.bonus[0].tid] || 0) + pp; if (G.season.stats[pole]) G.season.stats[pole].points += pp; }
@@ -301,7 +319,8 @@ Career.runSprint = (G) => {
   const entries = Career.entries(G);
   const w0 = wk.weather.wet[1] || 0;
   const rev = G.db.rules.regs ? G.db.rules.regs.reverseGrid || 0 : 0;
-  const order = rev ? [...wk.quali.order.slice(0, rev).reverse(), ...wk.quali.order.slice(rev)] : wk.quali.order;
+  const base = (wk.sq || wk.quali).order;
+  const order = rev ? [...base.slice(0, rev).reverse(), ...base.slice(rev)] : base;
   const grid = order.map(did => ({ ...entries.find(x => x.did === did), startTyre: w0 > 0.62 ? 'W' : w0 > 0.2 ? 'I' : 'M', auto: true }));
   const race = Engine.createRace({ ...ctx, weather: wk.weather }, grid, { sprint: true });
   let guard = 0;
