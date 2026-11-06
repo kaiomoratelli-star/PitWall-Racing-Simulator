@@ -1,0 +1,59 @@
+{
+  "name": "pitwall-racing-simulator",
+  "productName": "PitWall Racing Simulator",
+  "version": "0.2.0",
+  "description": "Simulador de gestão de automobilismo (monopostos) para Windows",
+  "author": "Kaio Moratelli",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "desktop/main.js",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/build.js && electron . --dev",
+    "start": "node scripts/build.js && electron .",
+    "test": "node scripts/sim-test.js 10 1 && node scripts/sim-test.js 4 42",
+    "test:sim": "node scripts/sim-test.js",
+    "test:smoke": "node scripts/build.js && node scripts/smoke.js",
+    "icons": "node scripts/make-icons.js",
+    "dist": "node scripts/build.js && electron-builder --win nsis --x64 --publish never",
+    "dist:linux-host": "node scripts/build.js && electron-builder --win nsis --x64 --publish never -c.win.signAndEditExecutable=false"
+  },
+  "build": {
+    "appId": "com.pitwall.racingsimulator",
+    "productName": "PitWall Racing Simulator",
+    "copyright": "© 2026 Kaio Moratelli",
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["desktop/**", "app/dist/**", "build/icon.png", "package.json"],
+    "asar": true,
+    "afterPack": "scripts/after-pack.js",
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.ico",
+      "executableName": "PitWall Racing Simulator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "PitWall Racing Simulator",
+      "menuCategory": false,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerLanguages": ["pt_BR"],
+      "language": "1046",
+      "artifactName": "PitWall-Racing-Simulator-Setup-${version}.exe",
+      "uninstallDisplayName": "PitWall Racing Simulator"
+    }
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8",
+    "resedit": "2.0.3"
+  }
+}

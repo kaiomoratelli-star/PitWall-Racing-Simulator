@@ -1,0 +1,6 @@
+node_modules/
+app/dist/
+dist-web/
+release/
+*.log
+.smoke/

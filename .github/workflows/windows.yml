@@ -1,0 +1,76 @@
+# Gera o instalador do Windows e testa o jogo INSTALADO em uma máquina Windows real do GitHub.
+name: Windows — build, instalação e testes
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Dependências
+        run: npm ci
+
+      - name: Simulação prolongada (vários universos e temporadas)
+        run: npm test
+
+      - name: Gerar Setup.exe
+        run: npm run dist
+
+      - name: Instalar silenciosamente e conferir atalhos
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem release\*.exe | Where-Object { $_.Name -like '*Setup*' } | Select-Object -First 1
+          Write-Host "Instalador: $($setup.Name) ($([math]::Round($setup.Length/1MB,1)) MB)"
+          Start-Process $setup.FullName -ArgumentList '/S' -Wait
+          $exe = "$env:LOCALAPPDATA\Programs\PitWall Racing Simulator\PitWall Racing Simulator.exe"
+          if (!(Test-Path $exe)) { throw "Executável não foi instalado em $exe" }
+          $desk = @("$env:USERPROFILE\Desktop\PitWall Racing Simulator.lnk", "$env:PUBLIC\Desktop\PitWall Racing Simulator.lnk") | Where-Object { Test-Path $_ }
+          if (!$desk) { throw "Atalho da área de trabalho não foi criado" }
+          if (!(Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\PitWall Racing Simulator.lnk")) { throw "Atalho do menu Iniciar não foi criado" }
+          "EXE=$exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "SETUP=$($setup.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Abrir o jogo instalado, criar carreira, simular corridas, salvar, fechar e reabrir
+        run: node scripts/smoke.js "${{ env.EXE }}"
+
+      - name: Reinstalar (atualização) e desinstalar sem perder os saves
+        shell: pwsh
+        run: |
+          $data = "$env:APPDATA\PitWall Racing Simulator"
+          Start-Process "${{ env.EXE }}" -ArgumentList '--smoke-test' -Wait
+          Start-Sleep 2
+          if (!(Test-Path "$data\saves\slot3.json")) { throw "Save não foi criado na pasta de dados do Windows" }
+          Start-Process "${{ env.SETUP }}" -ArgumentList '/S' -Wait
+          if (!(Test-Path "$data\saves\slot3.json")) { throw "Atualização apagou o save" }
+          Start-Process "${{ env.EXE }}" -ArgumentList '--smoke-verify' -Wait
+          Start-Sleep 2
+          $v = Get-Content "$data\smoke-verify.json" | ConvertFrom-Json
+          if (!$v.ok) { throw "Save não abriu após a atualização: $($v.error)" }
+          Start-Process "$env:LOCALAPPDATA\Programs\PitWall Racing Simulator\Uninstall PitWall Racing Simulator.exe" -ArgumentList '/S' -Wait
+          Start-Sleep 3
+          if (!(Test-Path "$data\saves\slot3.json")) { throw "Desinstalar apagou os saves" }
+          Write-Host "Saves preservados após atualizar e desinstalar."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PitWall-Racing-Simulator-Windows
+          path: release/*Setup*.exe
+
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*Setup*.exe
