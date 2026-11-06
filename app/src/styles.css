@@ -475,3 +475,15 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .linkbtn { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; }
 .linkbtn:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 .rec { padding: 4px 0; }
+
+/* ---------- outras categorias ---------- */
+.catbar { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 14px; }
+.catgroup { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.catgroup .label { margin-right: 2px; }
+.catchip { border: 1px solid var(--line2); background: var(--panel2); color: var(--fg2); border-radius: 6px; padding: 5px 10px; font-family: var(--f-display); font-weight: 700; font-size: 13px; cursor: pointer; border-left: 3px solid var(--cc); }
+.catchip.on { background: var(--cc); color: #fff; border-color: var(--cc); }
+.catchip.off { opacity: .45; }
+.cathead { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 14px; border-radius: var(--r); background: linear-gradient(90deg, color-mix(in srgb, var(--cc) 30%, var(--panel)) 0%, var(--panel) 70%); border: 1px solid var(--line); border-left: 4px solid var(--cc); }
+.cat-prog { font-family: var(--f-display); font-size: 18px; color: #fff; }
+.tdot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 1px; }
+.cat-team { border-top: 3px solid var(--tc); }

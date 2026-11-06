@@ -12,7 +12,7 @@ SCREENS.editor = {
   get bare() { return !G; },
   html() {
     const db = edDb();
-    const tabs = [['rules', 'Regras'], ['regs', 'Regulamento'], ['teams', 'Equipes'], ['drivers', 'Pilotos'], ['tracks', 'Pistas'], ['engines', 'Motores'], ['calendar', 'Calendário'], ['io', 'Importar / exportar']];
+    const tabs = [['rules', 'Regras'], ['regs', 'Regulamento'], ['teams', 'Equipes'], ['drivers', 'Pilotos'], ['tracks', 'Pistas'], ['engines', 'Motores'], ['calendar', 'Calendário'], ['cats', 'Categorias'], ['io', 'Importar / exportar']];
     let body = '';
     if (ED.tab === 'rules') body = edRules(db);
     if (ED.tab === 'regs') body = edRegs(db);
@@ -21,6 +21,7 @@ SCREENS.editor = {
     if (ED.tab === 'tracks') body = edTracks(db);
     if (ED.tab === 'engines') body = edEngines(db);
     if (ED.tab === 'calendar') body = edCalendar(db);
+    if (ED.tab === 'cats') body = edCats(db);
     if (ED.tab === 'io') body = edIO(db);
     const inner = `
     <div class="page-head"><div><div class="eyebrow">${ED.target === 'career' ? 'Editando a carreira em andamento' : 'Base usada em novas carreiras'}</div><h1>Editor da base</h1></div>
