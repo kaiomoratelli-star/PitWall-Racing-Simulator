@@ -72,6 +72,7 @@ Market.candidateScore = (G, t, d) => {
   const ac = Market.academyOf(G, d);
   if (ac && ac.team === t.id) s += 4;
   else if (ac && (t.partnerOf || []).includes(ac.team)) s += 3;
+  if (typeof Sisters !== 'undefined') s += Sisters.academyBonus(G, t, d);
   s += (d.popularity || 0) * 0.02;
   if (!Market.slEligible(G, d)) s -= 50;
   return s;
@@ -366,8 +367,10 @@ Market.academyTick = (G) => {
   });
 };
 Market.academyCost = (a) => +(a.budget * 1).toFixed(1);
+/* academia do jogador (se for equipe irmã, a academia compartilhada da principal) */
+Market.myAcademy = (G) => { const a = (G.academies || []).find(x => x.team === G.player.teamId); return a && a.sharedWith ? (G.academies.find(x => x.team === a.sharedWith) || a) : a; };
 Market.addToAcademy = (G, did) => {
-  const a = (G.academies || []).find(x => x.team === G.player.teamId); const d = Career.driver(G, did);
+  const a = Market.myAcademy(G); const d = Career.driver(G, did);
   if (!a || !d) return 'Academia não encontrada.';
   const other = Market.academyOf(G, d);
   if (other && other.team !== a.team) return `${d.name} pertence à ${other.name}.`;
@@ -380,7 +383,7 @@ Market.addToAcademy = (G, did) => {
   return null;
 };
 Market.removeFromAcademy = (G, did) => {
-  const a = (G.academies || []).find(x => x.team === G.player.teamId); const d = Career.driver(G, did);
+  const a = Market.myAcademy(G); const d = Career.driver(G, did);
   if (!a || !d) return;
   a.members = a.members.filter(x => x !== did); if (d.academy === a.team) d.academy = null;
   Career.record(G, 'rescisao', `${d.name} foi dispensado da ${a.name}.`, { teams: [a.team], drivers: [d.id] });

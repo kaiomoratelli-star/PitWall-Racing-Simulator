@@ -33,6 +33,14 @@
 - Você vota, negocia com cada equipe, com a FIA e com a Fórmula 1 usando capital político (conversa, troca de apoio com acordo que precisa ser cumprido, pressão como fornecedor de motor) e pode levar a sua própria proposta.
 - As decisões aprovadas entram em vigor na temporada indicada e mudam a simulação de verdade (motores, pontos, teto, calendário, Sprints).
 
+**Equipes irmãs**
+- Nova tela Equipe irmã. Red Bull e Racing Bulls começam como família, como na vida real.
+- A partir da segunda temporada você pode comprar uma equipe satélite (no máximo uma) por 40% a 70% do orçamento anual dela, conforme prestígio e último campeonato. Montadoras, equipes de ponta e equipes de outra família não estão à venda.
+- Academia compartilhada: os membros das duas academias passam a ser de uma só, e a irmã dá preferência aos pilotos da academia (política "formar jovens" ou "buscar resultados").
+- Promoções no estilo Red Bull: você troca pilotos entre as duas equipes a qualquer momento entre os GPs, inclusive no meio da temporada. As famílias controladas pelo jogo também promovem e rebaixam pelo rendimento; se a sua equipe for a irmã, a principal pode levar o seu piloto da academia dela.
+- Parceria técnica: a irmã usa peças da principal e se aproxima dela a cada temporada; no Conselho da FIA, vota com a principal.
+- Dá para vender a irmã por 85% do valor de mercado.
+
 ## 0.6.0 — Moratelli Game Company
 - Numeração das versões revista: o jogo segue em desenvolvimento (as versões publicadas como 1.0.0 e 1.0.1 passam a ser a 0.5 e a 0.6).
 - Nova tela **Perfil e ativação** (menu Sistema e tela inicial): perfil do jogador e campo para a chave do produto. Ainda sem efeito no jogo.

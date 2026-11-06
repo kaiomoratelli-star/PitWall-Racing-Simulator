@@ -38,6 +38,10 @@
   - pré-contratos;
   - demissões no meio do ano;
   - negociação com contraproposta.
+- (Versão 0.7) Equipes irmãs: Red Bull e Racing Bulls já começam como família. A partir da segunda temporada dá para comprar uma equipe satélite.
+  - Academia compartilhada entre as duas equipes.
+  - Promoção e rebaixamento de pilotos entre as duas, inclusive no meio do ano.
+  - Peças da equipe principal para a irmã.
 - Equipe técnica com 15 funções e nomes reais (diretor técnico, chefe de aerodinâmica, engenheiros de corrida, estrategista...). Dá para contratar alguém de outra equipe, que antes cumpre um período afastado.
 
 ## Treinos livres e acerto (versão 0.7)

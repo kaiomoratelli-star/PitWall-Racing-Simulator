@@ -234,6 +234,8 @@ CT.push({ k: 'dropTrack', cat: 'cir', basis: 'GP em casa e custo de viagem', pro
   ops: (p) => [{ op: 'cal-', id: p.id }],
   imp: (tid, M, p) => (M[tid].country === p.country ? -0.55 : 0) - 0.05 - M[tid].budget * 0.1, fia: 0.4, fom: 0.2 });
 Council.T = CT;
+/* temas ligados: depois de votar um, os outros do grupo também esperam */
+Council.GROUPS = [['elecDown', 'elecUp', 'v8'], ['aeroUp', 'aeroDown'], ['capDown', 'capUp'], ['freeze', 'unfreeze', 'aduo'], ['trackLimits', 'strict'], ['addTrack', 'dropTrack']];
 Council.byK = Object.fromEntries(CT.map(t => [t.k, t]));
 
 /* propostas que o jogador pode levar (as mesmas do catálogo, com os valores de hoje) */
@@ -371,7 +373,9 @@ Council.resolve = (G) => {
     }
     pr.result = res;
     // o mesmo tema só volta à pauta depois de um intervalo (dois anos se foi barrado, um ano se passou)
-    (C.cool = C.cool || {})[pr.k] = m.year + (res === 'aprovada' ? 1 : 2);
+    C.cool = C.cool || {};
+    const grp = Council.GROUPS.find(g => g.includes(pr.k)) || [pr.k];
+    grp.forEach(k => { C.cool[k] = Math.max(C.cool[k] || 0, m.year + (res === 'aprovada' ? (grp.length > 1 ? 3 : 1) : 2)); });
     if (res === 'aprovada') Council.schedule(G, pr);
     const prop = Council.proposerName(G, pr.proposer);
     const why = !T.fia ? ' A FIA votou contra.' : !T.fom ? ' A Fórmula 1 votou contra.' : '';
@@ -426,7 +430,7 @@ Council.apply = (G, ops) => {
   ops.forEach(o => {
     if (o.op === 'regs') R.regs[o.k] = o.v;
     else if (o.op === 'rules') R[o.k] = Array.isArray(o.v) ? o.v.slice() : o.v;
-    else if (o.op === 'pu') G.db.engines.forEach(e => { e.power = +clamp(e.power + (o.to - o.from) / 10 * Council.ers(G, e.id) * 2, 75, 100).toFixed(1); });
+    else if (o.op === 'pu') G.db.engines.forEach(e => { e.power = +clamp(e.power + (o.to - o.from) / 10 * Council.ers(G, e.id), 75, 100).toFixed(1); });
     else if (o.op === 'aduo') { const mx = Math.max(...G.db.engines.map(e => e.power)); G.db.engines.forEach(e => { if (mx - e.power > 1.8) e.power = +(e.power + Math.min(2.5, (mx - e.power) * 0.4)).toFixed(1); }); }
     else if (o.op === 'newEra') { const r = localRng(`era:${G.seed}:${o.year}`); G.db.engines.forEach(e => { e.power = +clamp(90 + (e.power - 90) * 0.4 + (r() - 0.5) * 4, 80, 99).toFixed(1); Council.ensure(G).pu[e.id] = +(r() * 2 - 1).toFixed(2); }); }
     else if (o.op === 'weight') { const M = Council.metrics(G); G.db.teams.forEach(t => { t.car.chassis = +(t.car.chassis + M[t.id].budget * 0.6).toFixed(2); }); }
