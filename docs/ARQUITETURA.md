@@ -16,18 +16,28 @@ Referência: versão 0.2.0 (novembro de 2026).
 ```
 app/src/        código do jogo (módulos carregados nesta ordem)
   util.js       RNG com semente, formatação, nomes
-  data.js       base de dados padrão (regras, motores, equipes, pilotos, pistas)
+  data.js       base de dados padrão (regras, motores, equipes, pilotos, pistas) + dados reais
   engine.js     simulação: carro, acerto, clima, classificação, corrida volta a volta
+  physics.js    compostos C1–C5, temperatura de pneu e pista, clima, setores, bateria
+  regs.js       regulamento técnico/esportivo e versões por temporada
+  circuitgen.js gerador de circuitos e logística do calendário
   migrate.js    versão do save + migrações
   ai.js         IA dos chefes de equipe (caixa, personalidade, investimentos, staff)
-  career.js     carreira/universo: temporada, fim de semana, finanças, P&D, mercado,
+  staff.js      15 funções de staff, mercado e decisões das equipes
+  market.js     contratos, superlicença, academias, silly season e negociação
+  career.js     carreira/universo: temporada, fim de semana, finanças, P&D,
                 registro permanente (log), arquivo histórico
   events.js     eventos com decisões + notícias baseadas em fatos
+  media.js      imprensa, rede social, memória de histórias, rivalidades, escândalos fictícios
+  cats.js       outras categorias: simulação por data, superlicença, progressão, novos talentos
   diag.js       verificação de integridade e reparos seguros
   storage.js    salvamento (disco no desktop, nuvem no Claude, navegador)
+  sound.js      sons sintetizados (WebAudio)
   ui-*.js       interface
   main.js       inicialização + testes automáticos do executável
-app/assets/     fontes empacotadas (licença OFL)
+app/data/       dados reais: real-db (F1 2026), real-extra (contratos, staff, academias),
+                history (1950–hoje), records (recordes e linhagens), team-lore, categories
+app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias)
 desktop/        processo principal do Electron
   main.js       janela, tela de abertura, tela cheia, IPC, erros, testes
   preload.js    ponte segura com o jogo (contextIsolation + sandbox)
