@@ -22,6 +22,17 @@ Cats.norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
 Cats.label = (G, d) => { const c = d && d.cat && Cats.get(G, d.cat); return c ? c.short : null; };
 
 /* ---------- criação dos pilotos ---------- */
+/* potencial em faixas, como na vida real: ~1,5% de talentos de elite, ~6% bons; a maioria para nas categorias de base.
+   q (0–1) = desempenho real em 2026: campeões têm mais chance de ser fora de série */
+Cats.rollPotential = (ovr, age, q, rnd) => {
+  const pe = 0.015 + q * 0.05, pg = 0.06 + q * 0.14;
+  const r = rnd();
+  let pot;
+  if (r < pe) pot = 89 + rnd() * 7;
+  else if (r < pe + pg) pot = 83 + rnd() * 6;
+  else pot = ovr + 3 + Math.pow(rnd(), 1.5) * Math.max(0, 83 - ovr - 3) * (age <= 21 ? 1 : 0.4);
+  return Math.round(clamp(Math.max(pot, ovr + 1), 40, 97));
+};
 Cats.STYLES = ['complete', 'aggressive', 'smooth', 'qualifier', 'tyre-whisperer', 'racer', 'wet-master', 'calculator'];
 Cats.makeDriver = (G, spec, C, ovr, age) => {
   const ids = Cats._ids || (Cats._ids = new Set(G.db.drivers.map(d => d.id)));
@@ -30,9 +41,7 @@ Cats.makeDriver = (G, spec, C, ovr, age) => {
   ids.add(id);
   const styles = Object.keys(STYLE_PROFILES);
   const style = styles[hashStr(id) % styles.length];
-  // potencial: poucos são fora de série; jovens bem colocados têm mais margem
-  const talent = ((hashStr(id + 'p') % 1000) / 1000 - 0.5) * 7 + (spec.q || 0) * 4;
-  const pot = Math.round(clamp(ovr + Math.max(0, 23 - age) * 1.4 + talent, ovr + 1, 96));
+  const pot = Cats.rollPotential(ovr, age, spec.q || 0, localRng('pot:' + id));
   const raw = { id, name: spec.name, nat: spec.nat || 'GBR', age, dob: spec.dob || null, number: Number(spec.no) || (hashStr(id) % 98) + 2, style, ovr, potential: pot, team: null, salary: 0.2, contractYears: 0, img: spec.img || null };
   const d = normalizeDriver(raw, 0, new Set());
   d.cat = C.id; d.ctm = spec.team || null; d.sl = []; d.history = []; d.catYears = {};
@@ -47,7 +56,7 @@ Cats.newRegen = (G, C) => {
   const [lo, hi] = C.range;
   const ovr = Math.round(clamp(lo + (hi - lo) * Math.pow(RNG.next(), 1.6) * 0.75, lo - 2, hi));
   const d = Cats.makeDriver(G, { name: randomName(nat), nat, regen: true }, C, ovr, age);
-  d.potential = Math.round(clamp(d.potential + RNG.normal(2, 5), ovr + 2, 98));
+  d.potential = Cats.rollPotential(ovr, age, 0, () => RNG.next());
   G.db.drivers.push(d);
   return d;
 };
@@ -250,9 +259,10 @@ Cats.finishYear = (G) => {
 /* evolução anual dos jovens: rumo ao potencial, mais rápido quanto mais novo */
 Cats.develop = (G) => {
   G.db.drivers.forEach(d => {
-    if (d.retired || !d.cat) return;
+    // vale para quem está nas categorias e para quem saiu delas (inclusive já na F1) enquanto jovem
+    if (d.retired || !(d.cat || ((d.regen || d.id.startsWith('c-')) && d.age <= 27))) return;
     const o = driverOverall(d);
-    const k = d.age <= 17 ? 0.15 : d.age <= 19 ? 0.12 : d.age <= 21 ? 0.09 : d.age <= 24 ? 0.05 : d.age >= 32 ? -0.04 : 0;
+    const k = d.age <= 17 ? 0.22 : d.age <= 19 ? 0.18 : d.age <= 21 ? 0.14 : d.age <= 24 ? 0.1 : d.age <= 27 ? 0.05 : d.age >= 32 ? -0.04 : 0;
     const res = d.lastCat && d.lastCat.y === G.season.year ? clamp((10 - d.lastCat.pos) * 0.08, -0.6, 0.8) : 0;
     const gain = k > 0 ? Math.max(0, (d.potential - o) * k) + res + RNG.normal(0, 0.6) : k * 10 + RNG.normal(0, 0.4);
     if (gain) Cats.shift(d, gain);
@@ -282,7 +292,7 @@ Cats.progression = (G, initial) => {
       const yrs = d.catYears[cat.id];
       const ovr = driverOverall(d);
       if (cat.pro) {
-        if (d.age >= 39 || (d.age >= 34 && RNG.chance(0.18))) { d.retired = true; d.retiredYear = y; d.cat = null; return false; }
+        if (d.age >= 39 || (d.age >= 34 && RNG.chance(0.18))) { if (!d.team && !d.futureTeam) { d.retired = true; d.retiredYear = y; } d.cat = null; return false; }
         if (pos > cat.entries.length - 3 && RNG.chance(0.35)) { d.cat = null; return false; }
         return true;
       }
@@ -323,7 +333,7 @@ Cats.progression = (G, initial) => {
     }
   });
   // quem ficou sem vaga: jovens desistem, veteranos ficam livres
-  movers.forEach(m => { if (!taken.has(m.d.id) && !f1Race(m.d) && !m.d.team) { m.d.cat = null; if (m.d.age < 21 && !m.d.academy && RNG.chance(0.7)) { m.d.retired = true; m.d.retiredYear = y; m.d.quit = true; } } });
+  movers.forEach(m => { if (!taken.has(m.d.id) && !f1Race(m.d) && !m.d.team && !m.d.futureTeam) { m.d.cat = null; if (m.d.age < 21 && !m.d.academy && RNG.chance(0.7)) { m.d.retired = true; m.d.retiredYear = y; m.d.quit = true; } } });
   // sem vaga em lugar nenhum e sem passado na F1: com o tempo, deixam o automobilismo de monoposto
   if (!initial) G.db.drivers.forEach(d => {
     if (d.retired || d.team || d.cat || d.futureTeam || (d.career && d.career.starts) || d.academy) return;
@@ -354,8 +364,12 @@ Cats.freeSeats = (cat) => {
 Cats.prune = (G) => {
   const y = G.season.year;
   const keep = new Set();
-  (G.academies || []).forEach(a => a.members.forEach(id => keep.add(id)));
+  (G.academies || []).forEach(a => a.members.forEach(id => { const d = Career.driver(G, id); if (d && !d.retired) keep.add(id); }));
   if (G.player && G.player.teamId) Career.teamDrivers(G, G.player.teamId).forEach(d => keep.add(d.id));
-  G.db.drivers = G.db.drivers.filter(d => !(d.retired && d.quit && !(d.career && d.career.starts) && !(d.catTitles && d.catTitles.length) && (d.retiredYear || y) <= y - 2 && !keep.has(d.id)));
+  const notable = (d) => (d.catTitles || []).some(t => ['f2', 'f3', 'fe', 'sf'].includes(t.cat));
+  G.db.drivers = G.db.drivers.filter(d => !(d.retired && !(d.career && d.career.starts) && !notable(d) && (d.retiredYear || y) <= y - (d.quit ? 2 : 4) && !keep.has(d.id)));
+  // academias não guardam quem saiu do esporte
+  const ids = new Set(G.db.drivers.map(d => d.id));
+  (G.academies || []).forEach(a => { a.members = a.members.filter(id => ids.has(id)); });
   Cats._ids = null;
 };

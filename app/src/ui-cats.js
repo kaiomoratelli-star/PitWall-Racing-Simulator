@@ -86,14 +86,9 @@ ACT.driverPage = (el) => {
 /* ---------- mercado: filtro por categoria ---------- */
 const _mkHtml = SCREENS.market.html;
 SCREENS.market.html = function () {
-  const c = UI.params.c;
-  if (!c || !Cats.on(G)) return _mkHtml.call(this).replace('<span class="spacer"></span>', `<select class="inp" style="width:auto" data-chg="mkCat" aria-label="Categoria">${opt('', 'Todas as séries', '')}${opt('f1', 'Só F1', '')}${Cats.list(G).map(x => opt(x.id, x.name, '')).join('')}</select><span class="spacer"></span>`);
-  // filtra temporariamente a lista de pilotos pela categoria escolhida
-  const all = G.db.drivers;
-  G.db.drivers = all.filter(d => c === 'f1' ? d.team : d.cat === c || (Cats.get(G, c) && Cats.get(G, c).entries.some(e => e.did === d.id)));
-  let html;
-  try { html = _mkHtml.call(this); } finally { G.db.drivers = all; }
-  return html.replace('<span class="spacer"></span>', `<select class="inp" style="width:auto" data-chg="mkCat" aria-label="Categoria">${opt('', 'Todas as séries', c)}${opt('f1', 'Só F1', c)}${Cats.list(G).map(x => opt(x.id, x.name, c)).join('')}</select><span class="spacer"></span>`);
+  const c = UI.params.c || '';
+  const sel = Cats.on(G) ? `<select class="inp" style="width:auto" data-chg="mkCat" aria-label="Categoria">${opt('', 'Todas as séries', c)}${opt('f1', 'Só F1', c)}${Cats.list(G).map(x => opt(x.id, x.name, c)).join('')}</select>` : '';
+  return _mkHtml.call(this).replace('<span class="spacer"></span>', sel + '<span class="spacer"></span>');
 };
 CHG.mkCat = (el) => go('market', { ...UI.params, c: el.value || undefined });
 
