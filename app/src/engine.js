@@ -283,7 +283,7 @@ Engine.makePlan = (race, car, wk) => {
   return { stops, pitWear: RNG.range(60, 74), scOpportunist: RNG.chance(0.75) };
 };
 
-Engine.event = (race, type, text, did) => race.events.push({ lap: race.lap, type, text, did });
+Engine.event = (race, type, text, did, extra) => { const e = { lap: race.lap, type, text, did, ...(extra || {}) }; race.events.push(e); return e; };
 
 Engine.chooseCompound = (race, car, wk, lapsLeft) => {
   const track = wk.track;
@@ -377,6 +377,7 @@ Engine.stepLap = (race, wk) => {
     const lowBatt = c.mode === 'push' && (c.soc ?? 100) < 8;
     const pc = Engine.paceComponents({ db, track, team, drv, setupQ: c.setupQ, compound: c.tyre.c, wear: c.tyre.wear, fuel: c.fuel, w, mode: lowBatt ? 'normal' : c.mode, quali: false, carPerf: c.carPerf - c.damage.power * 2, ttemp: c.tyre.temp, trackT, evo: L });
     let t = pc.total + c.damage.wing * 0.9 + (lowBatt ? 0.25 : 0) + ((c.soc ?? 100) < 3 ? 0.4 : 0);
+    c.pure = t; // ritmo limpo, sem tráfego (usado no rádio e no relatório)
     const sd = (0.14 + (100 - drv.consistency) * 0.009 + w * 0.3) * ((drv.b && drv.b.sd) || 1);
     t += RNG.normal(0, sd);
 
@@ -436,7 +437,9 @@ Engine.stepLap = (race, wk) => {
     if (doPit) {
       const loss = track.pitLoss * (scType === 'SC' ? 0.5 : scType === 'VSC' ? 0.62 : 1);
       let stop = 2.1 + (100 - team.pitCrew) * 0.022 + Math.abs(RNG.normal(0, 0.25));
-      if (RNG.chance((100 - team.pitCrew) / 450 + 0.02)) { const extra = RNG.range(1.5, 8); stop += extra; Engine.event(race, 'pit', `Parada lenta para ${wk.nameOf(c.did)}: ${stop.toFixed(1)}s parado.`, c.did); }
+      let slow = false;
+      if (RNG.chance((100 - team.pitCrew) / 450 + 0.02)) { const extra = RNG.range(1.5, 8); stop += extra; slow = true; }
+      const fromC = c.tyre.c, fromAge = c.tyre.age;
       t += loss + stop;
       c.pits++; c.lastPitLap = L; pitted.add(c);
       c.stints[c.stints.length - 1].to = L;
@@ -445,7 +448,9 @@ Engine.stepLap = (race, wk) => {
       if (c.damage.wing) c.damage.wing = 0;
       if (c.pendingPen) { t += c.pendingPen; c.pendingPen = 0; }
       c.lastStop = +stop.toFixed(1);
-      if (c.isPlayer || c.pos <= 6) Engine.event(race, 'pit', `${wk.nameOf(c.did)} para nos boxes: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`, c.did);
+      // toda parada fica registrada; o texto com a posição de volta é completado no fim da volta
+      (race.pitLog = race.pitLog || []).push({ lap: L, did: c.did, tid: c.tid, stop: +stop.toFixed(1), loss: +(loss + stop).toFixed(1), from: fromC, fromAge, to: newC, posIn: c.pos, slow, sc: scType || null });
+      Engine.event(race, 'pit', `${wk.nameOf(c.did)} para nos boxes: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`, c.did, { stop: +stop.toFixed(1), slow, tyre: newC, imp: true }); c._pitEvIdx = race.events.length - 1;
     }
     // limites de pista: três advertências e a quarta vira punição
     if (!scType && RNG.chance(0.006 * ((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120) * (track.street ? 0.4 : 1))) {
@@ -499,7 +504,10 @@ Engine.stepLap = (race, wk) => {
           if (cur.T > ahead.T - 0.12) cur.T = ahead.T - 0.12;
           ahead.T += RNG.range(0.05, 0.35);
           live[j] = ahead; live[j - 1] = cur;
-          if (cur.isPlayer || ahead.isPlayer || j <= 3) Engine.event(race, 'overtake', `${wk.nameOf(cur.did)} ultrapassa ${wk.nameOf(ahead.did)} pela ${ordinal(j)} posição.`, cur.did);
+          // todas as ultrapassagens entram no relatório (narradas com o nome da curva)
+          const ro = localRng(`ov:${race.trackId}:${L}:${cur.did}:${ahead.did}`);
+          const ovTxt = typeof Narr !== 'undefined' ? Narr.fill(Narr.pick('rO', Narr.R.overtake, ro), { a: wk.nameOf(cur.did), b: wk.nameOf(ahead.did), c: Narr.corner(track, Math.floor(ro() * 3), ro), p: j }) : `${wk.nameOf(cur.did)} ultrapassa ${wk.nameOf(ahead.did)} pela ${ordinal(j)} posição.`;
+          Engine.event(race, 'overtake', ovTxt, cur.did, { b: ahead.did, pos: j, imp: cur.isPlayer || ahead.isPlayer || j <= 10 });
           j--;
         } else {
           // briga roda a roda — chance de toque
@@ -511,6 +519,11 @@ Engine.stepLap = (race, wk) => {
             break;
           }
           cur.T = ahead.T + RNG.range(0.28, 0.65);
+          // defesa que vale registro: briga real pelas primeiras posições ou com o seu carro
+          if (p > 0.3 && (j <= 8 || cur.isPlayer || ahead.isPlayer) && !scType) {
+            const rd = localRng(`df:${race.trackId}:${L}:${cur.did}`);
+            if (rd() < 0.3 && typeof Narr !== 'undefined') Engine.event(race, 'defend', Narr.fill(Narr.pick('rD', Narr.R.defend, rd), { a: wk.nameOf(cur.did), b: wk.nameOf(ahead.did), c: Narr.corner(track, Math.floor(rd() * 3), rd) }), ahead.did, { b: cur.did, pos: j - 1 });
+          }
           break;
         }
       }

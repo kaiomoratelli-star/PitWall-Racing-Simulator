@@ -408,7 +408,7 @@ Career.finishWeekend = (G) => {
   // análise de dados — guarda a corrida completa só da última
   G.lastRace = {
     round: season.round, year: season.year, trackId: track.id, gp: track.gp, laps: race.laps, wet: race.wet, scHistory: race.scHistory,
-    events: race.events,
+    events: race.events, pitLog: race.pitLog || [],
     cars: race.cars.map(c => ({ did: c.did, tid: c.tid, grid: c.grid, pos: c.pos, status: c.status, times: c.times, positions: c.positions, gaps: c.gaps, stints: c.stints, best: c.best, pits: c.pits, overtakes: c.overtakes, setupQ: c.setupQ, secs: c.secs, bestS: c.bestS, vmax: c.vmax })),
     bestS: race.bestS, weather: { air: wk.weather.air ? wk.weather.air[1] : null, track: wk.weather.trackT ? wk.weather.trackT[1] : null },
     quali: wk.quali,

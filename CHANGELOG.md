@@ -14,8 +14,15 @@
 - Q1/Q2/Q3 (18, 15 e 12 min) e, nos fins de semana de Sprint, SQ1/SQ2/SQ3 (12, 10 e 8 min) no formato atual: TL1 → Classificação Sprint → Sprint → Classificação → Corrida.
 - Cronômetro com tempo real, 3×, 10× e saltos de +1, +3 e +5 minutos; volta de saída, lançada, resfriamento e entrada; volta iniciada antes da bandeira vale.
 - Você decide quando sair, quantas voltas lançadas, o pneu (jogos da alocação) e o risco; pode abortar a volta e mexer no carro na garagem com o relógio correndo (parque fechado: só asa dianteira e freio).
-- Pista evolui, tráfego, erros, voltas deletadas por limite de pista, batidas e bandeira vermelha. A IA faz dois ataques e poupa pneus quando está segura.
+- Pista evolui, tráfego, erros, voltas deletadas por limite de pista, batidas e bandeira vermelha. Os rivais fazem dois ataques e poupam pneus quando já estão seguros.
 - Torre de cronometragem com setores roxo/verde/amarelo e zona de eliminação; narração ao vivo setor a setor com nomes reais das curvas e o efeito do acerto.
+
+**Corrida narrada e relatório oficial**
+- Toda ultrapassagem fica registrada com o local real (curva, chicane, vácuo da reta); defesas, toques e duelos também.
+- Resumo narrado de cada volta: largada (quem ganhou e quem perdeu posições), troca de liderança, líder sob pressão, maior subida da volta e as brigas do top 10 com a diferença.
+- Rádio das equipes: chamada de box, pneus no fim, piloto preso atrás de um carro mais lento, ordens de equipe (o companheiro abre passagem quando as estratégias são diferentes), reclamação depois de toque, Safety Car sem parada, chuva começando ou pista secando, diferenças para o carro da frente e volta mais rápida.
+- Pit stops com tempo parado, tempo no pit lane, posição de entrada e de volta; undercut detectado e narrado.
+- Relatório pós-corrida no padrão da F1: classificação oficial (Pos, Nº, Piloto, Equipe, Voltas, Tempo/Abandono, Pts, NC), volta a volta com filtros (destaques, minha equipe, ultrapassagens, pit stops, rádio) e as mudanças de posição de cada volta, gráfico de posições com faixas de Safety Car, tabela de pit stops e voltas mais rápidas com velocidade média.
 
 ## 0.6.0 — Moratelli Game Company
 - Numeração das versões revista: o jogo segue em desenvolvimento (as versões publicadas como 1.0.0 e 1.0.1 passam a ser a 0.5 e a 0.6).
