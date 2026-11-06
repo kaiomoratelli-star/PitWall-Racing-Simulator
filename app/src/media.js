@@ -1,0 +1,292 @@
+/* ============================================================
+   PIT WALL — imprensa, redes sociais e memória de histórias
+   Tudo nasce de fatos do banco de dados. A memória evita repetir
+   a mesma pauta e acompanha rivalidades ao longo das temporadas.
+   Escândalos (raros) envolvem só pessoas e organizações fictícias.
+   ============================================================ */
+'use strict';
+
+const Media = {};
+
+/* veículos reais; o país orienta qual veículo cobre cada piloto */
+Media.OUTLETS = {
+  f1: { name: 'Formula1.com', handle: 'F1' }, fia: { name: 'FIA', handle: 'fia' },
+  autosport: { name: 'Autosport', handle: 'autosport' }, therace: { name: 'The Race', handle: 'wearetherace' },
+  motorsport: { name: 'Motorsport.com', handle: 'motorsport' }, racefans: { name: 'RaceFans', handle: 'racefansdotnet' },
+  sky: { name: 'Sky Sports F1', handle: 'SkySportsF1' }, bbc: { name: 'BBC Sport', handle: 'BBCSport' },
+  planetf1: { name: 'PlanetF1', handle: 'Planet_F1' }, crash: { name: 'Crash.net', handle: 'crash_net' },
+  ge: { name: 'ge', handle: 'globoesportecom' }, gp: { name: 'Grande Prêmio', handle: 'grandepremio' },
+  gazzetta: { name: 'La Gazzetta dello Sport', handle: 'Gazzetta_it' }, corriere: { name: 'Corriere dello Sport', handle: 'CorSport' },
+  marca: { name: 'Marca', handle: 'marca' }, as: { name: 'AS', handle: 'diarioas' }, lequipe: { name: "L'Équipe", handle: 'lequipe' },
+  ams: { name: 'auto motor und sport', handle: 'ams_motorsport' }, bild: { name: 'Bild', handle: 'BILD' }, telegraaf: { name: 'De Telegraaf', handle: 'telegraaf' },
+  speedcafe: { name: 'Speedcafe', handle: 'speedcafe' }, ole: { name: 'Olé', handle: 'DiarioOle' }, espn: { name: 'ESPN', handle: 'espn' },
+  record: { name: 'Récord', handle: 'record_mexico' }, nzherald: { name: 'NZ Herald', handle: 'nzherald' },
+};
+Media.BY_NAT = { BRA: ['ge', 'gp'], ITA: ['gazzetta', 'corriere'], ESP: ['marca', 'as'], FRA: ['lequipe'], GER: ['ams', 'bild'], NED: ['telegraaf'], AUS: ['speedcafe'], ARG: ['ole'], GBR: ['sky', 'bbc', 'autosport'], USA: ['espn'], MEX: ['record'], NZL: ['nzherald'] };
+Media.BY_TAG = {
+  corrida: ['f1', 'autosport', 'motorsport', 'therace', 'racefans', 'sky'], campeonato: ['f1', 'sky', 'bbc', 'autosport', 'therace'],
+  mercado: ['therace', 'motorsport', 'autosport', 'planetf1', 'crash'], regulamento: ['fia', 'f1', 'racefans', 'therace'],
+  paddock: ['planetf1', 'crash', 'motorsport', 'racefans', 'therace'], equipe: ['motorsport', 'autosport', 'racefans'],
+  escandalo: ['bbc', 'therace', 'motorsport', 'autosport'], rumor: ['therace', 'motorsport', 'autosport', 'planetf1', 'crash'], 'técnica': ['therace', 'autosport', 'racefans', 'ams'], historia: ['f1', 'autosport', 'therace', 'bbc'], rivalidade: ['therace', 'sky', 'planetf1', 'crash'],
+};
+Media.TAGS = { corrida: 'Corrida', campeonato: 'Campeonato', mercado: 'Mercado', regulamento: 'Regulamento', paddock: 'Paddock', equipe: 'Sua equipe', escandalo: 'Investigação', historia: 'História', rivalidade: 'Rivalidade', geral: 'Geral', financas: 'Finanças', rumor: 'Rumores', 'técnica': 'Técnica', tecnica: 'Técnica', staff: 'Bastidores' };
+
+/* perfis reais nas redes (fonte: Wikidata P2002 e perfis oficiais) */
+Media.HANDLES = {
+  'max-verstappen': 'Max33Verstappen', 'lewis-hamilton': 'LewisHamilton', 'charles-leclerc': 'Charles_Leclerc', 'lando-norris': 'LandoNorris',
+  'oscar-piastri': 'OscarPiastri', 'george-russell': 'GeorgeRussell63', 'kimi-antonelli': 'KimiAntonelli', 'fernando-alonso': 'alo_oficial',
+  'lance-stroll': 'lance_stroll', 'carlos-sainz-jr': 'Carlossainz55', 'alexander-albon': 'alex_albon', 'pierre-gasly': 'PierreGASLY',
+  'esteban-ocon': 'OconEsteban', 'nico-hulkenberg': 'HulkHulkenberg', 'yuki-tsunoda': 'yukitsunoda07', 'liam-lawson': 'liamlawson30',
+  'gabriel-bortoleto': 'gabortoleto85', 'isack-hadjar': 'isack_hadjar', 'oliver-bearman': 'OllieBearman', 'franco-colapinto': 'FranColapinto',
+  'valtteri-bottas': 'ValtteriBottas', 'sergio-perez': 'SChecoPerez', 'arvid-lindblad': 'arvidracing', 'guanyu-zhou': 'ZhouGuanyu24',
+  'mick-schumacher': 'SchumacherMick', 'felipe-drugovich': 'FelipeDrugovich', 'richard-verschoor': 'R_Verschoor1', 'dino-beganovic': 'dinobeganovic4',
+  'ayumu-iwasa': 'ayumuiwasa_cars', 'luke-browning': 'lukebrown1ng',
+  // equipes
+  ferrari: 'ScuderiaFerrari', mercedes: 'MercedesAMGF1', 'red-bull': 'redbullracing', mclaren: 'McLarenF1', 'aston-martin': 'AstonMartinF1',
+  alpine: 'AlpineF1Team', williams: 'WilliamsF1', haas: 'HaasF1Team', 'racing-bulls': 'VisaCashAppRB', audi: 'AudiF1', cadillac: 'cadillacf1_',
+};
+Media.handle = (kind, obj) => {
+  if (!obj) return '';
+  if (Media.HANDLES[obj.id]) return Media.HANDLES[obj.id];
+  const base = String(obj.name || obj.id).normalize('NFD').replace(/[^A-Za-z0-9]/g, '');
+  return kind === 'team' ? base + 'F1' : base.slice(0, 15);
+};
+
+/* ---------- memória de histórias ---------- */
+Media.mem = (G) => G.memory || (G.memory = { keys: {}, rivals: {}, lastWin: {}, teamLastWin: {}, races: 0 });
+Media.once = (G, key) => { const m = Media.mem(G); if (m.keys[key]) return false; m.keys[key] = G.season ? G.season.year : 1; return true; };
+Media.pairKey = (a, b) => [a, b].sort().join('|');
+
+/* decora qualquer notícia: veículo, pessoas e equipe citadas, imagem */
+Media.decorate = (G, n, refs = {}) => {
+  const ds = refs.dr || G.db.drivers.filter(d => !d.retired && n.title.includes(d.name)).slice(0, 3).map(d => d.id);
+  const ts = refs.tm || G.db.teams.filter(t => n.title.includes(t.name)).slice(0, 2).map(t => t.id);
+  n.dr = ds.length ? ds : undefined; n.tm = ts.length ? ts : undefined;
+  if (refs.tr) n.tr = refs.tr;
+  const h = hashStr(n.title + n.id);
+  let pool = Media.BY_TAG[n.tag] || Media.BY_TAG.paddock;
+  const d0 = ds[0] && Career.driver(G, ds[0]);
+  if (d0 && Media.BY_NAT[d0.nat] && h % 100 < 45) pool = Media.BY_NAT[d0.nat];
+  n.outlet = refs.outlet || pool[h % pool.length];
+  if (!n.body) n.body = Media.context(G, ds, ts);
+  return n;
+};
+
+/* contexto automático para notas curtas: situação no campeonato de quem é citado */
+Media.context = (G, ds, ts) => {
+  if (!G.season || !G.season.standD) return '';
+  const out = [];
+  const sd = Career.standingsD(G), sc = Career.standingsC(G);
+  ds.slice(0, 2).forEach(id => {
+    const d = Career.driver(G, id); if (!d) return;
+    const i = sd.findIndex(x => x.did === id);
+    const t = d.team && Career.team(G, d.team);
+    if (i >= 0 && G.season.round > 0) out.push(`${d.name}${t ? ` (${t.name})` : ''} é o ${ordinal(i + 1)} no campeonato de ${G.season.year}, com ${sd[i].pts} pontos.`);
+    else if (d.career) out.push(`${d.name} soma ${d.career.starts} GPs e ${d.career.wins} vitória(s) na carreira.`);
+  });
+  ts.slice(0, 1).forEach(id => { const i = sc.findIndex(x => x.tid === id); const t = Career.team(G, id); if (t && i >= 0 && G.season.round > 0 && !ds.some(x => { const d = Career.driver(G, x); return d && d.team === id; })) out.push(`A ${t.name} ocupa o ${ordinal(i + 1)} lugar entre os construtores, com ${sc[i].pts} pontos.`); });
+  return out.join(' ');
+};
+
+/* ---------- redes sociais ---------- */
+const Social = {};
+Social.FANS = ['torcedor_box', 'pitlane_diaria', 'vacuo_na_reta', 'curva_do_s', 'boxbox_br', 'apex_hunter', 'tifosi_ventidue', 'oranje_vak', 'paddock_madrugada', 'undercut_fc', 'safety_car_eterno', 'dirty_air_club', 'grid_de_largada', 'volta_rapida_fan'];
+Social.post = (G, p) => {
+  G.social = G.social || [];
+  const d = p.driver ? Career.driver(G, p.driver) : null;
+  const t = p.team ? Career.team(G, p.team) : null;
+  let by;
+  if (p.by === 'fan') { const f = Social.FANS[hashStr(p.text + G.social.length) % Social.FANS.length]; by = { kind: 'fan', name: f.replace(/_/g, ' '), handle: f }; }
+  else if (p.by && Media.OUTLETS[p.by]) by = { kind: 'media', name: Media.OUTLETS[p.by].name, handle: Media.OUTLETS[p.by].handle, ref: p.by };
+  else if (p.kind === 'rumor') { const o = ['therace', 'motorsport', 'autosport', 'planetf1'][hashStr(p.text) % 4]; by = { kind: 'media', name: Media.OUTLETS[o].name, handle: Media.OUTLETS[o].handle, ref: o }; }
+  else if (d && p.as !== 'team') by = { kind: 'driver', name: d.name, handle: Media.handle('driver', d), ref: d.id };
+  else if (t) by = { kind: 'team', name: t.name, handle: Media.handle('team', t), ref: t.id };
+  else by = { kind: 'media', name: 'Formula 1', handle: 'F1', ref: 'f1' };
+  const pop = by.kind === 'driver' && d ? (d.popularity || 40) : by.kind === 'team' && t ? t.reputation : by.kind === 'fan' ? 8 : 70;
+  const hype = p.hype || 1;
+  const likes = Math.round((pop * pop * 18 + 300) * hype * (0.6 + (hashStr(p.text) % 80) / 100));
+  G.social.unshift({ id: (G.seq = (G.seq || 0) + 1), y: G.season ? G.season.year : 0, r: G.season ? G.season.round : 0, by, text: p.text, kind: p.kind || 'post', likes, reposts: Math.round(likes * 0.11), img: p.img || null, about: p.driver || p.team || null });
+  if (G.social.length > 260) G.social.length = 260;
+};
+
+/* ---------- reportagem de corrida ---------- */
+Media.raceReport = (G, summary, race) => {
+  const track = Career.track(G, summary.trackId);
+  const cls = summary.cls;
+  const w = Career.driver(G, cls[0].did), wt = Career.team(G, cls[0].tid);
+  const p2 = cls[1] && Career.driver(G, cls[1].did), p3 = cls[2] && Career.driver(G, cls[2].did);
+  const st = Career.standingsD(G);
+  const m = Media.mem(G);
+  m.races = (m.races || 0) + 1;
+  const ev = race ? race.events : summary.events || [];
+  const lines = [];
+  // abertura
+  const fromGrid = cls[0].grid;
+  let head;
+  const sinceWin = m.lastWin[w.id] != null ? w.career.starts - m.lastWin[w.id] : null;
+  const teamDrought = m.teamLastWin[wt.id] != null ? m.races - m.teamLastWin[wt.id] : null;
+  if (w.career.wins === 1) head = `${w.name} vence pela primeira vez na F1 no ${track.gp}`;
+  else if (fromGrid >= 8) head = `De ${ordinal(fromGrid)} ao topo: ${w.name} faz corrida de recuperação e vence o ${track.gp}`;
+  else if (sinceWin && sinceWin >= 15) head = `${w.name} encerra jejum de ${sinceWin} corridas e vence o ${track.gp}`;
+  else if (teamDrought && teamDrought >= 20) head = `${wt.name} volta a vencer depois de ${teamDrought} GPs com ${w.name} no ${track.gp}`;
+  else if (summary.wet > 0.25) head = `${w.name} domina a chuva e vence o ${track.gp}`;
+  else if (w.nat === track.country) head = `Festa em casa: ${w.name} vence o ${track.gp}`;
+  else head = [`${w.name} vence o ${track.gp} com a ${wt.name}`, `${w.name} leva a ${wt.name} à vitória em ${track.place || track.circuit}`, `Vitória de ${w.name} no ${track.gp}`][hashStr(track.id + G.season.year) % 3];
+  m.lastWin[w.id] = w.career.starts; m.teamLastWin[wt.id] = m.races;
+  lines.push(`${w.name} (${wt.name}) largou em ${ordinal(fromGrid)} e venceu em ${track.circuit}${p2 ? `, à frente de ${p2.name}` : ''}${p3 ? ` e ${p3.name}` : ''}.`);
+  // momentos
+  const crashes = ev.filter(e => e.type === 'crash').slice(0, 2).map(e => e.text);
+  const flags = ev.filter(e => e.type === 'sc' || e.type === 'flag');
+  if (flags.length) lines.push(`A prova teve ${summary.sc || flags.length} intervenção(ões) de Safety Car${ev.some(e => /vermelha/i.test(e.text)) ? ' e bandeira vermelha' : ''}.`);
+  crashes.forEach(c => lines.push(c));
+  if (summary.fastest && Career.driver(G, summary.fastest.did)) lines.push(`Volta mais rápida: ${Career.driver(G, summary.fastest.did).name}.`);
+  const dnfTop = cls.filter(c => c.status === 'dnf' && c.grid <= 4).map(c => `${Career.driver(G, c.did).name} (${c.reason || 'abandono'})`);
+  if (dnfTop.length) lines.push(`Abandonaram entre os favoritos: ${dnfTop.join(', ')}.`);
+  if (st[0]) lines.push(`No campeonato, ${Career.driver(G, st[0].did).name} lidera com ${st[0].pts} pontos${st[1] ? `, ${st[0].pts - st[1].pts} à frente de ${Career.driver(G, st[1].did).name}` : ''}.`);
+  Career.news(G, head, 'corrida', lines.join(' '), { dr: [w.id, p2 && p2.id, p3 && p3.id].filter(Boolean), tm: [wt.id], tr: track.id, main: true });
+
+  // marcos e recordes
+  Media.milestones(G, w, track);
+  // redes sociais
+  const vic = ['P1! Que corrida. Obrigado, equipe! 🏆', 'Vitória! Carro incrível hoje. Vamos!', `Que sensação vencer em ${track.place || track.circuit}!`, 'Sem palavras. Obrigado a todos na fábrica.'];
+  Social.post(G, { driver: w.id, kind: 'win', text: w.career.wins === 1 ? 'Minha primeira vitória na F1. Sonho de criança realizado. Obrigado a todos que acreditaram.' : vic[hashStr(w.id + m.races) % vic.length], hype: w.career.wins === 1 ? 3 : 1.4 });
+  Social.post(G, { team: wt.id, as: 'team', kind: 'win', text: `VITÓRIA! ${w.name} vence o ${track.gp}! ${p2 && Career.driver(G, cls[1].did).team === wt.id ? 'Dobradinha!! ' : ''}🏁`, hype: 1.2 });
+  Social.post(G, { by: 'f1', kind: 'result', text: `RESULTADO — ${track.gp}\n1. ${w.name}\n2. ${p2 ? p2.name : '—'}\n3. ${p3 ? p3.name : '—'}` });
+  cls.filter(c => c.status === 'dnf').slice(0, 2).forEach(c => {
+    const d = Career.driver(G, c.did);
+    if (d && RNG.chance(0.5)) Social.post(G, { driver: d.id, kind: 'dnf', text: ['Dia difícil. Vamos analisar e voltar mais fortes.', 'Não era o resultado que queríamos. Cabeça erguida.', 'Frustrante. Próxima.'][hashStr(d.id + m.races) % 3] });
+  });
+  const fanLines = [`${w.name} pilotando demais hoje`, `Estratégia da ${wt.name} foi perfeita`, `Que corrida em ${track.place || track.circuit}!!`, `Alguém explica essa estratégia?`, `${p2 ? p2.name : 'O segundo colocado'} merecia mais hoje`];
+  Social.post(G, { by: 'fan', kind: 'fan', text: fanLines[hashStr(track.id + m.races) % fanLines.length] });
+  // rivalidades
+  Media.rivalryTick(G, summary, race);
+};
+
+/* recordes e marcos — compara com a história real desde 1950 */
+Media.LEGENDS = null;
+Media.legends = () => {
+  if (Media.LEGENDS) return Media.LEGENDS;
+  const H = typeof REAL_HISTORY !== 'undefined' ? REAL_HISTORY.drivers : {};
+  Media.LEGENDS = Object.entries(H).map(([id, r]) => ({ id, name: r[0], wins: r[4] || 0 })).filter(x => x.wins >= 20).sort((a, b) => b.wins - a.wins);
+  return Media.LEGENDS;
+};
+Media.milestones = (G, d, track) => {
+  const wins = d.career.wins;
+  [10, 25, 50, 75, 100, 125, 150].forEach(n => { if (wins === n && Media.once(G, `wins${n}:${d.id}`)) Career.news(G, `${d.name} chega a ${n} vitórias na Fórmula 1`, 'historia', `Marca alcançada no ${track.gp}.`, { dr: [d.id] }); });
+  const passed = Media.legends().filter(l => l.id !== d.id && l.wins === wins - 1 && !G.db.drivers.some(x => x.id === l.id && x.career.wins > l.wins));
+  passed.slice(0, 1).forEach(l => {
+    if (!Media.once(G, `pass:${d.id}:${l.id}`)) return;
+    const all = Math.max(...Media.legends().map(x => x.wins), ...G.db.drivers.filter(x => x.id !== d.id).map(x => x.career.wins));
+    const top = wins > all;
+    Career.news(G, top ? `${d.name} se torna o maior vencedor da história da Fórmula 1` : `${d.name} supera ${l.name} em vitórias na F1`, 'historia', `Agora são ${wins} vitórias${top ? ' — novo recorde absoluto' : `, uma a mais que ${l.name} (${l.wins})`}.`, { dr: [d.id] });
+    if (top) Social.post(G, { by: 'f1', kind: 'record', text: `HISTÓRIA. ${d.name} chega a ${wins} vitórias e se torna o maior vencedor de todos os tempos.`, hype: 3 });
+  });
+};
+
+/* ---------- rivalidades ---------- */
+Media.rivalryTick = (G, summary, race) => {
+  const m = Media.mem(G);
+  const R = m.rivals;
+  const bump = (a, b, v, why) => {
+    if (!a || !b || a === b) return;
+    const k = Media.pairKey(a, b);
+    const r = R[k] || (R[k] = { a, b, score: 0, since: G.season.year, crashes: 0, log: [], stage: 0 });
+    r.score = +(r.score + v).toFixed(2);
+    if (why) { r.log.unshift({ y: G.season.year, r: G.season.round, t: why }); r.log.length = Math.min(r.log.length, 12); }
+  };
+  const track = Career.track(G, summary.trackId);
+  (race && race.clashes || []).forEach(([a, b, culprit, kind]) => {
+    bump(a, b, kind === 'crash' ? 3 : 1.4, `${track.gp}: ${kind === 'crash' ? 'batida' : 'toque'} entre os dois`);
+    const k = R[Media.pairKey(a, b)]; if (kind === 'crash') k.crashes++;
+    const vic = culprit === a ? b : a;
+    const dv = Career.driver(G, vic), dc = Career.driver(G, culprit);
+    if (dv && dc && kind === 'crash' && RNG.chance(0.6)) Social.post(G, { driver: vic, kind: 'clash', text: ['Sem comentários sobre o que aconteceu hoje.', 'Ele simplesmente não deixou espaço. Inaceitável.', 'Vamos conversar com os comissários.'][hashStr(vic + culprit + G.season.round) % 3], hype: 1.8 });
+  });
+  const c = summary.cls;
+  if (c[0] && c[1] && c[0].tid !== c[1].tid) bump(c[0].did, c[1].did, 0.5, `${track.gp}: ${ordinal(1)} e ${ordinal(2)}`);
+  // companheiros de equipe próximos
+  G.db.teams.forEach(t => {
+    const pair = c.filter(x => x.tid === t.id && x.status === 'fin');
+    if (pair.length === 2 && Math.abs(pair[0].pos - pair[1].pos) === 1 && pair[0].pos <= 6) bump(pair[0].did, pair[1].did, 0.35);
+  });
+  // briga pelo título
+  const st = Career.standingsD(G);
+  const p = G.season.round / G.season.calendar.length;
+  if (p > 0.5 && st[1] && st[0].pts - st[1].pts <= 30) bump(st[0].did, st[1].did, 0.8, `Briga pelo título de ${G.season.year}`);
+  // estágios: nasce, esquenta, explode
+  Object.values(R).forEach(r => {
+    const A = Career.driver(G, r.a), B = Career.driver(G, r.b);
+    if (!A || !B) return;
+    const stage = r.score >= 14 ? 3 : r.score >= 8 ? 2 : r.score >= 4.5 ? 1 : 0;
+    if (stage > r.stage) {
+      r.stage = stage;
+      const mates = A.team && A.team === B.team;
+      const t = [null,
+        `${mates ? 'Clima tenso na ' + Career.team(G, A.team).name + ':' : 'Nasce uma rivalidade:'} ${A.name} x ${B.name}`,
+        `A rivalidade entre ${A.name} e ${B.name} esquenta`,
+        `${A.name} x ${B.name}: a rivalidade que divide o paddock`][stage];
+      Career.news(G, t, 'rivalidade', r.log.slice(0, 3).map(x => x.t).join(' · '), { dr: [r.a, r.b] });
+      Social.post(G, { by: 'therace', kind: 'rivalry', text: `${A.name} x ${B.name}. ${['', 'Isso está só começando.', 'Ninguém cede um centímetro.', 'A maior rivalidade do grid hoje.'][stage]}`, hype: 1.5 + stage * 0.4 });
+      if (mates && stage >= 2) { A.morale = clamp((A.morale ?? 70) - 6, 0, 100); B.morale = clamp((B.morale ?? 70) - 6, 0, 100); }
+    }
+  });
+};
+Media.isRival = (G, a, b) => { const r = G.memory && G.memory.rivals[Media.pairKey(a, b)]; return !!(r && r.score >= 4.5); };
+
+/* ---------- escândalos raros (somente personagens e organizações fictícias) ---------- */
+Media.FICT_ORGS = ['Meridian Sports Club', 'Grupo Valtria de Apostas', 'Halvorsen Dynamics', 'Ostrava Capital Partners', 'Northwind Consultoria'];
+Media.scandalTick = (G) => {
+  const rate = (G.options && G.options.eventRate) ?? 1;
+  if (!RNG.chance(0.0055 * rate)) return;
+  const m = Media.mem(G);
+  if (m.lastScandal && G.season.year - m.lastScandal < 3) return;
+  const kinds = ['apostas', 'vazamento', 'patrocinio'];
+  const regens = G.db.drivers.filter(d => d.regen && d.team && !d.retired);
+  if (regens.length) kinds.push('piloto');
+  const kind = RNG.pick(kinds);
+  const team = RNG.pick(G.db.teams);
+  const org = RNG.pick(Media.FICT_ORGS);
+  const person = randomName(RNG.pick(NATS));
+  m.lastScandal = G.season.year;
+  const isMine = !Career.isObs(G) && team.id === G.player.teamId;
+  let title, body;
+  if (kind === 'apostas') {
+    title = `FIA investiga esquema de apostas: funcionário da ${team.name} é afastado`;
+    body = `${person}, analista júnior da equipe (personagem fictício), teria repassado informações internas ao ${org}, organização de apostas clandestinas (fictícia). A ${team.name} afirma ter colaborado desde o início.`;
+    team.reputation = clamp(team.reputation - 2, 30, 99);
+    if (isMine) Career.ledger(G, 'Auditoria de conformidade (investigação de apostas)', -0.6, 'operação'); else team.cash = (team.cash || 0) - 0.6;
+  } else if (kind === 'vazamento') {
+    title = `Vazamento de projeto: ex-engenheiro da ${team.name} é acusado de levar dados`;
+    body = `${person} (personagem fictício) teria levado arquivos de aerodinâmica para a ${org}, consultoria fictícia. A FIA abriu investigação; a equipe perde parte da vantagem do projeto.`;
+    team.car.aero = +(team.car.aero - 0.35).toFixed(2);
+  } else if (kind === 'patrocinio') {
+    title = `${org} sob investigação: patrocínio de fachada abala o paddock`;
+    body = `A empresa ${org} (fictícia), que negociava com várias equipes, é suspeita de fraude financeira. ${person}, seu diretor (personagem fictício), foi detido. A ${team.name} encerrou as conversas.`;
+  } else {
+    const d = RNG.pick(regens);
+    title = `${d.name} é multado e suspenso por apostas`;
+    body = `O piloto (personagem gerado pelo jogo) admitiu apostas por meio do ${org}. Multa, perda de popularidade e advertência da FIA.`;
+    d.popularity = clamp((d.popularity || 30) - 15, 0, 100); d.morale = clamp((d.morale ?? 70) - 20, 0, 100);
+  }
+  Career.news(G, title, 'escandalo', body, { tm: [team.id] });
+  Career.record(G, 'escandalo', `${title}. ${body}`, { teams: [team.id] });
+  Social.post(G, { by: 'bbc', kind: 'scandal', text: `URGENTE: ${title}`, hype: 2.2 });
+  if (isMine) Career.mail(G, { from: 'Departamento jurídico', tag: 'board', title: 'Investigação envolvendo a equipe', body: `${body} Sua confiança com a diretoria pode ser afetada se a situação se repetir.` });
+};
+
+/* ---------- fim de temporada ---------- */
+Media.seasonEnd = (G, summary) => {
+  const champ = Career.driver(G, summary.champion);
+  const legends = Media.legends();
+  const titles = champ.career.titles;
+  const maxTitles = Math.max(7, ...G.db.drivers.filter(x => x.id !== champ.id).map(x => x.career.titles));
+  Career.news(G, titles === 1 ? `${champ.name} é campeão mundial pela primeira vez` : `${champ.name} conquista o ${titles}º título mundial`, 'campeonato', `${summary.constructorName} fica com o título de construtores de ${summary.year}.${titles > maxTitles ? ' Ninguém na história venceu tantos campeonatos.' : titles === maxTitles ? ' Igualou o recorde de títulos da categoria.' : ''}`, { dr: [champ.id], tm: [summary.constructor], main: true });
+  Social.post(G, { driver: champ.id, kind: 'title', text: titles === 1 ? 'CAMPEÃO DO MUNDO. Não consigo acreditar. Obrigado a todos.' : `Título número ${titles}. Cada um tem um sabor diferente. Obrigado, equipe!`, hype: 4 });
+  Social.post(G, { by: 'f1', kind: 'title', text: `${champ.name.toUpperCase()}, CAMPEÃO MUNDIAL DE ${summary.year} 🏆`, hype: 3 });
+  // rivalidades esfriam entre temporadas
+  const m = Media.mem(G);
+  Object.entries(m.rivals).forEach(([k, r]) => { r.score = +(r.score * 0.55).toFixed(2); if (r.score < 1) delete m.rivals[k]; else r.stage = Math.min(r.stage, r.score >= 8 ? 2 : r.score >= 4.5 ? 1 : 0); });
+  // memória: chaves de temporadas antigas que não são marcos permanentes
+  Object.keys(m.keys).forEach(k => { if (!/^(wins|pass|first)/.test(k) && m.keys[k] < summary.year - 2) delete m.keys[k]; });
+  void legends;
+};

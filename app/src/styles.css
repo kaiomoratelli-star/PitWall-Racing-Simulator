@@ -384,3 +384,71 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .lamp i { width: 46px; height: 46px; border-radius: 50%; background: #2a0606; box-shadow: inset 0 -4px 10px rgba(0,0,0,.6); transition: background .05s; }
 .lamp.on i { background: radial-gradient(circle at 40% 35%, #ff6b5e, #e10600 60%, #8a0400); box-shadow: 0 0 26px rgba(225,6,0,.9); }
 @media (max-width: 860px) { .pw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pw-cars { grid-template-columns: minmax(0, 1fr); } .lamp i { width: 30px; height: 30px; } }
+
+/* ---------- portal de notícias ---------- */
+.news-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+@media (max-width: 1100px) { .news-layout { grid-template-columns: 1fr; } }
+.ntag { font-family: var(--f-display); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #ff6b63; }
+.nimg { position: relative; aspect-ratio: 16 / 9; background: var(--panel2) center / cover no-repeat; overflow: hidden; }
+.nimg.person, .nimg.car, .nimg.plain { background: linear-gradient(135deg, var(--tc) 0%, color-mix(in srgb, var(--tc) 35%, #15151e) 70%); }
+.nimg.person::after, .nimg.car::after, .nimg.plain::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,.05) 0 2px, transparent 2px 14px); pointer-events: none; }
+.nimg.person img:first-child { position: absolute; right: 6%; bottom: 0; height: 96%; object-fit: contain; z-index: 1; }
+.nimg.person .ncar { position: absolute; left: -4%; bottom: 4%; width: 62%; object-fit: contain; z-index: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
+.nimg.car img { position: absolute; inset: 10% 6%; width: 88%; height: 80%; object-fit: contain; z-index: 1; filter: drop-shadow(0 8px 12px rgba(0,0,0,.5)); }
+.nimg.plain span { position: absolute; left: 14px; bottom: 8px; font-family: var(--f-display); font-weight: 900; font-style: italic; font-size: 44px; color: rgba(255,255,255,.85); letter-spacing: -.02em; z-index: 1; }
+.nlead { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; cursor: pointer; margin-bottom: 16px; border-top: 3px solid var(--accent); }
+.nlead .nimg { aspect-ratio: auto; min-height: 260px; }
+.nlead-txt { padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.nlead-txt h2 { font-size: 30px; line-height: 1.04; }
+.nlead-txt p { margin: 0; color: var(--fg2); }
+@media (max-width: 760px) { .nlead { grid-template-columns: 1fr; } .nlead .nimg { min-height: 190px; } .nlead-txt h2 { font-size: 23px; } }
+.ngrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.ncard { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; cursor: pointer; display: flex; flex-direction: column; transition: transform .16s ease, border-color .16s ease; }
+.ncard:hover, .nlead:hover { border-color: var(--line2); }
+.ncard:hover { transform: translateY(-2px); }
+.ncard:focus-visible, .nlead:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ncard-txt { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.ncard-txt h3 { font-size: 16.5px; line-height: 1.15; }
+.ncard-txt .small { margin-top: auto; }
+.narticle { display: flex; flex-direction: column; gap: 10px; }
+.narticle .nimg { border-radius: var(--r); }
+.narticle p { margin: 0; color: var(--fg2); line-height: 1.6; }
+/* rede social */
+.sfeed { display: flex; flex-direction: column; }
+.spost { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.sfeed.compact .spost { padding: 10px 12px; grid-template-columns: 32px minmax(0, 1fr); }
+.spost:last-child { border-bottom: 0; }
+.sav-wrap .hs.sm, .sav-wrap .tlogo.sm { width: 36px; height: 36px; }
+.sfeed.compact .sav-wrap .hs.sm, .sfeed.compact .sav-wrap .tlogo.sm, .sfeed.compact .sav { width: 30px; height: 30px; }
+.sav { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: var(--f-display); font-weight: 800; font-size: 13px; color: #fff; }
+.sav.media { background: var(--accent); border-radius: 8px; }
+.sav.fan { background: #3a3a48; }
+.shead { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; min-width: 0; }
+.shead b { font-size: 13.5px; }
+.sverif { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; background: #1d9bf0; color: #fff; font-size: 9px; align-items: center; justify-content: center; font-weight: 900; }
+.stext { white-space: pre-line; margin: 3px 0 6px; color: var(--fg); overflow-wrap: anywhere; }
+.sstats { display: flex; gap: 16px; }
+/* rivalidades */
+.rival { display: flex; flex-direction: column; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.rival:last-child { border-bottom: 0; padding-bottom: 0; }
+.rival-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rival-h .spacer { flex: 1; }
+.rlog { margin: 0; padding-left: 16px; color: var(--fg2); font-size: 12.5px; }
+
+/* ---------- animações (respeitam quem prefere menos movimento) ---------- */
+@keyframes pwEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pwSlide { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .main-inner.enter > * { animation: pwEnter .32s cubic-bezier(.2,.7,.2,1) both; }
+  .main-inner.enter > *:nth-child(2) { animation-delay: .04s; }
+  .main-inner.enter > *:nth-child(3) { animation-delay: .08s; }
+  .main-inner.enter > *:nth-child(n+4) { animation-delay: .12s; }
+  .main-inner.enter .bar i { animation: pwSlide .6s cubic-bezier(.2,.7,.2,1) both; transform-origin: left; }
+  .modal { animation: pwEnter .22s ease both; }
+  .btn { transition: background-color .15s, border-color .15s, transform .08s; }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+}
+
+.modal .panel-h { align-items: flex-start; flex-wrap: nowrap; }
+.modal .panel-h h3 { flex: 1; min-width: 0; }
+.modal .panel-h .btn { flex: none; }

@@ -108,8 +108,11 @@ Career.mail = (G, m) => {
   G.inbox.unshift({ id: Career.nextId(G, 'm'), read: false, round: G.season ? G.season.round : 0, year: G.season ? G.season.year : 0, ...m });
   if (G.inbox.length > 120) G.inbox.length = 120;
 };
-Career.news = (G, title, tag = 'geral', body = '') => {
-  G.news.unshift({ id: Career.nextId(G, 'n'), title, tag, body, round: G.season ? G.season.round : 0, year: G.season ? G.season.year : 0 });
+Career.news = (G, title, tag = 'geral', body = '', refs) => {
+  const n = { id: Career.nextId(G, 'n'), title, tag, body, round: G.season ? G.season.round : 0, year: G.season ? G.season.year : 0 };
+  if (refs && refs.main) n.main = true;
+  if (typeof Media !== 'undefined') Media.decorate(G, n, refs || {});
+  G.news.unshift(n);
   if (G.news.length > 150) G.news.length = 150;
 };
 
@@ -342,6 +345,7 @@ Career.startRace = (G) => {
     };
   });
   wk.race = Engine.createRace({ ...ctx, weather: wk.weather }, grid);
+  wk.race.rivals = Object.values((G.memory || {}).rivals || {}).filter(r => r.score >= 4.5).map(r => [r.a, r.b].sort().join('|'));
   wk.phase = 'race';
   return wk.race;
 };
@@ -444,7 +448,7 @@ Career.postRaceEffects = (G, summary, race) => {
   G.db.drivers.forEach(d => { if (d.injured > 0) { d.injured--; if (d.injured === 0 && team && d.team === team.id) Career.mail(G, { from: 'Departamento médico', tag: 'team', title: `${d.name} liberado`, body: `${d.name} está recuperado e liberado para correr.` }); } });
   const wn0 = Career.driver(G, summary.winner);
   const wt0 = Career.team(G, summary.cls[0].tid);
-  Career.news(G, `${wn0.name} vence o ${track.gp} com a ${wt0.name}`, 'corrida', `${wn0.name} largou em ${ordinal(summary.cls[0].grid)} e venceu em ${track.circuit}.${summary.wet > 0.25 ? ' Corrida marcada pela chuva.' : ''}${summary.sc ? ` ${summary.sc} intervenção(ões) do Safety Car.` : ''}`);
+  if (typeof Media !== 'undefined') { Media.raceReport(G, summary, race); Media.scandalTick(G); } else Career.news(G, `${wn0.name} vence o ${track.gp} com a ${wt0.name}`, 'corrida', `${wn0.name} largou em ${ordinal(summary.cls[0].grid)} e venceu em ${track.circuit}.${summary.wet > 0.25 ? ' Corrida marcada pela chuva.' : ''}${summary.sc ? ` ${summary.sc} intervenção(ões) do Safety Car.` : ''}`);
   if (obs) { Events.betweenRaces(G, summary); return report; }
 
   // finanças do jogador
@@ -812,6 +816,7 @@ Career.endSeason = (G) => {
   };
   if (team && sc[0].tid === team.id) G.player.titles++;
   G.history.push(summary);
+  if (typeof Media !== 'undefined') Media.seasonEnd(G, summary);
   AI.seasonEnd(G, sc);
   if (team) {
     const prize = (G.db.rules.prizePerPosition[myPos - 1] || 8) * 1;
@@ -824,7 +829,10 @@ Career.endSeason = (G) => {
     const t = Career.team(G, x.tid);
     const n = sc.length;
     t.reputation = clamp(Math.round(t.reputation * 0.8 + (100 - i * (60 / n)) * 0.2), 30, 99);
-    t.budget = Math.round(clamp(t.budget * 0.85 + (G.db.rules.prizePerPosition[i] || 8) * 0.9 + t.reputation * 0.25 + RNG.normal(0, 4), 70, 220));
+    // orçamento volta à base de cada equipe, corrigido por resultado e reputação (antes era limitado a 220 mi e apagava os orçamentos reais)
+    t.baseBudget = t.baseBudget || t.budget;
+    const target = t.baseBudget * (0.86 + 0.28 * (1 - i / Math.max(1, n - 1))) * (0.82 + t.reputation / 260);
+    t.budget = Math.round(clamp(t.budget * 0.65 + target * 0.35 + RNG.normal(0, 6), 90, 950));
   });
   // carro do próximo ano: regressão + foco no próximo ano
   const reg = (G.history.length % (G.db.rules.regulationChangeEvery || 4)) === 0;

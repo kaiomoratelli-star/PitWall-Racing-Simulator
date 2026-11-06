@@ -129,14 +129,14 @@ AI.seasonEnd = (G, sc) => {
     if (!t || t.id === G.player.teamId) return;
     t.cash = +(t.cash + (G.db.rules.prizePerPosition[i] || 8)).toFixed(2);
     // excedente: parte vira infraestrutura (fora do teto), o resto é distribuído aos donos
-    const keep = t.budget * 0.45;
+    const keep = t.budget * 0.32;
     if (t.cash > keep) {
       const P = AI.persona(t);
       const excess = t.cash - keep;
       const infra = Math.min(excess * (0.3 + P.ambition * 0.3), 25);
       const gain = infra * 0.25 * clamp(1 - (t.facilities - 70) / 40, 0.2, 1.2);
       t.facilities = +clamp(t.facilities + gain, 30, 100).toFixed(1);
-      const dividend = (excess - infra) * (0.4 + P.thrift * 0.4);
+      const dividend = (excess - infra) * (0.55 + P.thrift * 0.35);
       t.cash = +(t.cash - infra - dividend).toFixed(2);
       Career.record(G, 'financas', `${t.name} fechou ${G.season.year} com sobra de caixa: investiu ${fmtMoney(infra)} em instalações (+${gain.toFixed(1)}) e distribuiu ${fmtMoney(dividend)} aos proprietários.`, { teams: [t.id] });
     }

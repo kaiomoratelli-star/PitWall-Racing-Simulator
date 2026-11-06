@@ -130,7 +130,8 @@ function updateRace(full) {
     ${L === 0 && !race.finished ? '<button class="btn primary" data-act="lightsOut">Largar</button>' : `<button class="btn ${UI.racePaused ? 'primary' : ''}" data-act="racePlay" ${race.finished ? 'disabled' : ''}>${UI.racePaused ? 'Continuar' : 'Pausar'}</button>`}
     <button class="btn" data-act="raceStep" ${race.finished ? 'disabled' : ''}>+1 volta</button>
     ${segBtns('raceSpeed', UI.raceSpeed, RACE_SPEEDS.map(s => [s[0], s[1]]))}
-    <button class="btn ghost" data-act="raceSkip" ${race.finished ? 'disabled' : ''}>Simular até o fim</button>`;
+    <button class="btn ghost" data-act="raceSkip" ${race.finished ? 'disabled' : ''}>Simular até o fim</button>
+    <button class="btn ghost sm" data-act="soundToggle" aria-label="${Sound.on ? 'Desligar som' : 'Ligar som'}" title="${Sound.on ? 'Desligar som' : 'Ligar som'}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/>${Sound.on ? '<path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg></button>`;
   const wx = $('#wx');
   if (wx && wk.weather.air) wx.innerHTML = `<span>Ar <b>${wk.weather.air[Math.max(1, L)]}°</b></span><span>Pista <b>${wk.weather.trackT[Math.max(1, L)]}°</b></span><span>Umid. <b>${wk.weather.humidity}%</b></span><span>Vento <b>${wk.weather.wind} km/h</b></span>`;
   // torre
