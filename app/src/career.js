@@ -170,7 +170,7 @@ Career.expectedRanks = (G) => {
 /* ---------- temporada ---------- */
 Career.startSeason = (G, first = false) => {
   const year = G.season ? G.season.year + 1 : G.db.rules.startYear;
-  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (v && v.reset) G.db.teams.forEach(t => { t.car.aero = +(82 + (t.car.aero - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); t.car.chassis = +(82 + (t.car.chassis - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); }); }
+  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (typeof Council !== 'undefined') Council.applySeason(G, year); if (v && v.reset) G.db.teams.forEach(t => { t.car.aero = +(82 + (t.car.aero - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); t.car.chassis = +(82 + (t.car.chassis - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); }); }
   const calendar = (G.db.calendar && G.db.calendar.length ? G.db.calendar : G.db.tracks.map(t => t.id)).filter(id => Career.track(G, id));
   G.season = {
     year, round: 0, calendar, results: [],
@@ -197,6 +197,7 @@ Career.seasonOver = (G) => G.season.round >= G.season.calendar.length;
 
 /* ---------- fim de semana ---------- */
 Career.startWeekend = (G) => {
+  if (typeof Council !== 'undefined') Council.beforeWeekend(G);
   const track = Career.currentTrack(G);
   const team = Career.isObs(G) ? null : Career.team(G);
   const wlaps = Math.round(track.laps * (G.db.rules.raceDistancePct || 100) / 100);
@@ -428,6 +429,7 @@ Career.finishWeekend = (G) => {
   const report = Career.postRaceEffects(G, summary, race);
   season.round++;
   G.weekend = null;
+  if (typeof Council !== 'undefined') Council.afterRound(G);
   return report;
 };
 

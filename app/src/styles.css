@@ -577,3 +577,18 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .lbl-ev.radio span:last-child { font-style: italic; }
 .feed .narr { color: #fff; background: rgba(255,255,255,.03); font-weight: 600; }
 .feed .radio span:last-child { font-style: italic; color: #ffcf8a; }
+
+/* ---------- Conselho da FIA ---------- */
+.cp-tally { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.cp-row, .cp-v { display: grid; grid-template-columns: minmax(130px, 1fr) 1.2fr 86px; gap: 10px; align-items: center; padding: 4px 6px; border-radius: 6px; }
+.cp-v { grid-template-columns: minmax(130px, 1fr) auto auto; justify-content: space-between; }
+.cp-row.me, .cp-v.me { background: var(--accent-soft); }
+.dbar { position: relative; height: 8px; background: var(--bg); border-radius: 4px; display: block; }
+.dbar::after { content: ''; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--line2); }
+.dbar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.dbar i.p { background: var(--green); } .dbar i.n { background: var(--red); }
+.cp-mine { border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 760px) { .cp .panel-h { flex-direction: column; } .cp-tally { align-items: flex-start; text-align: left; } }
+
+.btn.opt { justify-content: space-between; text-align: left; white-space: normal; gap: 14px; }
+.btn.opt > span:first-child { flex: 1; } .btn.opt > span:last-child { flex-shrink: 0; white-space: nowrap; }

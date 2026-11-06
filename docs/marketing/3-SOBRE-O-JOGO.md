@@ -64,6 +64,10 @@
 - Foco no carro do ano seguinte.
 - Teto orçamentário e projeção financeira.
 - Regulamento técnico e esportivo editável, com mudanças programadas por temporada.
+- (Versão 0.7) Conselho da FIA: três reuniões por temporada em que FIA, Fórmula 1 e as 11 equipes votam mudanças de motor, aerodinâmica, teto orçamentário, pontuação, Sprints e calendário.
+  - Cada proposta mostra quem ganha e quem perde e a intenção de voto de cada equipe.
+  - Regras reais de aprovação, veto histórico da Ferrari, clientes seguindo a fornecedora de motor.
+  - O jogador vota, negocia apoio com capital político, faz acordos que precisam ser cumpridos e leva as próprias propostas.
 
 ## Corrida
 - Simulação volta a volta.

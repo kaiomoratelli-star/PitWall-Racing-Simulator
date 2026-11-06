@@ -24,6 +24,15 @@
 - Pit stops com tempo parado, tempo no pit lane, posição de entrada e de volta; undercut detectado e narrado.
 - Relatório pós-corrida no padrão da F1: classificação oficial (Pos, Nº, Piloto, Equipe, Voltas, Tempo/Abandono, Pts, NC), volta a volta com filtros (destaques, minha equipe, ultrapassagens, pit stops, rádio) e as mudanças de posição de cada volta, gráfico de posições com faixas de Safety Car, tabela de pit stops e voltas mais rápidas com velocidade média.
 
+**Conselho da FIA**
+- Nova tela Conselho da FIA: a Comissão de F1 (FIA, Fórmula 1 e as 11 equipes) se reúne três vezes por temporada para votar mudanças técnicas, esportivas, de custos e de calendário.
+- 24 tipos de proposta inspirados em debates reais: equilíbrio entre motor a combustão e parte elétrica, limite de combustível, peso mínimo, liberdade aerodinâmica, congelamento de motores por três anos, desenvolvimento extra para motores atrasados (ADUO), motores V8 sustentáveis, teto orçamentário, túnel de vento (ATR), testes, ponto pela pole e pela volta mais rápida, pontos até o 12º, grid invertido na Sprint, limites de pista, rigor dos comissários, mais Sprints, entrada, troca e saída de GPs.
+- Para cada proposta, quem ganha e quem perde (motor, parte elétrica, orçamento, aerodinâmica, confiabilidade, posição no campeonato, GP em casa) e a intenção de voto de cada equipe.
+- Regras de aprovação da vida real: FIA, Fórmula 1 e 60% das equipes (80% para mudanças que valem na mesma temporada). A Ferrari pode usar o veto histórico em temas técnicos uma vez por temporada.
+- Clientes acompanham a fornecedora do motor em temas técnicos; equipes irmãs votam com a principal.
+- Você vota, negocia com cada equipe, com a FIA e com a Fórmula 1 usando capital político (conversa, troca de apoio com acordo que precisa ser cumprido, pressão como fornecedor de motor) e pode levar a sua própria proposta.
+- As decisões aprovadas entram em vigor na temporada indicada e mudam a simulação de verdade (motores, pontos, teto, calendário, Sprints).
+
 ## 0.6.0 — Moratelli Game Company
 - Numeração das versões revista: o jogo segue em desenvolvimento (as versões publicadas como 1.0.0 e 1.0.1 passam a ser a 0.5 e a 0.6).
 - Nova tela **Perfil e ativação** (menu Sistema e tela inicial): perfil do jogador e campo para a chave do produto. Ainda sem efeito no jogo.
