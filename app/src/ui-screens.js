@@ -606,7 +606,7 @@ ACT.offerDlg = (el) => {
   const val = Career.marketValue(d);
   const ev = Career.offerEval(G, d, val, 2, 1);
   modal(`Proposta para ${d.name}`, `
-    <div class="row">${natTag(d.nat)} <span>${d.age} anos · overall <b>${driverOverall(d)}</b> · potencial ${d.potential}</span></div>
+    <div class="row">${natTag(d.nat)} <span>${d.age} anos · nota <b>${driverOverall(d)}</b> · potencial ${d.potential}</span></div>
     <p class="muted small">${d.team ? `Contratado pela ${esc(Career.team(G, d.team).name)} até ${G.season.year + Math.max(0, d.contractYears)}. Multa para tirá-lo agora: ${fmtMoney(ev.buyout)}.` : 'Sem equipe: pode assinar e correr já.'}</p>
     <label class="field"><span>Salário anual (milhões) — valor de mercado ${fmtMoney(val)}</span><input class="inp num" id="of-sal" type="number" step="0.1" min="0.3" value="${val.toFixed(1)}" data-inp="offerCalc" data-id="${d.id}"></label>
     <label class="field"><span>Contrato até</span><select class="inp" id="of-y" data-chg="offerCalc" data-id="${d.id}">${[1, 2, 3, 4].map(n => opt(n, String(G.season.year + n), 2)).join('')}</select></label>
@@ -771,7 +771,7 @@ ACT.driverPage = (el) => {
   const hist = (d.history || []).slice().reverse();
   const tr = (d.transfers || []).slice().reverse();
   modal(d.name, `
-    <div class="row">${natTag(d.nat)}<span>${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')} · overall <b>${driverOverall(d)}</b> · potencial ${d.potential}</span>${d.retired ? '<span class="chip">aposentado</span>' : ''}</div>
+    <div class="row">${natTag(d.nat)}<span>${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')} · nota <b>${driverOverall(d)}</b> · potencial ${d.potential}</span>${d.retired ? '<span class="chip">aposentado</span>' : ''}</div>
     <div class="small muted">${d.team ? `${esc(Career.team(G, d.team).name)} (${d.seat === 'R' ? 'reserva' : 'carro #' + d.seat}) até ${G.season.year + Math.max(0, d.contractYears)} · ${fmtMoney(d.salary)}/ano` : 'Sem equipe'}</div>
     <div class="grid g4">${[['GPs', c.starts], ['Vitórias', c.wins], ['Pódios', c.podiums], ['Poles', c.poles], ['Títulos', c.titles], ['Pontos', Math.round(c.points || 0)], [`Pts ${G.season.year}`, G.season.standD[d.id] || 0], [`Vit. ${G.season.year}`, st.wins || 0]].map(([l, v]) => `<div><div class="label">${l}</div><div class="stat-big" style="font-size:24px">${v || 0}</div></div>`).join('')}</div>
     <h4>Temporadas</h4>
