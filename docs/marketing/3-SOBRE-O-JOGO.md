@@ -30,6 +30,7 @@
 - A história real da F1 desde 1950 fica no jogo, separada da história simulada, com Hall da Fama e recordes.
 
 ## Pilotos, mercado e equipe técnica
+- (Versão 0.8) Base de quase 1.400 pilotos reais de 41 campeonatos (F1, F2, F3, F1 Academy, IndyCar, Fórmula E, Super Formula, WEC, IMSA, NASCAR, DTM, Stock Car, Supercars, F4s...), com a carreira real de 2022 a 2027. Pilotos da IndyCar, do WEC e de outras séries podem ser contratados.
 - 16 atributos por piloto, 16 estilos de pilotagem e personalidade (ambição, lealdade, temperamento, relação com a mídia).
 - Superlicença com a tabela de pontos da FIA.
 - Mercado em ondas, como na vida real:

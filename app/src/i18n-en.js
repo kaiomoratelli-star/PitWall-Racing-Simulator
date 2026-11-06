@@ -428,3 +428,10 @@ Object.assign(I18N_EN, { 'Conservar': 'Save', 'Equilibrado': 'Balanced', 'Recarr
 I18N_PATS.push([/^~(\d+) v em ultrapassagem$/, '~$1 laps in overtake mode']);
 Object.assign(I18N_EN, { 'Pódio e resumo': 'Podium & summary', 'Análise completa': 'Full analysis', 'Pódio da sua equipe!': 'Your team is on the podium!', 'Nº': 'No.', 'Corrida suspensa · troca de pneus liberada': 'Race suspended · tyre changes allowed', 'Ritmo reduzido · pelotão agrupado · pit stop custa ~50% menos': 'Reduced pace · field bunched up · pit stop costs ~50% less', 'Ritmo controlado · pit stop custa ~40% menos': 'Controlled pace · pit stop costs ~40% less' });
 I18N_PATS.push([/^Moral (\d+) · \+(\d+) pts$/, 'Morale $1 · +$2 pts']);
+Object.assign(I18N_EN, {
+  'Projeto de fã, sem fins comerciais. Sem relação com a FIA, a Fórmula 1, equipes, pilotos, jornalistas, empresas ou marcas citados. Os acontecimentos do jogo são fictícios.': 'Fan project, non-commercial. Not affiliated with the FIA, Formula 1, or any team, driver, journalist, company or brand mentioned. In-game events are fictional.',
+  'Simulação fictícia: sem relação com as pessoas, equipes e empresas reais citadas.': 'Fictional simulation: not affiliated with the real people, teams and companies mentioned.',
+});
+Object.assign(I18N_EN, { 'Carreira real': 'Real career', 'Série': 'Series', 'Pos.': 'Pos.', 'Vit.': 'Wins', 'Status': 'Status', 'disputou': 'raced', 'inscrito': 'entered', 'anunciado (provisório)': 'announced (provisional)', 'Equipe': 'Team' });
+I18N_PATS.push([/^Wikipedia e Wikidata · verificado em (.+)$/, 'Wikipedia and Wikidata · verified on $1']);
+I18N_PATS.push([/^Assento em (\d{4}): (.+)$/, (m, y, st) => `${y} seat: ${({ 'confirmado (lista anunciada)': 'confirmed (announced list)', 'vaga ainda não definida na fonte': 'not yet announced in the source' })[st] || st}`]);

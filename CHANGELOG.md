@@ -1,6 +1,15 @@
 # Changelog
 
 ## 0.8.0 — em desenvolvimento
+**Base de pilotos reais (Fase 1)**
+- Nova base com 1.393 pilotos reais e 5.583 temporadas de 41 campeonatos (2022–2027): F1, F2, F3, F1 Academy, Fórmula E, IndyCar, Indy NXT, USF Pro 2000, USF2000, Super Formula, SF Lights, WEC, IMSA, ELMS, Asian Le Mans, NASCAR Cup/O'Reilly/Truck, DTM, Stock Car Pro Series, Supercars, regionais, Eurocup-3, Euroformula, GB3 e F4s.
+- Cada piloto tem um id único (Wikidata), as variações de nome reunidas, nascimento, nacionalidade esportiva e a carreira temporada a temporada com equipe, número, posição, pontos e status: disputou (2022–2025), inscrito (2026) ou anunciado (2027, lista provisória), com fonte e data de verificação. Rumores não entram como fato.
+- Os pilotos que já estavam no jogo ganham a carreira real na página do piloto; 666 pilotos de outras séries (IndyCar, WEC, IMSA, NASCAR, DTM, Stock Car, Supercars, F1 Academy...) entram no universo empregados na série deles, com pontos de superlicença pelas classificações reais, e podem ser contratados para a temporada seguinte (nunca como substitutos no meio do ano).
+- Assento de cada titular da F1 em 2027 marcado como confirmado (lista anunciada) ou vaga ainda não definida (`scripts/check-2027.js`, `docs/VERIFICACAO-2027.md`: 19 de 22 confirmados).
+- Diagnóstico acusa a mesma pessoa em dois registros.
+- Fontes: páginas de temporada da Wikipedia (CC BY-SA) e Wikidata (CC0), em `scripts/import_drivers.py`. O DriverDB não foi usado: os termos dele proíbem extração em massa e montar base semelhante.
+- Avisos discretos na tela inicial, nas notícias e na conta: projeto de fã, sem relação com pessoas, equipes e empresas reais, acontecimentos fictícios.
+
 **Corrida**
 - Pneus e energia viraram controles separados nos cards do Pit Wall. Pneus: Conservar (cerca de 30% menos desgaste, 0,4 a 0,7 s mais lento), Equilibrado e Atacar (0,5 a 0,8 s mais rápido, até ~45% mais desgaste). Energia (ERS): Recarregar, Neutro e Ultrapassagem. O efeito depende do piloto, do desgaste, da temperatura do pneu, da pista e da parte elétrica do regulamento.
 - A bateria mostra a carga, a energia recuperada e gasta na corrida, o saldo das últimas 15 voltas e quantas voltas dá para manter em ultrapassagem. Botão "Modos: engenheiro" entrega as decisões ao engenheiro a cada volta.

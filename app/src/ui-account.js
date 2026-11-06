@@ -31,7 +31,7 @@ function accountHtml() {
       <p class="small">Quando o PitWall for lançado, a chave que vem com a compra será informada aqui. Nesta versão de desenvolvimento o jogo funciona por completo sem ativação.</p>
       <label class="field"><span>Chave do produto</span><input class="inp num" id="acc-key" placeholder="PW-XXXXX-XXXXX-XXXXX-XXXXX" maxlength="26" value="${esc(a.key)}" style="text-transform:uppercase;letter-spacing:.06em"></label>
       <div class="row"><button class="btn primary" data-act="accActivate">Ativar</button>${a.key ? '<button class="btn ghost" data-act="accClear">Remover chave</button>' : ''}</div>
-      <dl class="kv"><dt>Produto</dt><dd>PitWall Racing Simulator</dd><dt>Versão</dt><dd>${esc(APP_VERSION)}</dd><dt>Editora</dt><dd>${esc(COMPANY)}</dd><dt>Situação</dt><dd>${a.activated ? 'Ativado' : 'Desenvolvimento (sem ativação)'}</dd></dl>
+      ${disclaimerHtml()}<dl class="kv"><dt>Produto</dt><dd>PitWall Racing Simulator</dd><dt>Versão</dt><dd>${esc(APP_VERSION)}</dd><dt>Editora</dt><dd>${esc(COMPANY)}</dd><dt>Situação</dt><dd>${a.activated ? 'Ativado' : 'Desenvolvimento (sem ativação)'}</dd></dl>
     </div></div>
   </div>`;
 }

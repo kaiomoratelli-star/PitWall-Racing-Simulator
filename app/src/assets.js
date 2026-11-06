@@ -24,3 +24,16 @@ Assets.licenseSummary = () => {
   (typeof ASSET_REGISTRY !== 'undefined' ? ASSET_REGISTRY : []).forEach(a => (out[a.license] = (out[a.license] || 0) + 1));
   return out;
 };
+
+/* retrato centralizado: faces/<id do jogo>.webp (fotos oficiais) ou faces/<uid>.webp (base de pilotos) */
+Assets.slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+Assets.has = (rel) => { if (typeof ASSET_REGISTRY === 'undefined') return false; Assets.info('x'); return !!Assets._idx['assets/img/' + rel]; };
+Assets.face = (d) => {
+  if (!d) return null;
+  const a = d.img ? `faces/${String(d.img).replace(/^drivers\//, '').replace(/\.webp$/, '')}.webp` : null;
+  if (a && Assets.has(a)) return imgUrl(a);
+  if (d.uid && Assets.has(`faces/${d.uid}.webp`)) return imgUrl(`faces/${d.uid}.webp`);
+  return null;
+};
+/* logo por nome (equipes das categorias, fabricantes, patrocinadores, entidades) */
+Assets.logoByName = (kind, name) => { const rel = `logos/${kind}/${Assets.slug(String(name || '').split(' (')[0])}.png`; return Assets.has(rel) ? imgUrl(rel) : null; };

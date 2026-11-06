@@ -157,13 +157,15 @@ const ACCENT = '#E10600';
 function imgUrl(p) { return (typeof HAS_IMG !== 'undefined' && HAS_IMG && p) ? 'assets/img/' + p : null; }
 function initials(name) { return String(name || '?').split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
 function headshot(d, cls = '') {
-  const u = d && imgUrl(d.img);
+  // retrato com o rosto centralizado (scripts/import_images.py) quando existe; senão a foto original
+  const face = d && typeof Assets !== 'undefined' ? Assets.face(d) : null;
+  const u = face || (d && imgUrl(d.img));
   const tc = d && d.team && G ? teamColor(d.team) : '#3a3a44';
   if (u) return `<span class="hs ${cls}" style="--tc:${tc}"><img src="${u}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg');this.remove()"></span>`;
   return `<span class="hs noimg ${cls}" style="--tc:${tc}"><b>${esc(initials(d && d.name))}</b></span>`;
 }
 function teamLogo(t, cls = '') {
-  const u = t && imgUrl(t.logo);
+  const u = t && (imgUrl(t.logo) || (typeof Assets !== 'undefined' ? Assets.logoByName('teams', t.fullName || t.name) : null));
   if (u) return `<span class="tlogo ${cls}" style="--tc:${t.color}"><img src="${u}" alt="" loading="lazy" onerror="this.remove()"></span>`;
   return `<span class="tlogo txt ${cls}" style="--tc:${t ? t.color : '#555'}">${esc(t ? t.short : '')}</span>`;
 }
@@ -198,6 +200,9 @@ function tyreIcon(c, title) {
   if (!title && G && G.weekend && 'SMH'.includes(c) && typeof Engine.tprops === 'function') { const tr = Career.track(G, G.weekend.trackId); if (tr) title = Engine.tyreLabel(tr, c); }
   return `<span class="tyre" style="color:${T.color}" title="${esc(title || T.name)}">${T.short}</span>`;
 }
+/* aviso discreto: versão de fã, sem relação com pessoas, equipes ou empresas reais */
+const DISCLAIMER = 'Projeto de fã, sem fins comerciais. Sem relação com a FIA, a Fórmula 1, equipes, pilotos, jornalistas, empresas ou marcas citados. Os acontecimentos do jogo são fictícios.';
+function disclaimerHtml(short) { return `<p class="disclaimer">${short ? 'Simulação fictícia: sem relação com as pessoas, equipes e empresas reais citadas.' : DISCLAIMER}</p>`; }
 function natTag(n) { return `<span class="nat" title="${esc(NAT_NAMES[n] || n)}">${typeof Assets !== 'undefined' ? Assets.flag(n) : ''}${esc(n)}</span>`; }
 function flagOnly(n) { return typeof Assets !== 'undefined' ? Assets.flag(n, 'sm') : ''; }
 function bar(v, max = 100, cls = '') { return `<div class="bar ${cls}"><i style="width:${clamp(v / max * 100, 0, 100)}%"></i></div>`; }

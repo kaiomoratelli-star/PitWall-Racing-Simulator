@@ -14,10 +14,13 @@ const ORIGIN = {
   cats: ['sites oficiais das categorias', 'marca registrada: licenciar antes da venda'],
   brand: ['Moratelli Game Company', 'próprio'],
   flags: ['flag-icons 7.2.3 (github.com/lipis/flag-icons)', 'MIT'],
+  faces: ['ver sources.json', 'uso em projeto de fã; licenciar ou substituir antes de qualquer venda'],
+  logos: ['Wikipedia/Wikimedia', 'marca registrada do titular: licenciar antes de qualquer venda'],
 };
-const TYPE = { drivers: 'driver-photo', teams: 'team-logo', cars: 'car', tracks: 'circuit', cats: 'category-logo', brand: 'brand', flags: 'flag' };
+const TYPE = { faces: 'driver-face', logos: 'logo', drivers: 'driver-photo', teams: 'team-logo', cars: 'car', tracks: 'circuit', cats: 'category-logo', brand: 'brand', flags: 'flag' };
 const FALLBACK = { 'driver-photo': 'iniciais na cor da equipe', 'team-logo': 'sigla da equipe', car: 'sem imagem', circuit: 'traçado desenhado pelo jogo', 'category-logo': 'nome da categoria', brand: 'texto', flag: 'código do país' };
 const out = [];
+const SOURCES = fs.existsSync(path.join(root, 'img', 'sources.json')) ? JSON.parse(fs.readFileSync(path.join(root, 'img', 'sources.json'), 'utf8')) : {};
 const walk = (dir, rel) => {
   for (const f of fs.readdirSync(dir)) {
     const p = path.join(dir, f), r = rel ? `${rel}/${f}` : f;
@@ -28,7 +31,8 @@ const walk = (dir, rel) => {
       const [origin, license] = ORIGIN[group] || ['desconhecida', 'verificar'];
       const st = fs.statSync(p);
       const entity = f.replace(/\.(webp|png|jpe?g|svg)$/i, '').replace(/-(logo|hero|map)$/, '');
-      out.push({ id: `${type}:${entity}${/-(hero|map)\./.test(f) ? ':' + f.match(/-(hero|map)\./)[1] : ''}`, type, entity, path: `assets/${r}`, origin, license, format: f.split('.').pop().toLowerCase(), bytes: st.size, updated: st.mtime.toISOString().slice(0, 10), fallback: FALLBACK[type] || 'nenhum' });
+      const sk = r.replace(/^img\//, ''); const src = SOURCES[sk];
+      out.push({ origin: src ? src.origin : origin, page: src ? src.page : undefined, id: `${type}:${entity}${/-(hero|map)\./.test(f) ? ':' + f.match(/-(hero|map)\./)[1] : ''}`, type, entity, path: `assets/${r}`, license, format: f.split('.').pop().toLowerCase(), bytes: st.size, updated: st.mtime.toISOString().slice(0, 10), fallback: FALLBACK[type] || 'nenhum' });
     }
   }
 };
