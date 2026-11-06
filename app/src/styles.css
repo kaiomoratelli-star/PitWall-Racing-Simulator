@@ -562,3 +562,18 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .q-feed .qf.penalty { border-left: 3px solid #ffd84a; }
 .q-feed .qf.flag { background: var(--panel2); color: #fff; font-weight: 600; }
 .q-car details summary { cursor: pointer; color: var(--fg2); }
+
+/* ---------- relatório oficial da corrida ---------- */
+.tbl.official td, .tbl.official th { padding: 8px 10px; }
+.lbl-list { max-height: 720px; overflow: auto; }
+.lbl-lap { border-bottom: 1px solid var(--line); padding: 10px 14px; }
+.lbl-h { display: flex; gap: 12px; align-items: baseline; color: var(--fg); }
+.lbl-n { font-family: var(--f-display); font-weight: 900; font-style: italic; font-size: 18px; color: var(--accent); min-width: 44px; }
+.lbl-moves { margin: 4px 0 4px 56px; color: var(--muted); }
+.lbl-ev { display: grid; grid-template-columns: 130px 1fr; gap: 10px; margin: 3px 0 3px 56px; font-size: 13px; color: var(--fg2); }
+.lbl-t { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+.lbl-ev.overtake .lbl-t { color: var(--green); } .lbl-ev.pit .lbl-t { color: var(--blue); } .lbl-ev.radio .lbl-t { color: #ffb84a; }
+.lbl-ev.crash .lbl-t, .lbl-ev.dnf .lbl-t, .lbl-ev.penalty .lbl-t { color: var(--red); } .lbl-ev.sc .lbl-t, .lbl-ev.flag .lbl-t { color: #ffd84a; }
+.lbl-ev.radio span:last-child { font-style: italic; }
+.feed .narr { color: #fff; background: rgba(255,255,255,.03); font-weight: 600; }
+.feed .radio span:last-child { font-style: italic; color: #ffcf8a; }

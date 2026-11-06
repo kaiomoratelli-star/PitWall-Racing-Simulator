@@ -46,7 +46,7 @@ Narr.pick = (key, list, r) => {
   Narr.used.push(key + i); if (Narr.used.length > 40) Narr.used.shift();
   return list[i];
 };
-Narr.fill = (s, v) => { if (v.c && v.na == null) { v = { ...v, na: Narr.at(v.c), da: Narr.of(v.c) }; } return s.replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m)); };
+Narr.fill = (s, v) => { if (v.c && v.na == null) { v = { ...v, na: Narr.at(v.c), da: Narr.of(v.c) }; } return s.replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m)).replace(/([^.])\.\.(?!\.)/g, '$1.'); };
 Narr.t3 = (x) => x.toFixed(3);
 Narr.gap = (x) => (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(3);
 

@@ -80,6 +80,9 @@
   - gráfico de liderança;
   - rádio e direção de prova.
 - Velocidades de ½× a 30× e "simular até o fim".
+- (Versão 0.7) Narração volta a volta: cada ultrapassagem com o local da manobra, defesas, toques, resumo da volta com as brigas e as mudanças de posição.
+- (Versão 0.7) Rádio das equipes: chamada de box, pneus no fim, ordens de equipe, reclamações depois de toques, Safety Car, chuva.
+- (Versão 0.7) Relatório pós-corrida no formato oficial da F1: classificação, volta a volta com filtros, gráfico de posições, pit stops e voltas mais rápidas.
 
 ## Outras 15 categorias, simuladas ao mesmo tempo
 - **Lista:**
