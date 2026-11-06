@@ -117,6 +117,7 @@ DriverDB.endSeason = (G) => {
   const y = G.season.year;
   G.db.drivers.forEach(d => {
     if (!d.series || d.retired || d.team) { if (d.team) { d.series = null; d.seriesTeam = null; } return; }
+    if (d.series === 'kart') return;                                   // kart: ciclo próprio (kart.js)
     if (!DriverDB.PRO.has(d.series)) { d.series = null; d.seriesTeam = null; return; }
     const r = localRng(`ser:${G.seed}:${d.id}:${y}`)();
     if (d.age >= 42 || (d.age >= 36 && r < 0.12 + (d.age - 36) * 0.06)) { d.retired = true; d.retiredYear = y; }

@@ -46,6 +46,8 @@
 - (Versão 0.8) Potencial que muda com o tempo: oscila bastante no kart e na F4 e quase nada em quem já é profissional; sobe com temporadas acima do esperado e estagna a partir dos 27 anos. No modo Manager o potencial nunca aparece como número: os olheiros mostram uma faixa estimada com nível de confiança, que estreita com observação. A estimativa pode errar.
 - (Versão 0.8) Departamento de olheiros: 3 olheiros para observar pilotos de qualquer série, relatório com pontos fortes e recomendação, comparação lado a lado e convite para a academia.
 - (Versão 0.8) Mercado mais realista: equipes no vermelho afastam pilotos, estrelas recusam equipes sem perspectiva, empresários abrem ou fecham portas, pilotos fictícios podem trazer patrocínio pessoal (o dinheiro entra no caixa da equipe), a Red Bull prioriza a própria academia e trocar de piloto no meio do ano custa multa.
+- (Versão 0.8) Kart na base da pirâmide: quatro campeonatos regionais com pilotos fictícios de 12 a 15 anos; os melhores sobem para a F4 e alguns chegam à F1 anos depois.
+- (Versão 0.8) Cláusulas de contrato: desempenho (rescisão sem multa se o piloto render muito abaixo do esperado) e saída (o piloto pode ir para uma equipe à frente no campeonato).
 - Equipe técnica com 15 funções e nomes reais (diretor técnico, chefe de aerodinâmica, engenheiros de corrida, estrategista...). Dá para contratar alguém de outra equipe, que antes cumpre um período afastado.
 
 ## Treinos livres e acerto (versão 0.7)

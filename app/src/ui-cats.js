@@ -119,3 +119,60 @@ CHG.catTeam = (el) => { const c = Cats.get(G, el.dataset.id); c.teams[+el.datase
     return base + `<div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Na base de dados</h3><span class="small muted">pilotos e carreiras reais; simulação em preparação</span></div><div class="panel-b grid g3">${Object.entries(byEco).map(([eco, xs]) => `<div><span class="label">${esc(eco)}</span><div class="small" style="line-height:1.7">${xs.join('<br>')}</div></div>`).join('')}</div></div>`;
   };
 })();
+
+/* ---------- editor: formato da categoria (tripulação, Le Mans em dobro) e políticas de grupo ---------- */
+(function () {
+  const ec = edCats;
+  edCats = function () {
+    const base = ec();
+    if (!G || !Cats.on(G) || ED.target !== 'career') return base;
+    const crew = Cats.list(G, true).filter(c => c.crew);
+    return base + `<h4 style="margin-top:16px">Formato</h4><div class="tbl-wrap"><table class="tbl edit"><thead><tr><th>Categoria</th><th>Carro com tripulação</th><th>Etapas com pontos em dobro</th></tr></thead><tbody>
+      ${Cats.list(G, true).filter(c => !c.secondary).map(c => `<tr><td>${esc(c.name)}</td><td><label class="check"><input type="checkbox" ${c.crew ? 'checked' : ''} data-chg="catCrew" data-id="${c.id}"> 2 ou 3 pilotos por carro dividem os pontos</label></td><td class="small muted">${c.crew ? 'Le Mans (pela pista)' : '—'}</td></tr>`).join('')}
+      </tbody></table></div><p class="small muted">${crew.length ? 'Mudar o formato vale a partir da próxima etapa. Numa categoria de tripulação, cada inscrição é um carro.' : ''}</p>`;
+  };
+})();
+CHG.catCrew = (el) => { const c = Cats.get(G, el.dataset.id); c.crew = el.checked; toast('Formato atualizado.'); };
+
+(function () {
+  const er = edRules;
+  edRules = function (db) {
+    const base = er(db);
+    if (!db.rules || typeof MarketPlus === 'undefined') return base;
+    const pols = db.rules.groupPolicies || (db.rules.groupPolicies = JSON.parse(JSON.stringify(MarketPlus.DEFAULT_POLICIES)));
+    const teams = db.teams || [];
+    return base + `<h4 style="margin-top:18px">Política de academia por grupo</h4>
+      <p class="small muted">Grupos com mais de uma equipe podem priorizar os pilotos da própria academia. "Peso da academia" aumenta a chance de promover um piloto do grupo; "penalidade externa" reduz a de contratar alguém de fora.</p>
+      <div class="tbl-wrap"><table class="tbl edit"><thead><tr><th>Grupo</th><th>Equipes</th><th class="r">Peso da academia</th><th class="r">Penalidade externa</th><th></th></tr></thead><tbody>
+      ${Object.entries(pols).map(([k, p]) => `<tr><td><input class="inp" value="${esc(p.name || k)}" data-chg="polSet" data-k="${esc(k)}" data-f="name"></td>
+        <td><div class="row" style="gap:4px 12px;flex-wrap:wrap;max-width:520px">${teams.map(t => `<label class="check small"><input type="checkbox" ${(p.teams || []).includes(t.id) ? 'checked' : ''} data-chg="polTeam" data-k="${esc(k)}" data-t="${t.id}"> ${esc(t.short || t.name)}</label>`).join('')}</div></td>
+        <td class="r"><input class="inp num" type="number" min="0" max="30" style="width:70px" value="${p.academyWeight}" data-chg="polSet" data-k="${esc(k)}" data-f="academyWeight"></td>
+        <td class="r"><input class="inp num" type="number" min="0" max="30" style="width:70px" value="${p.externalPenalty}" data-chg="polSet" data-k="${esc(k)}" data-f="externalPenalty"></td>
+        <td class="r"><button class="btn sm ghost" data-act="polDel" data-k="${esc(k)}">Remover</button></td></tr>`).join('')}
+      </tbody></table></div><button class="btn sm" style="margin-top:8px" data-act="polAdd">Novo grupo</button>`;
+  };
+})();
+const polDb = () => edDb().rules.groupPolicies;
+CHG.polSet = (el) => { const p = polDb()[el.dataset.k]; if (!p) return; const f = el.dataset.f; p[f] = f === 'name' ? el.value : clamp(Number(el.value) || 0, 0, 30); toast('Política atualizada.'); };
+CHG.polTeam = (el) => { const p = polDb()[el.dataset.k]; if (!p) return; p.teams = (p.teams || []).filter(t => t !== el.dataset.t); if (el.checked) p.teams.push(el.dataset.t); };
+ACT.polAdd = () => { const P = polDb(); let i = 1; while (P['grupo-' + i]) i++; P['grupo-' + i] = { name: 'Novo grupo', teams: [], academyWeight: 8, externalPenalty: 4 }; render(); };
+ACT.polDel = (el) => { delete polDb()[el.dataset.k]; render(); };
+
+/* kart: base da pirâmide (pilotos fictícios de 12 a 15 anos que alimentam as F4) */
+(function () {
+  const h = SCREENS.cats.html;
+  SCREENS.cats.html = function () {
+    const base = h.call(this);
+    if (typeof Kart === 'undefined' || !Kart.on(G)) return base;
+    const col = (ch) => {
+      const ds = Kart.drivers(G, ch.id);
+      const last = (G.kart.champs[ch.id] || []).slice(-1)[0];
+      const best = ds.slice().sort((a, b) => driverOverall(b) - driverOverall(a)).slice(0, 5);
+      return `<div><span class="label">${esc(ch.name)}</span><div class="small muted">${ds.length} pilotos · sobem para ${ch.f4.map(id => Cats.get(G, id) ? esc(Cats.get(G, id).short) : '').filter(Boolean).join(', ')}</div>
+        ${last ? `<div class="small" style="margin:6px 0 4px">Campeão ${last.y}: <b>${dTag(last.top[0])}</b></div>` : ''}
+        <div class="small" style="line-height:1.8">${best.map(d => `${dTag(d.id)} <span class="muted">${d.age} anos · ${potText(d)}</span>`).join('<br>')}</div></div>`;
+    };
+    return base + `<div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Kart</h3><span class="small muted">base da pirâmide: pilotos de 12 a 15 anos gerados pelo jogo; os melhores sobem para a F4 da região</span></div>
+      <div class="panel-b grid g4">${Kart.CHAMPS.map(col).join('')}</div></div>`;
+  };
+})();
