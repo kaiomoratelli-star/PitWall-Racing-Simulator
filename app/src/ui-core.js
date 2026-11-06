@@ -88,6 +88,9 @@ function render() {
   } else {
     app.innerHTML = shellHtml(scr.html());
   }
+  const mi = $('.main-inner');
+  if (mi && UI._lastView !== UI.view + JSON.stringify(UI.params || {})) mi.classList.add('enter');
+  UI._lastView = UI.view + JSON.stringify(UI.params || {});
   scr.after && scr.after();
   if (window.claude && window.claude.hot && window.claude.hot.snapshot) { /* registrado em main */ }
 }

@@ -503,7 +503,8 @@ Engine.stepLap = (race, wk) => {
         } else {
           // briga roda a roda — chance de toque
           const aggr = (dc.aggression + da.aggression) / 2;
-          const pCol = 0.0045 * (aggr / 55) * (1.4 - track.overtaking) * (L === 1 ? 4 : 1) * (1 + w * 2);
+          const riv = race.rivals && race.rivals.length && race.rivals.includes([cur.did, ahead.did].sort().join('|')) ? 1.6 : 1; // rivais brigam mais duro
+          const pCol = 0.0045 * (aggr / 55) * (1.4 - track.overtaking) * (L === 1 ? 4 : 1) * (1 + w * 2) * riv;
           if (RNG.chance(pCol)) {
             Engine.collision(race, wk, cur, ahead);
             break;
@@ -545,6 +546,7 @@ Engine.collision = (race, wk, a, b) => {
   const culprit = blameA ? a : b;
   const sev = RNG.next();
   const names = `${wk.nameOf(a.did)} e ${wk.nameOf(b.did)}`;
+  (race.clashes = race.clashes || []).push([a.did, b.did, culprit.did, sev < 0.22 ? 'crash' : 'contact']);
   if (sev < 0.22) {
     const victim = RNG.chance(0.5) ? a : b;
     victim.status = 'dnf'; victim.dnfReason = 'Colisão';
