@@ -82,7 +82,8 @@ SCREENS.saves.html = function () {
     <label class="check"><input type="checkbox" ${Sound.on ? 'checked' : ''} data-chg="soundOn"> Sons do jogo (motor, luzes de largada, pit stop, Safety Car)</label>
     <label class="field"><span>Volume</span><input type="range" min="0" max="1" step="0.05" value="${Sound.vol}" data-chg="soundVol" aria-label="Volume"></label>
     <div class="row"><button class="btn sm" data-act="soundTest">Testar</button></div>
-  </div></div>`;
+  </div></div>
+  <div class="panel about" style="margin-top:16px"><div class="panel-b about-b">${mgcLogo(44)}<div class="stack" style="gap:4px"><b>PitWall Racing Simulator ${APP_VERSION}</b><span class="small muted">Uma produção ${COMPANY}. © 2026 ${COMPANY}. Todos os direitos reservados.</span><span class="small muted">Dados: f1db (CC BY 4.0), Wikipedia, Wikidata, formula1.com, sites oficiais da F2, F3 e Fórmula E, Wikimedia Commons. Projeto sem fins comerciais.</span></div></div></div>`;
 };
 CHG.soundOn = (el) => { Sound.on = el.checked; if (el.checked) Sound.prime(); };
 CHG.soundVol = (el) => { Sound.vol = Number(el.value); Sound.ui(); };
