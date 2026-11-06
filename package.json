@@ -1,9 +1,9 @@
 {
   "name": "pitwall-racing-simulator",
   "productName": "PitWall Racing Simulator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simulador de gestão de automobilismo (monopostos) para Windows",
-  "author": "Kaio Moratelli",
+  "author": "Moratelli Game Company",
   "license": "UNLICENSED",
   "private": true,
   "main": "desktop/main.js",
@@ -21,13 +21,28 @@
   "build": {
     "appId": "com.pitwall.racingsimulator",
     "productName": "PitWall Racing Simulator",
-    "copyright": "© 2026 Kaio Moratelli",
-    "directories": { "output": "release", "buildResources": "build" },
-    "files": ["desktop/**", "app/dist/**", "build/icon.png", "package.json"],
+    "copyright": "© 2026 Moratelli Game Company. Todos os direitos reservados.",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "desktop/**",
+      "app/dist/**",
+      "build/icon.png",
+      "package.json"
+    ],
     "asar": true,
     "afterPack": "scripts/after-pack.js",
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "build/icon.ico",
       "executableName": "PitWall Racing Simulator"
     },
@@ -45,10 +60,16 @@
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
-      "installerLanguages": ["pt_BR"],
+      "installerLanguages": [
+        "pt_BR"
+      ],
       "language": "1046",
       "artifactName": "PitWall-Racing-Simulator-Setup-${version}.exe",
-      "uninstallDisplayName": "PitWall Racing Simulator"
+      "uninstallDisplayName": "PitWall Racing Simulator",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp",
+      "include": "build/installer.nsh"
     }
   },
   "devDependencies": {

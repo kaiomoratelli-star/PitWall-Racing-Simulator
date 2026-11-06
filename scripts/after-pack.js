@@ -19,7 +19,7 @@ exports.default = async function afterPack(ctx) {
   const vi = ResEdit.Resource.VersionInfo.fromEntries(resources.entries)[0];
   const [a, b, c] = pkg.version.split('.').map(Number);
   vi.setFileVersion(a, b, c, 0, 1033); vi.setProductVersion(a, b, c, 0, 1033);
-  vi.setStringValues({ lang: 1033, codepage: 1200 }, { ProductName: 'PitWall Racing Simulator', FileDescription: 'PitWall Racing Simulator', CompanyName: 'Kaio Moratelli', LegalCopyright: '© 2026 Kaio Moratelli', OriginalFilename: path.basename(exe), InternalName: 'PitWall' });
+  vi.setStringValues({ lang: 1033, codepage: 1200 }, { ProductName: 'PitWall Racing Simulator', FileDescription: 'PitWall Racing Simulator', CompanyName: 'Moratelli Game Company', LegalCopyright: pkg.build.copyright, OriginalFilename: path.basename(exe), InternalName: 'PitWall' });
   vi.outputToResourceEntries(resources.entries);
   resources.outputResource(exeObj);
   fs.writeFileSync(exe, Buffer.from(exeObj.generate()));

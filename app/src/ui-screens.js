@@ -41,6 +41,7 @@ SCREENS.title = {
           <span>PISTAS <b>${db.calendar.length}</b></span>
           <span>SALVAMENTO <b>${Store.native ? 'no computador' : Store.cloud() ? 'na sua conta' : 'neste navegador'}</b></span>
         </div>
+        <div class="studio">${mgcLogo(30)}<span>Uma produção ${COMPANY} · v${APP_VERSION} · © 2026</span></div>
       </div>
       <div class="title-right">${hero ? `<div class="title-car">${carImg(UI.titleTeam)}<div class="small" style="margin-top:8px;color:var(--fg2)">${esc(UI.titleTrack.circuit)} · ${esc(UI.titleTrack.place || '')}</div></div>` : '<canvas id="titleCanvas"></canvas>'}</div>
     </div>`;

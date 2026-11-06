@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — Moratelli Game Company
+- PitWall passa a ser oficialmente um jogo da **Moratelli Game Company (MGC)**, com logo próprio.
+- Instalador com a identidade da tela inicial: lateral com foto noturna e o logotipo PIT WALL, cabeçalho com a marca, textos de boas-vindas e conclusão em português e assinatura da MGC em todas as páginas.
+- Nova tela de abertura ("Moratelli Game Company apresenta"), novo ícone e créditos da empresa na tela inicial e em Salvar e opções.
+- Executável e lista de programas do Windows mostram "Moratelli Game Company" como editora.
+
 ## 1.0.0 — V1: o universo completo
 **Pilotos, contratos e mercado**
 - Contratos reais de todos os pilotos da F1 (duração, opções, cláusulas, salários estimados), empresários, academias reais (Ferrari, Red Bull, Mercedes, McLaren, Alpine, Williams, Aston Martin, Audi) e superlicença com a tabela de pontos da FIA.

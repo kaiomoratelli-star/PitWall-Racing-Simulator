@@ -40,7 +40,7 @@ function saveState() {
 const ICON = path.join(__dirname, '..', 'build', 'icon.png');
 
 function createSplash() {
-  splash = new BrowserWindow({ width: 520, height: 320, frame: false, resizable: false, transparent: false, center: true, show: true, backgroundColor: '#0d1015', icon: ICON, skipTaskbar: false, webPreferences: { sandbox: true, contextIsolation: true } });
+  splash = new BrowserWindow({ width: 640, height: 360, frame: false, resizable: false, transparent: false, center: true, show: true, backgroundColor: '#0b0b10', icon: ICON, skipTaskbar: false, webPreferences: { sandbox: true, contextIsolation: true } });
   splash.loadFile(path.join(__dirname, 'splash.html'), { query: { v: app.getVersion() } });
 }
 

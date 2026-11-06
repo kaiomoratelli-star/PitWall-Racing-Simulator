@@ -169,6 +169,10 @@ function teamLogo(t, cls = '') {
 }
 function carImg(t, cls = '') { const u = t && imgUrl(t.carImg); return u ? `<img class="carimg ${cls}" src="${u}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()">` : ''; }
 
+/* ---------- marca da Moratelli Game Company (desenhada em CSS: funciona com ou sem imagens) ---------- */
+const COMPANY = 'Moratelli Game Company';
+function mgcLogo(h = 28, cls = '') { return `<span class="mgc ${cls}" style="--h:${h}px" role="img" aria-label="${COMPANY}"><span class="mgc-mark"><i></i><i></i><i></i><b><span>MGC</span></b></span><span class="mgc-wm"><b>MORATELLI</b><small>GAME COMPANY</small></span></span>`; }
+
 /* ---------- componentes ---------- */
 function teamColor(tid) { const t = G ? Career.team(G, tid) : null; return t ? t.color : '#888'; }
 function dName(did, full = false) {
