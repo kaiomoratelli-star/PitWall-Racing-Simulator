@@ -8,7 +8,7 @@
 
 const Cats = {};
 Cats.SECONDARY = { frme: true, e4: true };            // séries de inverno/paralelas: pilotos vêm de outras categorias
-Cats.PRO = { fe: true, sf: true };                    // categorias profissionais (fim de linha fora da F1)
+Cats.PRO = { fe: true, sf: true, indycar: true, wec: true };                    // categorias profissionais (fim de linha fora da F1)
 Cats.UP = { f4it: 'freca', f4es: 'freca', f4gb: 'freca', e4: 'freca', f4br: 'freca', f4us: 'fram', f4jp: 'frj', freca: 'f3', frme: 'f3', fram: 'f3', frj: 'f3', f3: 'f2' };
 Cats.FEEDERS = {
   f2: ['f3', 'freca'], f3: ['freca', 'frme', 'fram', 'frj', 'f4it', 'f4es', 'f4gb'], freca: ['f4it', 'f4es', 'f4gb', 'e4', 'f4br'], fram: ['f4us'], frj: ['f4jp'],
@@ -55,7 +55,19 @@ Cats.newRegen = (G, C) => {
   const age = clamp(Math.round(C.ageRef + RNG.range(-1.5, 0.5)), 15, 30);
   const [lo, hi] = C.range;
   const ovr = Math.round(clamp(lo + (hi - lo) * Math.pow(RNG.next(), 1.6) * 0.75, lo - 2, hi));
-  const d = Cats.makeDriver(G, { name: randomName(nat), nat, regen: true }, C, ovr, age);
+  // nome fictício único: evita dois pilotos gerados com o mesmo nome no universo
+  const taken = (n) => G.db.drivers.some(x => x.name === n);
+  let name = randomName(nat);
+  for (let i = 0; i < 12 && taken(name); i++) name = randomName(nat);
+  if (taken(name)) {                                    // poucos nomes para a nacionalidade: sobrenome composto
+    const pool = NAME_POOL[nat] || NAME_POOL.GBR;
+    for (let i = 0; i < 20 && taken(name); i++) {
+      const a = RNG.pick(pool.l), b = RNG.pick(pool.l);
+      if (a !== b) name = `${RNG.pick(pool.f)} ${a}-${b}`;
+    }
+    for (let i = 0; taken(name) && i < 26; i++) name = name.replace(/^(\S+)( [A-Z]\.)? /, `$1 ${'ABCDEFGHIJKLMNOPRSTUVWXYZ'[i % 25]}. `);
+  }
+  const d = Cats.makeDriver(G, { name, nat, regen: true }, C, ovr, age);
   d.potential = Cats.rollPotential(ovr, age, 0, () => RNG.next());
   G.db.drivers.push(d);
   return d;
@@ -65,15 +77,17 @@ Cats.newRegen = (G, C) => {
 Cats.seatCount = (C) => {
   const teams = Math.max(1, C.teams.length);
   if (['f2', 'f3', 'fe', 'freca', 'frme'].includes(C.id)) return teams * Math.max(1, Math.floor(C.drivers.length / teams));
+  if (C.crew || C.id === 'indycar') return C.drivers.length;  // endurance: tripulações completas; IndyCar: equipes com 1 a 4 carros
   return Math.min(Math.max(teams, Math.round(C.drivers.length * 0.85)), C.tier >= 5 ? 30 : 34);
 };
 
 /* ---------- inicialização: grids reais de 2026 → temporada 2027 ---------- */
-Cats.init = (G) => {
-  const defs = Cats.defs();
-  if (!defs.length || G.cats) return;
+Cats.init = (G, only) => {
+  // only: lista de ids para acrescentar categorias novas a uma carreira em andamento (migração)
+  const defs = Cats.defs().filter(C => !only || only.includes(C.id));
+  if (!defs.length || (G.cats && !only)) return;
   Cats._ids = null;
-  G.cats = { order: [], byId: {} };
+  G.cats = G.cats || { order: [], byId: {} };
   const byName = new Map(G.db.drivers.map(d => [Cats.norm(d.name), d]));
   const sorted = defs.slice().sort((a, b) => (Cats.SECONDARY[a.id] ? 1 : 0) - (Cats.SECONDARY[b.id] ? 1 : 0) || a.tier - b.tier);
   sorted.forEach(C => {
@@ -82,7 +96,7 @@ Cats.init = (G) => {
     const spread = Cats.PRO[C.id] ? 22 : 10;
     const cat = {
       id: C.id, name: C.name, short: C.short, tier: C.tier, sl: C.sl, color: C.color, races: C.races, range: C.range, ageRef: C.age, seasonLabel: C.season,
-      secondary: !!Cats.SECONDARY[C.id], pro: !!Cats.PRO[C.id], enabled: true, source: C.page,
+      secondary: !!Cats.SECONDARY[C.id], pro: !!Cats.PRO[C.id], crew: !!C.crew, enabled: true, source: C.page,
       teams: C.teams.map((t, i) => {
         const p = tst.findIndex(x => Cats.norm(x[1]).includes(Cats.norm(t.name).split(' ')[0]));
         const q = p >= 0 ? 1 - p / Math.max(1, tst.length - 1) : 0.4;
@@ -122,13 +136,18 @@ Cats.init = (G) => {
     G.cats.byId[cat.id] = cat;
   });
   // grids reais têm convidados e substitutos: mantém os mais bem classificados até o número de vagas
-  Cats.list(G, true).forEach(cat => {
+  Cats.list(G, true).filter(cat => !only || only.includes(cat.id)).forEach(cat => {
     if (cat.entries.length <= cat.seats) return;
     const r0 = cat.rank0 || {};
     cat.entries.sort((a, b) => (r0[a.did] || 99) - (r0[b.did] || 99));
     cat.entries.slice(cat.seats).forEach(e => { const d = Career.driver(G, e.did); if (d && d.cat === cat.id) d.cat = null; });
     cat.entries.length = cat.seats;
   });
+  if (only) {
+    // carreira em andamento: só as categorias novas abrem a temporada agora
+    only.forEach(id => { const cat = Cats.get(G, id); if (!cat) return; cat.season = { year: G.season.year, cal: (cat.baseCal || []).map(e => ({ ...e, date: Cats.dateFor(cat, e.date, G.season.year) })).sort((a, b) => a.date.localeCompare(b.date)), next: 0, res: [], pts: {}, tpts: {}, st: {} }; cat.season.cal.forEach((e, i) => (e.r = i + 1)); });
+    return;
+  }
   // F1: pilotos que já correm na F1 não ocupam vaga nas categorias em 2027
   Cats.progression(G, true);
   Cats.startSeason(G, G.season.year);
@@ -173,6 +192,7 @@ Cats.skill = (d, wet) => {
   return wet ? dry * (1 - wet * 0.5) + d.wet * wet * 0.5 : dry;
 };
 Cats.runEvent = (G, cat, ev) => {
+  if (cat.crew) return Cats.runCrewEvent(G, cat, ev);
   const s = cat.season;
   const teams = Object.fromEntries(cat.teams.map(t => [t.id, t]));
   const field = cat.entries.map(e => ({ e, d: Career.driver(G, e.did), t: teams[e.team] || { str: 50 } })).filter(x => x.d && !x.d.retired && !(x.d.injured > 0));
@@ -336,7 +356,7 @@ Cats.progression = (G, initial) => {
   movers.forEach(m => { if (!taken.has(m.d.id) && !f1Race(m.d) && !m.d.team && !m.d.futureTeam) { m.d.cat = null; if (m.d.age < 21 && !m.d.academy && RNG.chance(0.7)) { m.d.retired = true; m.d.retiredYear = y; m.d.quit = true; } } });
   // sem vaga em lugar nenhum e sem passado na F1: com o tempo, deixam o automobilismo de monoposto
   if (!initial) G.db.drivers.forEach(d => {
-    if (d.retired || d.team || d.cat || d.futureTeam || (d.career && d.career.starts) || d.academy) return;
+    if (d.retired || d.team || d.cat || d.series || d.futureTeam || (d.career && d.career.starts) || d.academy) return;
     if (!d.id.startsWith('c-') && !d.regen) return;
     if (RNG.chance(d.age >= 23 ? 0.55 : 0.35)) { d.retired = true; d.retiredYear = y; d.quit = true; }
   });
@@ -372,4 +392,36 @@ Cats.prune = (G) => {
   const ids = new Set(G.db.drivers.map(d => d.id));
   (G.academies || []).forEach(a => { a.members = a.members.filter(id => ids.has(id)); });
   Cats._ids = null;
+};
+
+/* endurance (WEC): quem corre é o carro; a tripulação divide posição e pontos */
+Cats.runCrewEvent = (G, cat, ev) => {
+  const s = cat.season;
+  const teams = Object.fromEntries(cat.teams.map(t => [t.id, t]));
+  const cars = {};
+  cat.entries.forEach(e => { const d = Career.driver(G, e.did); if (d && !d.retired && !d.dead && !(d.injured > 0)) (cars[e.team] = cars[e.team] || { team: e.team, t: teams[e.team] || { str: 50 }, crew: [] }).crew.push(d); });
+  const field = Object.values(cars).filter(c => c.crew.length);
+  if (field.length < 4) return;
+  const wet = RNG.chance(0.18) ? RNG.range(0.3, 1) : 0;
+  const skill = (c) => avg(c.crew.map(d => Cats.skill(d, wet))) + (c.t.str - 50) * 0.13;
+  const st = (did) => (s.st[did] = s.st[did] || { st: 0, w: 0, pod: 0, pole: 0, fl: 0, dnf: 0 });
+  const qs = field.map(c => ({ c, s: skill(c) + RNG.normal(0, 2.4) })).sort((a, b) => b.s - a.s).map(o => o.c);
+  const out = { r: ev.r, date: ev.date, circuit: ev.circuit, place: ev.place, nat: ev.nat, wet: +wet.toFixed(2), pole: qs[0].crew[0].id, races: [] };
+  qs[0].crew.forEach(d => st(d.id).pole++);
+  const [label, pts, polePts] = cat.races[0];
+  // corridas longas: mais abandono mecânico, ordem decidida pelo ritmo médio da tripulação
+  const res = qs.map((c, gi) => ({ c, dnf: RNG.chance(0.09 * (1 + wet * 0.4)), s: skill(c) + RNG.normal(0, 3.2) - gi * 0.12 }));
+  res.sort((a, b) => (a.dnf - b.dnf) || b.s - a.s);
+  const le = /sarthe|le mans/i.test(ev.circuit || ev.place || '') ? 2 : 1; // 24 Horas de Le Mans vale pontos em dobro
+  res.forEach((r, i) => {
+    const p = r.dnf ? 0 : (pts[i] || 0) * le + (i === 0 && polePts ? 0 : 0);
+    r.c.crew.forEach(d => { const k = st(d.id); k.st++; if (r.dnf) { k.dnf++; return; } if (i === 0) k.w++; if (i < 3) k.pod++; s.pts[d.id] = (s.pts[d.id] || 0) + p; d.morale = clamp((d.morale ?? 70) + (i === 0 ? 3 : i < 3 ? 1.5 : 0), 0, 100); });
+    if (!r.dnf) s.tpts[r.c.team] = (s.tpts[r.c.team] || 0) + p;
+  });
+  if (polePts) qs[0].crew.forEach(d => { s.pts[d.id] = (s.pts[d.id] || 0) + polePts; });
+  const fin = res.filter(r => !r.dnf);
+  out.races.push({ label, top: fin.slice(0, 10).map(r => r.c.crew[0].id), crews: fin.slice(0, 10).map(r => r.c.crew.map(d => d.id)), fl: null, dnf: res.filter(r => r.dnf).length });
+  s.res.push(out);
+  const w = fin[0];
+  if (w && typeof Media !== 'undefined' && RNG.chance(0.6)) Career.news(G, `${cat.short}: ${w.c.crew.map(d => d.name).join(', ')} vencem em ${ev.place || ev.circuit} (etapa ${ev.r})`, 'categorias', `Carro ${cat.teams.find(t => t.id === w.c.team)?.name || ''}.`, { dr: w.c.crew.map(d => d.id), outlet: 'motorsport' });
 };

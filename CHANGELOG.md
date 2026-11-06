@@ -10,6 +10,16 @@
 - Fontes: páginas de temporada da Wikipedia (CC BY-SA) e Wikidata (CC0), em `scripts/import_drivers.py`. O DriverDB não foi usado: os termos dele proíbem extração em massa e montar base semelhante.
 - Avisos discretos na tela inicial, nas notícias e na conta: projeto de fã, sem relação com pessoas, equipes e empresas reais, acontecimentos fictícios.
 
+**Categorias e carreiras (Fase 3)**
+- IndyCar e WEC (classe Hypercar) passam a ser simuladas no universo, como a Fórmula E: grids, equipes, calendários e classificações reais de 2026 (IndyCar: 33 pilotos, 18 etapas; WEC: 17 carros, 54 pilotos, 8 etapas). No WEC o carro corre com a tripulação, que divide os pontos, e Le Mans vale em dobro. A F1 Academy fica só na base de dados.
+- Tela de categorias organizada por ecossistema (principais, rumo à F1, regionais, F4, ecossistema Indy, ecossistema Super Formula) e um painel com as séries que estão na base mas ainda não são simuladas.
+- Potencial dinâmico: muda a cada fim de temporada conforme a idade (muito no kart/F4, pouco no profissional) e o rendimento contra o esperado (carro, companheiro, posição na categoria). Estagna a partir dos 27 anos.
+- Potencial oculto: no modo Manager o número real não aparece em lugar nenhum; aparece uma faixa estimada com confiança (baixa, média, alta), mais estreita para quem é da equipe, da academia ou foi observado. As equipes do jogo também decidem por estimativas com erro.
+- Nova tela Olheiros: 3 olheiros, observação de 4 etapas, relatório na caixa de entrada (faixa, pontos fortes, recomendação), filtros por série, nacionalidade e idade, comparação de dois pilotos e convite para a academia.
+- Mercado: atratividade da equipe inclui a saúde financeira; estrelas recusam equipes sem perspectiva; empresários com reputação e relação com cada equipe; patrocínio pessoal só para pilotos fictícios, pesando mais para equipes com caixa apertado e pago de fato no fim do ano; política de academia por grupo (Red Bull prioriza a própria academia, configurável em `rules.groupPolicies`); multa de rescisão quando uma equipe troca de piloto no meio do ano.
+- Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
+- Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
+
 **Corrida**
 - Pneus e energia viraram controles separados nos cards do Pit Wall. Pneus: Conservar (cerca de 30% menos desgaste, 0,4 a 0,7 s mais lento), Equilibrado e Atacar (0,5 a 0,8 s mais rápido, até ~45% mais desgaste). Energia (ERS): Recarregar, Neutro e Ultrapassagem. O efeito depende do piloto, do desgaste, da temperatura do pneu, da pista e da parte elétrica do regulamento.
 - A bateria mostra a carga, a energia recuperada e gasta na corrida, o saldo das últimas 15 voltas e quantas voltas dá para manter em ultrapassagem. Botão "Modos: engenheiro" entrega as decisões ao engenheiro a cada volta.
@@ -25,7 +35,7 @@
 - Registro central de imagens com origem, licença, data e fallback de cada arquivo (`scripts/make-asset-registry.js`).
 
 **Compatibilidade**
-- Save v6: carreiras em andamento recebem a identidade da temporada; corrida em andamento converte o modo antigo nos modos novos de pneu e energia.
+- Save v6: carreiras em andamento recebem a identidade da temporada, a base de pilotos, IndyCar e WEC, o estado dos olheiros e o patrocínio pessoal dos pilotos fictícios; corrida em andamento converte o modo antigo nos modos novos de pneu e energia.
 
 ## 0.7.1 — Correção do congelamento da corrida
 - Corrigido o travamento da corrida ao vivo ("tr is not a function"), que aparecia sobretudo no modo Observador. A torre de tempos usava uma variável local `tr` (o circuito) e, na 0.7.0, passou a chamar a função de idioma com o mesmo nome sempre que um carro estava com o modo de ultrapassagem ativo. O desenho falhava a cada volta, o laço da corrida parava de avançar e o erro se repetia no log.

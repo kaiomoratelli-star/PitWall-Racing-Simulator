@@ -30,13 +30,13 @@ def slug(s):
     return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
 
 
-def get(url, binary=True, tries=4):
+def get(url, binary=True, tries=5):
     for i in range(tries):
         r = subprocess.run(['curl', '-sSL', '-A', UA, '--max-time', '60', '-w', '\n%{http_code}', url], capture_output=True)
         body, code = r.stdout.rsplit(b'\n', 1) if b'\n' in r.stdout else (r.stdout, b'0')
         if code == b'200': return body if binary else body.decode('utf-8', 'ignore')
         if code in (b'404', b'403'): return None
-        time.sleep(4 * (i + 1))  # 429: o Commons limita o ritmo
+        time.sleep(20 * (i + 1) if code == b'429' else 4 * (i + 1))  # 429: o Commons limita o ritmo; espera de verdade
     return None
 
 
@@ -60,10 +60,21 @@ def faces():
         H, Wd = arr.shape
         best = None
         for cas, sc in ((front, 1.08), (alt, 1.08), (prof, 1.1)):
-            fs = cas.detectMultiScale(arr, scaleFactor=sc, minNeighbors=5, minSize=(max(24, Wd // 20), max(24, Wd // 20)))
+            fs = cas.detectMultiScale(arr, scaleFactor=sc, minNeighbors=6, minSize=(max(28, Wd // 12), max(28, Wd // 12)))
             if len(fs):
                 # o maior rosto mais próximo do topo (fotos de corpo inteiro, pódios)
                 best = max(fs, key=lambda f: f[2] * f[3] - f[1] * 0.5); break
+        if best is None and im.mode in ('RGBA', 'LA', 'P'):
+            # foto oficial de corpo inteiro com fundo transparente: a cabeça é o alto da silhueta
+            a = np.array(rgb.split()[3]) > 40
+            rows = np.where(a.any(axis=1))[0]
+            if len(rows):
+                top0 = rows[0]
+                band = a[top0:top0 + max(8, H // 12)]
+                cols = np.where(band.any(axis=0))[0]
+                if len(cols):
+                    hw = max(cols[-1] - cols[0], Wd // 10)
+                    best = (int(cols[0]), int(top0 + hw * 0.15), int(hw), int(hw * 1.2))
         if best is not None:
             x, y, w, h = best
             side = min(int(w / 0.45), H, Wd)
@@ -87,21 +98,43 @@ def faces():
     data = json.loads(db[db.index('{'):db.rstrip().rindex('}') + 1])
     todo = [d for d in data['drivers'] if d.get('img') and not os.path.exists(os.path.join(out_dir, d['uid'] + '.webp'))][:LIMIT]
     print(f'retratos: {done} oficiais centralizados; {len(todo)} do Commons para baixar', flush=True)
+    # URLs das miniaturas em lotes de 50 (a API do Commons limita pedidos individuais; o servidor de arquivos não)
+    tcf = '/tmp/res/commons/_thumbs.json'
+    thumbs = json.load(open(tcf)) if os.path.exists(tcf) else {}
+    for k in range(0, len(todo), 50):
+        if all(d['img'] in thumbs for d in todo[k:k + 50]): continue
+        chunk = todo[k:k + 50]
+        q = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&iiurlwidth=640&titles=' + urllib.parse.quote('|'.join('File:' + d['img'] for d in chunk))
+        t = get(q, binary=False)
+        try:
+            j = json.loads(t)
+            norm = {n['to']: n['from'] for n in j['query'].get('normalized', [])}
+            for pg in j['query']['pages'].values():
+                if 'imageinfo' in pg:
+                    thumbs[norm.get(pg['title'], pg['title']).replace('_', ' ')[5:]] = pg['imageinfo'][0].get('thumburl') or pg['imageinfo'][0]['url']
+        except Exception:
+            pass
+        json.dump(thumbs, open(tcf, 'w'))
+        time.sleep(3)
+    print(f'  {len(thumbs)} URLs de miniatura', flush=True)
     for i, d in enumerate(todo):
-        url = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + urllib.parse.quote(d['img'].replace(' ', '_')) + '?width=640'
-        b = get(url)
+        url = thumbs.get(d['img']) or thumbs.get(d['img'].replace('_', ' '))
+        if not url: continue
+        cache = os.path.join('/tmp/res/commons', d['uid'] + '.img'); os.makedirs('/tmp/res/commons', exist_ok=True)
+        b = open(cache, 'rb').read() if os.path.exists(cache) else get(url)
         if not b: continue
+        if not os.path.exists(cache): open(cache, 'wb').write(b); time.sleep(0.6)
         try:
             im, ok = center(Image.open(io.BytesIO(b)))
         except Exception:
             continue
+        if not ok: continue  # sem rosto (foto do carro, do capacete...): fica com as iniciais
         im.save(os.path.join(out_dir, d['uid'] + '.webp'), 'WEBP', quality=84)
         save_src('faces/' + d['uid'] + '.webp', 'Wikimedia Commons (licença do arquivo, ver página)', 'https://commons.wikimedia.org/wiki/File:' + d['img'].replace(' ', '_'))
         done += 1; ok_n += ok
         if i % 25 == 0:
             json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
             print(f'  {i + 1}/{len(todo)} ({ok_n} com rosto detectado)', flush=True)
-        time.sleep(1.1)
     json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
     print(f'retratos prontos: {done} ({ok_n} com rosto detectado e centralizado)')
 
@@ -148,7 +181,9 @@ def logos():
         d = os.path.join(IMG, 'logos', kind); os.makedirs(d, exist_ok=True)
         got = 0
         for title in titles[:LIMIT]:
-            dest = os.path.join(d, slug(title.split(' (')[0]) + '.png')
+            key = re.sub(r'(,?\s+(plc|Inc\.?|Group|AG|N\.V\.|SE|Corporation|Company|GmbH|Motor Company|Tire and Rubber Company|Rubber Company|Tyres|Tire|Automotive|Cars))+$', '', title.split(' (')[0])
+            key = {'Hewlett-Packard': 'HP', 'Block, Inc.': 'Cash App', 'Formula One Group': 'Formula 1', 'Fédération Internationale de l\'Automobile': 'FIA'}.get(title, key)
+            dest = os.path.join(d, slug(key) + '.png')
             if os.path.exists(dest): got += 1; continue
             url, fname = page_image(title)
             time.sleep(0.5)

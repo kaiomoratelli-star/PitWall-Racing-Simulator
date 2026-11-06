@@ -43,6 +43,9 @@
   - Academia compartilhada entre as duas equipes.
   - Promoção e rebaixamento de pilotos entre as duas, inclusive no meio do ano.
   - Peças da equipe principal para a irmã.
+- (Versão 0.8) Potencial que muda com o tempo: oscila bastante no kart e na F4 e quase nada em quem já é profissional; sobe com temporadas acima do esperado e estagna a partir dos 27 anos. No modo Manager o potencial nunca aparece como número: os olheiros mostram uma faixa estimada com nível de confiança, que estreita com observação. A estimativa pode errar.
+- (Versão 0.8) Departamento de olheiros: 3 olheiros para observar pilotos de qualquer série, relatório com pontos fortes e recomendação, comparação lado a lado e convite para a academia.
+- (Versão 0.8) Mercado mais realista: equipes no vermelho afastam pilotos, estrelas recusam equipes sem perspectiva, empresários abrem ou fecham portas, pilotos fictícios podem trazer patrocínio pessoal (o dinheiro entra no caixa da equipe), a Red Bull prioriza a própria academia e trocar de piloto no meio do ano custa multa.
 - Equipe técnica com 15 funções e nomes reais (diretor técnico, chefe de aerodinâmica, engenheiros de corrida, estrategista...). Dá para contratar alguém de outra equipe, que antes cumpre um período afastado.
 
 ## Treinos livres e acerto (versão 0.7)
@@ -95,12 +98,14 @@
 - (Versão 0.7) Rádio das equipes: chamada de box, pneus no fim, ordens de equipe, reclamações depois de toques, Safety Car, chuva.
 - (Versão 0.7) Relatório pós-corrida no formato oficial da F1: classificação, volta a volta com filtros, gráfico de posições, pit stops e voltas mais rápidas.
 
-## Outras 15 categorias, simuladas ao mesmo tempo
+## Outras 17 categorias, simuladas ao mesmo tempo
 - **Lista:**
+  - Principais: Fórmula E, IndyCar, WEC (Hypercar) e Super Formula (versão 0.8: IndyCar e WEC);
   - F2 e F3;
   - Fórmula Regional Europeia, do Oriente Médio, das Américas e do Japão;
-  - F4 Italiana, Espanhola, Britânica, E4, F4 Brasil, F4 Estados Unidos e F4 Japonesa;
-  - Super Formula e Fórmula E.
+  - F4 Italiana, Espanhola, Britânica, E4, F4 Brasil, F4 Estados Unidos e F4 Japonesa.
+- No WEC o carro corre com tripulação de 2 ou 3 pilotos, que dividem os pontos; as 24 Horas de Le Mans valem pontos em dobro.
+- Categorias organizadas por ecossistema (rumo à F1, Indy, Super Formula); outras séries da base (F1 Academy, IMSA, NASCAR, DTM, Stock Car...) aparecem como base de dados, com os pilotos e a carreira real.
 - Grids, calendários e classificações reais de 2026.
 - Os jovens evoluem, ganham pontos de superlicença e sobem de categoria até a F1.
 - Novos talentos surgem todos os anos; em testes de 10 a 20 temporadas, pilotos que hoje estão na F4 chegaram a campeões mundiais.

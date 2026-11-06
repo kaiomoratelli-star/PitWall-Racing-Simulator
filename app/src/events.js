@@ -189,7 +189,7 @@ Events.TEMPLATES = [
       if (!j) return null;
       return {
         from: 'Programa de jovens pilotos', tag: 'team', title: `${j.name} se destaca nas categorias de base`,
-        body: `${j.name} (${j.age} anos, potencial ${j.potential}) venceu de novo na categoria de acesso. O empresário oferece um contrato de piloto reserva com opção de promoção.`,
+        body: `${j.name} (${j.age} anos, potencial estimado ${(() => { const e = typeof Potential !== 'undefined' ? Potential.estimate(G, j) : null; return e ? `${e.lo}–${e.hi}` : j.potential; })()}) venceu de novo na categoria de acesso. O empresário oferece um contrato de piloto reserva com opção de promoção.`,
         choices: [
           { label: 'Contratar como reserva ($0.6M)', outcome: `${j.name} agora é piloto reserva da equipe.`, effects: { signReserve: j.id, money: -0.6, moneyDesc: 'Contrato de reserva' } },
           { label: 'Dar um teste no simulador ($0.2M)', outcome: 'Bons números no simulador; os engenheiros aprenderam algo.', effects: { money: -0.2, moneyDesc: 'Teste de simulador', staff: { engineering: 1 } } },

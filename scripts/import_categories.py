@@ -23,6 +23,8 @@ P25 = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 CATS = [
     dict(id='f2', name='Fórmula 2', short='F2', page='2026 Formula 2 Championship', tier=2, sl='f2', races=[['Sprint', [10, 8, 6, 5, 4, 3, 2, 1], 0, 1, 10], ['Principal', P25, 2, 1, 0]], range=(72, 81), age=20, site='f2', color='#0090d0', season='mar-dez'),
     dict(id='f3', name='Fórmula 3', short='F3', page='2026 FIA Formula 3 Championship', tier=3, sl='f3', races=[['Sprint', [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], 0, 0, 12], ['Principal', P25, 2, 0, 0]], range=(66, 78), age=18, site='f3', color='#e0458b', season='mar-set'),
+    dict(id='indycar', name='IndyCar', short='INDY', page='2026 IndyCar Series', tier=1.4, sl='indycar', races=[['Corrida', [50, 40, 35, 32, 30, 28, 26, 24, 22, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5], 1, 0, 0]], range=(75, 85), age=29, color='#d81e2b', season='mar-ago'),
+    dict(id='wec', name='FIA WEC (Hypercar)', short='WEC', page='2026 FIA World Endurance Championship', tier=1.6, sl='wec', races=[['Corrida', P25, 1, 0, 0]], range=(70, 82), age=31, color='#0c3c8c', season='fev-nov', crew=True),
     dict(id='fe', name='Fórmula E', short='FE', page='2025–26 Formula E World Championship', tier=1.5, sl='fe', races=[['Corrida', P25, 3, 1, 0]], range=(70, 80), age=29, color='#1e1eff', season='dez-ago'),
     dict(id='sf', name='Super Formula', short='SF', page='2026 Super Formula Championship', tier=1.6, sl='sf', races=[['Corrida', [20, 15, 11, 8, 6, 5, 4, 3, 2, 1], 3, 0, 0]], range=(68, 79), age=27, color='#d4002a', season='mar-nov'),
     dict(id='freca', name='Fórmula Regional Europeia', short='FRECA', page='2026 Formula Regional European Championship', tier=4, sl='freca', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0]], range=(61, 74), age=17, color='#00a19a', season='abr-out'),
@@ -97,7 +99,7 @@ def find_table(sec, must):
 
 
 def parse_entries(text, cat):
-    sec = W.section(text, 'Entries', 'Teams and drivers', 'Drivers and teams', 'Entry list', 'Teams')
+    sec = W.section(text, 'Entries', 'Teams and drivers', 'Drivers and teams', 'Entry list', 'Confirmed entries', 'Full-time entries', 'Teams')
     t = None
     for must in (['team', 'driver'], ['entrant', 'driver'], ['team', 'drivers'], ['driver']):
         t = find_table(sec, must)
@@ -115,6 +117,17 @@ def parse_entries(text, cat):
         if cd is None or cd >= len(r): continue
         dcell = r[cd]['text']
         names = W.link_targets(dcell)
+        if cat.get('crew') and names:
+            # endurance: todos os pilotos do carro; cada carro é uma "equipe" (equipe + número)
+            team0 = re.sub(r'\s*\(.*?\)\s*', '', W.plain(r[ct]['text']) if ct is not None and ct < len(r) else '').strip() or 'Equipe'
+            nums = [W.plain(c['text']) for c in r if re.fullmatch(r'\d{1,3}', W.plain(c['text']))]
+            no0 = (W.plain(r[cn]['text']) if cn is not None and cn < len(r) else '') or (nums[0] if nums else '')
+            if not re.sub(r'\D', '', no0): no0 = str(sum(1 for x in out if x['team'].startswith(team0 + ' #')) // 3 + 1)
+            fl = W.flags(dcell)
+            for k, (target, label) in enumerate(names):
+                if re.match(r'(File|Image):', target or '', re.I) or not label or label.lower() in ('tba', 'tbc', 'tbd'): continue
+                out.append({'name': label.strip(), 'wiki': target, 'nat': norm_nat(fl[k] if k < len(fl) else ''), 'team': f"{team0} #{re.sub(r'\D', '', no0)[:3]}", 'tnat': '', 'no': re.sub(r'\D', '', no0)[:3], 'rounds': ''})
+            continue
         nm = None
         if names:
             target, label = names[0]
@@ -143,7 +156,7 @@ def parse_entries(text, cat):
 def parse_calendar(text, year):
     sec = W.section(text, 'Race calendar', 'Calendar', 'Schedule', 'Race schedule')
     t = None
-    for must in (['round', 'circuit'], ['circuit'], ['round'], ['venue']):
+    for must in (['round', 'circuit'], ['circuit'], ['round'], ['venue'], ['track'], ['rd.']):
         t = find_table(sec, must)
         if t: break
     if not t: return []
@@ -171,7 +184,7 @@ def parse_calendar(text, year):
 
 
 def parse_standings(text, kind='driver'):
-    names = ["Drivers' Championship standings", "Drivers' championship standings", "Drivers' Championship", "Drivers' championship", "Drivers' standings", 'Drivers'] if kind == 'driver' else ["Teams' Championship standings", "Teams' championship standings", "Teams' Championship", "Teams' championship", "Teams' standings", "Teams' Trophy", 'Teams']
+    names = ['Driver standings', "Hypercar World Endurance Drivers' Championship", "Drivers' Championship standings", "Drivers' championship standings", "Drivers' Championship", "Drivers' championship", "Drivers' standings", 'Drivers'] if kind == 'driver' else ["Teams' Championship standings", "Teams' championship standings", "Teams' Championship", "Teams' championship", "Teams' standings", "Teams' Trophy", 'Teams']
     sec = W.section(text, *names)
     if not sec: return []
     out = []
@@ -348,9 +361,10 @@ def main():
                     url = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + urllib.parse.quote(info['img']) + '?width=420'
                     if download(url, dest, 420): img = 'cats/drivers/%s.webp' % did
                     time.sleep(0.4)
+            if not img and os.path.exists(os.path.join(IMG_DIR, 'drivers', slug(e['name']) + '.webp')): img = 'cats/drivers/%s.webp' % slug(e['name'])  # mantém fotos já baixadas
             d['img'] = img
             drivers.append(d)
-        out['cats'].append({k: C[k] for k in ('id', 'name', 'short', 'tier', 'sl', 'races', 'range', 'age', 'color', 'season', 'page')} | {
+        out['cats'].append({k: C[k] for k in ('id', 'name', 'short', 'tier', 'sl', 'races', 'range', 'age', 'color', 'season', 'page')} | {'crew': bool(C.get('crew'))} | {
             'teams': teams, 'drivers': drivers, 'calendar': C['_cal'], 'standings': C['_st'][:40], 'teamStandings': C['_tst'][:20]})
         print(f"{C['id']:6} fotos {sum(1 for d in drivers if d['img'])}/{len(drivers)} · carros {sum(1 for t in teams if t['carImg'])}/{len(teams)} · nascimento {sum(1 for d in drivers if d['dob'])}/{len(drivers)}")
     js = 'const REAL_CATS = ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n'

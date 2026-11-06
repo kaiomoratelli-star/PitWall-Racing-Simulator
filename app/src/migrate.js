@@ -13,8 +13,12 @@ const Migrate = {
     // modos de pneu e de energia separados (a corrida em andamento converte o modo antigo sozinha)
     5: (G) => {
       if (G.season && typeof Identity !== 'undefined') Identity.apply(G, G.season.year);
+      // IndyCar e WEC passam a ser simuladas (a Fórmula E já era)
+      if (typeof Cats !== 'undefined' && G.cats) { const add = ['indycar', 'wec'].filter(id => !G.cats.byId[id]); if (add.length) Cats.init(G, add); }
       // base de pilotos reais (ligação à carreira real e pilotos de outras séries)
       if (typeof DriverDB !== 'undefined' && !G.driverDbDone) DriverDB.init(G);
+      if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);
+      Potential.state(G);
       const r = G.weekend && G.weekend.race;
       if (r) r.cars.forEach(c => { c.tyreMode = c.tyreMode || Engine.tyreModeOf(c); c.ersMode = c.ersMode || Engine.ersModeOf(c); });
     },
