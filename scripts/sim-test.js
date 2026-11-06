@@ -3,10 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { core } = require('./modules');
-const ctx = vm.createContext({ console, Math, JSON, Date });
-for (const m of core) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
-vm.runInContext('this.API = { Career, Events, Diag, Migrate, RNG, Engine, buildDefaultDB, driverOverall, SAVE_VERSION }', ctx);
+const { core, data } = require('./modules');
+const ctx = vm.createContext({ console, Math, JSON, Date, process });
+for (const m of [...data, ...core]) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
+vm.runInContext('this.API = { Career, Events, Diag, Migrate, RNG, Engine, buildDefaultDB: (process.env.FICTIONAL ? buildDefaultDB : defaultDb), driverOverall, SAVE_VERSION }', ctx);
 const { Career, Events, Diag, Migrate, buildDefaultDB, SAVE_VERSION } = ctx.API;
 
 const seasons = +(process.argv[2] || 10);
@@ -16,7 +16,7 @@ let failures = 0;
 
 for (const mode of modes) {
   const t0 = Date.now();
-  const G = Career.create(buildDefaultDB(), { mode, teamId: 'bravura', name: 'Teste', seed });
+  const G = Career.create(buildDefaultDB(), { mode, teamId: process.env.FICTIONAL ? 'bravura' : 'williams', name: 'Teste', seed });
   const champs = {};
   for (let s = 0; s < seasons; s++) {
     const ts = Date.now();

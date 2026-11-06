@@ -3,14 +3,15 @@
 //   dist-web/pitwall.html -> versão artefato web (fontes do Google Fonts)
 const fs = require('fs');
 const path = require('path');
-const { core, ui } = require('./modules');
+const { core, ui, data } = require('./modules');
 const root = path.join(__dirname, '..');
 const src = (f) => fs.readFileSync(path.join(root, 'app', 'src', f), 'utf8');
 const pkg = require('../package.json');
 
+const dataJs = data.map(m => src(m + '.js')).join('\n');
 const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${src(m + '.js')}`).join('\n');
 const css = src('styles.css');
-const body = `<div id="app"></div><div id="toasts" aria-live="polite"></div>\n<script>\nconst APP_VERSION = ${JSON.stringify(pkg.version)};\n${js}\n</script>`;
+const body = (withImg) => `<div id="app"></div><div id="toasts" aria-live="polite"></div>\n<script>\nconst APP_VERSION = ${JSON.stringify(pkg.version)};\nconst HAS_IMG = ${withImg};\n${dataJs}\n${js}\n</script>`;
 
 // desktop
 const dist = path.join(root, 'app', 'dist');
@@ -25,11 +26,11 @@ fs.writeFileSync(path.join(dist, 'index.html'), `<!doctype html>
 <title>PitWall Racing Simulator</title>
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <style>${css}</style></head><body>
-${body}
+${body(true)}
 </body></html>`);
 
 // web (artefato do Claude): sem doctype, fontes do Google
 const web = path.join(root, 'dist-web');
 fs.mkdirSync(web, { recursive: true });
-fs.writeFileSync(path.join(web, 'pitwall.html'), `${src('head.html')}\n<style>${css}</style>\n${body}`);
+fs.writeFileSync(path.join(web, 'pitwall.html'), `${src('head.html')}\n<style>${css}</style>\n${body(false)}`);
 console.log(`build ok: v${pkg.version} · ${(js.length / 1024).toFixed(0)} KB de JS`);

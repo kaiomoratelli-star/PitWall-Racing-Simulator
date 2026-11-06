@@ -61,7 +61,7 @@ Career.create = (baseDb, opts) => {
   AI.init(G);
   if (obs) {
     Career.startSeason(G, true);
-    Career.mail(G, { from: 'Paddock', tag: 'market', title: `Temporada ${G.season.year}: você é o observador`, body: `Todas as ${db.teams.length} equipes são administradas pela IA: pilotos, contratos, desenvolvimento, finanças e estratégias. Acompanhe as corridas, as tabelas, as notícias e o registro do universo. Use "Avançar" na Central para seguir o campeonato.` });
+    Career.mail(G, { from: 'Paddock', tag: 'market', title: `Temporada ${G.season.year}: você é o observador`, body: `As ${db.teams.length} equipes são administradas pelos próprios chefes de equipe: pilotos, contratos, desenvolvimento, finanças e estratégias. Acompanhe as corridas, as tabelas, as notícias e o registro do universo. Use "Avançar" na Central para seguir o campeonato.` });
     Career.record(G, 'inicio', `Universo criado em modo Observador (semente ${seed}).`);
     G.rngState = RNG.state;
     return G;
@@ -139,7 +139,7 @@ Career.ctx = (G) => {
   return {
     db, track, weather: wk ? wk.weather : null,
     effOf: (did) => effCache[did] || (effCache[did] = Engine.eff(map[did])),
-    nameOf: (did) => (map[did] ? map[did].name.split(' ').slice(-1)[0] : did),
+    nameOf: (did) => (map[did] ? (map[did].lastName || map[did].name.replace(/\s+(Jr\.?|Sr\.?)$/i, '').split(' ').slice(-1)[0]) : did),
   };
 };
 
@@ -188,7 +188,7 @@ Career.startWeekend = (G) => {
   const wk = {
     round: G.season.round, trackId: track.id, phase: 'practice', weather,
     forecast: Engine.forecast(weather, track.laps, team ? team.staff.strategy : 85),
-    optimum: {}, setups: {}, qualiRisk: {}, strategy: {}, quali: null, grid: null, race: null,
+    optimum: {}, setups: {}, qualiRisk: {}, strategy: {}, quali: null, grid: null, race: null, sprint: !!track.sprint, sprintResult: null,
     practiceBonus: G.pendingPracticeBonus || 0,
   };
   G.pendingPracticeBonus = 0;
@@ -272,6 +272,7 @@ Career.runQualifying = (G) => {
     G.gridPenalties = null;
   }
   wk.phase = 'strategy';
+  if (wk.sprint && !wk.sprintResult) Career.runSprint(G);
   const pole = q.order[0];
   G.season.stats[pole] && G.season.stats[pole].poles++;
   const pd = Career.driver(G, pole); if (pd) pd.career.poles++;
@@ -283,6 +284,28 @@ Career.runQualifying = (G) => {
     wk.strategy[d.id] = { startTyre: w0 > 0.62 ? 'W' : w0 > 0.2 ? 'I' : (top10 ? 'S' : 'M'), stops: ctx.track.tyreStress > 1.15 ? 2 : 1, auto: true, pitWear: 68 };
   });
   return q;
+};
+
+/* Corrida Sprint: distância reduzida, sem paradas obrigatórias, pontuação própria.
+   Larga na ordem da classificação e acontece antes da corrida principal. */
+Career.runSprint = (G) => {
+  const wk = G.weekend;
+  const ctx = Career.ctx(G);
+  const entries = Career.entries(G);
+  const w0 = wk.weather.wet[1] || 0;
+  const grid = wk.quali.order.map(did => ({ ...entries.find(x => x.did === did), startTyre: w0 > 0.62 ? 'W' : w0 > 0.2 ? 'I' : 'M', auto: true }));
+  const race = Engine.createRace({ ...ctx, weather: wk.weather }, grid, { sprint: true });
+  let guard = 0;
+  while (!race.finished && guard++ < 200) Engine.stepLap(race, { ...ctx, weather: wk.weather });
+  const cls = race.classification.map(did => { const c = race.cars.find(x => x.did === did); return { did, tid: c.tid, pos: c.pos, grid: c.grid, pts: race.points[did] || 0, status: c.status, reason: c.dnfReason, T: c.T, lapsDown: c.lapsDown || 0, best: c.best }; });
+  cls.forEach(r => {
+    G.season.standD[r.did] = (G.season.standD[r.did] || 0) + r.pts;
+    G.season.standC[r.tid] = (G.season.standC[r.tid] || 0) + r.pts;
+    const st = G.season.stats[r.did]; if (st) { st.points += r.pts; if (r.pos === 1 && r.status === 'fin') st.sprintWins = (st.sprintWins || 0) + 1; }
+    const d = Career.driver(G, r.did); if (d) d.career.points += r.pts;
+  });
+  wk.sprintResult = { laps: race.laps, cls, events: race.events.filter(e => ['crash', 'dnf', 'sc', 'penalty', 'finish'].includes(e.type)).slice(-12) };
+  return wk.sprintResult;
 };
 
 Career.startRace = (G) => {
@@ -349,7 +372,7 @@ Career.finishWeekend = (G) => {
     round: season.round, trackId: track.id, gp: track.gp, laps: race.laps,
     winner: cls[0].did, pole: wk.quali.order[0], fastest: race.fastest,
     wet: Math.max(...race.wet), sc: race.scHistory.length,
-    cls, quali: wk.quali.order,
+    cls, quali: wk.quali.order, sprint: wk.sprintResult ? wk.sprintResult.cls.map(c => ({ did: c.did, tid: c.tid, pos: c.pos, pts: c.pts, status: c.status })) : null,
   };
   season.results.push(summary);
 
@@ -476,12 +499,15 @@ Career.SPONSOR_OBJ = {
   finish: 'Terminar com os dois carros', points: 'Marcar pontos', top10both: 'Os dois carros no top 10', top5: 'Um carro no top 5', podium: 'Pódio',
 };
 
+/* Marcas reais que patrocinam o automobilismo. As da própria equipe vêm primeiro. */
+Career.SPONSOR_POOL = ['Heineken', 'DHL', 'AWS', 'Lenovo', 'Crypto.com', 'Rolex', 'Salesforce', 'Globant', 'MSC Cruises', 'Qatar Airways', 'Emirates', 'Allwyn', 'LVMH', 'Paramount+', 'Pepsico', 'Kraken', 'Tata Communications', 'Bitpanda', 'Castrol', 'Puma', 'Ray-Ban', 'Estrella Galicia', 'Gulf', 'Snowflake', 'Workday'];
 Career.genSponsors = (G, team, n) => {
-  const names = ['Vértice Energia', 'Nimbus Cloud', 'Ondaverde Bank', 'Kairo Watches', 'Atlas Logistics', 'Pulsar Telecom', 'Brisa Bebidas', 'Ferro & Cia Lubrificantes', 'Quanta Seguros', 'Lumina Óptica', 'Cobalt Crypto', 'Sertão Agro', 'Halden Aviation', 'Marlin Apparel', 'Gaia Pneus Urbanos', 'Orion Software', 'Tropicana Viagens', 'Helix Pharma'];
   const used = new Set(G.sponsors.map(s => s.name));
+  const own = (team.sponsors || []).filter(x => !used.has(x));
   const out = [];
   for (let i = 0; i < n; i++) {
-    const name = RNG.pick(names.filter(x => !used.has(x)));
+    const pool = own.filter(x => !used.has(x)).length ? own.filter(x => !used.has(x)) : Career.SPONSOR_POOL.filter(x => !used.has(x));
+    const name = own.length && !used.has(own[0]) ? own[0] : RNG.pick(pool);
     used.add(name);
     out.push(Career.makeSponsor(G, team, name));
   }
@@ -511,18 +537,21 @@ Career.SIZES = {
   large: { name: 'Grande', cost: 13, races: 7, min: 1.3, max: 3.0 },
 };
 Career.slots = (team) => 1 + Math.floor(team.facilities / 32);
+/* custos de P&D acompanham o teto orçamentário do regulamento (referência: US$ 145 mi) */
+Career.costScale = (G) => clamp((G.db.rules.budgetCap || 145) / 145, 0.4, 4);
 
 Career.projectQuote = (G, area, size) => {
   const team = Career.team(G);
   const A = Career.AREAS[area], S = Career.SIZES[size];
   const staff = team.staff[A.staff];
   const cur = A.field === 'pitCrew' || A.field === 'facilities' ? team[A.field] : team.car[A.field];
-  const dimin = clamp(1 - (cur - 82) / 40, 0.3, 1.25);
-  const sk = 0.7 + staff / 100 * 0.5;
+  const ref = avg(G.db.teams.map(t => (A.field === 'pitCrew' || A.field === 'facilities' ? t[A.field] : t.car[A.field])));
+  const dimin = clamp(1 - (cur - ref) / 50, 0.55, 1.2);
+  const sk = (0.45 + staff / 100 * 0.75) * (0.8 + team.facilities / 250);
   const costMul = area === 'facilities' ? 1.8 : area === 'pitCrew' ? 0.6 : 1;
   return {
     area, size, name: `${A.name} — pacote ${S.name.toLowerCase()}`,
-    cost: +(S.cost * costMul).toFixed(1), races: S.races + (area === 'facilities' ? 2 : 0),
+    cost: +(S.cost * costMul * Career.costScale(G)).toFixed(1), races: S.races + (area === 'facilities' ? 2 : 0),
     min: +(S.min * sk * dimin).toFixed(2), max: +(S.max * sk * dimin).toFixed(2),
     risk: Math.round(clamp(18 - staff / 8 + (size === 'large' ? 6 : 0), 3, 30)),
   };
@@ -808,7 +837,7 @@ Career.genRookie = (G) => {
     team: null, seat: null, salary: 0.5, contractYears: 0,
     pace: a('pace'), qualifying: a('qualifying'), racecraft: a('racecraft'), consistency: a('consistency'), tyre: a('tyre'), wet: a('wet'),
     overtaking: a('overtaking'), defending: a('defending'), aggression: Math.round(clamp(50 + (prof.aggression || 0) * 2.5 + RNG.range(-10, 10), 10, 95)),
-    experience: RNG.int(5, 18), potential: pot, morale: 75, popularity: RNG.int(5, 30), injured: 0, rookie: true,
+    experience: RNG.int(5, 18), potential: pot, morale: 75, popularity: RNG.int(5, 30), injured: 0, rookie: true, regen: true,
     career: { starts: 0, wins: 0, podiums: 0, poles: 0, titles: 0, points: 0 },
   };
 };
@@ -893,7 +922,7 @@ Career.archiveSeason = (G, sd, sc) => {
   if (G.archive.some(a => a.year === s.year)) return; // proteção contra arquivar duas vezes
   G.archive.push({
     year: s.year, series: G.db.rules.seriesName, sim: true,
-    races: s.results.map(r => ({ t: r.trackId, gp: r.gp, w: r.winner, p: r.pole, fl: r.fastest ? r.fastest.did : null, wet: +r.wet.toFixed(2), sc: r.sc, c: r.cls.map(c => [c.did, c.tid, c.pos, c.grid, c.pts, c.status === 'dnf' ? 1 : 0]) })),
+    races: s.results.map(r => ({ t: r.trackId, gp: r.gp, w: r.winner, sw: r.sprint && r.sprint[0] ? r.sprint[0].did : null, p: r.pole, fl: r.fastest ? r.fastest.did : null, wet: +r.wet.toFixed(2), sc: r.sc, c: r.cls.map(c => [c.did, c.tid, c.pos, c.grid, c.pts, c.status === 'dnf' ? 1 : 0]) })),
     standD: sd.map(x => [x.did, x.pts]), standC: sc.map(x => [x.tid, x.pts]),
   });
   sd.forEach((x, i) => {

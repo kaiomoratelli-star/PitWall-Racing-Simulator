@@ -12,7 +12,7 @@ const Smoke = {
     const step = (s) => { out.steps.push(s); Store.log('info', 'smoke: ' + s); };
     try {
       if (mode === 'test') {
-        NC.mode = 'manager'; NC.teamId = 'bravura'; NC.slot = 'slot3'; NC.seed = '2027';
+        NC.mode = 'manager'; NC.teamId = (BASE.teams.find(t => t.id === 'williams') || BASE.teams[BASE.teams.length - 1]).id; NC.slot = 'slot3'; NC.seed = '2027';
         ACT.ncStart(); step('carreira criada (manager)');
         ACT.toWeekend(); ACT.practiceRun({ dataset: { d: Career.lineup(G, G.player.teamId)[0].id } }); ACT.endPractice(); ACT.runQuali(); ACT.toStrategy(); ACT.startRace();
         ACT.raceSkip(); await ACT.finishWeekend(); step('GP 1 disputado pela interface');
@@ -37,13 +37,13 @@ const Smoke = {
       }
     } catch (e) { out.error = String(e && (e.stack || e.message) || e); }
     try { await document.fonts.ready; } catch (e) { /* sem API de fontes */ }
-    out.fonts = ['Saira Condensed', 'IBM Plex Sans', 'IBM Plex Mono'].filter(f => document.fonts && document.fonts.check(`700 16px "${f}"`) && [...document.fonts].some(x => x.family.replace(/"/g, '') === f && x.status === 'loaded'));
+    out.fonts = ['Titillium Web', 'IBM Plex Mono'].filter(f => document.fonts && document.fonts.check(`700 16px "${f}"`) && [...document.fonts].some(x => x.family.replace(/"/g, '') === f && x.status === 'loaded'));
     Store.native.smokeDone(out);
   },
 };
 
 async function boot(hotData) {
-  BASE = buildDefaultDB();
+  BASE = defaultDb();
   render(); // primeira tela imediata, sem esperar a nuvem
   await Store.init();
   const saved = await Store.loadBaseDb();

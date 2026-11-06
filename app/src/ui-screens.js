@@ -14,13 +14,16 @@ SCREENS.title = {
       if (!m) return '';
       return `<button class="slot-card" data-act="loadSlot" data-slot="${s}"><span class="livery" style="background:${esc(m.color || '#888')}"></span><span style="min-width:0"><b>${esc(m.team)}</b><br><span class="small muted">${esc(m.player)} · ${m.year} · etapa ${Math.min(m.round + 1, m.total)}/${m.total}</span></span><span class="spacer"></span><span class="label">Jogo ${i + 1}</span></button>`;
     }).join('');
+    if (!UI.titleTrack) { const pool = db.tracks.filter(t => imgUrl(t.heroImg)); UI.titleTrack = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; }
+    if (!UI.titleTeam) UI.titleTeam = db.teams[Math.floor(Math.random() * db.teams.length)];
+    const hero = UI.titleTrack && imgUrl(UI.titleTrack.heroImg);
     return `
-    <div class="title-screen">
+    <div class="title-screen ${hero ? 'photo' : ''}" ${hero ? `style="background-image:url('${hero}')"` : ''}>
       <div class="title-left">
         <div class="stack" style="gap:14px">
-          <div class="eyebrow">Simulador de gestão de automobilismo</div>
-          <div class="logo-big">PIT<br><em>WALL</em></div>
-          <p class="muted" style="max-width:46ch">Comande uma equipe de monopostos. Acerte o carro nos treinos, decida a estratégia no muro dos boxes, negocie com pilotos e patrocinadores e reaja a um paddock que muda a cada carreira.</p>
+          <div class="eyebrow">${esc(db.rules.seriesName)}</div>
+          <div class="logo-big">PIT <em style="color:var(--accent)">WALL</em></div>
+          <p class="muted" style="max-width:48ch;color:var(--fg2)">Comande uma equipe da Fórmula 1 ou acompanhe o campeonato como observador. Pilotos, equipes, circuitos e toda a história desde 1950 com dados reais.</p>
         </div>
         <div class="title-menu">
           ${slotHtml ? `<div class="label">Continuar</div>${slotHtml}` : ''}
@@ -32,17 +35,17 @@ SCREENS.title = {
           </div>
         </div>
         <div class="timing-strip">
-          <span>BASE <b>${esc(db.name)}</b></span>
+          <span>BASE <b>${esc(db.name)}</b></span>${db.ref ? `<span>DADOS ATÉ <b>${esc(db.ref)}</b></span>` : ''}
           <span>EQUIPES <b>${db.teams.length}</b></span>
           <span>PILOTOS <b>${db.drivers.length}</b></span>
           <span>PISTAS <b>${db.calendar.length}</b></span>
-          <span>SALVAMENTO <b>${Store.cloud() ? 'na sua conta' : 'neste navegador'}</b></span>
+          <span>SALVAMENTO <b>${Store.native ? 'no computador' : Store.cloud() ? 'na sua conta' : 'neste navegador'}</b></span>
         </div>
       </div>
-      <div class="title-right"><canvas id="titleCanvas"></canvas></div>
+      <div class="title-right">${hero ? `<div class="title-car">${carImg(UI.titleTeam)}<div class="small" style="margin-top:8px;color:var(--fg2)">${esc(UI.titleTrack.circuit)} · ${esc(UI.titleTrack.place || '')}</div></div>` : '<canvas id="titleCanvas"></canvas>'}</div>
     </div>`;
   },
-  after() { startTitleAnim(); },
+  after() { if ($('#titleCanvas')) startTitleAnim(); },
 };
 
 function startTitleAnim() {
@@ -110,7 +113,8 @@ SCREENS.newcareer = {
       return `<button class="team-card ${NC.teamId === t.id ? 'on' : ''}" data-act="ncTeam" data-id="${t.id}">
         <div class="stripe" style="background:linear-gradient(90deg, ${t.color} 70%, ${t.color2} 70%)"></div>
         <div class="body">
-          <div class="row between"><b style="font-family:var(--f-display);font-size:19px">${esc(t.name)}</b><span class="chip">${ordinal(i + 1)} favorita</span></div>
+          <div class="row between"><span class="row" style="gap:8px;flex-wrap:nowrap">${teamLogo(t, 'sm')}<b style="font-family:var(--f-display);font-size:19px">${esc(t.name)}</b></span><span class="chip">${ordinal(i + 1)} favorita</span></div>
+          ${carImg(t)}
           <div class="small muted">${natTag(t.country)} ${esc(eng.name)} · orçamento ${fmtMoney(t.budget)}</div>
           ${attrRow('Carro', car)}
           ${attrRow('Reputação', t.reputation, 'b')}
@@ -125,7 +129,7 @@ SCREENS.newcareer = {
         <div class="page-head"><div><div class="eyebrow">Novo universo</div><h1>${NC.mode === 'observer' ? 'Acompanhe o campeonato' : 'Escolha sua equipe'}</h1></div>
           <div class="row"><button class="btn" data-act="go" data-v="title">Voltar</button><button class="btn primary lg" data-act="ncStart">${NC.mode === 'observer' ? 'Começar a temporada' : 'Assumir a equipe'}</button></div></div>
         <div class="panel"><div class="panel-b row between">
-          <div class="stack" style="gap:4px;max-width:70ch"><b>${NC.mode === 'observer' ? 'Modo Observador' : 'Modo Manager'}</b><span class="small muted">${NC.mode === 'observer' ? 'Todas as equipes são da IA. Você assiste às corridas, acompanha o mercado, as finanças e as histórias, sem interferir.' : 'Você comanda uma equipe: acerto, estratégia, contratos, desenvolvimento e finanças.'}</span></div>
+          <div class="stack" style="gap:4px;max-width:70ch"><b>${NC.mode === 'observer' ? 'Modo Observador' : 'Modo Manager'}</b><span class="small muted">${NC.mode === 'observer' ? 'Os chefes de equipe tomam todas as decisões. Você assiste às corridas e acompanha o mercado, as finanças e as histórias do campeonato, sem interferir.' : 'Você comanda uma equipe: acerto, estratégia, contratos, desenvolvimento e finanças.'}</span></div>
           ${segBtns('ncMode', NC.mode, [['manager', 'Manager'], ['observer', 'Observador']])}
         </div></div>
         <div class="grid g-hub">
@@ -137,8 +141,7 @@ SCREENS.newcareer = {
             <label class="field"><span>Imprevisibilidade do grid inicial</span><select class="inp" id="nc-var" data-chg="ncField" data-k="variance">${opt(0, 'Nenhuma (base exata)', NC.variance)}${opt(1, 'Normal', NC.variance)}${opt(2, 'Alta', NC.variance)}</select></label>
             <label class="field"><span>Frequência de chuva</span><select class="inp" id="nc-rain" data-chg="ncField" data-k="rainMult">${opt(0, 'Sem chuva', NC.rainMult)}${opt(0.6, 'Menos', NC.rainMult)}${opt(1, 'Realista', NC.rainMult)}${opt(1.8, 'Muita chuva', NC.rainMult)}</select></label>
             <label class="field"><span>Eventos fora da pista</span><select class="inp" id="nc-ev" data-chg="ncField" data-k="eventRate">${opt(0.5, 'Poucos', NC.eventRate)}${opt(1, 'Normal', NC.eventRate)}${opt(1.6, 'Muitos', NC.eventRate)}</select></label>
-            <label class="check"><input type="checkbox" id="nc-ai" ${NC.aiEvents ? 'checked' : ''} data-chg="ncCheck" data-k="aiEvents"> Eventos e matérias escritos por IA</label>
-            <p class="small muted">${Store.sample ? 'A IA usa sua conta Claude. O primeiro uso pede sua permissão.' : 'A IA só funciona dentro do Claude. Fora dele, os eventos procedurais continuam.'}</p>
+            ${Store.sample ? `<label class="check"><input type="checkbox" id="nc-ai" ${NC.aiEvents ? 'checked' : ''} data-chg="ncCheck" data-k="aiEvents"> Redação do paddock escreve matérias e acontecimentos extras</label>` : ''}
             <label class="field"><span>Semente da carreira (opcional)</span><input class="inp num" id="nc-seed" value="${esc(NC.seed)}" placeholder="aleatória" data-inp="ncField" data-k="seed"></label>
             <p class="small muted">A mesma semente com a mesma base reproduz o início da carreira. Deixe vazio para um mundo novo.</p>
             <label class="field"><span>Salvar em</span><select class="inp" id="nc-slot" data-chg="ncField" data-k="slot">${free.map(([v, l]) => opt(v, l, NC.slot)).join('')}</select></label>
@@ -193,11 +196,11 @@ SCREENS.hub = {
     <div class="grid g-hub">
       <div class="stack">
         <div class="panel next-gp">
-          <div class="map"><canvas id="hubMap"></canvas></div>
+          ${gpVisual(tr)}
           <div class="info">
-            <div class="row between"><span class="eyebrow">Etapa ${G.season.round + 1} de ${G.season.calendar.length}</span>${tr.street ? '<span class="chip">Circuito de rua</span>' : ''}</div>
+            <div class="row between"><span class="eyebrow">Etapa ${G.season.round + 1} de ${G.season.calendar.length}${tr.date ? ' · ' + esc(gpDate(tr)) : ''}</span><span class="row" style="gap:6px">${tr.sprint ? '<span class="chip acc">Sprint</span>' : ''}${tr.street ? '<span class="chip">Circuito de rua</span>' : ''}</span></div>
             <div><div class="gp-title">${esc(tr.gp)}</div><div class="muted">${esc(tr.circuit)} · ${natTag(tr.country)}</div></div>
-            <dl class="kv"><dt>Voltas</dt><dd>${Math.round(tr.laps * (G.db.rules.raceDistancePct || 100) / 100)}</dd><dt>Extensão</dt><dd>${tr.length.toFixed(3)} km</dd><dt>Volta de referência</dt><dd>${fmtLap(tr.baseLap)}</dd><dt>Perda no pit</dt><dd>${tr.pitLoss.toFixed(1)} s</dd><dt>Zonas de DRS</dt><dd>${tr.drs}</dd></dl>
+            <dl class="kv"><dt>Voltas</dt><dd>${Math.round(tr.laps * (G.db.rules.raceDistancePct || 100) / 100)}</dd><dt>Extensão</dt><dd>${tr.length.toFixed(3)} km</dd>${tr.turns ? `<dt>Curvas</dt><dd>${tr.turns}</dd>` : ''}<dt>Volta de referência</dt><dd>${fmtLap(tr.baseLap)}${tr.baseLapRef ? ` <span class="muted">(${tr.baseLapRef})</span>` : ''}</dd><dt>Perda no pit</dt><dd>${tr.pitLoss.toFixed(1)} s</dd><dt>Zonas de DRS</dt><dd>${tr.drs}</dd></dl>
             <div class="stack" style="gap:6px">${traits.map(([l, v]) => `<div class="trait"><span class="muted">${l}</span>${bar(clamp(v, 3, 100))}</div>`).join('')}</div>
             ${fc ? `<div class="forecast"><div class="fc"><span class="label">Classif.</span><b>${fc.quali}%</b></div>${fc.race.map((p, i) => `<div class="fc"><span class="label">Corrida ${['início', 'meio', 'fim'][i]}</span><b>${p}%</b></div>`).join('')}</div>` : ''}
             <button class="btn primary lg" data-act="toWeekend" ${fired ? 'disabled' : ''}>${G.weekend ? 'Continuar fim de semana' : 'Ir para o fim de semana'}</button>
@@ -205,7 +208,7 @@ SCREENS.hub = {
         </div>
         <div class="grid g2">
           <div class="panel"><div class="panel-h"><h3>Seus pilotos</h3><button class="btn sm ghost" data-act="go" data-v="team">Ver equipe</button></div><div class="panel-b stack">
-            ${lineup.map(d => { const st = G.season.stats[d.id] || {}; return `<div class="row between"><div>${dTag(d.id)}<div class="small muted">${G.season.standD[d.id] || 0} pts · ${st.podiums || 0} pódios · melhor ${st.best ? ordinal(st.best) : '—'}</div></div><div style="width:90px"><div class="label">Moral ${Math.round(d.morale)}</div>${pctBar(d.morale)}</div></div>`; }).join('')}
+            ${lineup.map(d => { const st = G.season.stats[d.id] || {}; return `<div class="row between"><div class="row" style="gap:10px;flex-wrap:nowrap">${headshot(d)}<div>${dTag(d.id)}<div class="small muted">${G.season.standD[d.id] || 0} pts · ${st.podiums || 0} pódios · melhor ${st.best ? ordinal(st.best) : '—'}</div></div></div><div style="width:90px"><div class="label">Moral ${Math.round(d.morale)}</div>${pctBar(d.morale)}</div></div>`; }).join('')}
           </div></div>
           <div class="panel"><div class="panel-h"><h3>Diretoria</h3><span class="chip">${G.board.lastDelta != null ? (G.board.lastDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(G.board.lastDelta).toFixed(1) : 'início'}</span></div><div class="panel-b stack">
             <div class="row between"><span class="stat-big">${Math.round(G.board.confidence)}%</span><span class="small muted" style="text-align:right">Meta: ${ordinal(G.board.target)} nos<br>construtores</span></div>
@@ -222,7 +225,7 @@ SCREENS.hub = {
     </div>`;
   },
   after() {
-    const cv = $('#hubMap'); if (cv && !Career.seasonOver(G)) { const tr = Career.currentTrack(G); requestAnimationFrame(() => drawTrack(cv, tr, [], { pad: 26 })); }
+    const cv = $('#hubMap'); if (cv && !Career.seasonOver(G)) { const tr = Career.currentTrack(G); requestAnimationFrame(() => drawTrack(cv, tr, [], imgUrl(tr.heroImg) ? { pad: 30, outline: '#ffffff', thick: 6 } : { pad: 26 })); }
   },
 };
 ACT.toWeekend = () => {
@@ -267,9 +270,9 @@ function hubObsHtml() {
   <div class="grid g-hub">
     <div class="stack">
       <div class="panel next-gp">
-        <div class="map"><canvas id="hubMap"></canvas></div>
+        ${gpVisual(tr)}
         <div class="info">
-          <span class="eyebrow">Etapa ${G.season.round + 1} de ${G.season.calendar.length}</span>
+          <span class="eyebrow">Etapa ${G.season.round + 1} de ${G.season.calendar.length}${tr.date ? ' · ' + esc(gpDate(tr)) : ''}${tr.sprint ? ' · Sprint' : ''}</span>
           <div><div class="gp-title">${esc(tr.gp)}</div><div class="muted">${esc(tr.circuit)} · ${natTag(tr.country)}</div></div>
           <dl class="kv"><dt>Voltas</dt><dd>${Math.round(tr.laps * (G.db.rules.raceDistancePct || 100) / 100)}</dd><dt>Extensão</dt><dd>${tr.length.toFixed(3)} km</dd><dt>Ultrapassagem</dt><dd>${Math.round(tr.overtaking * 100)}%</dd><dt>Chance de chuva</dt><dd>${Math.round(tr.rain * 100)}%</dd></dl>
           <button class="btn primary lg" data-act="toWeekend">Assistir à corrida</button>
@@ -320,9 +323,9 @@ ACT.nextSeason = () => {
 };
 
 /* ================= CAIXA DE ENTRADA ================= */
-const TAG_LABEL = { board: 'Diretoria', media: 'Mídia', money: 'Comercial', dev: 'Técnico', team: 'Equipe', fia: 'Federação', market: 'Paddock', ai: 'IA' };
+const TAG_LABEL = { board: 'Diretoria', media: 'Mídia', money: 'Comercial', dev: 'Técnico', team: 'Equipe', fia: 'Federação', market: 'Paddock', ai: 'Paddock' };
 function mailRow(m, sel) {
-  return `<button class="mail ${m.read ? '' : 'unread'} ${sel ? 'on' : ''}" data-act="openMail" data-id="${m.id}"><span class="dot"></span><span style="min-width:0"><span class="t">${esc(m.title)}</span><br><span class="small muted">${esc(m.from)}</span></span><span class="row" style="gap:4px;flex-wrap:nowrap">${m.ai ? '<span class="chip ai">IA</span>' : ''}${m.choices && m.resolved == null ? '<span class="chip acc">decidir</span>' : ''}</span></button>`;
+  return `<button class="mail ${m.read ? '' : 'unread'} ${sel ? 'on' : ''}" data-act="openMail" data-id="${m.id}"><span class="dot"></span><span style="min-width:0"><span class="t">${esc(m.title)}</span><br><span class="small muted">${esc(m.from)}</span></span><span class="row" style="gap:4px;flex-wrap:nowrap">${m.choices && m.resolved == null ? '<span class="chip acc">decidir</span>' : ''}</span></button>`;
 }
 SCREENS.inbox = {
   html() {
@@ -330,7 +333,7 @@ SCREENS.inbox = {
     if (sel && !sel.read && !sel.choices) sel.read = true;
     return `
     <div class="page-head"><div><div class="eyebrow">Mensagens e decisões</div><h1>Caixa de entrada</h1></div>
-      <div class="row">${G.options.aiEvents && Store.sample ? '<button class="btn" data-act="aiEventNow">Gerar evento com IA</button>' : ''}<button class="btn" data-act="markAllRead">Marcar tudo como lido</button></div></div>
+      <div class="row">${G.options.aiEvents && Store.sample ? '<button class="btn" data-act="aiEventNow">Buscar novidades do paddock</button>' : ''}<button class="btn" data-act="markAllRead">Marcar tudo como lido</button></div></div>
     <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)">
       <div class="panel"><div class="mail-list" style="max-height:70vh;overflow:auto">${G.inbox.map(m => mailRow(m, sel && m.id === sel.id)).join('') || '<div class="empty">Vazia.</div>'}</div></div>
       <div class="panel">${sel ? mailDetail(sel) : '<div class="empty">Selecione uma mensagem.</div>'}</div>
@@ -341,7 +344,7 @@ function mailDetail(m) {
   const choices = m.choices ? (m.resolved == null
     ? `<div class="stack" style="gap:8px">${m.choices.map((c, i) => `<button class="btn choice" data-act="choose" data-id="${m.id}" data-i="${i}"><b>${esc(c.label)}</b>${c.hint ? `<span class="small muted">${esc(c.hint)}</span>` : ''}${c.gamble ? `<span class="small muted">Resultado incerto</span>` : ''}</button>`).join('')}</div>`
     : `<div class="callout"><div class="label">Sua decisão: ${esc(m.choices[m.resolved].label)}</div><p style="margin-top:6px">${esc(m.outcome || '')}</p>${m.outcomeFx && m.outcomeFx.length ? `<div class="row" style="margin-top:8px;gap:6px">${m.outcomeFx.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}</div>`) : '';
-  return `<div class="panel-h"><div><div class="label">${esc(TAG_LABEL[m.tag] || 'Mensagem')} · ${esc(m.from)} · ${m.year} etapa ${m.round + 1}</div><h2 style="margin-top:6px">${esc(m.title)}</h2></div>${m.ai ? '<span class="chip ai">Escrito por IA</span>' : ''}</div>
+  return `<div class="panel-h"><div><div class="label">${esc(TAG_LABEL[m.tag] || 'Mensagem')} · ${esc(m.from)} · ${m.year} etapa ${m.round + 1}</div><h2 style="margin-top:6px">${esc(m.title)}</h2></div></div>
   <div class="panel-b stack"><p style="white-space:pre-wrap;max-width:68ch">${esc(m.body)}</p>${choices}</div>`;
 }
 ACT.openMail = (el) => { const m = G.inbox.find(x => x.id === el.dataset.id); if (m && !m.choices) m.read = true; go('inbox', { id: el.dataset.id }); };
@@ -365,9 +368,9 @@ async function generateAIEvent(summary, btn) {
     if (btn) { toast('Novo evento na caixa de entrada.', 'good'); go('inbox', { id: G.inbox[0].id }); }
     return true;
   } catch (e) {
-    if (e && e.code === 'not_granted') { G.options.aiEvents = false; toast('IA desativada: permissão negada. Reative em Salvar e opções.', 'bad'); }
-    else if (btn) toast('A IA não conseguiu gerar o evento agora. Tente de novo.', 'bad');
-    if (btn) { btn.disabled = false; btn.textContent = 'Gerar evento com IA'; }
+    if (e && e.code === 'not_granted') { G.options.aiEvents = false; toast('Redação desativada: permissão negada. Reative em Salvar e opções.', 'bad'); }
+    else if (btn) toast('Não chegaram novidades agora. Tente de novo.', 'bad');
+    if (btn) { btn.disabled = false; btn.textContent = 'Buscar novidades do paddock'; }
     return false;
   }
 }
@@ -426,7 +429,7 @@ SCREENS.calendar = {
       const tr = Career.track(G, tid); const r = G.season.results[i];
       const mine = r ? r.cls.filter(c => c.tid === G.player.teamId) : [];
       const best = mine.length ? Math.min(...mine.map(c => c.status === 'fin' ? c.pos : 99)) : null;
-      return `<tr class="${i === G.season.round ? 'me' : ''}"><td class="num">${i + 1}</td><td><b>${esc(tr.gp)}</b></td><td class="muted">${esc(tr.circuit)}</td><td>${r ? dTag(r.winner) : i === G.season.round ? '<span class="chip acc">próxima</span>' : ''}</td><td>${r ? dTag(r.pole, false) : ''}</td><td class="num">${best ? (best === 99 ? 'Abandono' : ordinal(best)) : ''}</td><td class="small">${r ? (r.wet > 0.25 ? '<span class="chip" style="color:var(--blue)">Chuva</span> ' : '') + (r.sc ? `<span class="chip" style="color:var(--yellow)">SC ×${r.sc}</span>` : '') : ''}</td></tr>`;
+      return `<tr class="${i === G.season.round ? 'me' : ''}"><td class="num">${i + 1}</td><td><b>${esc(tr.gp)}</b>${tr.sprint ? ' <span class="chip acc">Sprint</span>' : ''}<div class="small muted">${esc(gpDate(tr))}</div></td><td class="muted">${esc(tr.circuit)}</td><td>${r ? dTag(r.winner) : i === G.season.round ? '<span class="chip acc">próxima</span>' : ''}</td><td>${r ? dTag(r.pole, false) : ''}</td><td class="num">${best ? (best === 99 ? 'Abandono' : ordinal(best)) : ''}</td><td class="small">${r ? (r.wet > 0.25 ? '<span class="chip" style="color:var(--blue)">Chuva</span> ' : '') + (r.sc ? `<span class="chip" style="color:var(--yellow)">SC ×${r.sc}</span>` : '') : ''}</td></tr>`;
     }).join('')}
     </tbody></table></div></div>`;
   },
@@ -463,8 +466,8 @@ function driverCard(d, year) {
   const st = G.season.stats[d.id] || {};
   const seatLabel = d.seat === 'R' ? 'Reserva' : `Carro #${d.seat}`;
   const ovr = driverOverall(d);
-  return `<div class="panel"><div class="panel-h"><div class="row" style="gap:12px"><span class="stat-big num" style="font-size:30px;color:${teamColor(d.team)}">${d.number}</span><div><h3>${esc(d.name)}</h3><div class="small muted">${natTag(d.nat)} ${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')}${d.injured ? ' · <span class="neg">lesionado</span>' : ''}</div></div></div>
-    <div class="row"><span class="chip">${seatLabel}</span><span class="chip acc">Overall ${ovr}</span></div></div>
+  return `<div class="panel"><div class="panel-h"><div class="row" style="gap:12px">${headshot(d)}<span class="stat-big" style="font-size:30px;color:${teamColor(d.team)}">${d.number}</span><div><h3>${esc(d.name)}</h3><div class="small muted">${natTag(d.nat)} ${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')}${d.injured ? ' · <span class="neg">lesionado</span>' : ''}</div></div></div>
+    <div class="row"><span class="chip">${seatLabel}</span><span class="chip acc">Nota ${ovr}</span></div></div>
     <div class="panel-b grid g2">
       <div class="stack" style="gap:8px">${DRIVER_ATTRS.slice(0, 8).map(([k, l]) => attrRow(l, d[k])).join('')}</div>
       <div class="stack" style="gap:8px">
@@ -592,8 +595,8 @@ SCREENS.market = {
     return `
     <div class="page-head"><div><div class="eyebrow">Transferências</div><h1>Mercado de pilotos</h1></div></div>
     <div class="row"><div class="seg">${[['all', 'Todos'], ['free', 'Sem equipe'], ['young', 'Jovens (≤23)'], ['expiring', 'Contrato acabando']].map(([k, l]) => `<button class="${f === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ f: k })}'>${l}</button>`).join('')}</div>
-      <span class="spacer"></span><span class="small muted">Ordenar</span><div class="seg">${[['ovr', 'Overall'], ['pot', 'Potencial'], ['age', 'Idade'], ['val', 'Valor']].map(([k, l]) => `<button class="${sort === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ s: k })}'>${l}</button>`).join('')}</div></div>
-    <div class="panel"><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th>Nac.</th><th class="r">Idade</th><th>Equipe</th><th>Estilo</th><th class="r">Overall</th><th class="r">Potencial</th><th class="r">Contrato</th><th class="r">Valor/ano</th><th class="r">Moral</th><th></th></tr></thead><tbody>
+      <span class="spacer"></span><span class="small muted">Ordenar</span><div class="seg">${[['ovr', 'Nota'], ['pot', 'Potencial'], ['age', 'Idade'], ['val', 'Valor']].map(([k, l]) => `<button class="${sort === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ s: k })}'>${l}</button>`).join('')}</div></div>
+    <div class="panel"><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th>Nac.</th><th class="r">Idade</th><th>Equipe</th><th>Estilo</th><th class="r">Nota</th><th class="r">Potencial</th><th class="r">Contrato</th><th class="r">Valor/ano</th><th class="r">Moral</th><th></th></tr></thead><tbody>
       ${ds.map(d => `<tr><td>${dTag(d.id)}${d.rookie ? ' <span class="chip">novato</span>' : ''}${d.futureTeam ? ` <span class="chip acc">→ ${esc(Career.team(G, d.futureTeam.team).short)}</span>` : ''}</td><td>${natTag(d.nat)}</td><td class="r num">${d.age}</td><td class="small">${d.team ? esc(Career.team(G, d.team).name) + (d.seat === 'R' ? ' (res.)' : '') : '<span class="muted">Livre</span>'}</td><td class="small muted">${esc(STYLE_LABELS[d.style] || '')}</td><td class="r num ${ratingClass(driverOverall(d))}"><b>${driverOverall(d)}</b></td><td class="r num">${d.potential}</td><td class="r num">${d.team ? G.season.year + Math.max(0, d.contractYears) : '—'}</td><td class="r num">${fmtMoney(Career.marketValue(d))}</td><td class="r num">${Math.round(d.morale)}</td><td><button class="btn sm" data-act="offerDlg" data-id="${d.id}">Proposta</button></td></tr>`).join('')}
     </tbody></table></div></div>`;
   },
@@ -665,7 +668,7 @@ SCREENS.saves = {
         <div class="row"><button class="btn" data-act="toTitle">Voltar à tela inicial</button></div>
       </div></div>
       <div class="panel"><div class="panel-h"><h3>Opções da carreira</h3></div><div class="panel-b stack">
-        ${Store.native ? '' : `<label class="check"><input type="checkbox" id="op-ai" ${o.aiEvents ? 'checked' : ''} data-chg="opt" data-k="aiEvents"> Eventos e matérias escritos por IA ${Store.sample ? '' : '<span class="small muted">(indisponível fora do Claude)</span>'}</label>`}
+        ${Store.native ? '' : `<label class="check"><input type="checkbox" id="op-ai" ${o.aiEvents ? 'checked' : ''} data-chg="opt" data-k="aiEvents"> Redação do paddock (matérias e acontecimentos extras) ${Store.sample ? '' : '<span class="small muted">(indisponível nesta versão)</span>'}</label>`}
         <label class="field"><span>Frequência de eventos</span><select class="inp" id="op-ev" data-chg="opt" data-k="eventRate">${opt(0.5, 'Poucos', o.eventRate)}${opt(1, 'Normal', o.eventRate)}${opt(1.6, 'Muitos', o.eventRate)}</select></label>
         <label class="field"><span>Frequência de chuva</span><select class="inp" id="op-rain" data-chg="opt" data-k="rainMult">${opt(0, 'Sem chuva', o.rainMult)}${opt(0.6, 'Menos', o.rainMult)}${opt(1, 'Realista', o.rainMult)}${opt(1.8, 'Muita chuva', o.rainMult)}</select></label>
         <label class="field"><span>Dificuldade</span><select class="inp" id="op-dif" data-chg="opt" data-k="difficulty">${opt('easy', 'Fácil', o.difficulty)}${opt('normal', 'Normal', o.difficulty)}${opt('hard', 'Difícil', o.difficulty)}</select></label>
@@ -706,11 +709,12 @@ SCREENS.paddock = {
       const P = AI.persona(t);
       const best = (t.history || []).slice().sort((a, b) => a.pos - b.pos)[0];
       const mine = t.id === G.player.teamId;
-      return `<div class="panel"><div class="panel-h"><div class="row" style="gap:10px"><span class="livery" style="background:linear-gradient(${t.color} 60%, ${t.color2} 60%)"></span><div><h3>${esc(t.name)}</h3><div class="small muted">${natTag(t.country)} ${esc(Engine.engineOf(G.db, t).name)} · chefe ${esc(t.principal)}</div></div></div>
+      return `<div class="panel"><div class="panel-h"><div class="row" style="gap:10px">${teamLogo(t)}<div><h3>${esc(t.name)}</h3><div class="small muted">${natTag(t.country)} ${esc(Engine.engineOf(G.db, t).name)} · chefe ${esc(t.principal)}</div></div></div>
         <span class="chip ${mine ? 'acc' : ''}">${mine ? 'Sua equipe' : 'Gestão ' + P.label.toLowerCase()}</span></div>
+        ${carImg(t) ? `<div class="panel-b" style="padding-bottom:0">${carImg(t)}</div>` : ''}
         <div class="panel-b grid g2">
           <div class="stack" style="gap:8px">${attrRow('Carro (geral)', Engine.carRating(G.db, t))}${attrRow('Confiabilidade', Engine.reliability(G.db, t), 'g')}${attrRow('Média do staff', avg(Object.values(t.staff)), 'b')}${attrRow('Reputação', t.reputation, 'b')}</div>
-          <dl class="kv"><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd><dt>Orçamento anual</dt><dd>${fmtMoney(t.budget)}</dd><dt>Caixa${mine ? '' : ' (estimado)'}</dt><dd class="${(mine ? G.finances.balance : t.cash) < 0 ? 'neg' : ''}">${fmtMoney(mine ? G.finances.balance : t.cash)}</dd><dt>Gasto no teto</dt><dd>${fmtMoney(mine ? G.finances.spent : t.spent)}</dd>${t.lastDev && !mine ? `<dt>Último investimento</dt><dd>${esc(Career.AREAS[t.lastDev.area].name)} ${fmtMoney(t.lastDev.spend)}</dd>` : ''}<dt>Melhor temporada</dt><dd>${best ? `${ordinal(best.pos)} em ${best.y}` : '—'}</dd><dt>Pilotos</dt><dd>${ds.map(d => esc(d.name.split(' ').slice(-1)[0])).join(' · ')}</dd></dl>
+          <dl class="kv"><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd><dt>Orçamento anual</dt><dd>${fmtMoney(t.budget)}</dd><dt>Caixa${mine ? '' : ' (estimado)'}</dt><dd class="${(mine ? G.finances.balance : t.cash) < 0 ? 'neg' : ''}">${fmtMoney(mine ? G.finances.balance : t.cash)}</dd><dt>Gasto no teto</dt><dd>${fmtMoney(mine ? G.finances.spent : t.spent)}</dd>${t.lastDev && !mine ? `<dt>Último investimento</dt><dd>${esc(Career.AREAS[t.lastDev.area].name)} ${fmtMoney(t.lastDev.spend)}</dd>` : ''}<dt>Melhor temporada</dt><dd>${best ? `${ordinal(best.pos)} em ${best.y}` : '—'}</dd>${t.realStats ? `<dt>História na F1</dt><dd>${t.realStats.titles} títulos · ${t.realStats.wins} vitórias</dd>` : ''}${(t.sponsors || []).length ? `<dt>Parceiros</dt><dd style="white-space:normal">${t.sponsors.map(esc).join(', ')}</dd>` : ''}<dt>Pilotos</dt><dd>${ds.map(d => esc(d.name.split(' ').slice(-1)[0])).join(' · ')}</dd></dl>
         </div></div>`;
     }).join('')}</div>`;
   },
@@ -775,3 +779,15 @@ ACT.driverPage = (el) => {
     <h4>Contratos</h4>
     ${tr.length ? tr.map(x => `<div class="small">${x.y}: ${x.from ? esc((Career.team(G, x.from) || {}).name || x.from) + ' → ' : ''}<b>${esc((Career.team(G, x.to) || {}).name || x.to)}</b> até ${x.until} · ${fmtMoney(x.salary)}/ano</div>`).join('') : '<p class="muted small">Contrato original da base de dados.</p>'}`);
 };
+
+/* foto do GP com o traçado real por cima (ou o canvas quando não há foto) */
+function gpVisual(tr) {
+  const hero = imgUrl(tr.heroImg);
+  return hero ? `<div class="map hero" style="background-image:url('${hero}')"><canvas id="hubMap"></canvas></div>` : `<div class="map"><canvas id="hubMap"></canvas></div>`;
+}
+/* data do GP no ano da temporada (calendário real usado como referência) */
+function gpDate(tr) {
+  if (!tr.date || !G) return '';
+  const [, m, d] = tr.date.split('-').map(Number);
+  return new Date(G.season.year, m - 1, d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}

@@ -18,6 +18,8 @@ const TYRES = {
 
 const DEFAULT_RULES = {
   seriesName: 'Campeonato Mundial de Monopostos',
+  sprintPoints: [8, 7, 6, 5, 4, 3, 2, 1],
+  sprintDistancePct: 33,
   startYear: 2027,
   points: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
   fastestLapPoint: 1,          // 0 desliga
@@ -190,4 +192,62 @@ const DRIVER_ATTRS = [
 function driverOverall(d) {
   return Math.round(d.pace * 0.32 + d.qualifying * 0.1 + d.racecraft * 0.14 + d.consistency * 0.14 + d.tyre * 0.1 +
     d.wet * 0.05 + d.overtaking * 0.08 + d.defending * 0.07);
+}
+
+/* Completa campos faltando em bases importadas ou feitas à mão */
+function normalizeDb(src) {
+  const def = { rules: DEFAULT_RULES, engines: ENGINES };
+  const db = deepClone(src);
+  db.version = DB_VERSION;
+  db.name = db.name || 'Base personalizada';
+  db.rules = Object.assign(deepClone(def.rules), db.rules || {});
+  db.engines = (db.engines && db.engines.length ? db.engines : def.engines).map((e, i) => ({ ...e, id: e.id || 'eng' + i, name: e.name || 'Motor ' + (i + 1), power: num(e.power, 88), reliability: num(e.reliability, 86), cost: num(e.cost, 14) }));
+  const eng0 = db.engines[0].id;
+  db.teams = (db.teams || []).map((t, i) => ({ ...t,
+    id: t.id || 'team' + i, name: t.name || 'Equipe ' + (i + 1), short: (t.short || (t.name || 'EQP').slice(0, 3)).toUpperCase(), country: t.country || 'GBR',
+    color: t.color || '#888888', color2: t.color2 || '#222222', engine: db.engines.some(e => e.id === t.engine) ? t.engine : eng0,
+    budget: num(t.budget, 110), reputation: num(t.reputation, 70),
+    car: { aero: num(t.car && t.car.aero, 84), chassis: num(t.car && t.car.chassis, 84), reliability: num(t.car && t.car.reliability, 85), tyreCare: num(t.car && t.car.tyreCare, 82), engineBonus: num(t.car && t.car.engineBonus, 0) },
+    pitCrew: num(t.pitCrew, 82), facilities: num(t.facilities, 76), principal: t.principal || 'Chefe',
+    sponsors: Array.isArray(t.sponsors) ? t.sponsors : [],
+    staff: { technical: num(t.staff && t.staff.technical, 78), aero: num(t.staff && t.staff.aero, 78), strategy: num(t.staff && t.staff.strategy, 78), engineering: num(t.staff && t.staff.engineering, 78) },
+  }));
+  const tids = new Set(db.teams.map(t => t.id));
+  db.drivers = (db.drivers || []).map((d, i) => {
+    const o = { ...d, id: d.id || 'drv' + i, name: d.name || 'Piloto ' + (i + 1), nat: d.nat || 'BRA', age: num(d.age, 25), number: num(d.number, i + 2), style: STYLE_PROFILES[d.style] ? d.style : 'complete', team: tids.has(d.team) ? d.team : null, salary: num(d.salary, 2), contractYears: num(d.contractYears, 1) };
+    // bases reais trazem só a nota geral (ovr) e o estilo: os atributos são expandidos de forma estável
+    const prof = STYLE_PROFILES[o.style] || STYLE_PROFILES.complete;
+    const r = localRng('attrs:' + o.id);
+    const base = num(d.ovr, 78);
+    ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending'].forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 4, 40, 99)))));
+    const starts = d.career ? d.career.starts || 0 : 0;
+    o.aggression = num(d.aggression, Math.round(clamp(50 + (prof.aggression || 0) * 2.5 + (r() - 0.5) * 14, 10, 95)));
+    o.experience = num(d.experience, Math.round(clamp(starts ? 20 + starts / 4 : (o.age - 17) * 5, 5, 99)));
+    o.potential = num(d.potential, Math.max(80, o.pace)); o.morale = num(d.morale, 70);
+    o.popularity = num(d.popularity, Math.round(clamp(20 + (d.career ? d.career.wins * 1.2 + d.career.titles * 6 : 0) + base - 75, 5, 99)));
+    if (d.salary == null && d.ovr != null) { o.salary = +Math.max(0.6, Math.pow(Math.max(0, base - 70) / 25, 2.4) * 42).toFixed(1); }
+    if (d.contractYears == null) o.contractYears = o.team ? (base >= 87 ? 2 : 1) : 0;
+    if (d.seat != null) o.seat = d.seat;
+    return o;
+  });
+  db.tracks = (db.tracks || []).map((t, i) => ({ ...t,
+    id: t.id || 'trk' + i, gp: t.gp || 'Grande Prêmio ' + (i + 1), circuit: t.circuit || 'Circuito', country: t.country || 'BRA', laps: num(t.laps, 55), length: num(t.length, 5), baseLap: num(t.baseLap, 88),
+    weights: { aero: num(t.weights && t.weights.aero, .34), chassis: num(t.weights && t.weights.chassis, .33), engine: num(t.weights && t.weights.engine, .33) },
+    overtaking: num(t.overtaking, .5), tyreStress: num(t.tyreStress, 1), rain: num(t.rain, .15), scFactor: num(t.scFactor, 1), pitLoss: num(t.pitLoss, 21), drs: num(t.drs, 2), street: !!t.street,
+    shapeSeed: num(t.shapeSeed, hashStr(String(t.id || i)) % 100000),
+  }));
+  const trids = new Set(db.tracks.map(t => t.id));
+  db.calendar = (db.calendar && db.calendar.length ? db.calendar : db.tracks.map(t => t.id)).filter(id => trids.has(id));
+  return db;
+}
+function num(v, d) { const n = Number(v); return isFinite(n) && v !== '' && v != null ? n : d; }
+
+
+/* Base padrão: dados reais quando disponíveis, senão o universo fictício */
+function defaultDb() {
+  if (typeof REAL_DB !== 'undefined') {
+    if (REAL_DB.natNames) Object.assign(NAT_NAMES, REAL_DB.natNames);
+    return normalizeDb(REAL_DB);
+  }
+  return buildDefaultDB();
 }

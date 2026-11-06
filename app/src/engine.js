@@ -240,10 +240,10 @@ const FAILURES = ['Falha no motor', 'Problema de câmbio', 'Perda de pressão hi
 Engine.createRace = (wk, grid, opts = {}) => {
   // grid: [{did, tid, team, drv(eff), driver(raw), setupQ, carPerf, startTyre, auto, plan}]
   const track = wk.track;
-  const pct = clamp(wk.db.rules.raceDistancePct || 100, 10, 100) / 100;
-  const laps = Math.max(5, Math.round(track.laps * pct));
+  const pct = clamp(opts.sprint ? (wk.db.rules.sprintDistancePct || 33) : (wk.db.rules.raceDistancePct || 100), 5, 100) / 100;
+  const laps = Math.max(opts.sprint ? 3 : 5, Math.round(track.laps * pct));
   const race = {
-    trackId: track.id, laps, lap: 0, sc: null, scHistory: [], events: [], finished: false,
+    trackId: track.id, laps, sprint: !!opts.sprint, lap: 0, sc: null, scHistory: [], events: [], finished: false,
     fastest: null, wet: wk.weather.wet.slice(0, laps + 2), lapLeaderTimes: [],
     cars: grid.map((g, i) => ({
       did: g.did, tid: g.tid, grid: i + 1, pos: i + 1,
@@ -262,6 +262,7 @@ Engine.createRace = (wk, grid, opts = {}) => {
 
 Engine.makePlan = (race, car, wk) => {
   const track = wk.track;
+  if (race.sprint) return { stops: 0, pitWear: 96, scOpportunist: false };
   const stops = track.tyreStress > 1.15 || race.laps > 65 ? (RNG.chance(0.65) ? 2 : 1) : (RNG.chance(0.8) ? 1 : 2);
   return { stops, pitWear: RNG.range(60, 74), scOpportunist: RNG.chance(0.75) };
 };
@@ -277,7 +278,7 @@ Engine.chooseCompound = (race, car, wk, lapsLeft) => {
   const drv = wk.effOf(car.did);
   const ok = (c) => Engine.wearRate(c, track, drv, team, 'normal', 0) * lapsLeft <= 72;
   const usedDry = car.used.filter(c => 'SMH'.includes(c));
-  const needDiff = wk.db.rules.mandatoryTwoCompounds && new Set(usedDry).size < 2 && race.wet.slice(0, race.lap + 1).every(x => x < 0.2);
+  const needDiff = !race.sprint && wk.db.rules.mandatoryTwoCompounds && new Set(usedDry).size < 2 && race.wet.slice(0, race.lap + 1).every(x => x < 0.2);
   const stopsLeft = Math.max(0, car.plan.stops - car.pits - 1);
   const cands = stopsLeft > 0 ? ['M', 'S', 'H'] : ['S', 'M', 'H'];
   for (const c of cands) {
@@ -307,7 +308,7 @@ Engine.aiWantsPit = (race, car, wk, strategyRating) => {
     if (car.tyre.wear >= car.plan.pitWear) return true;
     if (car.tyre.wear > 82) return true;
     if (race.sc && car.plan.scOpportunist && car.tyre.wear > 35 && lapsLeft > 8 && race.lap - car.lastPitLap > 6) return RNG.chance(0.45 + react * 0.4);
-    if (lapsLeft <= 6 && allDryRace && wk.db.rules.mandatoryTwoCompounds && usedDry.size < 2) return true;
+    if (!race.sprint && lapsLeft <= 6 && allDryRace && wk.db.rules.mandatoryTwoCompounds && usedDry.size < 2) return true;
   }
   return false;
 };
@@ -557,16 +558,16 @@ Engine.finishRace = (race, wk) => {
   classified.forEach((c, i) => (c.pos = i + 1));
   race.classification = classified.map(c => c.did);
   // pilotos com menos de 90% de distância não pontuam (abandonos)
-  const pts = wk.db.rules.points;
+  const pts = race.sprint ? (wk.db.rules.sprintPoints || [8, 7, 6, 5, 4, 3, 2, 1]) : wk.db.rules.points;
   race.points = {};
   classified.forEach((c, i) => {
     let p = c.status === 'fin' ? (pts[i] || 0) : 0;
     race.points[c.did] = p;
   });
-  if (wk.db.rules.fastestLapPoint && race.fastest) {
+  if (!race.sprint && wk.db.rules.fastestLapPoint && race.fastest) {
     const fc = race.cars.find(c => c.did === race.fastest.did);
     if (fc && fc.status === 'fin' && fc.pos <= (wk.db.rules.fastestLapTopN || 10)) race.points[fc.did] += wk.db.rules.fastestLapPoint;
   }
   const w = classified[0];
-  if (w) Engine.event(race, 'finish', `BANDEIRADA! ${wk.nameOf(w.did)} vence o ${wk.track.gp}!`, w.did);
+  if (w) Engine.event(race, 'finish', race.sprint ? `${wk.nameOf(w.did)} vence a corrida Sprint!` : `BANDEIRADA! ${wk.nameOf(w.did)} vence o ${wk.track.gp}!`, w.did);
 };
