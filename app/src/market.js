@@ -54,7 +54,7 @@ Market.slPoints = (G, d) => {
 };
 Market.slEligible = (G, d) => !!(d.slEligible || (d.career && d.career.starts > 0) || Market.slPoints(G, d) >= 40) && d.age >= 18;
 Market.awardSuperlicense = (G, catId, standings) => {
-  const table = (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.superlicense[catId]) || null;
+  const table = (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.superlicense[catId]) || (typeof DriverDB !== 'undefined' && DriverDB.SL[catId]) || null;
   if (!table) return;
   standings.forEach((x, i) => {
     const d = Career.driver(G, x.did); if (!d || !table[i]) return;
@@ -67,7 +67,8 @@ Market.academyOf = (G, d) => (G.academies || []).find(a => a.members.includes(d.
 Market.candidateScore = (G, t, d) => {
   const P = AI.persona(t);
   let s = driverOverall(d) * 1.0;
-  if (d.age <= 24) s += Math.max(0, d.potential - driverOverall(d)) * (0.15 + (1 - P.ambition) * 0.25);
+  // a equipe enxerga uma estimativa do potencial (olheiros dela), não o número real
+  if (d.age <= 24) s += Math.max(0, (typeof Potential !== 'undefined' ? Potential.seenBy(G, d, t.id) : d.potential) - driverOverall(d)) * (0.15 + (1 - P.ambition) * 0.25);
   if (d.age >= 35) s -= (d.age - 34) * 1.2;
   const ac = Market.academyOf(G, d);
   if (ac && ac.team === t.id) s += 4;
@@ -286,10 +287,11 @@ Market.midSeasonSackings = (G, p) => {
         const sub = res || junior;
         if (!sub) return;
         const seat = d.seat;
+        const fee = typeof MarketPlus !== 'undefined' ? MarketPlus.exitFee(G, d, t) : 0; // contrato rompido custa multa
         d.team = null; d.seat = null; d.contractYears = 0; d.morale = 35;
         Career.placeDriver(G, sub, t.id, seat, Math.max(sub.salary || 0.75, 0.75), 0);
         Career.news(G, `${t.name} troca de piloto no meio da temporada: sai ${d.name}, entra ${sub.name}`, 'mercado');
-        Career.record(G, 'rescisao', `${t.name} substituiu ${d.name} por ${sub.name} após ${st.starts} corridas: ${st.points || 0} pontos contra ${ms.points || 0} do companheiro.`, { teams: [t.id], drivers: [d.id, sub.id] });
+        Career.record(G, 'rescisao', `${t.name} substituiu ${d.name} por ${sub.name} após ${st.starts} corridas: ${st.points || 0} pontos contra ${ms.points || 0} do companheiro. Multa de rescisão: ${fmtMoney(fee)}.`, { teams: [t.id], drivers: [d.id, sub.id] });
       }
     });
   });

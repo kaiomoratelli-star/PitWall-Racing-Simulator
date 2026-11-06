@@ -172,7 +172,7 @@ ACT.driverPage = (el) => {
   modal(name, `
     <div class="driver-card-top">${d ? headshot(d, 'xl') : `<span class="hs xl noimg"><b>${esc(initials(name))}</b></span>`}
       <div class="stack" style="gap:6px">
-        <div class="row">${natTag(d ? d.nat : h[1])}<span>${d ? `${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')} · nota <b>${driverOverall(d)}</b> · potencial ${d.potential}` : `Nascido em ${esc(h[2] || '?')}${h[11] ? ` · falecido em ${esc(h[11])}` : ''}`}</span>${d && d.regen ? '<span class="chip">piloto gerado</span>' : ''}${d && d.retired ? '<span class="chip">aposentado</span>' : ''}</div>
+        <div class="row">${natTag(d ? d.nat : h[1])}<span>${d ? `${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')} · nota <b>${driverOverall(d)}</b> · potencial ${potText(d)}` : `Nascido em ${esc(h[2] || '?')}${h[11] ? ` · falecido em ${esc(h[11])}` : ''}`}</span>${d && d.regen ? '<span class="chip">piloto gerado</span>' : ''}${d && d.retired ? '<span class="chip">aposentado</span>' : ''}</div>
         <div class="small muted">${d && d.team ? `${esc(Career.team(G, d.team).name)} (${d.seat === 'R' ? 'reserva' : 'carro #' + d.seat}) até ${G.season.year + Math.max(0, d.contractYears)} · ${fmtMoney(d.salary)}/ano` : d ? 'Sem equipe' : 'Piloto histórico'}</div>
         ${d && d.evidence ? `<div class="small muted">Nota estimada a partir dos resultados reais: ${d.evidence.races3y} corridas nas últimas 3 temporadas.</div>` : ''}
         ${d && G ? `<div class="row" style="gap:6px">${slChip(d)}${Market.academyOf(G, d) ? `<span class="chip">${esc(Market.academyOf(G, d).name)}</span>` : ''}${d.manager ? `<span class="chip">Empresário: ${esc(d.manager)}</span>` : ''}</div>

@@ -109,3 +109,16 @@ DriverDB.duplicates = (G) => {
   });
   return out;
 };
+
+/* fim de temporada: quem corre em série profissional segue lá até se aposentar pela idade;
+   quem estava numa série de base passa a disputar vaga nas categorias do jogo */
+DriverDB.PRO = new Set(['indycar', 'fe', 'sf', 'wec', 'imsa', 'elms', 'alms', 'nascup', 'nasxf', 'nastr', 'dtm', 'stockcar', 'supercars', 'nxt', 'f2', 'f3', 'sfl']);
+DriverDB.endSeason = (G) => {
+  const y = G.season.year;
+  G.db.drivers.forEach(d => {
+    if (!d.series || d.retired || d.team) { if (d.team) { d.series = null; d.seriesTeam = null; } return; }
+    if (!DriverDB.PRO.has(d.series)) { d.series = null; d.seriesTeam = null; return; }
+    const r = localRng(`ser:${G.seed}:${d.id}:${y}`)();
+    if (d.age >= 42 || (d.age >= 36 && r < 0.12 + (d.age - 36) * 0.06)) { d.retired = true; d.retiredYear = y; }
+  });
+};

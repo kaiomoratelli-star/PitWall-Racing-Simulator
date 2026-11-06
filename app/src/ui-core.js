@@ -203,6 +203,13 @@ function tyreIcon(c, title) {
 /* aviso discreto: versão de fã, sem relação com pessoas, equipes ou empresas reais */
 const DISCLAIMER = 'Projeto de fã, sem fins comerciais. Sem relação com a FIA, a Fórmula 1, equipes, pilotos, jornalistas, empresas ou marcas citados. Os acontecimentos do jogo são fictícios.';
 function disclaimerHtml(short) { return `<p class="disclaimer">${short ? 'Simulação fictícia: sem relação com as pessoas, equipes e empresas reais citadas.' : DISCLAIMER}</p>`; }
+/* patrocinador com logo (quando há), em todas as telas */
+function sponsorTag(name) { const u = typeof Assets !== 'undefined' ? Assets.logoByName('sponsors', name) || Assets.logoByName('manufacturers', name) || Assets.logoByName('tyres', name) : null; return `<span class="spons">${u ? `<img src="${u}" alt="" loading="lazy" onerror="this.remove()">` : ''}<b>${esc(name)}</b></span>`; }
+/* potencial: no modo Manager o jogador vê a faixa estimada pelos olheiros, nunca o número real */
+function potEst(d) { return G && d && typeof Potential !== 'undefined' && !Career.isObs(G) ? Potential.estimate(G, d) : null; }
+function potText(d) { const e = potEst(d); return e ? `<span title="Confiança ${e.label}">${e.lo}–${e.hi}</span>` : String(d.potential); }
+function potMid(d) { const e = potEst(d); return e ? e.mid : d.potential; }
+function potRow(d) { const e = potEst(d); if (!e) return potRow(d); return `<div class="attr"><span>Potencial (estimado)</span><span class="num r" style="text-align:right">${e.lo}–${e.hi}</span><div class="bar g"><i style="left:${e.lo}%;width:${Math.max(2, e.hi - e.lo)}%;position:absolute"></i></div></div><div class="small muted" style="margin:-4px 0 4px">Confiança ${e.label}${e.conf < 0.75 ? ' · mande um olheiro para estreitar a faixa' : ''}</div>`; }
 function natTag(n) { return `<span class="nat" title="${esc(NAT_NAMES[n] || n)}">${typeof Assets !== 'undefined' ? Assets.flag(n) : ''}${esc(n)}</span>`; }
 function flagOnly(n) { return typeof Assets !== 'undefined' ? Assets.flag(n, 'sm') : ''; }
 function bar(v, max = 100, cls = '') { return `<div class="bar ${cls}"><i style="width:${clamp(v / max * 100, 0, 100)}%"></i></div>`; }

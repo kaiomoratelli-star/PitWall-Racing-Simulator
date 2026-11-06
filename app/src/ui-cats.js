@@ -5,7 +5,8 @@
 
 NAV.splice(NAV.findIndex(n => n[0] === 'seasons'), 0, ['cats', 'Outras categorias', 'M3 17l4-10 4 6 3-4 7 8M3 21h18']);
 
-const CAT_GROUPS = [['Rumo à F1', ['f2', 'f3']], ['Regionais', ['freca', 'frme', 'fram', 'frj']], ['Fórmula 4', ['f4it', 'f4es', 'f4gb', 'e4', 'f4br', 'f4us', 'f4jp']], ['Profissionais', ['fe', 'sf']]];
+// ecossistemas: as principais em destaque; depois as escadas de formação de cada mundo
+const CAT_GROUPS = [['Principais', ['fe', 'indycar', 'wec', 'sf'], true], ['Monopostos · rumo à F1', ['f2', 'f3']], ['Monopostos · regionais', ['freca', 'frme', 'fram']], ['Monopostos · Fórmula 4', ['f4it', 'f4es', 'f4gb', 'e4', 'f4br']], ['Ecossistema Indy', ['f4us']], ['Ecossistema Super Formula', ['frj', 'f4jp']]];
 function catDate(iso) { const [y, m, d] = iso.split('-'); return `${Number(d)} ${['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][Number(m) - 1]}`; }
 function catTeam(cat, tid) { return cat.teams.find(t => t.id === tid) || { name: '—', color: '#555' }; }
 function catDriverCell(did, cat, team) {
@@ -26,7 +27,7 @@ SCREENS.cats = {
     const done = s ? s.next : 0, total = s ? s.cal.length : 0;
     const nextEv = s && s.cal[s.next];
     const P = (o) => JSON.stringify({ c: id, t: tab, ...o });
-    const chips = CAT_GROUPS.map(([g, ids]) => `<div class="catgroup"><span class="label">${g}</span>${ids.map(x => Cats.get(G, x)).filter(Boolean).map(c => `<button class="catchip ${c.id === id ? 'on' : ''} ${c.enabled ? '' : 'off'}" style="--cc:${c.color}" data-act="go" data-v="cats" data-p='${JSON.stringify({ c: c.id, t: tab })}'>${esc(c.short)}</button>`).join('')}</div>`).join('');
+    const chips = CAT_GROUPS.map(([g, ids, main]) => `<div class="catgroup ${main ? 'main' : ''}"><span class="label">${g}</span>${ids.map(x => Cats.get(G, x)).filter(Boolean).map(c => `<button class="catchip ${c.id === id ? 'on' : ''} ${c.enabled ? '' : 'off'}" style="--cc:${c.color}" data-act="go" data-v="cats" data-p='${JSON.stringify({ c: c.id, t: tab })}'>${esc(c.short)}</button>`).join('')}</div>`).join('');
     let body = '';
     if (tab === 'stand') body = catStandHtml(cat);
     if (tab === 'cal') body = catCalHtml(cat);
@@ -105,3 +106,16 @@ function edCats() {
 CHG.catSet = (el) => { const c = Cats.get(G, el.dataset.id); const k = el.dataset.k; c[k] = k === 'enabled' ? el.checked : k === 'seats' ? clamp(Number(el.value) || c.seats, 4, 60) : el.value; toast('Categoria atualizada.'); };
 CHG.catPts = (el) => { const c = Cats.get(G, el.dataset.id); const v = el.value.split(',').map(x => Number(x.trim())).filter(x => isFinite(x)); if (v.length) c.races[+el.dataset.i][1] = v; toast('Pontuação atualizada.'); };
 CHG.catTeam = (el) => { const c = Cats.get(G, el.dataset.id); c.teams[+el.dataset.i].str = clamp(Number(el.value) || 50, 20, 80); };
+
+/* séries que estão na base de pilotos mas ainda não são simuladas: aparecem organizadas, sem fingir que são jogáveis */
+(function () {
+  const h = SCREENS.cats.html;
+  SCREENS.cats.html = function () {
+    const base = h.call(this);
+    if (typeof DRIVER_DB === 'undefined' || !Cats.on(G)) return base;
+    const sim = new Set(Cats.list(G, true).map(c => c.id).concat(['f1']));
+    const byEco = {};
+    Object.entries(DRIVER_DB.series).filter(([id]) => !sim.has(id)).forEach(([id, s]) => { const n = G.db.drivers.filter(d => d.series === id && !d.retired).length; (byEco[s.ecoName] = byEco[s.ecoName] || []).push(`${esc(s.name)}${n ? ` <span class="muted">· ${n} no universo</span>` : ''}`); });
+    return base + `<div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Na base de dados</h3><span class="small muted">pilotos e carreiras reais; simulação em preparação</span></div><div class="panel-b grid g3">${Object.entries(byEco).map(([eco, xs]) => `<div><span class="label">${esc(eco)}</span><div class="small" style="line-height:1.7">${xs.join('<br>')}</div></div>`).join('')}</div></div>`;
+  };
+})();

@@ -463,7 +463,7 @@ SCREENS.team = {
       </tbody></table></div></div>
     </div>
     <div class="panel"><div class="panel-h"><h3>Patrocinadores</h3><span class="small muted">${fmtMoney(sum(G.sponsors.map(s => s.perRace)))} por GP</span></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Marca</th><th class="r">Por GP</th><th>Objetivo</th><th class="r">Bônus</th><th class="r">Temporadas</th><th>Satisfação</th></tr></thead><tbody>
-      ${G.sponsors.map(s => `<tr><td><b>${esc(s.name)}</b></td><td class="r num">${fmtMoney(s.perRace)}</td><td class="small">${Career.SPONSOR_OBJ[s.objective]}</td><td class="r num">${fmtMoney(s.bonus)}</td><td class="r num">${s.seasons}</td><td style="min-width:120px">${pctBar(s.satisfaction)}</td></tr>`).join('')}
+      ${G.sponsors.map(s => `<tr><td>${sponsorTag(s.name)}</td><td class="r num">${fmtMoney(s.perRace)}</td><td class="small">${Career.SPONSOR_OBJ[s.objective]}</td><td class="r num">${fmtMoney(s.bonus)}</td><td class="r num">${s.seasons}</td><td style="min-width:120px">${pctBar(s.satisfaction)}</td></tr>`).join('')}
     </tbody></table></div></div>`;
   },
 };
@@ -476,7 +476,7 @@ function driverCard(d, year) {
     <div class="panel-b grid g2">
       <div class="stack" style="gap:8px">${DRIVER_ATTRS.slice(0, 8).map(([k, l]) => attrRow(l, d[k])).join('')}</div>
       <div class="stack" style="gap:8px">
-        ${attrRow('Agressividade', d.aggression, 'r')}${attrRow('Experiência', d.experience, 'b')}${attrRow('Potencial', d.potential, 'g')}${attrRow('Moral', d.morale, d.morale < 40 ? 'r' : 'g')}${attrRow('Popularidade', d.popularity, 'b')}
+        ${attrRow('Agressividade', d.aggression, 'r')}${attrRow('Experiência', d.experience, 'b')}${potRow(d)}${attrRow('Moral', d.morale, d.morale < 40 ? 'r' : 'g')}${attrRow('Popularidade', d.popularity, 'b')}
         <dl class="kv" style="margin-top:6px"><dt>Contrato até</dt><dd>${year + Math.max(0, d.contractYears)}</dd><dt>Salário</dt><dd>${fmtMoney(d.salary)}/ano</dd><dt>Valor de mercado</dt><dd>${fmtMoney(Career.marketValue(d))}</dd><dt>Temporada</dt><dd>${G.season.standD[d.id] || 0} pts · ${st.wins || 0}V · ${st.podiums || 0}P</dd><dt>Carreira</dt><dd>${d.career.starts} GPs · ${d.career.wins}V · ${d.career.titles} títulos</dd></dl>
         <div class="row" style="margin-top:4px">
           <select class="inp" style="width:auto" data-chg="setSeat" data-id="${d.id}" aria-label="Assento">${opt(1, 'Carro #1', d.seat)}${opt(2, 'Carro #2', d.seat)}${opt('R', 'Reserva', d.seat)}</select>
@@ -594,7 +594,7 @@ SCREENS.market = {
     if (f === 'free') ds = ds.filter(d => !d.team);
     if (f === 'young') ds = ds.filter(d => d.age <= 23);
     if (f === 'expiring') ds = ds.filter(d => d.team && d.contractYears <= 0);
-    const key = { ovr: d => -driverOverall(d), pot: d => -d.potential, age: d => d.age, val: d => -Career.marketValue(d) }[sort];
+    const key = { ovr: d => -driverOverall(d), pot: d => -potMid(d), age: d => d.age, val: d => -Career.marketValue(d) }[sort];
     ds.sort((a, b) => key(a) - key(b));
     const P = (o) => JSON.stringify({ f, s: sort, ...o }).replace(/'/g, '');
     return `
@@ -602,7 +602,7 @@ SCREENS.market = {
     <div class="row"><div class="seg">${[['all', 'Todos'], ['free', 'Sem equipe'], ['young', 'Jovens (≤23)'], ['expiring', 'Contrato acabando']].map(([k, l]) => `<button class="${f === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ f: k })}'>${l}</button>`).join('')}</div>
       <span class="spacer"></span><span class="small muted">Ordenar</span><div class="seg">${[['ovr', 'Nota'], ['pot', 'Potencial'], ['age', 'Idade'], ['val', 'Valor']].map(([k, l]) => `<button class="${sort === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ s: k })}'>${l}</button>`).join('')}</div></div>
     <div class="panel"><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th>Nac.</th><th class="r">Idade</th><th>Equipe</th><th>Estilo</th><th class="r">Nota</th><th class="r">Potencial</th><th class="r">Contrato</th><th class="r">Valor/ano</th><th class="r">Moral</th><th></th></tr></thead><tbody>
-      ${ds.map(d => `<tr><td>${dTag(d.id)}${d.rookie ? ' <span class="chip">novato</span>' : ''}${d.futureTeam ? ` <span class="chip acc">→ ${esc(Career.team(G, d.futureTeam.team).short)}</span>` : ''}</td><td>${natTag(d.nat)}</td><td class="r num">${d.age}</td><td class="small">${d.team ? esc(Career.team(G, d.team).name) + (d.seat === 'R' ? ' (res.)' : '') : '<span class="muted">Livre</span>'}</td><td class="small muted">${esc(STYLE_LABELS[d.style] || '')}</td><td class="r num ${ratingClass(driverOverall(d))}"><b>${driverOverall(d)}</b></td><td class="r num">${d.potential}</td><td class="r num">${d.team ? G.season.year + Math.max(0, d.contractYears) : '—'}</td><td class="r num">${fmtMoney(Career.marketValue(d))}</td><td class="r num">${Math.round(d.morale)}</td><td><button class="btn sm" data-act="offerDlg" data-id="${d.id}">Proposta</button></td></tr>`).join('')}
+      ${ds.map(d => `<tr><td>${dTag(d.id)}${d.rookie ? ' <span class="chip">novato</span>' : ''}${d.futureTeam ? ` <span class="chip acc">→ ${esc(Career.team(G, d.futureTeam.team).short)}</span>` : ''}</td><td>${natTag(d.nat)}</td><td class="r num">${d.age}</td><td class="small">${d.team ? esc(Career.team(G, d.team).name) + (d.seat === 'R' ? ' (res.)' : '') : '<span class="muted">Livre</span>'}</td><td class="small muted">${esc(STYLE_LABELS[d.style] || '')}</td><td class="r num ${ratingClass(driverOverall(d))}"><b>${driverOverall(d)}</b></td><td class="r num">${potText(d)}</td><td class="r num">${d.team ? G.season.year + Math.max(0, d.contractYears) : '—'}</td><td class="r num">${fmtMoney(Career.marketValue(d))}</td><td class="r num">${Math.round(d.morale)}</td><td><button class="btn sm" data-act="offerDlg" data-id="${d.id}">Proposta</button></td></tr>`).join('')}
     </tbody></table></div></div>`;
   },
 };
@@ -611,7 +611,7 @@ ACT.offerDlg = (el) => {
   const val = Career.marketValue(d);
   const ev = Career.offerEval(G, d, val, 2, 1);
   modal(`Proposta para ${d.name}`, `
-    <div class="row">${natTag(d.nat)} <span>${d.age} anos · nota <b>${driverOverall(d)}</b> · potencial ${d.potential}</span></div>
+    <div class="row">${natTag(d.nat)} <span>${d.age} anos · nota <b>${driverOverall(d)}</b> · potencial ${potText(d)}</span></div>
     <p class="muted small">${d.team ? `Contratado pela ${esc(Career.team(G, d.team).name)} até ${G.season.year + Math.max(0, d.contractYears)}. Multa para tirá-lo agora: ${fmtMoney(ev.buyout)}.` : 'Sem equipe: pode assinar e correr já.'}</p>
     <label class="field"><span>Salário anual (milhões) — valor de mercado ${fmtMoney(val)}</span><input class="inp num" id="of-sal" type="number" step="0.1" min="0.3" value="${val.toFixed(1)}" data-inp="offerCalc" data-id="${d.id}"></label>
     <label class="field"><span>Contrato até</span><select class="inp" id="of-y" data-chg="offerCalc" data-id="${d.id}">${[1, 2, 3, 4].map(n => opt(n, String(G.season.year + n), 2)).join('')}</select></label>
@@ -722,7 +722,7 @@ SCREENS.paddock = {
         ${carImg(t) ? `<div class="panel-b" style="padding-bottom:0">${carImg(t)}</div>` : ''}
         <div class="panel-b grid g2">
           <div class="stack" style="gap:8px">${attrRow('Carro (geral)', Engine.carRating(G.db, t))}${attrRow('Confiabilidade', Engine.reliability(G.db, t), 'g')}${attrRow('Média do staff', avg(Object.values(t.staff)), 'b')}${attrRow('Reputação', t.reputation, 'b')}</div>
-          <dl class="kv"><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd><dt>Orçamento anual</dt><dd>${fmtMoney(t.budget)}</dd><dt>Caixa${mine ? '' : ' (estimado)'}</dt><dd class="${(mine ? G.finances.balance : t.cash) < 0 ? 'neg' : ''}">${fmtMoney(mine ? G.finances.balance : t.cash)}</dd><dt>Gasto no teto</dt><dd>${fmtMoney(mine ? G.finances.spent : t.spent)}</dd>${t.lastDev && !mine ? `<dt>Último investimento</dt><dd>${esc(Career.AREAS[t.lastDev.area].name)} ${fmtMoney(t.lastDev.spend)}</dd>` : ''}<dt>Melhor temporada</dt><dd>${best ? `${ordinal(best.pos)} em ${best.y}` : '—'}</dd>${t.realStats ? `<dt>História na F1</dt><dd>${t.realStats.titles} títulos · ${t.realStats.wins} vitórias</dd>` : ''}${(t.sponsors || []).length ? `<dt>Parceiros</dt><dd style="white-space:normal">${t.sponsors.map(esc).join(', ')}</dd>` : ''}<dt>Pilotos</dt><dd>${ds.map(d => esc(d.name.split(' ').slice(-1)[0])).join(' · ')}</dd></dl>
+          ${(t.sponsors || []).length ? `<div class="spons-row" style="margin-bottom:8px">${t.sponsors.map(sponsorTag).join('')}</div>` : ''}<dl class="kv"><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd><dt>Orçamento anual</dt><dd>${fmtMoney(t.budget)}</dd><dt>Caixa${mine ? '' : ' (estimado)'}</dt><dd class="${(mine ? G.finances.balance : t.cash) < 0 ? 'neg' : ''}">${fmtMoney(mine ? G.finances.balance : t.cash)}</dd><dt>Gasto no teto</dt><dd>${fmtMoney(mine ? G.finances.spent : t.spent)}</dd>${t.lastDev && !mine ? `<dt>Último investimento</dt><dd>${esc(Career.AREAS[t.lastDev.area].name)} ${fmtMoney(t.lastDev.spend)}</dd>` : ''}<dt>Melhor temporada</dt><dd>${best ? `${ordinal(best.pos)} em ${best.y}` : '—'}</dd>${t.realStats ? `<dt>História na F1</dt><dd>${t.realStats.titles} títulos · ${t.realStats.wins} vitórias</dd>` : ''}${(t.sponsors || []).length ? `<dt>Parceiros</dt><dd style="white-space:normal">${t.sponsors.map(esc).join(', ')}</dd>` : ''}<dt>Pilotos</dt><dd>${ds.map(d => esc(d.name.split(' ').slice(-1)[0])).join(' · ')}</dd></dl>
         </div></div>`;
     }).join('')}</div>`;
   },
@@ -781,7 +781,7 @@ ACT.driverPage = (el) => {
   const hist = (d.history || []).slice().reverse();
   const tr = (d.transfers || []).slice().reverse();
   modal(d.name, `
-    <div class="row">${natTag(d.nat)}<span>${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')} · nota <b>${driverOverall(d)}</b> · potencial ${d.potential}</span>${d.retired ? '<span class="chip">aposentado</span>' : ''}</div>
+    <div class="row">${natTag(d.nat)}<span>${d.age} anos · ${esc(STYLE_LABELS[d.style] || '')} · nota <b>${driverOverall(d)}</b> · potencial ${potText(d)}</span>${d.retired ? '<span class="chip">aposentado</span>' : ''}</div>
     <div class="small muted">${d.team ? `${esc(Career.team(G, d.team).name)} (${d.seat === 'R' ? 'reserva' : 'carro #' + d.seat}) até ${G.season.year + Math.max(0, d.contractYears)} · ${fmtMoney(d.salary)}/ano` : 'Sem equipe'}</div>
     <div class="grid g4">${[['GPs', c.starts], ['Vitórias', c.wins], ['Pódios', c.podiums], ['Poles', c.poles], ['Títulos', c.titles], ['Pontos', Math.round(c.points || 0)], [`Pts ${G.season.year}`, G.season.standD[d.id] || 0], [`Vit. ${G.season.year}`, st.wins || 0]].map(([l, v]) => `<div><div class="label">${l}</div><div class="stat-big" style="font-size:24px">${v || 0}</div></div>`).join('')}</div>
     <h4>Temporadas</h4>
