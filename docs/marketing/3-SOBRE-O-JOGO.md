@@ -40,6 +40,15 @@
   - negociação com contraproposta.
 - Equipe técnica com 15 funções e nomes reais (diretor técnico, chefe de aerodinâmica, engenheiros de corrida, estrategista...). Dá para contratar alguém de outra equipe, que antes cumpre um período afastado.
 
+## Treinos livres e acerto (versão 0.7)
+- Treinos de 60 minutos com relógio: 1, 2 ou 3 sessões, ou o formato da vida real (3 normais, 1 em fim de semana de Sprint).
+- Programas na pista: acerto, simulação de classificação e simulação de corrida; tempo de garagem para cada ajuste; alocação oficial de pneus.
+- 5 ajustes (asas, suspensão, altura, freio) e 5 sensações do piloto (equilíbrio, frenagem, curvas, tração, retas).
+- O piloto lembra o que disse e só muda de opinião com motivo (tanque cheio, pista emborrachando, calor, vento, pneus gastos).
+- O engenheiro deduz o acerto ideal do que o piloto fala; a janela fica mais precisa a cada saída.
+- Confiança do piloto: acerto, conhecimento da pista e familiaridade com o carro.
+- Dá para deixar um treino ou todos com o engenheiro, com foco em classificação, em corrida ou equilibrado.
+
 ## Carro e regulamento
 - Desenvolvimento em 15 áreas: assoalho, asas, chassi, suspensão, freios, motor, câmbio, refrigeração, eficiência energética, confiabilidade e outras.
 - Cada área tem responsável, risco e impacto na confiabilidade.

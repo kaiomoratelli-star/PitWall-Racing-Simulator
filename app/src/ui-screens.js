@@ -96,7 +96,7 @@ async function firstFreeSlot() {
 }
 
 /* ================= NOVA CARREIRA ================= */
-const NC = { mode: 'manager', teamId: null, name: '', nat: 'BRA', seed: '', difficulty: 'normal', aiEvents: true, rainMult: 1, eventRate: 1, variance: 1, slot: null };
+const NC = { mode: 'manager', teamId: null, name: '', nat: 'BRA', seed: '', difficulty: 'normal', aiEvents: true, rainMult: 1, eventRate: 1, variance: 1, slot: null, practiceFormat: 'real' };
 SCREENS.newcareer = {
   bare: true,
   html() {
@@ -141,6 +141,7 @@ SCREENS.newcareer = {
             <label class="field"><span>Nacionalidade</span><select class="inp" id="nc-nat" data-chg="ncField" data-k="nat">${Object.entries(NAT_NAMES).map(([k, v]) => opt(k, v, NC.nat)).join('')}</select></label>
             <label class="field"><span>Dificuldade</span><select class="inp" id="nc-dif" data-chg="ncField" data-k="difficulty">${opt('easy', 'Fácil (seu carro rende um pouco mais)', NC.difficulty)}${opt('normal', 'Normal', NC.difficulty)}${opt('hard', 'Difícil', NC.difficulty)}</select></label>
             <label class="field"><span>Imprevisibilidade do grid inicial</span><select class="inp" id="nc-var" data-chg="ncField" data-k="variance">${opt(0, 'Nenhuma (base exata)', NC.variance)}${opt(1, 'Normal', NC.variance)}${opt(2, 'Alta', NC.variance)}</select></label>
+            <label class="field"><span>Treinos livres por fim de semana</span><select class="inp" data-chg="ncField" data-k="practiceFormat">${opt('real', 'Formato vida real (3; 1 com Sprint)', NC.practiceFormat)}${opt('3', '3 sessões', NC.practiceFormat)}${opt('2', '2 sessões', NC.practiceFormat)}${opt('1', '1 sessão', NC.practiceFormat)}</select></label>
             <label class="field"><span>Frequência de chuva</span><select class="inp" id="nc-rain" data-chg="ncField" data-k="rainMult">${opt(0, 'Sem chuva', NC.rainMult)}${opt(0.6, 'Menos', NC.rainMult)}${opt(1, 'Realista', NC.rainMult)}${opt(1.8, 'Muita chuva', NC.rainMult)}</select></label>
             <label class="field"><span>Eventos fora da pista</span><select class="inp" id="nc-ev" data-chg="ncField" data-k="eventRate">${opt(0.5, 'Poucos', NC.eventRate)}${opt(1, 'Normal', NC.eventRate)}${opt(1.6, 'Muitos', NC.eventRate)}</select></label>
             ${Store.sample ? `<label class="check"><input type="checkbox" id="nc-ai" ${NC.aiEvents ? 'checked' : ''} data-chg="ncCheck" data-k="aiEvents"> Redação do paddock escreve matérias e acontecimentos extras</label>` : ''}
@@ -672,12 +673,14 @@ SCREENS.saves = {
       <div class="panel"><div class="panel-h"><h3>Opções da carreira</h3></div><div class="panel-b stack">
         ${Store.native ? '' : `<label class="check"><input type="checkbox" id="op-ai" ${o.aiEvents ? 'checked' : ''} data-chg="opt" data-k="aiEvents"> Redação do paddock (matérias e acontecimentos extras) ${Store.sample ? '' : '<span class="small muted">(indisponível nesta versão)</span>'}</label>`}
         <label class="field"><span>Frequência de eventos</span><select class="inp" id="op-ev" data-chg="opt" data-k="eventRate">${opt(0.5, 'Poucos', o.eventRate)}${opt(1, 'Normal', o.eventRate)}${opt(1.6, 'Muitos', o.eventRate)}</select></label>
+        <label class="field"><span>Treinos livres por fim de semana</span><select class="inp" data-chg="optPractice">${opt('real', 'Formato vida real (3; 1 com Sprint)', o.practiceFormat || 'real')}${opt('3', '3 sessões', o.practiceFormat)}${opt('2', '2 sessões', o.practiceFormat)}${opt('1', '1 sessão', o.practiceFormat)}</select></label>
         <label class="field"><span>Frequência de chuva</span><select class="inp" id="op-rain" data-chg="opt" data-k="rainMult">${opt(0, 'Sem chuva', o.rainMult)}${opt(0.6, 'Menos', o.rainMult)}${opt(1, 'Realista', o.rainMult)}${opt(1.8, 'Muita chuva', o.rainMult)}</select></label>
         <label class="field"><span>Dificuldade</span><select class="inp" id="op-dif" data-chg="opt" data-k="difficulty">${opt('easy', 'Fácil', o.difficulty)}${opt('normal', 'Normal', o.difficulty)}${opt('hard', 'Difícil', o.difficulty)}</select></label>
       </div></div>
     </div>`;
   },
 };
+CHG.optPractice = (el) => { G.options.practiceFormat = el.value; autosave(); toast('Vale a partir do próximo fim de semana.'); };
 CHG.opt = (el) => { const k = el.dataset.k; G.options[k] = el.type === 'checkbox' ? el.checked : (k === 'difficulty' ? el.value : Number(el.value)); autosave(); toast('Opção salva.'); };
 ACT.saveNow = async () => { const w = await Store.saveGame(SLOT, G); UI.lastSave = { at: Date.now(), where: w }; toast(w === 'cloud' ? 'Salvo na sua conta.' : 'Salvo neste navegador.', 'good'); render(); };
 ACT.exportSave = async () => { const r = await Store.exportFile(`pitwall-${Career.isObs(G) ? 'observador' : Career.team(G).short}-${G.season.year}.json`, G); if (!r.ok) toast(r.msg, 'bad'); };

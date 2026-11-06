@@ -30,42 +30,7 @@ SCREENS.weekend = {
   after() { bindCharts(); },
 };
 
-/* ---------- treinos livres: acerto ---------- */
-function practiceHtml() {
-  const wk = G.weekend;
-  const lineup = Career.lineup(G, G.player.teamId);
-  const panels = lineup.map(d => {
-    const s = wk.setups[d.id];
-    const last = s.runs[s.runs.length - 1];
-    const best = s.runs.length ? s.runs.reduce((a, b) => (b.lap < a.lap ? b : a)) : null;
-    return `<div class="panel"><div class="panel-h"><div>${dTag(d.id)}<div class="small muted">Experiência ${Math.round(d.experience)}: ${d.experience > 75 ? 'feedback preciso' : d.experience > 45 ? 'feedback razoável' : 'feedback confuso'}</div></div>
-      <span class="chip ${s.runsLeft ? 'acc' : ''}">${s.runsLeft} saída(s) restante(s)</span></div>
-      <div class="panel-b stack">
-        ${s.auto ? `<div class="callout">Os engenheiros vão definir o acerto deste carro (qualidade depende do engenheiro-chefe: ${Career.team(G).staff.engineering}).</div>` :
-        Engine.SETUP_KEYS.map(([k, l, a, b]) => `<div class="setup-row"><span>${l}</span><input type="range" min="0" max="100" value="${s[k]}" id="su-${d.id}-${k}" data-inp="setupSlide" data-d="${d.id}" data-k="${k}" aria-label="${l}"><span class="num" id="sv-${d.id}-${k}">${s[k]}</span><div class="ends"><span>${a}</span><span>${b}</span></div></div>`).join('')}
-        <div class="row">
-          <button class="btn primary" data-act="practiceRun" data-d="${d.id}" ${!s.runsLeft || s.auto ? 'disabled' : ''}>Sair para a pista</button>
-          <label class="check small"><input type="checkbox" ${s.auto ? 'checked' : ''} data-chg="setupAuto" data-d="${d.id}"> Deixar com os engenheiros</label>
-        </div>
-        ${last ? `<div class="sep"></div><div class="row between"><span class="label">Última volta</span><span class="num">${fmtLap(last.lap)} · confiança ${last.confidence}%</span></div>
-          <div class="stack" style="gap:6px">${last.fb.map(f => `<div class="fb"><span class="lv l${f.level}"><i></i><i></i><i></i></span><span><b>${Engine.SETUP_KEYS.find(x => x[0] === f.key)[1]}:</b> ${esc(f.text)}</span></div>`).join('')}</div>` : '<p class="small muted">Ajuste os controles e saia para a pista. O piloto vai dizer o que sente no carro.</p>'}
-        ${s.runs.length > 1 ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th class="r">Asa</th><th class="r">Susp.</th><th class="r">Marchas</th><th class="r">Freio</th><th class="r">Volta</th><th class="r">Confiança</th><th></th></tr></thead><tbody>${s.runs.map((r, i) => `<tr class="${r === best ? 'me' : ''}"><td class="num">${i + 1}</td><td class="r num">${r.setup.wing}</td><td class="r num">${r.setup.susp}</td><td class="r num">${r.setup.gear}</td><td class="r num">${r.setup.brake}</td><td class="r num ${r === best ? 'pur' : ''}">${fmtLap(r.lap)}</td><td class="r num">${r.confidence}%</td><td><button class="btn sm ghost" data-act="useRun" data-d="${d.id}" data-i="${i}">Usar</button></td></tr>`).join('')}</tbody></table></div>` : ''}
-      </div></div>`;
-  }).join('');
-  return `${wkHead()}
-  <div class="callout">Cada saída mostra a volta e o retorno do piloto sobre asa, suspensão, marchas e freio. Barras cheias indicam ajuste longe do ideal. O acerto que estiver nos controles ao final dos treinos é o que vai para a classificação e a corrida.</div>
-  <div class="grid g2">${panels}</div>
-  <div class="row" style="justify-content:flex-end"><button class="btn primary lg" data-act="endPractice">Encerrar treinos</button></div>`;
-}
-CHG.setupSlide = (el) => { const s = G.weekend.setups[el.dataset.d]; s[el.dataset.k] = Number(el.value); const v = $(`#sv-${el.dataset.d}-${el.dataset.k}`); if (v) v.textContent = el.value; };
-CHG.setupAuto = (el) => { G.weekend.setups[el.dataset.d].auto = el.checked; render(); };
-ACT.practiceRun = (el) => {
-  const s = G.weekend.setups[el.dataset.d];
-  Career.practiceRun(G, el.dataset.d, { wing: s.wing, susp: s.susp, gear: s.gear, brake: s.brake });
-  render();
-};
-ACT.useRun = (el) => { const s = G.weekend.setups[el.dataset.d]; Object.assign(s, s.runs[+el.dataset.i].setup); render(); };
-ACT.endPractice = () => { Career.finishPractice(G); autosave(); render(); };
+/* treinos livres: ver ui-practice.js */
 
 /* ---------- classificação ---------- */
 function qualiHtml() {
@@ -73,7 +38,7 @@ function qualiHtml() {
   const lineup = Career.lineup(G, G.player.teamId);
   if (!wk.quali) {
     return `${wkHead()}
-    <div class="grid g2">${lineup.map(d => `<div class="panel"><div class="panel-h">${dTag(d.id)}<span class="chip">Acerto ${Math.round((wk.setups[d.id].q || 0) * 100)}%</span></div><div class="panel-b stack">
+    <div class="grid g2">${lineup.map(d => `<div class="panel"><div class="panel-h">${dTag(d.id)}<span class="chip">Confiança ${wk.setups[d.id].conf ?? '—'}% · acerto classif. ${Math.round((wk.setups[d.id].qQ ?? wk.setups[d.id].q ?? 0) * 100)}%</span></div><div class="panel-b stack">
       <span class="label">Postura na volta rápida</span>
       ${segBtns('qRisk', wk.qualiRisk[d.id], [['safe', 'Segura'], ['normal', 'Normal'], ['push', 'No limite']], `data-d="${d.id}"`)}
       <p class="small muted">No limite: mais rápido em média, mas com mais chance de erro ou batida. Segura: quase sem erros, um pouco mais lento.</p>
