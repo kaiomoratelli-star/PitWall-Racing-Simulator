@@ -17,6 +17,9 @@
 - Potencial oculto: no modo Manager o número real não aparece em lugar nenhum; aparece uma faixa estimada com confiança (baixa, média, alta), mais estreita para quem é da equipe, da academia ou foi observado. As equipes do jogo também decidem por estimativas com erro.
 - Nova tela Olheiros: 3 olheiros, observação de 4 etapas, relatório na caixa de entrada (faixa, pontos fortes, recomendação), filtros por série, nacionalidade e idade, comparação de dois pilotos e convite para a academia.
 - Mercado: atratividade da equipe inclui a saúde financeira; estrelas recusam equipes sem perspectiva; empresários com reputação e relação com cada equipe; patrocínio pessoal só para pilotos fictícios, pesando mais para equipes com caixa apertado e pago de fato no fim do ano; política de academia por grupo (Red Bull prioriza a própria academia, configurável em `rules.groupPolicies`); multa de rescisão quando uma equipe troca de piloto no meio do ano.
+- Kart: quatro campeonatos regionais (Europa, Américas, Brasil, Ásia-Pacífico) com pilotos fictícios de 12 a 15 anos gerados pelo jogo. Resolvidos no fim do ano; os melhores sobem para a F4 da região antes de o jogo inventar um piloto para a vaga, e quem passa dos 16 sem vaga larga o kart. Em 10 temporadas de teste, cerca de 200 pilotos saíram do kart e 5 chegaram à F1. Aparecem na tela de categorias e nos olheiros.
+- Cláusulas de contrato: desempenho (a equipe encerra o contrato no fim do ano, sem multa, se o piloto ficar muito abaixo do esperado; avaliada na metade da temporada, com escolha na caixa de entrada) e saída (o piloto sai sem multa para uma equipe à frente no campeonato). Escolhidas na negociação e usadas também pelas equipes do jogo; o piloto aceita menos a primeira e mais a segunda.
+- Editor: formato de cada categoria (carro com tripulação) e política de academia por grupo (criar grupos, escolher equipes, peso da academia e penalidade para contratação externa).
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
@@ -35,7 +38,7 @@
 - Registro central de imagens com origem, licença, data e fallback de cada arquivo (`scripts/make-asset-registry.js`).
 
 **Compatibilidade**
-- Save v6: carreiras em andamento recebem a identidade da temporada, a base de pilotos, IndyCar e WEC, o estado dos olheiros e o patrocínio pessoal dos pilotos fictícios; corrida em andamento converte o modo antigo nos modos novos de pneu e energia.
+- Save v6: carreiras em andamento recebem a identidade da temporada, a base de pilotos, IndyCar e WEC, o estado dos olheiros, o kart e o patrocínio pessoal dos pilotos fictícios; corrida em andamento converte o modo antigo nos modos novos de pneu e energia.
 
 ## 0.7.1 — Correção do congelamento da corrida
 - Corrigido o travamento da corrida ao vivo ("tr is not a function"), que aparecia sobretudo no modo Observador. A torre de tempos usava uma variável local `tr` (o circuito) e, na 0.7.0, passou a chamar a função de idioma com o mesmo nome sempre que um carro estava com o modo de ultrapassagem ativo. O desenho falhava a cada volta, o laço da corrida parava de avançar e o erro se repetia no log.

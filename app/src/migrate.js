@@ -17,6 +17,7 @@ const Migrate = {
       if (typeof Cats !== 'undefined' && G.cats) { const add = ['indycar', 'wec'].filter(id => !G.cats.byId[id]); if (add.length) Cats.init(G, add); }
       // base de pilotos reais (ligação à carreira real e pilotos de outras séries)
       if (typeof DriverDB !== 'undefined' && !G.driverDbDone) DriverDB.init(G);
+      if (typeof Kart !== 'undefined') Kart.init(G);
       if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);
       Potential.state(G);
       const r = G.weekend && G.weekend.race;

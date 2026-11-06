@@ -69,7 +69,7 @@ Potential.knowledge = (G, d) => {
 };
 Potential.estimate = (G, d, viewer) => {
   const conf = viewer && viewer !== G.player.teamId ? 0.55 : Potential.knowledge(G, d);
-  const ageF = 1 + Math.max(0, 22 - d.age) * 0.08;
+  const ageF = 1 + Math.max(0, 22 - d.age) * 0.04;
   const width = (1 - conf) * 17 * ageF + 2;
   const bias = (localRng(`pb:${G.seed}:${d.id}:${viewer || 'me'}`)() * 2 - 1) * (1 - conf) * 11;
   const ovr = driverOverall(d);

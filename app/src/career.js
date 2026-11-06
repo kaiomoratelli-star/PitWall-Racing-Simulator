@@ -93,6 +93,7 @@ Career.initPeople = (G) => {
   Staff.refreshMarket(G);
   if (typeof Cats !== 'undefined' && G.options.categories !== false) Cats.init(G);
   if (typeof DriverDB !== 'undefined') DriverDB.init(G);
+  if (typeof Kart !== 'undefined') Kart.init(G);
   if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);
 };
 Career.isObs = (G) => G.mode === 'observer';
