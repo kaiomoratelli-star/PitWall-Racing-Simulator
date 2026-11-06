@@ -460,3 +460,4 @@ I18N_PATS.push([/^(\d{4}) · etapa (\d+)( · abaixo do esperado)?$/, (m, y, r, b
   ['/^.{60,}$/s', '/^(\\d+) · (.+)$/', '/^.+ · .+$/'].forEach(src => { const i = I18N_PATS.findIndex(([re]) => String(re) === src); if (i >= 0) I18N_PATS.push(I18N_PATS.splice(i, 1)[0]); });
 })();
 I18N_PATS.splice(I18N_PATS.length - 3, 0, [/^Escolha "Carro de (\d{4})" no alvo do projeto: cada peça pesquisada ocupa uma vaga\.$/, 'Choose "$1 car" as the project target: each researched part takes a slot.']);
+Object.assign(I18N_EN, { 'Hoje': 'Today', 'Data': 'Date', 'Voltar': 'Back', 'Voltar (Alt + ←)': 'Back (Alt + ←)', 'importante': 'important', 'decidir': 'decide', 'Fabricação': 'Manufacturing', 'Projeto': 'Design', 'Diretor técnico': 'Technical director', 'Chefe de fábrica': 'Factory manager', 'Peças em um carro só': 'Parts on one car only' });

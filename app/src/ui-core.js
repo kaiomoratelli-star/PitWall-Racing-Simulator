@@ -111,9 +111,11 @@ function shellHtml(inner) {
   return `
   <header class="topbar">
     <button class="btn ghost sm navbtn" data-act="toggleNav" aria-label="Menu">☰</button>
+    <button class="btn ghost sm backbtn" data-act="back" aria-label="Voltar" title="Voltar (Alt + ←)" ${UI.hist && UI.hist.length ? '' : 'disabled'}>←</button>
     <button class="brand" data-act="go" data-v="hub"><span class="slash"></span><span class="word">PIT WALL</span></button>
     <div class="top-team"><span class="livery" style="background:linear-gradient(${team.color} 60%, ${team.color2} 60%)"></span><span class="name">${esc(team.name)}</span></div>
     <div class="top-stats">
+      <div class="top-stat"><span class="label">Data</span><b>${typeof Time !== 'undefined' && G.today ? esc(Time.fmt(G.today)) : G.season.year}</b></div>
       <div class="top-stat hide-sm"><span class="label">Temporada</span><b>${G.season.year} · ${Math.min(G.season.round + 1, G.season.calendar.length)}/${G.season.calendar.length}</b></div>
       <div class="top-stat hide-sm"><span class="label">Construtores</span><b>${ordinal(pos)}</b></div>
       <div class="top-stat"><span class="label">Caixa</span><b class="${G.finances.balance < 0 ? 'neg' : ''}">${fmtMoney(G.finances.balance)}</b></div>
@@ -139,6 +141,7 @@ function shellObsHtml(inner) {
   return `
   <header class="topbar">
     <button class="btn ghost sm navbtn" data-act="toggleNav" aria-label="Menu">☰</button>
+    <button class="btn ghost sm backbtn" data-act="back" aria-label="Voltar" title="Voltar (Alt + ←)" ${UI.hist && UI.hist.length ? '' : 'disabled'}>←</button>
     <button class="brand" data-act="go" data-v="hub"><span class="slash"></span><span class="word">PIT WALL</span></button>
     <span class="chip acc">Modo Observador</span>
     <div class="top-stats">

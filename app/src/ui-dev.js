@@ -52,7 +52,7 @@ function devCfg(G) {
     const P = RnD.pool(G);
     Object.assign(c, { area: RnD.SPEC[want] ? want : 'frontWing', focus: RnD.FOCUS[S.kind][0][0], wt: Math.min(S.wt, P.wt), cfd: Math.min(S.cfd, P.cfd) });
   }
-  c.amb = c.amb || 'balanced';
+  c.amb = c.amb || 'balanced'; c.copies = c.copies || 2; c.first = c.first || 1;
   if (c.next && !RnD.nextOpen(G)) c.next = false;
   if (Career.AREAS[c.area].works && !team.works) c.area = 'frontWing';
   return c;
@@ -71,8 +71,19 @@ function devCfg(G) {
     const running = G.projects.map(p => p.area);
     const ny = G.season.year + 1;
     // vagas
+    const projs = G.projects.filter(p => !p.buildOnly);
+    const lu = Career.lineup(G, team.id);
+    const carName = (seat) => { const d = lu.find(x => x.seat === seat); if (!d) return ''; const w = d.name.split(' ').filter(x => !/^(Jr\.?|Sr\.?|II|III)$/i.test(x)); return w[w.length - 1] || d.name; };
+    const dayStatus = (p) => p.stage === 'design'
+      ? byLang(`Projeto: faltam ${p.dLeft} dia(s)`, `Design: ${p.dLeft} day(s) left`)
+      : byLang(`Fabricação: peça ${p.fitted.length + 1} de ${p.copies} (carro #${p.fitted.length ? (p.fitted[0] === 1 ? 2 : 1) : p.first}) em ${p.bLeft} dia(s)`, `Manufacturing: part ${p.fitted.length + 1} of ${p.copies} (car #${p.fitted.length ? (p.fitted[0] === 1 ? 2 : 1) : p.first}) in ${p.bLeft} day(s)`);
+    const dayPct = (p) => p.stage === 'design' ? Math.round((1 - p.dLeft / Math.max(1, p.designDays)) * 100) : Math.round((p.fitted.length * p.buildDays + (p.buildDays - p.bLeft)) / Math.max(1, p.buildDays * p.copies) * 100);
     const box = (i) => {
-      const p = G.projects[i];
+      const p = projs[i];
+      if (p && p.dayMode) {
+        const sub = `${esc(T(RnD.AMB[p.amb] ? RnD.AMB[p.amb].name : ''))} · ${byLang('túnel', 'tunnel')} ${p.wt} · CFD ${p.cfd}${p.copies ? ` · ${p.copies} ${byLang('peça(s)', 'part(s)')}` : ''}`;
+        return `<div class="devslot busy${p.next ? ' next' : ''}"><div class="row between"><span class="small muted">${byLang('Vaga', 'Slot')} ${i + 1}</span>${p.next ? `<span class="chip">${byLang('Carro de', '')} ${ny}${byLang('', ' car')}</span>` : `<span class="chip">${p.stage === 'design' ? byLang('projeto', 'design') : byLang('fabricação', 'manufacturing')}</span>`}</div><b>${esc(T(Career.AREAS[p.area].name))}</b><div class="small">${sub}</div>${bar(dayPct(p), 100, p.stage === 'design' ? 'b' : 'g')}<div class="small muted">${dayStatus(p)} · ${byLang('risco', 'risk')} ${p.risk}%</div></div>`;
+      }
       if (p) {
         const pct = Math.round((p.total - p.left) / p.total * 100);
         const sub = p.v2 ? `${esc(T(RnD.AMB[p.amb] ? RnD.AMB[p.amb].name : ''))} · ${byLang('túnel', 'tunnel')} ${p.wt} · CFD ${p.cfd}` : esc(T(Career.SIZES[p.size].name));
@@ -90,23 +101,25 @@ function devCfg(G) {
     const wtMax = Math.max(P.wt, 0), cfdMax = Math.max(P.cfd, 0);
     const range = (k, v, max, step, need, unit) => need ? `<label class="field"><span>${k === 'wt' ? byLang('Túnel de vento', 'Wind tunnel') : 'CFD'}: <b>${v}</b> ${unit} <span class="muted">${byLang(`(ideal ${need}; restam ${max} no período)`, `(ideal ${need}; ${max} left this period)`)}</span></span><input type="range" min="0" max="${Math.max(max, v)}" step="${step}" value="${v}" data-chg="devRange" data-k="${k}" aria-label="${k === 'wt' ? 'Túnel de vento' : 'CFD'}"></label>` : `<div class="small muted">${k === 'wt' ? 'Não usa túnel de vento.' : 'Não usa CFD.'}</div>`;
     const gains = Object.entries(q.split).map(([f, w]) => `<dt>${esc(T(RnD.FIELD_LABEL[f] || f))}</dt><dd class="pos">+${(q.min * w).toFixed(2)}–${(q.max * w).toFixed(2)}</dd>`).join('');
-    const busy = G.projects.some(p => p.area === area && !!p.next === !!c.next);
-    const err = q.blocked || (G.projects.length >= slots ? 'Sem vaga livre.' : busy ? 'Já há um projeto desta peça com este alvo.' : q.wt > P.wt ? 'Túnel insuficiente.' : q.cfd > P.cfd ? 'CFD insuficiente.' : null);
+    const busy = G.projects.some(p => !p.buildOnly && p.area === area && !!p.next === !!c.next);
+    const err = q.blocked || (RnD.used(G) >= slots ? 'Sem vaga livre.' : busy ? 'Já há um projeto desta peça com este alvo.' : q.wt > P.wt ? 'Túnel insuficiente.' : q.cfd > P.cfd ? 'CFD insuficiente.' : null);
     const config = `<div class="panel"><div class="panel-h"><h3>Novo projeto</h3><span class="small muted">Teto disponível ${fmtMoney(G.db.rules.budgetCap - G.finances.spent)} · caixa ${fmtMoney(G.finances.balance)}</span></div>
       <div class="panel-b devcfg">
-        <div class="devcarcol">${devCarSvg(area, running)}<div class="small muted" style="text-align:center"><span class="lg sel"></span>escolhida <span class="lg run"></span>em projeto</div></div>
+        <div class="devcarcol">${devCarSvg(area, running)}<div class="small muted" style="text-align:center"><span class="lgd sel"></span>escolhida <span class="lgd run"></span>em projeto</div></div>
         <div class="stack" style="gap:12px">
           <label class="field"><span>Peça</span><select class="inp" data-chg="devArea">${areas.map(([k, a]) => opt(k, a.name + (a.works && !team.works ? ' (só fábrica)' : ''), area)).join('')}</select></label>
           <div><div class="label">Alvo</div>${seg('next', c.next ? 1 : 0, [[0, `Carro atual (${G.season.year})`], [1, `Carro de ${ny} (pesquisa)`]], v => v === 1 && (!nextOk || S.kind === 'team'))}
             <div class="small muted" style="margin-top:4px">${c.next ? `Só projeto, sem fabricação: rende 35% a mais e entra no carro de ${ny}. Ocupa uma vaga como qualquer projeto.` : nextOk ? 'Projeto e fabricação: a peça entra no carro assim que fica pronta.' : `Projeto e fabricação. A pesquisa do carro de ${ny} abre a partir de ${Regs.r(G).nextYearStartPct}% da temporada.`}</div></div>
           ${focusOpts.length > 1 ? `<div><div class="label">Foco</div>${seg('focus', c.focus, focusOpts.map(f => [f[0], f[1]]))}<div class="small muted" style="margin-top:4px">${esc(fdesc)}</div></div>` : ''}
           <div><div class="label">Ambição</div>${seg('amb', c.amb, Object.entries(RnD.AMB).map(([k, a]) => [k, a.name]))}<div class="small muted" style="margin-top:4px">${c.amb === 'aggressive' ? 'Conceito novo: ganho alto, mais caro, mais longo e mais arriscado.' : c.amb === 'conservative' ? 'Evolução pequena da peça atual: barato, rápido e seguro.' : 'Evolução normal da peça.'}</div></div>
+          ${q.build && !c.next ? `<div><div class="label">${byLang('Fabricação', 'Manufacturing')}</div><div class="row" style="gap:10px;flex-wrap:wrap">${seg('copies', c.copies || 2, [[1, byLang('1 carro', '1 car')], [2, byLang('2 carros', '2 cars')]])}${seg('first', c.first || 1, [[1, `${byLang('Primeiro: carro', 'First: car')} #1 ${esc(carName(1))}`], [2, `#2 ${esc(carName(2))}`]])}</div>
+            <div class="small muted" style="margin-top:4px">${byLang(`Cada peça leva ${q.buildDays} dia(s) para fabricar. A primeira vai para o carro escolhido; até a segunda ficar pronta, só ele tem a evolução.`, `Each part takes ${q.buildDays} day(s) to build. The first goes on the chosen car; until the second is ready, only that car has the upgrade.`)}</div></div>` : ''}
           ${range('wt', c.wt, wtMax, 5, S.wt, byLang('execuções', 'runs'))}
           ${range('cfd', c.cfd, cfdMax, 20, S.cfd, byLang('simulações', 'runs'))}
         </div>
         <div class="panel devprev"><div class="panel-b stack" style="gap:8px">
           <span class="label">Previsão</span><b>${esc(T(A.name))}${c.next ? ` (${byLang('carro de', '')} ${ny}${byLang('', ' car')})` : ''} — ${esc(T(RnD.AMB[q.amb].name).toLowerCase())}</b>
-          <dl class="kv"><dt>Custo</dt><dd>${fmtMoney(q.cost)}</dd><dt>Prazo</dt><dd>${q.design} GP(s) de projeto${q.build ? ` + ${q.build} de fabricação` : ''}</dd>${gains}<dt>Risco de falhar</dt><dd class="${q.risk >= 25 ? 'neg' : ''}">${q.risk}%</dd>${S.wt + S.cfd ? `<dt>Recursos</dt><dd>${Math.round(q.q / 1.0 * 100)}% de aproveitamento</dd>` : ''}${q.rel ? `<dt>Confiabilidade</dt><dd class="${q.rel < 0 ? 'neg' : 'pos'}">${q.rel > 0 ? '+' : ''}${(q.rel * Career.SIZES[q.size].races / 2).toFixed(1)}</dd>` : ''}<dt>Responsável</dt><dd style="white-space:normal">${esc(q.staffName || Career.STAFF_ROLES[A.staff] || '—')}</dd></dl>
+          <dl class="kv"><dt>Custo</dt><dd>${fmtMoney(q.cost)}</dd><dt>${byLang('Projeto', 'Design')}</dt><dd>${q.designDays} ${byLang('dias', 'days')}</dd>${q.buildDays ? `<dt>${byLang('Fabricação', 'Manufacturing')}</dt><dd>${q.copies} × ${q.buildDays} ${byLang('dias', 'days')}</dd><dt>${byLang('Pronto nos dois carros', 'On both cars')}</dt><dd>${q.copies >= 2 ? esc(Time.fmt(Time.addDays(G.today || Time.weekendDay(G), q.designDays + q.buildDays * 2))) : '—'}</dd>` : `<dt>${byLang('Pronto em', 'Ready on')}</dt><dd>${esc(Time.fmt(Time.addDays(G.today || Time.weekendDay(G), q.designDays)))}</dd>`}${gains}<dt>Risco de falhar</dt><dd class="${q.risk >= 25 ? 'neg' : ''}">${q.risk}%</dd>${S.wt + S.cfd ? `<dt>Recursos</dt><dd>${Math.round(q.q / 1.0 * 100)}% de aproveitamento</dd>` : ''}${q.rel ? `<dt>Confiabilidade</dt><dd class="${q.rel < 0 ? 'neg' : 'pos'}">${q.rel > 0 ? '+' : ''}${(q.rel * Career.SIZES[q.size].races / 2).toFixed(1)}</dd>` : ''}<dt>Responsável</dt><dd style="white-space:normal">${esc(q.staffName || Career.STAFF_ROLES[A.staff] || '—')}</dd></dl>
           ${err ? `<div class="small neg">${esc(err)}</div>` : ''}
           <button class="btn primary" data-act="devStart" ${err ? 'disabled' : ''}>Iniciar projeto</button>
         </div></div>
@@ -129,8 +142,14 @@ function devCfg(G) {
       u.seen = true;
       return card;
     }).join('') : '<p class="muted small">Nenhuma atualização concluída ainda.</p>';
-    const panel = `<div class="panel"><div class="panel-h"><h3>Vagas de projeto</h3><span class="small muted">${G.projects.length} de ${slots} em uso · até ${Career.MAX_SLOTS} com instalações no topo · pesquisa do carro de ${ny} também ocupa vaga</span></div>
+    const queue = G.projects.filter(p => p.buildOnly);
+    const single = (G.parts || []).filter(x => x.seats.length === 1);
+    const partsPanel = single.length || queue.length ? `<div class="panel"><div class="panel-h"><h3>${byLang('Peças em um carro só', 'Parts on one car only')}</h3><span class="small muted">${byLang('fabricar a segunda peça não ocupa vaga de projeto', 'building the second part does not use a project slot')}</span></div><div class="panel-b stack">
+      ${single.map(x => { const q2 = queue.find(p => p.id === x.id); const other = x.seats[0] === 1 ? 2 : 1; return `<div class="row between"><div><b>${esc(T(Career.AREAS[x.area].name))}</b> <span class="small muted">${byLang('no carro', 'on car')} #${x.seats[0]} ${esc(carName(x.seats[0]))}</span></div>${q2 ? `<span class="small">${byLang(`carro #${other}: pronta em ${q2.bLeft} dia(s)`, `car #${other}: ready in ${q2.bLeft} day(s)`)}</span>` : `<button class="btn sm" data-act="devCopy" data-id="${x.id}">${byLang(`Fabricar para o carro #${other}`, `Build for car #${other}`)} (${(RnD.SPEC[x.area] || {}).build || 0} ${byLang('dias', 'days')})</button>`}</div>`; }).join('')}
+    </div></div>` : '';
+    const panel = `<div class="panel"><div class="panel-h"><h3>Vagas de projeto</h3><span class="small muted">${projs.length} de ${slots} em uso · até ${Career.MAX_SLOTS} com instalações no topo · pesquisa do carro de ${ny} também ocupa vaga</span></div>
       <div class="panel-b devslots">${Array.from({ length: Career.MAX_SLOTS }, (_, i) => box(i)).join('')}</div></div>
+      ${partsPanel}
       ${config}
       <div class="grid g2">${pool}<div class="panel"><div class="panel-h"><h3>Atualizações concluídas</h3><span class="small muted">antes → depois</span></div><div class="panel-b stack">${doneHtml}</div></div></div>`;
     const i0 = html.indexOf('<div class="panel"><div class="panel-h"><h3>Projetos em andamento</h3>');
@@ -144,6 +163,7 @@ function devCfg(G) {
 })();
 ACT.devZone = (el) => { const a = ZONE_AREA[el.dataset.z]; if (a) go('dev', { area: a }); };
 CHG.devArea = (el) => go('dev', { area: el.value });
-ACT.devSet = (el) => { const c = UI.devCfg; const k = el.dataset.k; c[k] = k === 'next' ? el.dataset.v === '1' : el.dataset.v; render(); };
+ACT.devSet = (el) => { const c = UI.devCfg; const k = el.dataset.k; c[k] = k === 'next' ? el.dataset.v === '1' : ['copies', 'first'].includes(k) ? Number(el.dataset.v) : el.dataset.v; render(); };
+ACT.devCopy = (el) => { const err = RnD.buildCopy(G, el.dataset.id); if (err) return toast(err, 'bad'); toast(byLang('Fabricação iniciada.', 'Manufacturing started.'), 'good'); autosave(); render(); };
 CHG.devRange = (el) => { UI.devCfg[el.dataset.k] = Number(el.value); render(); };
 ACT.devStart = () => { const err = Career.startProject(G, null, null, { ...UI.devCfg }); if (err) return toast(err, 'bad'); toast('Projeto iniciado.', 'good'); autosave(); render(); };

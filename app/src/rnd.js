@@ -29,24 +29,25 @@ Object.assign(Career.AREAS, {
 });
 /* kind: aero | mech | pu | team ; wt/cfd: recurso para um projeto "completo"; design: GPs de projeto */
 RnD.SPEC = {
-  frontWing: { kind: 'aero', base: 0.95, wt: 70, cfd: 420, design: 2, cost: 3.2 },
-  rearWing: { kind: 'aero', base: 0.85, wt: 60, cfd: 380, design: 2, cost: 2.8 },
-  floor: { kind: 'aero', base: 1.35, wt: 110, cfd: 700, design: 3, cost: 5.5 },
-  sidepods: { kind: 'aero', base: 0.85, wt: 60, cfd: 520, design: 3, cost: 3.8 },
-  suspension: { kind: 'mech', base: 0.85, wt: 25, cfd: 220, design: 2, cost: 3.2 },
-  chassis: { kind: 'mech', base: 0.95, wt: 15, cfd: 260, design: 3, cost: 6.0 },
-  weight: { kind: 'mech', base: 0.7, wt: 0, cfd: 120, design: 2, cost: 3.6 },
-  brakes: { kind: 'mech', base: 0.6, wt: 10, cfd: 180, design: 2, cost: 2.4 },
-  cooling: { kind: 'mech', base: 0.8, wt: 20, cfd: 300, design: 2, cost: 2.6 },
-  gearbox: { kind: 'mech', base: 0.8, wt: 0, cfd: 80, design: 3, cost: 3.4 },
-  tyreCare: { kind: 'mech', base: 0.8, wt: 10, cfd: 240, design: 2, cost: 2.6 },
-  engine: { kind: 'pu', base: 0.7, wt: 0, cfd: 0, design: 4, cost: 9.0 },
-  energy: { kind: 'pu', base: 0.8, wt: 0, cfd: 60, design: 3, cost: 4.0 },
-  reliability: { kind: 'pu', base: 0.9, wt: 0, cfd: 0, design: 2, cost: 2.8 },
-  pitCrew: { kind: 'team', base: 0.8, wt: 0, cfd: 0, design: 2, cost: 1.6 },
-  facilities: { kind: 'team', base: 0.9, wt: 0, cfd: 0, design: 5, cost: 12 },
+  frontWing: { kind: 'aero', base: 0.95, wt: 70, cfd: 420, design: 2, cost: 3.2, days: 16, build: 5 },
+  rearWing: { kind: 'aero', base: 0.85, wt: 60, cfd: 380, design: 2, cost: 2.8, days: 14, build: 4 },
+  floor: { kind: 'aero', base: 1.35, wt: 110, cfd: 700, design: 3, cost: 5.5, days: 24, build: 8 },
+  sidepods: { kind: 'aero', base: 0.85, wt: 60, cfd: 520, design: 3, cost: 3.8, days: 22, build: 7 },
+  suspension: { kind: 'mech', base: 0.85, wt: 25, cfd: 220, design: 2, cost: 3.2, days: 15, build: 5 },
+  chassis: { kind: 'mech', base: 0.95, wt: 15, cfd: 260, design: 3, cost: 6.0, days: 28, build: 12 },
+  weight: { kind: 'mech', base: 0.7, wt: 0, cfd: 120, design: 2, cost: 3.6, days: 14, build: 4 },
+  brakes: { kind: 'mech', base: 0.6, wt: 10, cfd: 180, design: 2, cost: 2.4, days: 12, build: 3 },
+  cooling: { kind: 'mech', base: 0.8, wt: 20, cfd: 300, design: 2, cost: 2.6, days: 14, build: 4 },
+  gearbox: { kind: 'mech', base: 0.8, wt: 0, cfd: 80, design: 3, cost: 3.4, days: 20, build: 6 },
+  tyreCare: { kind: 'mech', base: 0.8, wt: 10, cfd: 240, design: 2, cost: 2.6, days: 14, build: 3 },
+  engine: { kind: 'pu', base: 0.7, wt: 0, cfd: 0, design: 4, cost: 9.0, days: 35, build: 10 },
+  energy: { kind: 'pu', base: 0.8, wt: 0, cfd: 60, design: 3, cost: 4.0, days: 24, build: 6 },
+  reliability: { kind: 'pu', base: 0.9, wt: 0, cfd: 0, design: 2, cost: 2.8, days: 14, build: 3 },
+  pitCrew: { kind: 'team', base: 0.8, wt: 0, cfd: 0, design: 2, cost: 1.6, days: 10, build: 0 },
+  facilities: { kind: 'team', base: 0.9, wt: 0, cfd: 0, design: 5, cost: 12, days: 45, build: 0 },
 };
-RnD.HIDDEN = { aero: true, wings: true };   // áreas antigas, substituídas pelas peças
+RnD.HIDDEN = { aero: true, wings: true };
+RnD.EN = { frontWing: 'Front wing', rearWing: 'Rear wing', floor: 'Floor', sidepods: 'Sidepods and bodywork', suspension: 'Suspension', chassis: 'Chassis', weight: 'Weight reduction', brakes: 'Brakes', cooling: 'Cooling', gearbox: 'Gearbox', tyreCare: 'Tyre thermal management', engine: 'Power unit', energy: 'Energy efficiency', reliability: 'Reliability', pitCrew: 'Pit stop training', facilities: 'Facilities' };   // áreas antigas, substituídas pelas peças
 RnD.FOCUS = {
   aero: [['downforce', 'Carga aerodinâmica', 'mais aderência nas curvas'], ['efficiency', 'Eficiência', 'menos arrasto: reta e energia'], ['balance', 'Equilíbrio e pneus', 'carro mais estável, desgaste menor']],
   mech: [['performance', 'Desempenho', 'tempo de volta'], ['reliability', 'Confiabilidade', 'menos quebras'], ['tyres', 'Pneus', 'trabalha melhor a borracha']],
@@ -119,13 +120,18 @@ RnD.quote = (G, cfg) => {
   const risk = Math.round(clamp(22 - staffR / 8 + amb.risk - wtShare * 7 - (q - 0.7) * 8, 3, 42));
   const design = Math.max(1, S.design + amb.design - (use >= 1.15 ? 1 : 0));
   const build = next || S.kind === 'team' ? 0 : 1;
-  const cost = +((S.cost * amb.cost * (next ? 0.75 : 1) + (build ? S.cost * 0.35 : 0)) * Career.costScale(G)).toFixed(1);
+  // em dias: projeto (ambição e recursos mexem no prazo) e fabricação por peça (uma por carro)
+  const designDays = Math.max(4, Math.round(S.days * (1 + amb.design * 0.25) * (use >= 1.15 ? 0.85 : use < 0.6 ? 1.15 : 1)));
+  const buildDays = build ? S.build : 0;
+  const copies = build && S.kind !== 'team' && S.kind !== 'pu' ? clamp(Math.round(cfg.copies || 2), 1, 2) : build ? 2 : 0;
+  const perCar = S.kind !== 'team';
+  const cost = +((S.cost * amb.cost * (next ? 0.75 : 1) + (build ? S.cost * 0.35 * (perCar ? copies / 2 : 1) : 0)) * Career.costScale(G)).toFixed(1);
   const blocked = A.works && !team.works ? 'Só equipes de fábrica desenvolvem o motor.' : next && S.kind === 'team' ? 'Pesquisa para o próximo ano é só para peças do carro.' : next && !RnD.nextOpen(G) ? `O regulamento libera a pesquisa do carro do ano seguinte a partir de ${(typeof Regs !== 'undefined' ? Regs.r(G).nextYearStartPct : 45)}% da temporada.` : null;
   const yr = G.season.year + (next ? 1 : 0);
   return {
     v2: true, area, size: amb.size, amb: cfg.amb || 'balanced', focus, next, wt, cfd, q: +q.toFixed(2),
     name: `${A.name}${next ? ` (carro de ${yr})` : ''} — ${amb.name.toLowerCase()}`,
-    cost, races: design + build, design, build,
+    cost, races: design + build, design, build, designDays, buildDays, copies, first: cfg.first === 2 || cfg.first === '2' ? 2 : 1,
     min: +(g * 0.55).toFixed(2), max: +(g * 1.35).toFixed(2), risk,
     split: RnD.split(area, focus), staffName: staffP ? staffP.name : null, rel: next ? 0 : (A.rel || 0), blocked,
   };
@@ -133,10 +139,10 @@ RnD.quote = (G, cfg) => {
 
 RnD.start = (G, cfg) => {
   const team = Career.team(G);
-  if (G.projects.length >= Career.slots(team)) return 'Sem vagas de projeto. Termine um projeto ou melhore as instalações.';
+  if (RnD.used(G) >= Career.slots(team)) return 'Sem vagas de projeto. Termine um projeto ou melhore as instalações.';
   const q = RnD.quote(G, cfg);
   if (q.blocked) return q.blocked;
-  if (G.projects.some(p => p.area === q.area && !!p.next === q.next)) return `Já existe um projeto de ${Career.AREAS[q.area].name.toLowerCase()} ${q.next ? 'para o carro do ano seguinte' : 'no carro atual'}: o mesmo departamento não toca dois ao mesmo tempo.`;
+  if (G.projects.some(p => !p.buildOnly && p.area === q.area && !!p.next === q.next)) return `Já existe um projeto de ${Career.AREAS[q.area].name.toLowerCase()} ${q.next ? 'para o carro do ano seguinte' : 'no carro atual'}: o mesmo departamento não toca dois ao mesmo tempo.`;
   const P = RnD.pool(G);
   if (q.wt > P.wt) return `Túnel de vento insuficiente neste período (restam ${P.wt} execuções).`;
   if (q.cfd > P.cfd) return `CFD insuficiente neste período (restam ${P.cfd} simulações).`;
@@ -146,9 +152,146 @@ RnD.start = (G, cfg) => {
   G.nextYearFocus = 0;   // o foco geral foi substituído pela pesquisa por peça
   Career.ledger(G, `P&D: ${q.name}`, -q.cost, 'P&D');
   Career.record(G, 'pd', `${team.name} iniciou o projeto "${q.name}" (${fmtMoney(q.cost)}, ${q.races} GPs, túnel ${q.wt}, CFD ${q.cfd}).`, { teams: [team.id] });
-  G.projects.push({ id: Career.nextId(G, 'p'), ...q, left: q.races, total: q.races });
+  G.projects.push({ id: Career.nextId(G, 'p'), ...q, left: q.races, total: q.races, dayMode: true, stage: 'design', dLeft: q.designDays, bLeft: q.buildDays, copiesLeft: q.copies, fitted: [], start: G.today || null });
   return null;
 };
+/* vagas: fabricar mais uma peça de um projeto pronto não ocupa vaga de projeto */
+RnD.used = (G) => G.projects.filter(p => !p.buildOnly).length;
+
+/* ---------- tempo em dias ---------- */
+RnD.dayTick = (G, ev) => {
+  const team = Career.team(G);
+  const keep = [];
+  G.projects.forEach(p => {
+    if (!p.dayMode) { keep.push(p); return; }
+    if (p.stage === 'design') {
+      p.dLeft--;
+      if (p.dLeft > 0) { keep.push(p); return; }
+      // projeto pronto: resultado definido agora
+      p.failed = RNG.chance(p.risk / 100);
+      p.gain = +(p.failed ? RNG.range(-0.4, p.min * 0.4) : RNG.range(p.min, p.max)).toFixed(3);
+      if (p.next || !p.buildDays) { RnD.apply(G, team, p, p.gain, p.failed, null); ev.push({ kind: 'done', p }); return; }
+      p.stage = 'build'; p.bLeft = p.buildDays;
+      const an = Career.AREAS[p.area].name;
+      Career.mail(G, { from: byLang('Diretor técnico', 'Technical director'), tag: 'dev', title: byLang(`Projeto pronto: ${an}`, `Design complete: ${RnD.EN[p.area] || an}`), body: byLang(`O projeto "${p.name}" terminou${p.failed ? ', abaixo do esperado' : ''}. Começa a fabricação: ${p.buildDays} dia(s) por peça, ${p.copies} peça(s). A primeira vai para o carro #${p.first}.`, `The ${RnD.EN[p.area] || an} design is finished${p.failed ? ', below expectations' : ''}. Manufacturing starts: ${p.buildDays} day(s) per part, ${p.copies} part(s). The first goes on car #${p.first}.`) });
+      ev.push({ kind: 'design', p }); keep.push(p); return;
+    }
+    p.bLeft--;
+    if (p.bLeft > 0) { keep.push(p); return; }
+    const seat = p.fitted.length ? (p.fitted[0] === 1 ? 2 : 1) : p.first;
+    RnD.fit(G, team, p, seat);
+    p.fitted.push(seat); p.copiesLeft--;
+    ev.push({ kind: 'part', p, seat });
+    if (p.copiesLeft > 0) { p.bLeft = p.buildDays; keep.push(p); }
+  });
+  G.projects = keep;
+};
+
+/* peça instalada num carro: o ganho de desempenho vale só para esse carro até a segunda peça */
+RnD.PERF = { aero: true, chassis: true, engineBonus: true };
+RnD.fit = (G, team, p, seat) => {
+  const lu = Career.lineup(G, team.id);
+  const d = lu.find(x => x.seat === seat);
+  G.parts = G.parts || [];
+  let part = G.parts.find(x => x.id === p.id);
+  if (S_KIND(p) === 'team') { RnD.apply(G, team, p, p.gain, p.failed, null); return; }
+  if (!part) {
+    // primeira peça: diferença entre os carros (desempenho) e metade dos efeitos gerais
+    part = { id: p.id, area: p.area, name: p.name, split: p.split, gain: p.gain, failed: p.failed, seats: [seat], y: G.season.year, half: {} };
+    G.parts.push(part);
+    G.seatDelta = G.seatDelta || { 1: {}, 2: {} };
+    Object.entries(p.split).forEach(([f, w]) => {
+      const g = p.gain * w;
+      if (RnD.PERF[f]) G.seatDelta[seat][f] = +((G.seatDelta[seat][f] || 0) + g).toFixed(3);
+      else { RnD.addField(team, f, g / 2); part.half[f] = g / 2; }
+    });
+    RnD.partDone(G, team, p, seat, true);
+    RnD.partMail(G, p, seat, d, true);
+    return;
+  }
+  // segunda peça: o carro inteiro passa a ter a evolução
+  part.seats.push(seat);
+  Object.entries(p.split).forEach(([f, w]) => {
+    const g = p.gain * w;
+    if (RnD.PERF[f]) { G.seatDelta[part.seats[0]][f] = +((G.seatDelta[part.seats[0]][f] || 0) - g).toFixed(3); RnD.addField(team, f, g); }
+    else RnD.addField(team, f, g - (part.half[f] || 0));
+  });
+  G.parts = G.parts.filter(x => x !== part);
+  RnD.partDone(G, team, p, seat, false);
+  RnD.partMail(G, p, seat, d, false);
+};
+/* registro para "Atualizações concluídas": valor do atributo principal no carro que recebeu a peça */
+RnD.partDone = (G, team, p, seat, first) => {
+  const main = Object.keys(p.split)[0], g = p.gain * p.split[main];
+  const base = main === 'engineBonus' ? (team.car.engineBonus || 0) + 85 : (team.car[main] ?? 80);
+  const extra = first && RnD.PERF[main] ? ((G.seatDelta || {})[seat] || {})[main] || 0 : 0;
+  const after = base + extra, before = after - (RnD.PERF[main] || first ? g : g / 2);
+  const lines = Object.entries(p.split).map(([f, w]) => `${p.gain * w >= 0 ? '+' : ''}${(p.gain * w).toFixed(2)} ${RnD.FIELD_LABEL[f] || f}`);
+  G.devDone = (G.devDone || []).concat([{ id: p.id + ':' + seat, area: p.area, name: p.name, before: +before.toFixed(2), after: +after.toFixed(2), failed: p.failed, lines, seat, both: !first, y: G.season.year, r: G.season.round, date: G.today, seen: false }]).slice(-12);
+};
+const S_KIND = (p) => (RnD.SPEC[p.area] || {}).kind;
+RnD.addField = (team, f, g) => {
+  if (f === 'pitCrew' || f === 'facilities') team[f] = +clamp(team[f] + g * (f === 'facilities' ? 1.6 : 1.4), 30, 100).toFixed(1);
+  else if (f === 'engineBonus') team.car.engineBonus = +((team.car.engineBonus || 0) + g).toFixed(2);
+  else team.car[f] = +clamp((team.car[f] ?? 80) + g, 30, ['reliability', 'tyreCare', 'cooling', 'energy'].includes(f) ? 99 : 110).toFixed(2);
+};
+RnD.partMail = (G, p, seat, d, first) => {
+  const gains = Object.entries(p.split).map(([f, w]) => `${p.gain * w >= 0 ? '+' : ''}${(p.gain * w).toFixed(2)} ${RnD.FIELD_LABEL[f] || f}`).join(', ');
+  const an = Career.AREAS[p.area].name, en = RnD.EN[p.area] || an;
+  Career.mail(G, { from: byLang('Chefe de fábrica', 'Factory manager'), tag: 'dev', title: byLang(`Peça nova no carro #${seat}: ${an}`, `New part on car #${seat}: ${en}`),
+    body: byLang(`${an} instalada no carro #${seat}${d ? ` (${d.name})` : ''}: ${gains}.${first ? (p.copiesLeft > 1 ? ` A peça do outro carro fica pronta em ${p.buildDays} dia(s).` : ' Só um carro tem a peça: fabrique a segunda na tela de P&D para igualar os dois carros.') : ' Os dois carros agora têm a peça.'}`,
+      `${en} fitted to car #${seat}${d ? ` (${d.name})` : ''}.${first ? (p.copiesLeft > 1 ? ` The other car's part is ready in ${p.buildDays} day(s).` : ' Only one car has it: build the second part on the R&D screen to match both cars.') : ' Both cars now have the part.'}`) });
+  Career.record(G, 'pd', `${Career.team(G).name}: ${Career.AREAS[p.area].name} nova no carro #${seat}${d ? ` (${d.name})` : ''} (${gains}).`, { teams: [G.player.teamId] });
+};
+/* diferença de desempenho de um carro em relação à base da equipe, na escala de Engine.carPerf */
+RnD.seatPerf = (G, seat, track) => {
+  const D = G.seatDelta && G.seatDelta[seat];
+  if (!D) return 0;
+  const w = track.weights, tot = w.aero + w.chassis + w.engine || 1;
+  return ((D.aero || 0) * w.aero + (D.chassis || 0) * w.chassis + (D.engineBonus || 0) * w.engine) / tot;
+};
+/* fabricar a peça para o outro carro depois (não ocupa vaga de projeto) */
+RnD.buildCopy = (G, partId) => {
+  const part = (G.parts || []).find(x => x.id === partId);
+  if (!part) return 'Peça não encontrada.';
+  if (G.projects.some(p => p.buildOnly && p.id === partId)) return 'Essa peça já está sendo fabricada.';
+  const S = RnD.SPEC[part.area];
+  const cost = +(S.cost * 0.35 / 2 * Career.costScale(G)).toFixed(1);
+  if (G.finances.spent + cost > G.db.rules.budgetCap) return `A peça estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
+  Career.ledger(G, `Fabricação: ${Career.AREAS[part.area].name}`, -cost, 'P&D');
+  G.projects.push({ id: part.id, v2: true, dayMode: true, buildOnly: true, area: part.area, name: part.name, size: 'small', split: part.split, gain: part.gain, failed: part.failed, stage: 'build', bLeft: S.build, buildDays: S.build, copies: 2, copiesLeft: 1, fitted: part.seats.slice(), first: part.seats[0], min: 0, max: 0, risk: 0, cost, left: 1, total: 1 });
+  return null;
+};
+/* datas dos próximos marcos (para a central e o calendário) */
+RnD.milestones = (G) => {
+  const out = [];
+  if (!G.today) return out;
+  G.projects.filter(p => p.dayMode).forEach(p => {
+    const A = Career.AREAS[p.area];
+    if (p.stage === 'design') out.push({ date: Time.addDays(G.today, p.dLeft), kind: 'design', label: `${A.name}: projeto pronto` });
+    else out.push({ date: Time.addDays(G.today, p.bLeft), kind: 'part', label: `${A.name}: peça ${p.fitted.length + 1} de ${p.copies}` });
+  });
+  return out;
+};
+
+(function () {
+  // projetos em dias não andam por GP
+  const adv = Career.advanceProjects;
+  Career.advanceProjects = (G, report) => {
+    const dayP = G.projects.filter(p => p.dayMode);
+    G.projects = G.projects.filter(p => !p.dayMode);
+    adv(G, report);
+    G.projects = G.projects.concat(dayP);
+  };
+  // carro novo: diferenças entre os carros somem (os dois saem iguais)
+  const end = Career.endSeason;
+  Career.endSeason = (G) => {
+    const r = end(G);
+    G.seatDelta = { 1: {}, 2: {} }; G.parts = [];
+    G.projects = (G.projects || []).filter(p => !p.buildOnly);
+    return r;
+  };
+})();
 
 /* aplica um projeto concluído (chamado por Career.advanceProjects) */
 RnD.apply = (G, team, p, gain, failed, report) => {
