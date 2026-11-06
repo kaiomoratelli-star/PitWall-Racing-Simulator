@@ -631,6 +631,7 @@ Career.startProject = (G, area, size) => {
   if (G.projects.length >= Career.slots(team)) return 'Sem vagas de projeto. Aumente as instalações ou termine um projeto.';
   const q = Career.projectQuote(G, area, size);
   if (q.blocked) return q.blocked;
+  if (G.projects.some(p => p.area === area)) return `Já existe um projeto de ${Career.AREAS[area].name.toLowerCase()} em andamento: o mesmo departamento não toca dois ao mesmo tempo.`;
   if (G.finances.spent + q.cost > G.db.rules.budgetCap) return `O projeto estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
   if (G.finances.balance - q.cost < -15) return 'Caixa insuficiente para este projeto.';
   Career.ledger(G, `P&D: ${q.name}`, -q.cost, 'P&D');
@@ -647,9 +648,11 @@ Career.advanceProjects = (G, report) => {
   G.projects = G.projects.filter(p => p.left > 0);
   done.forEach(p => {
     const A = Career.AREAS[p.area];
+    const before = Career.carVal(team, A);
     let gain = RNG.range(p.min, p.max);
     const failed = RNG.chance(p.risk / 100);
     if (failed) gain = RNG.range(-0.4, p.min * 0.4);
+    if (p.v2 && typeof RnD !== 'undefined') { RnD.apply(G, team, p, gain, failed, report); return; }   // projeto por peça (rnd.js)
     let now = gain, bank = 0;
     if (A.field === 'aero' || A.field === 'chassis') { now = gain * (1 - focus); bank = gain * focus * 1.35; }
     G.nextYearBank += bank;
@@ -662,6 +665,8 @@ Career.advanceProjects = (G, report) => {
       ? `O projeto "${p.name}" decepcionou: ganho de apenas ${now.toFixed(2)} ponto(s).`
       : `Projeto "${p.name}" concluído: +${now.toFixed(2)} em ${A.name.toLowerCase()}${bank ? ` (+${bank.toFixed(2)} guardado para o carro do ano que vem)` : ''}.`;
     report && report.lines.push(txt);
+    // histórico para a tela de P&D (antes → depois, com animação na primeira vez que aparece)
+    G.devDone = (G.devDone || []).concat([{ id: p.id, area: p.area, name: p.name, before: +before.toFixed(2), after: +Career.carVal(team, A).toFixed(2), failed, bank: +bank.toFixed(2), y: G.season.year, r: G.season.round, seen: false }]).slice(-12);
     Career.record(G, 'pd', `${team.name}: ${txt}`, { teams: [team.id] });
     Career.mail(G, { from: 'Diretor técnico', tag: 'dev', title: failed ? 'Atualização abaixo do esperado' : 'Atualização pronta', body: txt });
   });
@@ -875,6 +880,7 @@ Career.endSeason = (G) => {
   });
   AI.applyNextYear(G);
   if (team && G.nextYearBank > 0) { team.car.aero += G.nextYearBank * 0.55; team.car.chassis += G.nextYearBank * 0.45; summary.bankUsed = +G.nextYearBank.toFixed(2); G.nextYearBank = 0; }
+  if (team && typeof RnD !== 'undefined') { const used = RnD.applyNextYear(G, team); if (used) summary.bankUsed = +((summary.bankUsed || 0) + used).toFixed(2); }
   if (!(G.db.rules.regs && G.db.rules.regs.engineFreeze)) G.db.engines.forEach(e => { e.power = +clamp(e.power + RNG.normal(0.3, reg ? 2.5 : 1), 75, 100).toFixed(1); e.reliability = +clamp(e.reliability + RNG.normal(0.5, 1.4), 70, 98).toFixed(1); });
   // pilotos: idade, contratos, aposentadoria
   const retired = [];

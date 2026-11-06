@@ -78,6 +78,7 @@
   - Cada proposta mostra quem ganha e quem perde e a intenção de voto de cada equipe.
   - Regras reais de aprovação, veto histórico da Ferrari, clientes seguindo a fornecedora de motor.
   - O jogador vota, negocia apoio com capital político, faz acordos que precisam ser cumpridos e leva as próprias propostas.
+- (Versão 0.8) P&D por peça: escolha a peça (asa dianteira, assoalho, sidepods, suspensão...), o foco, a ambição e quanto túnel de vento e CFD usar, dentro da cota do regulamento. A pesquisa do carro do ano seguinte também é por peça e ocupa vaga. Carro de 2026 visto de cima mostra o que está em desenvolvimento, e cada atualização mostra o antes e o depois.
 
 ## Corrida
 - Simulação volta a volta.
