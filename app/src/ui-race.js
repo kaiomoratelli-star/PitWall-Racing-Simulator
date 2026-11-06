@@ -52,6 +52,7 @@ function preRaceHtml(wk, race, tr) {
       <div class="stack" style="gap:8px">
         <h4>História do GP</h4>
         ${ch ? `<dl class="kv"><dt>Corridas aqui</dt><dd>${ch.n} (desde ${ch.first})</dd><dt>Último vencedor</dt><dd>${esc(hName(ch.last.w))} (${ch.last.y}${ch.last.sim ? ', simulado' : ''})</dd><dt>Maior vencedor</dt><dd>${esc(hName(ch.top.id))} · ${ch.top.wins}</dd></dl>` : '<p class="small muted">Primeira corrida neste circuito.</p>'}
+        <button class="btn sm" data-act="circuitPage" data-id="${tr.id}" style="margin-top:8px">Recordes e vencedores</button>
         <h4 style="margin-top:6px">Grid</h4>
         <div class="stack" style="gap:3px">${wk.grid.slice(0, 6).map((did, i) => `<div class="row small" style="gap:6px"><b class="num" style="width:22px">${i + 1}</b>${dTag(did)}</div>`).join('')}</div>
         <button class="btn primary lg" data-act="lightsOut" style="margin-top:8px">Luzes vermelhas</button>

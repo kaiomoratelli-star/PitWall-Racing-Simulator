@@ -429,7 +429,7 @@ SCREENS.calendar = {
       const tr = Career.track(G, tid); const r = G.season.results[i];
       const mine = r ? r.cls.filter(c => c.tid === G.player.teamId) : [];
       const best = mine.length ? Math.min(...mine.map(c => c.status === 'fin' ? c.pos : 99)) : null;
-      return `<tr class="${i === G.season.round ? 'me' : ''}"><td class="num">${i + 1}</td><td><b>${esc(tr.gp)}</b>${tr.sprint ? ' <span class="chip acc">Sprint</span>' : ''}<div class="small muted">${esc(gpDate(tr))}</div></td><td class="muted">${esc(tr.circuit)}</td><td>${r ? dTag(r.winner) : i === G.season.round ? '<span class="chip acc">próxima</span>' : ''}</td><td>${r ? dTag(r.pole, false) : ''}</td><td class="num">${best ? (best === 99 ? 'Abandono' : ordinal(best)) : ''}</td><td class="small">${r ? (r.wet > 0.25 ? '<span class="chip" style="color:var(--blue)">Chuva</span> ' : '') + (r.sc ? `<span class="chip" style="color:var(--yellow)">SC ×${r.sc}</span>` : '') : ''}</td></tr>`;
+      return `<tr class="${i === G.season.round ? 'me' : ''}"><td class="num">${i + 1}</td><td><b>${esc(tr.gp)}</b>${tr.sprint ? ' <span class="chip acc">Sprint</span>' : ''}<div class="small muted">${esc(gpDate(tr))}</div></td><td><button class="linkbtn muted" data-act="circuitPage" data-id="${tr.id}">${esc(tr.circuit)}</button></td><td>${r ? dTag(r.winner) : i === G.season.round ? '<span class="chip acc">próxima</span>' : ''}</td><td>${r ? dTag(r.pole, false) : ''}</td><td class="num">${best ? (best === 99 ? 'Abandono' : ordinal(best)) : ''}</td><td class="small">${r ? (r.wet > 0.25 ? '<span class="chip" style="color:var(--blue)">Chuva</span> ' : '') + (r.sc ? `<span class="chip" style="color:var(--yellow)">SC ×${r.sc}</span>` : '') : ''}</td></tr>`;
     }).join('')}
     </tbody></table></div></div>`;
   },
@@ -710,7 +710,7 @@ SCREENS.paddock = {
       const best = (t.history || []).slice().sort((a, b) => a.pos - b.pos)[0];
       const mine = t.id === G.player.teamId;
       return `<div class="panel"><div class="panel-h"><div class="row" style="gap:10px">${teamLogo(t)}<div><h3>${esc(t.name)}</h3><div class="small muted">${natTag(t.country)} ${esc(Engine.engineOf(G.db, t).name)} · chefe ${esc(t.principal)}</div></div></div>
-        <span class="chip ${mine ? 'acc' : ''}">${mine ? 'Sua equipe' : 'Gestão ' + P.label.toLowerCase()}</span></div>
+        <div class="row"><span class="chip ${mine ? 'acc' : ''}">${mine ? 'Sua equipe' : 'Gestão ' + P.label.toLowerCase()}</span><button class="btn sm" data-act="teamPage" data-id="${t.id}">História</button></div></div>
         ${carImg(t) ? `<div class="panel-b" style="padding-bottom:0">${carImg(t)}</div>` : ''}
         <div class="panel-b grid g2">
           <div class="stack" style="gap:8px">${attrRow('Carro (geral)', Engine.carRating(G.db, t))}${attrRow('Confiabilidade', Engine.reliability(G.db, t), 'g')}${attrRow('Média do staff', avg(Object.values(t.staff)), 'b')}${attrRow('Reputação', t.reputation, 'b')}</div>

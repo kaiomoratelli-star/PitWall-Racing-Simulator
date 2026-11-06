@@ -409,6 +409,12 @@ Career.finishWeekend = (G) => {
 
   Career.record(G, 'corrida', `${track.gp}: vitória de ${Career.driver(G, summary.winner).name} (${Career.team(G, cls[0].tid).name}), pole de ${Career.driver(G, summary.pole).name}.`, { drivers: [summary.winner], teams: [cls[0].tid] });
   if (wk.bonus) summary.bonus = wk.bonus;
+  // recordes da pista nesta carreira (volta de corrida e de classificação em pista seca)
+  G.trackRecords = G.trackRecords || {};
+  const trec = G.trackRecords[track.id] || (G.trackRecords[track.id] = {});
+  if (race.fastest && race.fastest.time && (!trec.lap || race.fastest.time < trec.lap[0])) trec.lap = [+race.fastest.time.toFixed(3), race.fastest.did, (race.cars.find(c => c.did === race.fastest.did) || {}).tid, season.year];
+  const poleRes = wk.quali && wk.quali.res && wk.quali.res[wk.quali.order[0]];
+  if (poleRes && poleRes.best && !(wk.quali.wet > 0.2) && (!trec.quali || poleRes.best < trec.quali[0])) trec.quali = [+poleRes.best.toFixed(3), wk.quali.order[0], null, season.year];
   if (typeof Regs !== 'undefined') Regs.puTick(G, race);
   const report = Career.postRaceEffects(G, summary, race);
   season.round++;
