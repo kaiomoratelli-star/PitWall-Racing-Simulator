@@ -152,8 +152,10 @@ Engine.weatherPenalty = (compound, w) => {
 
 Engine.tyreDeg = (wear) => wear * 0.017 + (wear > 64 ? Math.pow((wear - 64) / 10, 2) * 0.34 : 0);
 
-Engine.wearRate = (compound, track, drv, team, mode, w) => {
-  let base = TYRES[compound].wear;
+Engine.wearRate = (compound, track, drv, team, mode, w, temp) => {
+  const props = Engine.CPROPS ? Engine.tprops(track, compound) : null;
+  let base = props && 'SMH'.includes(compound) ? props.wear : TYRES[compound].wear;
+  if (props && temp != null && temp > props.hi) base *= 1 + (temp - props.hi) / 45;
   if ((compound === 'I' || compound === 'W') && w < 0.18) base *= compound === 'W' ? 3.2 : 2.4; // superaquece no seco
   const modeMul = mode === 'push' ? 1.35 : mode === 'save' ? 0.72 : 1;
   const styleMul = (drv.b && drv.b.wear) || 1;
@@ -169,7 +171,12 @@ Engine.paceComponents = (ctx) => {
   const car = (100 - ctx.carPerf) * 0.058 * sc;
   const driver = (100 - effPace) * 0.036 * sc;
   const setup = (0.62 - ctx.setupQ) * 0.9;
-  const tyre = TYRES[ctx.compound].offset * sc * (ctx.compound === 'I' || ctx.compound === 'W' ? 0 : 1) + Engine.tyreDeg(ctx.wear) * sc;
+  const dry = 'SMH'.includes(ctx.compound);
+  const props = Engine.CPROPS ? Engine.tprops(ctx.track, ctx.compound) : null;
+  const relOff = props && dry ? (props.offset - Engine.CPROPS[Engine.alloc(ctx.track)[2]].offset) * 1.35 : (dry ? TYRES[ctx.compound].offset : 0);
+  const trackGrip = ctx.trackT != null ? Math.abs(ctx.trackT - 36) * 0.006 : 0;
+  const evo = ctx.evo ? -Math.min(0.35, ctx.evo * 0.006) : 0;
+  const tyre = relOff * sc + Engine.tyreDeg(ctx.wear) * sc + (props ? Engine.tyreTempPenalty(props, ctx.ttemp) : 0) + trackGrip + evo;
   const fuel = ctx.fuel * 0.031;
   const weather = ctx.w * 7.5 * sc + Engine.weatherPenalty(ctx.compound, ctx.w) * sc;
   // modo de ataque rende mais para quem gerencia bem a energia (bateria/ERS)
@@ -250,11 +257,11 @@ Engine.createRace = (wk, grid, opts = {}) => {
   const laps = Math.max(opts.sprint ? 3 : 5, Math.round(track.laps * pct));
   const race = {
     trackId: track.id, laps, sprint: !!opts.sprint, lap: 0, sc: null, scHistory: [], events: [], finished: false,
-    fastest: null, wet: wk.weather.wet.slice(0, laps + 2), lapLeaderTimes: [],
+    fastest: null, wet: wk.weather.wet.slice(0, laps + 2), lapLeaderTimes: [], bestS: [null, null, null], boostName: wk.db.rules.overtakeMode ? 'Ultrapassagem' : 'DRS',
     cars: grid.map((g, i) => ({
       did: g.did, tid: g.tid, grid: i + 1, pos: i + 1,
       T: i * 0.22, laps: 0, lastLap: null, best: null,
-      tyre: { c: g.startTyre, wear: g.startWear || 0, age: 0 }, used: [g.startTyre],
+      tyre: { c: g.startTyre, wear: g.startWear || 0, age: 0, temp: 78 }, used: [g.startTyre], soc: 100, secs: [], bestS: [null, null, null], lastS: null, vmax: 0, tl: 0,
       fuel: 100, mode: 'normal', damage: { wing: 0, power: 0 }, status: 'run', dnfReason: null,
       pits: 0, pitReq: null, auto: g.auto !== false, plan: g.plan || null, penalty: 0, pendingPen: 0,
       stints: [{ c: g.startTyre, from: 0, to: null }], times: [], positions: [i + 1], gaps: [0],
@@ -348,7 +355,10 @@ Engine.stepLap = (race, wk) => {
   const incidentCars = new Set();
 
   // gaps no início da volta (DRS / ar sujo)
-  order.forEach((c, i) => { c.lastGapAhead = i === 0 ? 99 : c.T - order[i - 1].T; });
+  order.forEach((c, i) => { c.lastGapAhead = i === 0 ? 99 : c.T - order[i - 1].T; c.lastGapBehind = i === order.length - 1 ? 99 : order[i + 1].T - c.T; });
+  const trackT = wk.weather && wk.weather.trackT ? wk.weather.trackT[L] : 32;
+  // estrategistas da IA escolhem o modo de pilotagem (ataque, normal, economia de energia)
+  order.forEach(c => { if (!c.isPlayer && Engine.aiMode) c.mode = Engine.aiMode(race, c, c.lastGapAhead, c.lastGapBehind); });
 
   for (const c of order) {
     const team = byId(db.teams, c.tid);
@@ -361,11 +371,12 @@ Engine.stepLap = (race, wk) => {
       doPit = true; newC = Engine.chooseCompound(race, c, wk, race.laps - L);
     }
     // tempo de volta
-    const pc = Engine.paceComponents({ db, track, team, drv, setupQ: c.setupQ, compound: c.tyre.c, wear: c.tyre.wear, fuel: c.fuel, w, mode: c.mode, quali: false, carPerf: c.carPerf - c.damage.power * 2 });
-    let t = pc.total + c.damage.wing * 0.9;
+    const lowBatt = c.mode === 'push' && (c.soc ?? 100) < 8;
+    const pc = Engine.paceComponents({ db, track, team, drv, setupQ: c.setupQ, compound: c.tyre.c, wear: c.tyre.wear, fuel: c.fuel, w, mode: lowBatt ? 'normal' : c.mode, quali: false, carPerf: c.carPerf - c.damage.power * 2, ttemp: c.tyre.temp, trackT, evo: L });
+    let t = pc.total + c.damage.wing * 0.9 + (lowBatt ? 0.25 : 0) + ((c.soc ?? 100) < 3 ? 0.4 : 0);
     const sd = (0.14 + (100 - drv.consistency) * 0.009 + w * 0.3) * ((drv.b && drv.b.sd) || 1);
     t += RNG.normal(0, sd);
-    if (c.tyre.age === 0) t += TYRES[c.tyre.c].warm * 0.35;
+
     if (L === 1) t += 2.6 + RNG.normal(0, 0.6) - (drv.start - 80) * 0.03 - (drv.racecraft - 80) * 0.01 - ((drv.b && drv.b.lap1) || 0);
     // DRS / ar sujo
     c.drs = false;
@@ -399,7 +410,8 @@ Engine.stepLap = (race, wk) => {
           c.status = 'dnf'; c.dnfReason = 'Acidente'; c.T += t;
           Engine.event(race, 'crash', `${wk.nameOf(c.did)} bate sozinho e está fora da corrida!`, c.did);
           const r = RNG.next();
-          if (r < 0.5 * track.scFactor) Engine.deploySC(race, 'SC', 'acidente');
+          if ((w > 0.75 || (L <= 2 && track.street)) && RNG.chance(0.35)) Engine.deploySC(race, 'RED', 'barreira danificada', wk);
+          else if (r < 0.5 * track.scFactor) Engine.deploySC(race, 'SC', 'acidente');
           else if (r < 0.8) Engine.deploySC(race, 'VSC', 'detritos na pista');
           continue;
         } else {
@@ -424,23 +436,34 @@ Engine.stepLap = (race, wk) => {
       c.pits++; c.lastPitLap = L; pitted.add(c);
       c.stints[c.stints.length - 1].to = L;
       c.stints.push({ c: newC, from: L, to: null });
-      c.tyre = { c: newC, wear: 0, age: -1 }; c.used.push(newC);
+      c.tyre = { c: newC, wear: 0, age: -1, temp: 70 }; c.used.push(newC);
       if (c.damage.wing) c.damage.wing = 0;
       if (c.pendingPen) { t += c.pendingPen; c.pendingPen = 0; }
-      if (c.isPlayer || c.pos <= 6) Engine.event(race, 'pit', `${wk.nameOf(c.did)} para nos boxes: ${TYRES[newC].name} (${stop.toFixed(1)}s).`, c.did);
+      c.lastStop = +stop.toFixed(1);
+      if (c.isPlayer || c.pos <= 6) Engine.event(race, 'pit', `${wk.nameOf(c.did)} para nos boxes: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`, c.did);
+    }
+    // limites de pista: três advertências e a quarta vira punição
+    if (!scType && RNG.chance(0.006 * ((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120) * (track.street ? 0.4 : 1))) {
+      c.tl++;
+      if (c.tl === 3) Engine.event(race, 'flag', `Bandeira preta e branca para ${wk.nameOf(c.did)}: terceira advertência por limite de pista.`, c.did);
+      if (c.tl === 4) { c.pendingPen += 5; c.penalty += 5; Engine.event(race, 'penalty', `5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, c.did); }
     }
     c.lapTime = t;
+    if (!scType) { c.lastS = Engine.sectorSplit(track, t - (pitted.has(c) ? (t - pc.total) * 0.8 : 0), sd); c.secs[L] = c.lastS; } else c.lastS = null;
+    c.vlap = Engine.topSpeed(db, team, track, c.setupQ, c.drs, w); if (!scType && c.vlap > c.vmax) c.vmax = c.vlap;
+    Engine.tyreTempStep(c, track, Engine.tprops(track, c.tyre.c), trackT, c.mode, w, scType);
+    Engine.socStep(c, drv, c.mode, c.drs, scType);
     c.T += t;
     c.laps = L;
     // pneus e combustível
-    c.tyre.wear = clamp(c.tyre.wear + Engine.wearRate(c.tyre.c, track, drv, team, scType ? 'save' : c.mode, w) * (scType ? 0.45 : 1), 0, 100);
+    c.tyre.wear = clamp(c.tyre.wear + Engine.wearRate(c.tyre.c, track, drv, team, scType ? 'save' : c.mode, w, c.tyre.temp) * (scType ? 0.45 : 1), 0, 100);
     c.tyre.age++;
     c.fuel = Math.max(0, c.fuel - 100 / race.laps);
   }
 
   // ultrapassagens — percorre do líder para trás
   const live = order.filter(c => c.status === 'run');
-  if (scType === 'SC') {
+  if (scType === 'SC' || scType === 'RED') {
     // pelotão compacta atrás do SC
     live.sort((a, b) => a.T - b.T);
     for (let i = 1; i < live.length; i++) {
@@ -503,6 +526,7 @@ Engine.stepLap = (race, wk) => {
         if (race.fastest && L > 5) Engine.event(race, 'fastest', `Volta mais rápida: ${wk.nameOf(c.did)} ${fmtLap(c.lapTime)}.`, c.did);
         race.fastest = { did: c.did, time: c.lapTime, lap: L };
       }
+      if (c.lastS) c.lastS.forEach((v, k) => { if (c.bestS[k] == null || v < c.bestS[k]) c.bestS[k] = v; if (race.bestS[k] == null || v < race.bestS[k]) race.bestS[k] = v; });
     }
   });
   race.lapLeaderTimes[L] = lead ? lead.T : 0;
@@ -536,11 +560,17 @@ Engine.collision = (race, wk, a, b) => {
   }
 };
 
-Engine.deploySC = (race, type, why) => {
+Engine.deploySC = (race, type, why, wk) => {
   if (race.sc || race.laps - race.lap < 2) return;
-  const left = type === 'SC' ? RNG.int(3, 5) : RNG.int(2, 3);
+  const left = type === 'SC' ? RNG.int(3, 5) : type === 'RED' ? 3 : RNG.int(2, 3);
   race.sc = { type, left, from: race.lap };
   race.scHistory.push({ type, from: race.lap, to: race.lap + left });
+  if (type === 'RED') {
+    // bandeira vermelha: corrida suspensa, troca de pneus livre e relargada
+    Engine.event(race, 'flag', `BANDEIRA VERMELHA (${why}). Corrida suspensa; equipes podem trocar pneus.`);
+    if (wk) race.cars.filter(c => c.status === 'run').forEach(c => { const nc = Engine.chooseCompound(race, c, wk, race.laps - race.lap); c.stints[c.stints.length - 1].to = race.lap; c.stints.push({ c: nc, from: race.lap, to: null }); c.tyre = { c: nc, wear: 0, age: 0, temp: 70 }; c.used.push(nc); });
+    return;
+  }
   Engine.event(race, 'sc', type === 'SC' ? `SAFETY CAR na pista (${why}).` : `Safety Car Virtual acionado (${why}).`);
 };
 

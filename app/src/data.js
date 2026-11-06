@@ -311,4 +311,5 @@ function applyRealExtra(db, X) {
   });
   db.engines.forEach(e => { if (db.teams.some(t => t.works && t.engine === e.id)) e.works = true; });
   db.extraRef = X.ref;
+  db.rules.overtakeMode = true; // 2026: DRS substituído pelo modo de ultrapassagem (energia extra)
 }

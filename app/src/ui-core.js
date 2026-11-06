@@ -188,6 +188,7 @@ function tTag(tid) {
 }
 function tyreIcon(c, title) {
   const T = TYRES[c] || TYRES.M;
+  if (!title && G && G.weekend && 'SMH'.includes(c) && typeof Engine.tprops === 'function') { const tr = Career.track(G, G.weekend.trackId); if (tr) title = Engine.tyreLabel(tr, c); }
   return `<span class="tyre" style="color:${T.color}" title="${esc(title || T.name)}">${T.short}</span>`;
 }
 function natTag(n) { return `<span class="nat" title="${esc(NAT_NAMES[n] || n)}">${esc(n)}</span>`; }
