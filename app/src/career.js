@@ -48,7 +48,7 @@ Career.create = (baseDb, opts) => {
     version: SAVE_VERSION, seed, createdAt: Date.now(), savedAt: null, mode: obs ? 'observer' : 'manager',
     log: [], archive: [],
     player: { name: opts.name || (obs ? 'Observador' : 'Chefe de Equipe'), nat: opts.nat || 'BRA', teamId: obs ? null : opts.teamId, fired: false, careerWins: 0, titles: 0 },
-    options: { aiEvents: opts.aiEvents !== false, eventRate: opts.eventRate ?? 1, difficulty: opts.difficulty || 'normal', rainMult: opts.rainMult ?? 1, categories: opts.categories !== false },
+    options: { aiEvents: opts.aiEvents !== false, eventRate: opts.eventRate ?? 1, difficulty: opts.difficulty || 'normal', rainMult: opts.rainMult ?? 1, categories: opts.categories !== false, practiceFormat: opts.practiceFormat || 'real' },
     db,
     season: null, history: [],
     finances: { balance: obs ? 0 : Math.round(team.budget * 0.32), ledger: [], spent: 0 },
@@ -215,60 +215,47 @@ Career.startWeekend = (G) => {
   wk.form = {}; wk.dform = {};
   G.db.teams.forEach(t => (wk.form[t.id] = +(localRngNormal(G.seed + ':' + G.season.year + ':' + t.id + ':' + track.id) * 1.3 + RNG.normal(0, 0.5)).toFixed(2)));
   G.db.drivers.forEach(d => (wk.dform[d.id] = +(RNG.normal(0, 1.5) * (1.25 - d.consistency / 130)).toFixed(2)));
-  G.db.teams.forEach(t => (wk.optimum[t.id] = Engine.genOptimum(track, t, localRng(G.seed + ':' + G.season.year + ':' + track.id + ':' + t.id))));
-  const runs = Math.max(1, (G.db.rules.practiceRuns || 6) + wk.practiceBonus);
-  lineup.forEach(d => {
-    wk.setups[d.id] = { wing: 50, susp: 50, gear: 50, brake: 50, runs: [], runsLeft: runs, q: null, auto: false };
-    wk.qualiRisk[d.id] = 'normal';
-  });
+  G.db.teams.forEach(t => (wk.optimum[t.id] = Setup.genOptimum(track, t, localRng(G.seed + ':' + G.season.year + ':' + track.id + ':' + t.id))));
+  // acerto das equipes da IA: definido pelo trabalho dos engenheiros durante os treinos
+  wk.aiSetups = {};
+  G.db.teams.forEach(t => { if (!team || t.id !== team.id) Career.lineup(G, t.id).forEach(d => (wk.aiSetups[d.id] = Career.aiSetupQ(t, d))); });
+  lineup.forEach(d => { wk.qualiRisk[d.id] = 'normal'; });
   G.weekend = wk;
+  if (team) Practice.init(G, wk, track, team, lineup);
+  else { const n = Practice.sessionsFor(G, track); wk.fp = { cur: 0, sessions: Array.from({ length: n }, (_, i) => ({ name: n === 1 ? 'TL1' : `TL${i + 1}`, t: 0, dur: Practice.DUR, done: false, rubber0: i * 0.18, best: {}, laps: {}, ai: null, log: [] })) }; }
+  // eventos de bastidores (ex.: simulador, atraso de peças) mudam o tempo de pista
+  if (team && wk.practiceBonus) Object.values(wk.setups).forEach(s => { s.acclimLaps = Math.max(0, wk.practiceBonus * 4); });
   return wk;
 };
 
-Career.practiceRun = (G, did, setup) => {
-  const wk = G.weekend;
-  const s = wk.setups[did];
-  if (!s || s.runsLeft <= 0) return null;
-  const team = Career.team(G);
-  const opt = wk.optimum[team.id];
-  const d = Career.driver(G, did);
-  Object.assign(s, setup);
-  const q = Engine.setupQuality(setup, opt);
-  const fb = Engine.setupFeedback(setup, opt, d);
-  const ctx = Career.ctx(G);
-  const pc = Engine.paceComponents({ db: G.db, track: ctx.track, team, drv: ctx.effOf(did), setupQ: q, compound: 'M', wear: 10, fuel: 40, w: wk.weather.wet[1] * 0.5, mode: 'normal', quali: false, carPerf: Engine.carPerf(G.db, team, ctx.track) });
-  const lap = pc.total + RNG.normal(0, 0.22);
-  const confidence = clamp(Math.round((q + RNG.normal(0, (100 - d.experience) / 100 * 0.12)) * 100), 5, 99);
-  const run = { setup: { ...setup }, fb, lap, confidence, q };
-  s.runs.push(run);
-  s.runsLeft--;
-  return run;
-};
+Career.aiSetupQ = (team, d) => clamp(0.6 + team.staff.engineering * 0.004 + (d ? ((d.feedback ?? 75) - 78) * 0.0025 + ((d.adaptability ?? 75) - 78) * 0.0015 + (((typeof STYLE_BEHAVIOR !== 'undefined' && STYLE_BEHAVIOR[d.style]) || {}).setup || 0) : 0) + RNG.normal(0, 0.07), 0.35, 0.97);
 
-Career.aiSetupQ = (team, d) => clamp(0.5 + team.staff.engineering * 0.0042 + (d ? ((d.feedback ?? 75) - 78) * 0.0025 + ((d.adaptability ?? 75) - 78) * 0.0015 + (((typeof STYLE_BEHAVIOR !== 'undefined' && STYLE_BEHAVIOR[d.style]) || {}).setup || 0) : 0) + RNG.normal(0, 0.07), 0.35, 0.97);
-
-Career.finishPractice = (G) => {
+Career.finishPractice = (G, focus) => {
   const wk = G.weekend;
-  if (Career.isObs(G)) { wk.phase = 'quali'; return; }
-  const team = Career.team(G);
-  const opt = wk.optimum[team.id];
-  Object.entries(wk.setups).forEach(([did, s]) => {
-    if (s.auto || !s.runs.length) { s.q = Career.aiSetupQ(team); s.auto = true; }
-    else s.q = Engine.setupQuality(s, opt); // usa o acerto atual nos sliders
-  });
+  if (!Career.isObs(G)) {
+    // sessões que o jogador não fez são feitas pelos engenheiros
+    const pending = wk.fp.sessions.some(s => !s.done);
+    if (pending) Practice.simulate(G, focus || null, true);
+    Practice.finish(G);
+  } else {
+    // observador: só a tabela de tempos dos treinos
+    wk.fp.sessions.forEach((s, i) => { wk.fp.cur = i; if (!s.done) { s.ai = Practice.aiPlan(G, wk, s); s.aiIdx = 0; Practice.endSession(G); } });
+  }
+  Practice.aiConfidence(G, wk);
   wk.phase = 'quali';
 };
 
-Career.entries = (G) => {
+Career.entries = (G, phase = 'race') => {
   const wk = G.weekend;
   const ctx = Career.ctx(G);
   if (!wk.aiSetups) {
     wk.aiSetups = {};
     G.db.teams.forEach(t => { if (t.id !== G.player.teamId) Career.lineup(G, t.id).forEach(d => (wk.aiSetups[d.id] = Career.aiSetupQ(t, d))); });
   }
+  const mySetup = (did) => { const s = wk.setups[did]; if (!s) return null; return phase === 'quali' ? (s.qQ ?? s.q) : (s.qR ?? s.q); };
   return Career.grid(G).map(({ d, t }) => ({
-    did: d.id, tid: t.id, team: t, drv: ctx.effOf(d.id),
-    setupQ: t.id === G.player.teamId ? (wk.setups[d.id] ? wk.setups[d.id].q : Career.aiSetupQ(t)) : wk.aiSetups[d.id],
+    did: d.id, tid: t.id, team: t, drv: typeof Setup !== 'undefined' && wk.conf ? Setup.applyConfidence(ctx.effOf(d.id), wk.conf[d.id]) : ctx.effOf(d.id),
+    setupQ: t.id === G.player.teamId ? (mySetup(d.id) ?? Career.aiSetupQ(t)) : wk.aiSetups[d.id] ?? Career.aiSetupQ(t, d),
     carPerf: Engine.carPerf(G.db, t, ctx.track) + (wk.form[t.id] || 0) + (wk.dform[d.id] || 0) + (G.options.difficulty === 'easy' && t.id === G.player.teamId ? 1.2 : 0) - (G.options.difficulty === 'hard' && t.id === G.player.teamId ? 0.8 : 0),
     risk: t.id === G.player.teamId ? (wk.qualiRisk[d.id] || 'normal') : RNG.pick(['normal', 'normal', 'push', 'safe']),
     isPlayer: t.id === G.player.teamId,
@@ -278,8 +265,7 @@ Career.entries = (G) => {
 Career.runQualifying = (G) => {
   const wk = G.weekend;
   const ctx = Career.ctx(G);
-  const entries = Career.entries(G);
-  const q = Engine.runQualifying({ ...ctx, weather: wk.weather }, entries);
+  const q = Engine.runQualifying({ ...ctx, weather: wk.weather }, Career.entries(G, 'quali'));
   // punições de grid por eventos (ex.: troca de motor)
   wk.quali = q;
   wk.grid = q.order.slice();

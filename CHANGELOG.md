@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 — em desenvolvimento
+**Acerto e treinos livres**
+- Novo modelo de acerto: asas dianteira e traseira, suspensão, altura do carro e balanço de freio (relações de marcha homologadas para a temporada). O piloto sente 5 áreas do carro: equilíbrio, frenagem, curvas, tração e retas; cada ajuste mexe em várias delas.
+- O ideal muda com o contexto (tanque, borracha na pista, temperatura, vento, ritmo): o acerto de classificação e o de corrida não são o mesmo.
+- Piloto com memória: mantém o que disse entre as saídas e só muda de opinião com motivo técnico ("Na saída anterior o equilíbrio estava bom, mas agora, com o tanque mais pesado, ..."), sem repetir frases.
+- Janela do engenheiro: estimada a partir do feedback do piloto, estreita a cada saída; o acerto recomendado é aceito sempre que aumenta a confiança.
+- Confiança = acerto (50%) + conhecimento da pista (25%) + familiaridade com o carro (25%), com efeito no ritmo, na consistência e nos erros.
+- Treinos de 60 minutos com relógio (tempo real a 60×), 1, 2, 3 sessões ou formato vida real, programas de acerto, simulação de classificação e de corrida, tempo de garagem por ajuste, alocação oficial de pneus, tabela de tempos de todos os carros e rádio.
+- Simular pelo engenheiro (uma sessão ou todas) com diretriz: equilibrado, só classificação ou só corrida.
+
 ## 0.6.0 — Moratelli Game Company
 - Numeração das versões revista: o jogo segue em desenvolvimento (as versões publicadas como 1.0.0 e 1.0.1 passam a ser a 0.5 e a 0.6).
 - Nova tela **Perfil e ativação** (menu Sistema e tela inicial): perfil do jogador e campo para a chave do produto. Ainda sem efeito no jogo.

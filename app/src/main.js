@@ -14,7 +14,7 @@ const Smoke = {
       if (mode === 'test') {
         NC.mode = 'manager'; NC.teamId = (BASE.teams.find(t => t.id === 'williams') || BASE.teams[BASE.teams.length - 1]).id; NC.slot = 'slot3'; NC.seed = '2027';
         ACT.ncStart(); step('carreira criada (manager)');
-        ACT.toWeekend(); ACT.practiceRun({ dataset: { d: Career.lineup(G, G.player.teamId)[0].id } }); ACT.endPractice(); ACT.runQuali(); ACT.toStrategy(); ACT.startRace();
+        ACT.toWeekend(); ACT.fpSend({ dataset: { d: Career.lineup(G, G.player.teamId)[0].id } }); Practice.advance(G, 900); ACT.endPractice(); ACT.runQuali(); ACT.toStrategy(); ACT.startRace();
         ACT.raceSkip(); await ACT.finishWeekend(); step('GP 1 disputado pela interface');
         for (let i = 0; i < 3; i++) simulateRound();
         step(`${G.season.round} etapas concluídas`);
