@@ -92,6 +92,7 @@ Career.initPeople = (G) => {
   Market.state(G);
   Staff.refreshMarket(G);
   if (typeof Cats !== 'undefined' && G.options.categories !== false) Cats.init(G);
+  if (typeof DriverDB !== 'undefined') DriverDB.init(G);
 };
 Career.isObs = (G) => G.mode === 'observer';
 
@@ -770,7 +771,8 @@ Career.aiFillSeat = (G, tid, seat) => {
   const ok = (x) => typeof Market === 'undefined' || Market.slEligible(G, x);
   const res = G.db.drivers.find(x => x.team === tid && x.seat === 'R' && ok(x));
   if (res) { res.seat = seat; if (G.season.standD[res.id] == null) G.season.standD[res.id] = 0; Career.record(G, 'contrato', `${team.name} promoveu o reserva ${res.name} ao carro #${seat}.`, { teams: [tid], drivers: [res.id] }); return res; }
-  const free = G.db.drivers.filter(x => !x.team && !x.retired && !x.retiring && !x.futureTeam && ok(x));
+  // quem corre em outra série (IndyCar, WEC...) só muda de categoria entre temporadas
+  const free = G.db.drivers.filter(x => !x.team && !x.retired && !x.retiring && !x.futureTeam && !(x.series && G.season.round > 0) && !x.dead && ok(x));
   const budget = typeof Market !== 'undefined' ? Market.driverBudget(G, team) : team.budget * 0.2;
   const score = (x) => (typeof Market !== 'undefined' ? Market.candidateScore(G, team, x) : driverOverall(x)) - Math.max(0, (typeof Market !== 'undefined' ? Market.ask(x) : Career.marketValue(x)) - budget) * 0.2;
   let pickD = free.sort((a, b) => score(b) - score(a))[0];

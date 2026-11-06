@@ -64,6 +64,8 @@ Diag.run = (G) => {
   Object.entries(fromResC).forEach(([tid, p]) => { if ((G.season.standC[tid] || 0) !== p) errors.push(`Pontos da equipe ${tid} não batem`); });
   // finanças do jogador
   if (G.mode !== 'observer' && !isFinite(G.finances.balance)) errors.push('Caixa do jogador inválido');
+  // a mesma pessoa real em dois registros (id único ou nome + nascimento)
+  if (typeof DriverDB !== 'undefined') DriverDB.duplicates(G).slice(0, 10).forEach(([a, b, k]) => (k.startsWith('u:') ? errors : warns).push(`Piloto duplicado: ${a} e ${b} (${k.startsWith('u:') ? 'mesmo id único' : 'mesmo nome, sem data de nascimento'})`));
   // notícias duplicadas na mesma etapa
   const seenN = new Set();
   G.news.forEach(n => { const k = `${n.year}:${n.round}:${n.title}`; if (seenN.has(k)) warns.push(`Notícia repetida: ${n.title}`); seenN.add(k); });

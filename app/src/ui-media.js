@@ -89,3 +89,6 @@ CHG.soundOn = (el) => { Sound.on = el.checked; if (el.checked) Sound.prime(); };
 CHG.soundVol = (el) => { Sound.vol = Number(el.value); Sound.ui(); };
 ACT.soundTest = () => { Sound.prime(); Sound.beep(); setTimeout(Sound.beep, 300); setTimeout(Sound.go, 700); setTimeout(Sound.stopDrone, 2500); };
 ACT.soundToggle = () => { Sound.on = !Sound.on; if (Sound.on) Sound.prime(); toast(Sound.on ? 'Som ligado.' : 'Som desligado.'); if (typeof updateRace === 'function' && UI.view === 'race') updateRace(); };
+
+/* aviso discreto no rodapé das notícias e da rede social */
+(function () { const h = SCREENS.news.html; SCREENS.news.html = function () { return h.call(this) + disclaimerHtml(true); }; })();

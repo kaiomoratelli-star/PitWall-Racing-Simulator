@@ -318,7 +318,7 @@ Cats.progression = (G, initial) => {
       if (fits) pool.push({ d: m.d, sc: driverOverall(m.d) * 1.6 + (m.d.potential || 0) * 0.4 - m.pos * 0.6 + (m.d.academy ? 4 : 0) + RNG.normal(0, 2) });
     });
     // sem vaga na F1: veteranos e ex-F2 livres vão para a FE e a Super Formula
-    if (cat.pro) G.db.drivers.forEach(d => { if (!d.team && !d.cat && !d.retired && !taken.has(d.id) && d.age >= 21 && d.age <= 36 && driverOverall(d) >= cat.range[0] - 1 && !pool.some(p => p.d === d)) pool.push({ d, sc: driverOverall(d) * 1.6 + (d.career && d.career.starts ? 6 : 0) + (cat.id === 'sf' && d.nat === 'JPN' ? 8 : 0) + RNG.normal(0, 3) }); });
+    if (cat.pro) G.db.drivers.forEach(d => { if (!d.team && !d.cat && !d.series && !d.retired && !d.dead && !taken.has(d.id) && d.age >= 21 && d.age <= 36 && driverOverall(d) >= cat.range[0] - 1 && !pool.some(p => p.d === d)) pool.push({ d, sc: driverOverall(d) * 1.6 + (d.career && d.career.starts ? 6 : 0) + (cat.id === 'sf' && d.nat === 'JPN' ? 8 : 0) + RNG.normal(0, 3) }); });
     pool.sort((a, b) => b.sc - a.sc);
     const teamsBySeat = Cats.freeSeats(cat);
     for (let i = 0; i < free; i++) {
