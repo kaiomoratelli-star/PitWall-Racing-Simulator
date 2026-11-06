@@ -29,7 +29,7 @@ Media.BY_TAG = {
   paddock: ['planetf1', 'crash', 'motorsport', 'racefans', 'therace'], equipe: ['motorsport', 'autosport', 'racefans'],
   escandalo: ['bbc', 'therace', 'motorsport', 'autosport'], rumor: ['therace', 'motorsport', 'autosport', 'planetf1', 'crash'], 'técnica': ['therace', 'autosport', 'racefans', 'ams'], historia: ['f1', 'autosport', 'therace', 'bbc'], rivalidade: ['therace', 'sky', 'planetf1', 'crash'],
 };
-Media.TAGS = { corrida: 'Corrida', campeonato: 'Campeonato', mercado: 'Mercado', regulamento: 'Regulamento', paddock: 'Paddock', equipe: 'Sua equipe', escandalo: 'Investigação', historia: 'História', rivalidade: 'Rivalidade', geral: 'Geral', financas: 'Finanças', rumor: 'Rumores', 'técnica': 'Técnica', tecnica: 'Técnica', staff: 'Bastidores' };
+Media.TAGS = { corrida: 'Corrida', campeonato: 'Campeonato', mercado: 'Mercado', regulamento: 'Regulamento', paddock: 'Paddock', equipe: 'Sua equipe', escandalo: 'Investigação', historia: 'História', rivalidade: 'Rivalidade', geral: 'Geral', financas: 'Finanças', rumor: 'Rumores', 'técnica': 'Técnica', tecnica: 'Técnica', staff: 'Bastidores', categorias: 'Outras categorias' };
 
 /* perfis reais nas redes (fonte: Wikidata P2002 e perfis oficiais) */
 Media.HANDLES = {
