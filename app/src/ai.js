@@ -58,9 +58,9 @@ AI.raceTick = (G) => {
     // receitas e custos fixos
     const income = t.budget * 0.82 / races; // receita livre depois de impostos, juros e custos fora do teto
     const salaries = sum(Career.teamDrivers(G, t.id).map(d => d.salary)) / races;
-    const staffCost = sum(Object.values(t.staff)) * 0.0042 * 24 / races;
-    const ops = 1.25 + t.facilities * 0.006;
-    const engine = Engine.engineOf(G.db, t).cost / races;
+    const staffCost = (t.staffList ? Staff.payroll(t) : sum(Object.values(t.staff)) * 0.1) / races;
+    const ops = (1.25 + t.facilities * 0.006) * (t.staffList ? Staff.opsMul(t) : 1);
+    const engine = t.works ? 0 : Engine.engineOf(G.db, t).cost / races;
     t.cash = +(t.cash + income - salaries - staffCost - ops - engine).toFixed(3);
     t.spent += ops;
     // investimento: nunca gasta o que não tem, respeita o teto

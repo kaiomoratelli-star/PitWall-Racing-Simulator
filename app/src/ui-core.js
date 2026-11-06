@@ -43,7 +43,8 @@ const NAV = [
   ['standings', 'Classificação', 'M5 21V10m7 11V4m7 17v-7'],
   ['calendar', 'Calendário', 'M4 6h16v14H4zM4 10h16M9 3v4m6-4v4'],
   ['g', 'Equipe'],
-  ['team', 'Pilotos e staff', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0'],
+  ['team', 'Pilotos e funcionários', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0'],
+  ['academy', 'Academia', 'M12 3l10 5-10 5L2 8zM6 10v5c3 2 9 2 12 0v-5'],
   ['dev', 'Carro e P&D', 'M14 7l3-3 3 3-3 3m-3-3L4 17v3h3L17 10'],
   ['finance', 'Finanças', 'M12 3v18M17 7H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H6'],
   ['market', 'Mercado', 'M3 7h18l-2 12H5zM8 7a4 4 0 0 1 8 0'],
@@ -59,7 +60,7 @@ const NAV = [
   ['diag', 'Diagnóstico', 'M12 3l9 16H3zM12 10v4m0 3v.5'],
 ];
 // telas que só existem para quem comanda uma equipe
-const MANAGER_ONLY = new Set(['team', 'dev', 'finance', 'market', 'inbox']);
+const MANAGER_ONLY = new Set(['team', 'dev', 'finance', 'market', 'inbox', 'academy']);
 NAV.splice(NAV.findIndex(n => n[0] === 'news') + 1, 0,
   ['paddock', 'Equipes do grid', 'M4 20V9l8-5 8 5v11M9 20v-6h6v6'],
   ['log', 'Registro do universo', 'M6 4h12v16H6zM9 8h6M9 12h6M9 16h4']);

@@ -23,7 +23,7 @@ Engine.carRating = (db, team) => {
 
 Engine.reliability = (db, team) => {
   const eng = Engine.engineOf(db, team);
-  return team.car.reliability * 0.55 + eng.reliability * 0.45;
+  return team.car.reliability * 0.55 + eng.reliability * 0.45 + (typeof Staff !== 'undefined' && team.staffList ? Staff.engineRel(team) : 0);
 };
 
 /* ---------- atributos efetivos com moral ---------- */
@@ -35,6 +35,8 @@ Engine.eff = (d) => {
     consistency: clamp(d.consistency + clamp(m, -1.5, 1) * 3, 30, 100),
     racecraft: d.racecraft, tyre: d.tyre, wet: d.wet, overtaking: d.overtaking,
     defending: d.defending, aggression: d.aggression, experience: d.experience,
+    start: d.start ?? d.racecraft, energy: d.energy ?? d.tyre, adaptability: d.adaptability ?? 75, concentration: clamp((d.concentration ?? d.consistency) + clamp(m, -1.5, 1) * 2, 30, 100), feedback: d.feedback ?? d.experience,
+    b: (typeof STYLE_BEHAVIOR !== 'undefined' && STYLE_BEHAVIOR[d.style]) || {},
   };
 };
 
@@ -69,7 +71,8 @@ Engine.setupQuality = (setup, opt) => {
 
 /* Feedback do piloto — quanto mais experiente, mais preciso */
 Engine.setupFeedback = (setup, opt, driver) => {
-  const noise = (100 - driver.experience) / 100 * 14 + 3;
+  const fbk = driver.feedback != null ? (driver.experience * 0.4 + driver.feedback * 0.6) : driver.experience;
+  const noise = (100 - fbk) / 100 * 14 + 3;
   const out = [];
   const say = {
     wing: ['O carro desliza muito nas curvas, falta carga.', 'Estamos lentos demais nas retas, carga em excesso.'],
@@ -153,7 +156,8 @@ Engine.wearRate = (compound, track, drv, team, mode, w) => {
   let base = TYRES[compound].wear;
   if ((compound === 'I' || compound === 'W') && w < 0.18) base *= compound === 'W' ? 3.2 : 2.4; // superaquece no seco
   const modeMul = mode === 'push' ? 1.35 : mode === 'save' ? 0.72 : 1;
-  return base * track.tyreStress * (1.25 - drv.tyre * 0.004) * (1.2 - team.car.tyreCare * 0.0035) * modeMul;
+  const styleMul = (drv.b && drv.b.wear) || 1;
+  return base * track.tyreStress * (1.25 - drv.tyre * 0.004) * (1.2 - team.car.tyreCare * 0.0035) * modeMul * styleMul;
 };
 
 Engine.paceComponents = (ctx) => {
@@ -161,14 +165,16 @@ Engine.paceComponents = (ctx) => {
   const sc = ctx.track.baseLap / 90;
   const drvPace = ctx.quali ? ctx.drv.qualifying * 0.6 + ctx.drv.pace * 0.4 : ctx.drv.pace;
   const wetBlend = clamp(ctx.w * 1.4, 0, 1);
-  const effPace = lerp(drvPace, (drvPace + ctx.drv.wet) / 2, wetBlend);
+  const effPace = lerp(drvPace, (drvPace + ctx.drv.wet) / 2 + ((ctx.drv.b && ctx.drv.b.wetGain) || 0) * 2, wetBlend) + (ctx.quali && ctx.drv.b && ctx.drv.b.quali ? -ctx.drv.b.quali * 10 : 0);
   const car = (100 - ctx.carPerf) * 0.058 * sc;
   const driver = (100 - effPace) * 0.036 * sc;
   const setup = (0.62 - ctx.setupQ) * 0.9;
   const tyre = TYRES[ctx.compound].offset * sc * (ctx.compound === 'I' || ctx.compound === 'W' ? 0 : 1) + Engine.tyreDeg(ctx.wear) * sc;
   const fuel = ctx.fuel * 0.031;
   const weather = ctx.w * 7.5 * sc + Engine.weatherPenalty(ctx.compound, ctx.w) * sc;
-  const mode = ctx.mode === 'push' ? -0.32 : ctx.mode === 'save' ? 0.42 : 0;
+  // modo de ataque rende mais para quem gerencia bem a energia (bateria/ERS)
+  const en = ctx.drv.energy ?? 75;
+  const mode = ctx.mode === 'push' ? -0.32 * (0.8 + en / 250) : ctx.mode === 'save' ? 0.42 * (1.15 - en / 400) : 0;
   return { car, driver, setup, tyre, fuel, weather, mode, total: ctx.track.baseLap + car + driver + setup + tyre + fuel + weather + mode };
 };
 
@@ -357,10 +363,10 @@ Engine.stepLap = (race, wk) => {
     // tempo de volta
     const pc = Engine.paceComponents({ db, track, team, drv, setupQ: c.setupQ, compound: c.tyre.c, wear: c.tyre.wear, fuel: c.fuel, w, mode: c.mode, quali: false, carPerf: c.carPerf - c.damage.power * 2 });
     let t = pc.total + c.damage.wing * 0.9;
-    const sd = 0.14 + (100 - drv.consistency) * 0.009 + w * 0.3;
+    const sd = (0.14 + (100 - drv.consistency) * 0.009 + w * 0.3) * ((drv.b && drv.b.sd) || 1);
     t += RNG.normal(0, sd);
     if (c.tyre.age === 0) t += TYRES[c.tyre.c].warm * 0.35;
-    if (L === 1) t += 2.6 + RNG.normal(0, 0.6) - (drv.racecraft - 80) * 0.02;
+    if (L === 1) t += 2.6 + RNG.normal(0, 0.6) - (drv.start - 80) * 0.03 - (drv.racecraft - 80) * 0.01 - ((drv.b && drv.b.lap1) || 0);
     // DRS / ar sujo
     c.drs = false;
     if (!scType && L >= 3 && (!race.restartLap || L - race.restartLap >= 2) && w < 0.3 && c.lastGapAhead < 1.0 && track.drs > 0) {
@@ -385,7 +391,7 @@ Engine.stepLap = (race, wk) => {
       }
     }
     if (!scType) {
-      const errP = (0.00035 + (100 - drv.consistency) * 0.00006) * (c.mode === 'push' ? 1.8 : c.mode === 'save' ? 0.6 : 1) * (1 + w * 4 + Engine.weatherPenalty(c.tyre.c, w) * 0.6) * (L === 1 ? 3 : 1);
+      const errP = (0.00035 + (100 - drv.consistency) * 0.00006) * ((drv.b && drv.b.err) || 1) * (1.35 - drv.concentration / 100 * 0.45) * (c.mode === 'push' ? 1.8 : c.mode === 'save' ? 0.6 : 1) * (1 + w * 4 + Engine.weatherPenalty(c.tyre.c, w) * 0.6) * (L === 1 ? 3 : 1);
       if (RNG.chance(errP)) {
         incidentCars.add(c);
         const crash = RNG.chance(0.32 + w * 0.25 + (track.street ? 0.18 : 0));
@@ -457,7 +463,7 @@ Engine.stepLap = (race, wk) => {
         }
         const dc = wk.effOf(cur.did), da = wk.effOf(ahead.did);
         const adv = (ahead.T + 0.25 - cur.T);
-        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.mode === 'push' ? 0.25 : 0);
+        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.mode === 'push' ? 0.25 : 0);
         const p = 1 / (1 + Math.exp(-x));
         if (RNG.chance(p)) {
           cur.overtakes++;

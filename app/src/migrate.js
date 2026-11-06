@@ -5,11 +5,25 @@
    ============================================================ */
 'use strict';
 
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 
 const Migrate = {
   steps: {
     // v1 (primeira versão web) -> v2 (desktop + memória do universo)
+    // v2 -> v3 (V1): atributos novos, personalidade, funcionários, academias, mercado e superlicença
+    2: (G) => {
+      G.db.drivers.forEach(d => {
+        const prof = STYLE_PROFILES[d.style] || STYLE_PROFILES.complete;
+        const r = localRng('mig3:' + d.id);
+        const base = driverOverall(d);
+        NEW_ATTRS.forEach(k => { if (d[k] == null) d[k] = Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 5, 40, 99)); });
+        if (!d.personality) d.personality = { ambition: Math.round(clamp(85 - (d.age - 18) * 1.6 + (r() - 0.5) * 20, 15, 99)), loyalty: Math.round(clamp(45 + (d.age - 25) * 1.2 + (r() - 0.5) * 30, 10, 95)), temper: Math.round(clamp((d.aggression || 50) * 0.7 + (r() - 0.5) * 30, 5, 95)), media: 40 };
+        d.sl = d.sl || [];
+        if (!d.contract && d.team) d.contract = { until: G.season.year + Math.max(0, d.contractYears || 0), salary: d.salary, estimated: true };
+      });
+      G.db.teams.forEach(t => { t.partnerOf = t.partnerOf || []; });
+      Career.initPeople(G);
+    },
     1: (G) => {
       G.mode = G.mode || 'manager';
       G.log = G.log || [];
@@ -22,6 +36,9 @@ const Migrate = {
     },
   },
   run(G) {
+    return Migrate._run(G);
+  },
+  _run(G) {
     const from = G.version || 1;
     const done = [];
     for (let v = from; v < SAVE_VERSION; v++) {

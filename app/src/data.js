@@ -89,14 +89,29 @@ const DRIVER_ROWS = [
 
 /* Perfis de atributos por estilo (desvio somado ao overall) */
 const STYLE_PROFILES = {
-  complete:   { pace: 0, racecraft: 1, consistency: 1, tyre: 0, wet: 1, overtaking: 0, defending: 1, aggression: 0, qualifying: 0 },
-  attack:     { pace: 1, racecraft: 1, consistency: -3, tyre: -3, wet: 0, overtaking: 4, defending: -1, aggression: 12, qualifying: 1 },
-  tyre:       { pace: -1, racecraft: 1, consistency: 2, tyre: 6, wet: 0, overtaking: -1, defending: 1, aggression: -6, qualifying: -2 },
-  qualifier:  { pace: 2, racecraft: -2, consistency: -1, tyre: -2, wet: -1, overtaking: 0, defending: -2, aggression: 4, qualifying: 5 },
-  consistent: { pace: -1, racecraft: 1, consistency: 6, tyre: 2, wet: 0, overtaking: -2, defending: 2, aggression: -8, qualifying: -1 },
-  defend:     { pace: -1, racecraft: 2, consistency: 2, tyre: 1, wet: 0, overtaking: -2, defending: 6, aggression: 2, qualifying: -2 },
-  wet:        { pace: 0, racecraft: 0, consistency: -1, tyre: 0, wet: 8, overtaking: 1, defending: 0, aggression: 2, qualifying: 0 },
-  raw:        { pace: 2, racecraft: -3, consistency: -6, tyre: -3, wet: -2, overtaking: 1, defending: -3, aggression: 10, qualifying: 2 },
+  complete:    { pace: 0, racecraft: 1, consistency: 1, tyre: 0, wet: 1, overtaking: 0, defending: 1, aggression: 0, qualifying: 0, start: 0, energy: 1, adaptability: 2, concentration: 1, feedback: 1 },
+  attack:      { pace: 1, racecraft: 1, consistency: -3, tyre: -3, wet: 0, overtaking: 4, defending: -1, aggression: 12, qualifying: 1, start: 2, energy: -2, adaptability: 0, concentration: -2, feedback: 0 },
+  conservative:{ pace: -1, racecraft: 1, consistency: 4, tyre: 3, wet: -1, overtaking: -3, defending: 1, aggression: -12, qualifying: -1, start: -1, energy: 3, adaptability: 0, concentration: 3, feedback: 1 },
+  technical:   { pace: 0, racecraft: 0, consistency: 2, tyre: 1, wet: 0, overtaking: -1, defending: 0, aggression: -4, qualifying: 1, start: 0, energy: 2, adaptability: 1, concentration: 1, feedback: 7 },
+  consistent:  { pace: -1, racecraft: 1, consistency: 6, tyre: 2, wet: 0, overtaking: -2, defending: 2, aggression: -8, qualifying: -1, start: 0, energy: 2, adaptability: 0, concentration: 5, feedback: 1 },
+  qualifier:   { pace: 2, racecraft: -2, consistency: -1, tyre: -2, wet: -1, overtaking: 0, defending: -2, aggression: 4, qualifying: 5, start: -1, energy: -1, adaptability: 0, concentration: 0, feedback: 1 },
+  overtaker:   { pace: 0, racecraft: 2, consistency: -1, tyre: -1, wet: 1, overtaking: 7, defending: 0, aggression: 8, qualifying: -2, start: 1, energy: 0, adaptability: 0, concentration: -1, feedback: -1 },
+  tyre:        { pace: -1, racecraft: 1, consistency: 2, tyre: 6, wet: 0, overtaking: -1, defending: 1, aggression: -6, qualifying: -2, start: 0, energy: 3, adaptability: 0, concentration: 1, feedback: 1 },
+  wet:         { pace: 0, racecraft: 0, consistency: -1, tyre: 0, wet: 8, overtaking: 1, defending: 0, aggression: 2, qualifying: 0, start: 0, energy: 0, adaptability: 2, concentration: 0, feedback: 0 },
+  adaptable:   { pace: 0, racecraft: 1, consistency: 1, tyre: 0, wet: 2, overtaking: 0, defending: 0, aggression: 0, qualifying: 0, start: 0, energy: 1, adaptability: 7, concentration: 1, feedback: 2 },
+  strategic:   { pace: -1, racecraft: 4, consistency: 2, tyre: 3, wet: 0, overtaking: 0, defending: 2, aggression: -4, qualifying: -2, start: 0, energy: 5, adaptability: 1, concentration: 2, feedback: 2 },
+  daring:      { pace: 2, racecraft: 0, consistency: -2, tyre: -2, wet: 3, overtaking: 4, defending: -1, aggression: 10, qualifying: 2, start: 3, energy: -2, adaptability: 1, concentration: -3, feedback: -1 },
+  erratic:     { pace: 2, racecraft: -3, consistency: -7, tyre: -3, wet: -2, overtaking: 1, defending: -3, aggression: 10, qualifying: 2, start: 0, energy: -2, adaptability: -2, concentration: -6, feedback: -2 },
+  starter:     { pace: 0, racecraft: 2, consistency: 0, tyre: 0, wet: 0, overtaking: 2, defending: 2, aggression: 3, qualifying: -1, start: 9, energy: 0, adaptability: 0, concentration: 1, feedback: 0 },
+  defend:      { pace: -1, racecraft: 2, consistency: 2, tyre: 1, wet: 0, overtaking: -2, defending: 6, aggression: 2, qualifying: -2, start: 1, energy: 1, adaptability: 0, concentration: 2, feedback: 0 },
+  raw:         { pace: 2, racecraft: -3, consistency: -6, tyre: -3, wet: -2, overtaking: 1, defending: -3, aggression: 10, qualifying: 2, start: 0, energy: -2, adaptability: -1, concentration: -5, feedback: -3 },
+};
+/* efeito do estilo no comportamento em pista (multiplicadores aplicados pelo motor) */
+const STYLE_BEHAVIOR = {
+  complete: {}, attack: { err: 1.25, wear: 1.12, ovt: 0.35, lap1: 0.3 }, conservative: { err: 0.7, wear: 0.9, ovt: -0.35, def: 0.1 },
+  technical: { setup: 0.06 }, consistent: { err: 0.75, sd: 0.85 }, qualifier: { quali: -0.12 }, overtaker: { ovt: 0.55, err: 1.1 },
+  tyre: { wear: 0.85 }, wet: { wetGain: 0.4 }, adaptable: { setup: 0.03, wetGain: 0.15 }, strategic: { wear: 0.92, energy: 0.1 },
+  daring: { err: 1.2, ovt: 0.4, wetGain: 0.2, lap1: 0.4 }, erratic: { err: 1.6, sd: 1.3 }, starter: { lap1: 0.9 }, defend: { def: 0.4 }, raw: { err: 1.4, sd: 1.2 },
 };
 
 /* [id, GP, circuito/cidade, país, voltas, km, volta base s, aero, chassi, motor, facilidade ultrapassagem 0-1,
@@ -179,19 +194,23 @@ function buildDefaultDB() {
 
 /* Mapeia estilos para rótulos de UI */
 const STYLE_LABELS = {
-  complete: 'Completo', attack: 'Agressivo', tyre: 'Gestor de pneus', qualifier: 'Especialista em classificação',
-  consistent: 'Consistente', defend: 'Defensor', wet: 'Especialista na chuva', raw: 'Talento bruto',
+  complete: 'Completo', attack: 'Agressivo', conservative: 'Conservador', technical: 'Técnico', consistent: 'Consistente', qualifier: 'Qualificador',
+  overtaker: 'Especialista em ultrapassagens', tyre: 'Gestor de pneus', wet: 'Especialista na chuva', adaptable: 'Adaptável', strategic: 'Estratégico',
+  daring: 'Arrojado', erratic: 'Irregular', starter: 'Excelente em largadas', defend: 'Defensor', raw: 'Talento bruto',
 };
 
 const DRIVER_ATTRS = [
-  ['pace', 'Ritmo'], ['qualifying', 'Classificação'], ['racecraft', 'Inteligência de corrida'], ['consistency', 'Consistência'],
-  ['tyre', 'Gestão de pneus'], ['wet', 'Chuva'], ['overtaking', 'Ultrapassagem'], ['defending', 'Defesa'],
+  ['pace', 'Velocidade'], ['qualifying', 'Classificação'], ['racecraft', 'Inteligência de corrida'], ['consistency', 'Consistência'],
+  ['tyre', 'Controle de pneus'], ['energy', 'Gestão de energia'], ['wet', 'Chuva'], ['overtaking', 'Ultrapassagem'], ['defending', 'Defesa'],
+  ['start', 'Largada'], ['adaptability', 'Adaptabilidade'], ['concentration', 'Concentração'], ['feedback', 'Feedback técnico'],
   ['aggression', 'Agressividade'], ['experience', 'Experiência'], ['potential', 'Potencial'],
 ];
+const NEW_ATTRS = ['start', 'energy', 'adaptability', 'concentration', 'feedback'];
 
 function driverOverall(d) {
-  return Math.round(d.pace * 0.32 + d.qualifying * 0.1 + d.racecraft * 0.14 + d.consistency * 0.14 + d.tyre * 0.1 +
-    d.wet * 0.05 + d.overtaking * 0.08 + d.defending * 0.07);
+  const x = (k) => d[k] ?? d.pace;
+  return Math.round(d.pace * 0.3 + d.qualifying * 0.1 + d.racecraft * 0.12 + d.consistency * 0.12 + d.tyre * 0.08 + d.wet * 0.05 + d.overtaking * 0.07 + d.defending * 0.06 +
+    x('start') * 0.03 + x('energy') * 0.03 + x('adaptability') * 0.02 + x('concentration') * 0.02);
 }
 
 /* Completa campos faltando em bases importadas ou feitas à mão */
@@ -220,7 +239,12 @@ function normalizeDb(src) {
     const r = localRng('attrs:' + o.id);
     const base = num(d.ovr, 78);
     ['pace', 'qualifying', 'racecraft', 'consistency', 'tyre', 'wet', 'overtaking', 'defending'].forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 4, 40, 99)))));
+    NEW_ATTRS.forEach(k => (o[k] = num(d[k], Math.round(clamp(base + (prof[k] || 0) + (r() - 0.5) * 5, 40, 99)))));
     const starts = d.career ? d.career.starts || 0 : 0;
+    if (!d.personality) {
+      const ag = num(d.aggression, 50);
+      o.personality = { ambition: Math.round(clamp(85 - (o.age - 18) * 1.6 + (base - 80) + (r() - 0.5) * 20, 15, 99)), loyalty: Math.round(clamp(45 + (o.age - 25) * 1.2 + (r() - 0.5) * 30, 10, 95)), temper: Math.round(clamp(ag * 0.7 + (r() - 0.5) * 30, 5, 95)), media: Math.round(clamp(40 + (d.career ? d.career.titles * 8 + d.career.wins * 0.4 : 0) + (r() - 0.5) * 30, 5, 99)) };
+    }
     o.aggression = num(d.aggression, Math.round(clamp(50 + (prof.aggression || 0) * 2.5 + (r() - 0.5) * 14, 10, 95)));
     o.experience = num(d.experience, Math.round(clamp(starts ? 20 + starts / 4 : (o.age - 17) * 5, 5, 99)));
     o.potential = num(d.potential, Math.max(80, o.pace)); o.morale = num(d.morale, 70);
@@ -247,7 +271,44 @@ function num(v, d) { const n = Number(v); return isFinite(n) && v !== '' && v !=
 function defaultDb() {
   if (typeof REAL_DB !== 'undefined') {
     if (REAL_DB.natNames) Object.assign(NAT_NAMES, REAL_DB.natNames);
-    return normalizeDb(REAL_DB);
+    const src = deepClone(REAL_DB);
+    if (typeof REAL_EXTRA !== 'undefined') applyRealExtra(src, REAL_EXTRA);
+    return normalizeDb(src);
   }
   return buildDefaultDB();
+}
+
+/* Aplica a pesquisa complementar (contratos, salários, empresários, staff, academias,
+   orçamentos e mudanças já anunciadas para a temporada inicial) à base real */
+function applyRealExtra(db, X) {
+  const start = db.rules.startYear;
+  (X.newDrivers || []).forEach(n => {
+    if (db.drivers.some(d => d.id === n.id)) return;
+    const age = start - Number(n.dob.slice(0, 4)) - 1;
+    db.drivers.push({ ...n, age, team: null, seat: null, img: 'drivers/' + n.id + '.webp', slEligible: true });
+  });
+  (X.moves2027 || []).forEach(m => {
+    const out = db.drivers.find(d => d.id === m.replaces);
+    const inn = db.drivers.find(d => d.id === m.driver);
+    if (out && out.team === m.team) { out.team = null; out.seat = null; }
+    if (inn) { inn.team = m.team; inn.seat = m.seat; }
+  });
+  db.drivers.forEach(d => {
+    const c = X.contracts[d.id];
+    if (c) {
+      if (c.leaves) { d.contract = { ...c }; return; }
+      d.salary = c.salary; d.contractYears = Math.max(0, c.until - start);
+      d.contract = { until: c.until, salary: c.salary, option: c.option || null, clauses: c.clauses || [], estimated: !!c.estimated, note: c.note || null, real: true };
+    } else if (d.team && d.seat === 'R') { d.contractYears = 0; d.salary = d.salary || 0.5; d.contract = { until: start, estimated: true, note: 'Contrato de reserva estimado' }; }
+    if (X.managers && X.managers[d.id]) d.manager = X.managers[d.id];
+    if (d.seat === 'R' || d.id === 'rafael-camara') d.slEligible = d.slEligible ?? (d.id !== 'freddie-slater');
+  });
+  db.teams.forEach(t => {
+    if (X.budgets && X.budgets[t.id]) t.budget = X.budgets[t.id];
+    t.works = (X.works || []).includes(t.id);
+    t.partnerOf = Object.entries(X.partners || {}).filter(([k, v]) => v.includes(t.id)).map(([k]) => k);
+    const st = (X.staff || {})[t.id]; if (st && st.principal) t.principal = st.principal;
+  });
+  db.engines.forEach(e => { if (db.teams.some(t => t.works && t.engine === e.id)) e.works = true; });
+  db.extraRef = X.ref;
 }

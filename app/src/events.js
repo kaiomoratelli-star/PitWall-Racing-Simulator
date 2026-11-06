@@ -50,6 +50,7 @@ Events.applyEffects = (G, fx) => {
   if (fx.sponsorSat) { G.sponsors.forEach(s => (s.satisfaction = clamp(s.satisfaction + lim(fx.sponsorSat, 20), 0, 100))); out.push(`Satisfação dos patrocinadores ${fx.sponsorSat >= 0 ? '+' : ''}${fx.sponsorSat}`); }
   if (fx.signReserve) { const d = Career.driver(G, fx.signReserve); if (d && !d.team) { Career.placeDriver(G, d, team.id, 'R', d.salary || 0.6, 1); out.push(`${d.name} vira piloto reserva`); } }
   if (fx.engineSelf) { team.car.engineBonus = +((team.car.engineBonus || 0) + 1.6).toFixed(2); out.push('Potência do motor +1.6'); }
+  if (fx.marketTalk && typeof Market !== 'undefined') { Market.playerAnswer(G, fx.marketTalk.id, fx.marketTalk.allow); out.push(fx.marketTalk.allow ? 'Negociação liberada' : 'Abordagem recusada'); }
   if (fx.rivalCar) { const t = Career.team(G, fx.rivalCar.id); if (t) { Object.entries(fx.rivalCar).forEach(([k, v]) => { if (t.car[k] != null) t.car[k] = clamp(t.car[k] + lim(v, 3), 30, 110); }); } }
   return out;
 };
