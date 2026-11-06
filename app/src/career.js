@@ -88,6 +88,7 @@ Career.initPeople = (G) => {
   G.db.drivers.forEach(d => { d.sl = d.sl || []; });
   Staff.init(G);
   Market.initAcademies(G);
+  if (typeof Sisters !== 'undefined') Sisters.ensure(G);
   Market.state(G);
   Staff.refreshMarket(G);
   if (typeof Cats !== 'undefined' && G.options.categories !== false) Cats.init(G);
@@ -181,6 +182,7 @@ Career.startSeason = (G, first = false) => {
   G.db.drivers.filter(d => d.team && d.seat !== 'R').forEach(d => (G.season.standD[d.id] = 0));
   G.finances.spent = 0;
   if (typeof Cats !== 'undefined' && !first && Cats.on(G)) Cats.startSeason(G, year);
+  if (!first && typeof Sisters !== 'undefined') Sisters.seasonStart(G);
   if (Career.isObs(G)) { if (G.db.teams[0].staffList) Staff.refreshMarket(G); return; }
   const ranks = Career.expectedRanks(G);
   const exp = ranks[G.player.teamId];
@@ -430,6 +432,7 @@ Career.finishWeekend = (G) => {
   season.round++;
   G.weekend = null;
   if (typeof Council !== 'undefined') Council.afterRound(G);
+  if (typeof Sisters !== 'undefined') Sisters.afterRound(G);
   return report;
 };
 

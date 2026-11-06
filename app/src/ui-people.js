@@ -171,12 +171,13 @@ ACT.negSend = () => {
 /* ================= ACADEMIA ================= */
 SCREENS.academy = {
   html() {
-    const a = (G.academies || []).find(x => x.team === G.player.teamId);
+    const a = Market.myAcademy(G);
     if (!a) return '<div class="empty">Sua equipe não tem academia.</div>';
+    const shared = typeof Sisters !== 'undefined' && G.sisters ? (a.team !== G.player.teamId ? Career.team(G, a.team) : Sisters.childOf(G, a.team) ? Career.team(G, Sisters.childOf(G, a.team)) : null) : null;
     const members = a.members.map(id => Career.driver(G, id)).filter(Boolean);
     const elsewhere = (a.pending || []).filter(nm => !Market.findDriverByName(G, nm));
     const prospects = G.db.drivers.filter(d => !d.retired && d.age <= 21 && !Market.academyOf(G, d) && !d.team).sort((x, y) => y.potential - x.potential).slice(0, 12);
-    return `<div class="page-head"><div><div class="eyebrow">Jovens pilotos</div><h1>${esc(a.name)}</h1></div><span class="chip ${a.active ? 'good' : 'bad'}">${a.active ? 'Ativa' : 'Inativa'}</span></div>
+    return `<div class="page-head"><div><div class="eyebrow">Jovens pilotos</div><h1>${esc(a.name)}</h1></div><div class="row">${shared ? `<span class="chip acc">Compartilhada com a ${esc(shared.name)}</span>` : ''}<span class="chip ${a.active ? 'good' : 'bad'}">${a.active ? 'Ativa' : 'Inativa'}</span></div></div>
     <div class="grid g3">
       <div class="panel"><div class="panel-b stack"><span class="label">Investimento por temporada</span><span class="stat-big">${fmtMoney(a.budget)}</span><input type="range" min="0" max="20" step="1" value="${a.budget}" id="ac-budget" data-chg="acBudget" aria-label="Investimento"><span class="small muted">Mais investimento acelera a evolução dos membros. Cobrado ao fim de cada temporada.</span></div></div>
       <div class="panel"><div class="panel-b stack"><span class="label">Estrutura</span><span class="stat-big">${a.level}</span>${bar(a.level)}<span class="small muted">Nível da estrutura de formação (simulador, preparadores, engenheiros).</span></div></div>
@@ -190,7 +191,7 @@ SCREENS.academy = {
     <div class="panel"><div class="panel-h"><h3>Academias do paddock</h3></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Academia</th><th>Equipe</th><th class="r">Membros</th><th>Destaques</th></tr></thead><tbody>${(G.academies || []).filter(x => x.active).map(x => `<tr><td><b>${esc(x.name)}</b></td><td>${tTag(x.team)}</td><td class="r num">${x.members.length + (x.pending || []).filter(nm => !Market.findDriverByName(G, nm)).length}</td><td class="small">${x.members.slice(0, 4).map(id => esc((Career.driver(G, id) || {}).name || '')).join(', ')}</td></tr>`).join('')}</tbody></table></div></div>`;
   },
 };
-CHG.acBudget = (el) => { const a = G.academies.find(x => x.team === G.player.teamId); a.budget = Number(el.value); a.active = a.active || a.budget > 0; autosave(); render(); };
+CHG.acBudget = (el) => { const a = Market.myAcademy(G); a.budget = Number(el.value); a.active = a.active || a.budget > 0; autosave(); render(); };
 ACT.acAdd = (el) => { const e = Market.addToAcademy(G, el.dataset.id); if (e) toast(e, 'bad'); else { toast('Contratado para a academia.', 'good'); autosave(); } render(); };
 ACT.acRemove = (el) => { Market.removeFromAcademy(G, el.dataset.id); autosave(); render(); };
 ACT.acPromote = (el) => { const d = Career.driver(G, el.dataset.id); if (G.db.drivers.some(x => x.team === G.player.teamId && x.seat === 'R')) return toast('Você já tem um reserva. Dispense-o ou troque antes.', 'bad'); Career.placeDriver(G, d, G.player.teamId, 'R', Math.max(0.5, d.salary || 0.5), 1); autosave(); toast(`${d.name} agora é seu reserva.`, 'good'); render(); };
