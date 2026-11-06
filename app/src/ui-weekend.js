@@ -339,7 +339,7 @@ SCREENS.post = {
       </div></div>
     </div>
     <div class="panel"><div class="panel-h"><h3>Classificação da corrida</h3></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Pos</th><th>Piloto</th><th>Equipe</th><th class="r">Largada</th><th class="r">Gap</th><th class="r">Melhor volta</th><th class="r">Paradas</th><th class="r">Pts</th></tr></thead><tbody>
-      ${res.cls.map((c, i) => `<tr class="${c.tid === team.id ? 'me' : ''}"><td class="num">${c.status === 'dnf' ? 'AB' : c.pos}</td><td>${dTag(c.did)}</td><td class="small muted">${esc(Career.team(G, c.tid).name)}</td><td class="r num">${c.grid}</td><td class="r num">${c.status === 'dnf' ? esc(c.reason) : i === 0 ? fmtRaceTime(c.T) : c.lapsDown ? `+${c.lapsDown} v` : fmtGap(c.T - res.cls[0].T)}</td><td class="r num ${res.fastest && res.fastest.did === c.did ? 'pur' : ''}">${fmtLap(c.best)}</td><td class="r num">${c.pits}</td><td class="r num"><b>${c.pts || ''}</b></td></tr>`).join('')}
+      ${res.cls.map((c, i) => `<tr class="${team && c.tid === team.id ? 'me' : ''}"><td class="num">${c.status === 'dnf' ? 'AB' : c.pos}</td><td>${dTag(c.did)}</td><td class="small muted">${esc(Career.team(G, c.tid).name)}</td><td class="r num">${c.grid}</td><td class="r num">${c.status === 'dnf' ? esc(c.reason) : i === 0 ? fmtRaceTime(c.T) : c.lapsDown ? `+${c.lapsDown} v` : fmtGap(c.T - res.cls[0].T)}</td><td class="r num ${res.fastest && res.fastest.did === c.did ? 'pur' : ''}">${fmtLap(c.best)}</td><td class="r num">${c.pits}</td><td class="r num"><b>${c.pts || ''}</b></td></tr>`).join('')}
     </tbody></table></div></div>`;
   },
 };
