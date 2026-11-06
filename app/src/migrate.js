@@ -21,7 +21,8 @@ const Migrate = {
         d.sl = d.sl || [];
         if (!d.contract && d.team) d.contract = { until: G.season.year + Math.max(0, d.contractYears || 0), salary: d.salary, estimated: true };
       });
-      G.db.teams.forEach(t => { t.partnerOf = t.partnerOf || []; });
+      G.db.teams.forEach(t => { t.partnerOf = t.partnerOf || []; if (t.car.cooling == null) t.car.cooling = 80; if (t.car.energy == null) t.car.energy = 80; });
+      Regs.ensure(G.db.rules);
       Career.initPeople(G);
     },
     1: (G) => {

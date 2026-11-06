@@ -12,9 +12,10 @@ SCREENS.editor = {
   get bare() { return !G; },
   html() {
     const db = edDb();
-    const tabs = [['rules', 'Regras'], ['teams', 'Equipes'], ['drivers', 'Pilotos'], ['tracks', 'Pistas'], ['engines', 'Motores'], ['calendar', 'Calendário'], ['io', 'Importar / exportar']];
+    const tabs = [['rules', 'Regras'], ['regs', 'Regulamento'], ['teams', 'Equipes'], ['drivers', 'Pilotos'], ['tracks', 'Pistas'], ['engines', 'Motores'], ['calendar', 'Calendário'], ['io', 'Importar / exportar']];
     let body = '';
     if (ED.tab === 'rules') body = edRules(db);
+    if (ED.tab === 'regs') body = edRegs(db);
     if (ED.tab === 'teams') body = edTeams(db);
     if (ED.tab === 'drivers') body = edDrivers(db);
     if (ED.tab === 'tracks') body = edTracks(db);

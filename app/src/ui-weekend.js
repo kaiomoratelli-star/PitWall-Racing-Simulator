@@ -381,10 +381,13 @@ SCREENS.analysis = {
   html() {
     const lr = G.lastRace;
     const tab = UI.params.tab || (lr ? 'laps' : 'season');
-    const tabs = [['laps', 'Tempos de volta'], ['pos', 'Posições'], ['gap', 'Diferença para o líder'], ['tyres', 'Estratégia de pneus'], ['quali', 'Classificação'], ['season', 'Temporada'], ['h2h', 'Duelo de companheiros']];
+    const tabs = [['laps', 'Tempos de volta'], ['sectors', 'Setores e velocidade'], ['pace', 'Ritmo e consistência'], ['deg', 'Degradação'], ['pos', 'Posições'], ['gap', 'Diferença para o líder'], ['tyres', 'Estratégia de pneus'], ['quali', 'Classificação'], ['season', 'Temporada'], ['h2h', 'Duelo de companheiros']];
     let body = '';
-    if (!lr && ['laps', 'pos', 'gap', 'tyres', 'quali'].includes(tab)) body = '<div class="empty">Dispute uma corrida para liberar a telemetria.</div>';
+    if (!lr && ['laps', 'sectors', 'pace', 'deg', 'pos', 'gap', 'tyres', 'quali'].includes(tab)) body = '<div class="empty">Dispute uma corrida para liberar a telemetria.</div>';
     else if (tab === 'laps') body = lapChartHtml(lr);
+    else if (tab === 'sectors') body = sectorsHtml(lr);
+    else if (tab === 'pace') body = paceHtml(lr);
+    else if (tab === 'deg') body = degHtml(lr);
     else if (tab === 'pos') body = posChartHtml(lr);
     else if (tab === 'gap') body = gapChartHtml(lr);
     else if (tab === 'tyres') body = tyreChartHtml(lr);
@@ -495,4 +498,50 @@ function h2hHtml() {
     const cell = (x, y) => `<td class="c num"><span class="${x > y ? 'pos' : ''}">${x}</span> – <span class="${y > x ? 'pos' : ''}">${y}</span></td>`;
     return `<tr class="${t.id === G.player.teamId ? 'me' : ''}"><td>${tTag(t.id)}</td><td>${esc(a.name)}</td>${cell(qa, qb)}${cell(ra, rb)}${cell(pa, pb)}<td>${esc(b.name)}</td></tr>`;
   }).join('')}</tbody></table></div>`;
+}
+
+/* ---------- telemetria (V1) ---------- */
+const stdev = (a) => { const m = avg(a); return Math.sqrt(avg(a.map(x => (x - m) * (x - m)))); };
+function cleanLaps(lr, c) {
+  const sc = new Set(); (lr.scHistory || []).forEach(s => { for (let l = s.from; l <= s.to + 1; l++) sc.add(l); });
+  const pit = new Set(); c.stints.forEach(s => { if (s.to) { pit.add(s.to); pit.add(s.to + 1); } });
+  return c.times.map((t, l) => (l > 1 && t && !sc.has(l) && !pit.has(l) ? { l, t } : null)).filter(Boolean);
+}
+function sectorsHtml(lr) {
+  if (!lr.cars[0].secs) return '<div class="empty">Dados de setores disponíveis a partir da versão 1.0.</div>';
+  const rows = lr.cars.filter(c => c.bestS && c.bestS[0]).map(c => ({ c, s: c.bestS, ideal: sum(c.bestS) })).sort((a, b) => a.ideal - b.ideal);
+  const best = lr.bestS || [0, 1, 2].map(k => Math.min(...rows.map(r => r.s[k])));
+  const cell = (v, k) => `<td class="r num ${v <= best[k] + 1e-6 ? 'pur' : ''}">${v.toFixed(3)}<span class="small muted"> ${v > best[k] ? '+' + (v - best[k]).toFixed(3) : ''}</span></td>`;
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th class="r">Setor 1</th><th class="r">Setor 2</th><th class="r">Setor 3</th><th class="r">Volta ideal</th><th class="r">Melhor volta</th><th class="r">Velocidade máx.</th></tr></thead><tbody>
+  ${rows.map(r => `<tr class="${r.c.tid === G.player.teamId ? 'me' : ''}"><td>${dTag(r.c.did)}</td>${r.s.map(cell).join('')}<td class="r num">${fmtLap(r.ideal)}</td><td class="r num">${fmtLap(r.c.best)}</td><td class="r num">${r.c.vmax || '—'} km/h</td></tr>`).join('')}
+  </tbody></table></div><p class="small muted" style="margin-top:8px">Volta ideal = soma dos melhores setores. Roxo = melhor da corrida. Condições: ar ${lr.weather ? lr.weather.air : '—'}°C, pista ${lr.weather ? lr.weather.track : '—'}°C.</p>`;
+}
+function paceHtml(lr) {
+  const rows = lr.cars.filter(c => c.status !== 'dnf').map(c => { const L = cleanLaps(lr, c).map(x => x.t); return { c, avg: avg(L), sd: stdev(L), n: L.length, gain: c.grid - c.pos }; }).filter(r => r.n > 3).sort((a, b) => a.avg - b.avg);
+  const ref = rows.length ? rows[0].avg : 0;
+  const maxsd = Math.max(...rows.map(r => r.sd), 0.1);
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th class="r">Ritmo médio</th><th class="r">Gap</th><th>Consistência (desvio)</th><th class="r">Voltas limpas</th><th class="r">Posições ganhas</th></tr></thead><tbody>
+  ${rows.map(r => `<tr class="${r.c.tid === G.player.teamId ? 'me' : ''}"><td>${dTag(r.c.did)}</td><td class="r num">${fmtLap(r.avg)}</td><td class="r num">${r.avg > ref ? '+' + (r.avg - ref).toFixed(3) : '—'}</td><td style="min-width:160px"><div class="row" style="gap:8px;flex-wrap:nowrap">${bar(100 - r.sd / maxsd * 100, 100, r.sd / maxsd > 0.7 ? 'r' : 'g')}<span class="num small">±${r.sd.toFixed(3)}</span></div></td><td class="r num">${r.n}</td><td class="r num ${r.gain > 0 ? 'pos' : r.gain < 0 ? 'neg' : ''}">${r.gain > 0 ? '+' : ''}${r.gain}</td></tr>`).join('')}
+  </tbody></table></div><p class="small muted" style="margin-top:8px">Ritmo médio sem primeira volta, voltas de box e de Safety Car.</p>`;
+}
+function degHtml(lr) {
+  const sel = analysisPick(lr);
+  const used = {};
+  const rows = [];
+  const series = [];
+  sel.ids.forEach(did => {
+    const c = lr.cars.find(x => x.did === did); if (!c) return;
+    const clean = cleanLaps(lr, c);
+    c.stints.forEach((s, si) => {
+      const pts = clean.filter(x => x.l > s.from + 1 && x.l <= (s.to || lr.laps)).map(x => [x.l - s.from, x.t]);
+      if (pts.length < 4) return;
+      const mx = avg(pts.map(p => p[0])), my = avg(pts.map(p => p[1]));
+      const slope = sum(pts.map(p => (p[0] - mx) * (p[1] - my))) / Math.max(1e-6, sum(pts.map(p => (p[0] - mx) ** 2)));
+      rows.push({ c, s, si, slope, n: pts.length });
+      const { col, dash } = seriesColor(lr, did, used);
+      series.push({ name: `${rawName(did)} ${TYRES[s.c].short}${si + 1}`, color: col, dash: si % 2 ? '4 3' : dash, pts, width: 1.8 });
+    });
+  });
+  return `${driverPicker(lr, sel)}${lineChart('deg', { series, h: 300, xLabel: 'Volta do stint', yFmt: v => fmtLap(v), tipFmt: v => fmtLap(v) })}
+  <div class="tbl-wrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>Piloto</th><th>Stint</th><th>Pneu</th><th class="r">Voltas</th><th class="r">Degradação</th></tr></thead><tbody>${rows.map(r => `<tr><td>${dTag(r.c.did)}</td><td class="num">${r.si + 1}</td><td>${tyreIcon(r.s.c)}</td><td class="r num">${r.n}</td><td class="r num ${r.slope > 0.08 ? 'neg' : 'pos'}">${r.slope >= 0 ? '+' : ''}${r.slope.toFixed(3)} s/volta</td></tr>`).join('')}</tbody></table></div>`;
 }
