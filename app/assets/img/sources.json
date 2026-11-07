@@ -3359,71 +3359,6 @@
 "page": "https://en.wikipedia.org/wiki/Motorsport_Australia",
 "date": "2026-11-07"
 },
-"logos/categories/fia-formula-2-championship.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/FIA_Formula_2_Championship",
-"date": "2026-11-07"
-},
-"logos/categories/fia-formula-3-championship.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/FIA_Formula_3_Championship",
-"date": "2026-11-07"
-},
-"logos/categories/imsa-sportscar-championship.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/IMSA_SportsCar_Championship",
-"date": "2026-11-07"
-},
-"logos/categories/european-le-mans-series.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/European_Le_Mans_Series",
-"date": "2026-11-07"
-},
-"logos/categories/nascar-cup-series.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/NASCAR_Cup_Series",
-"date": "2026-11-07"
-},
-"logos/categories/nascar-o-reilly-auto-parts-series.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/NASCAR_O%27Reilly_Auto_Parts_Series",
-"date": "2026-11-07"
-},
-"logos/categories/nascar-craftsman-truck-series.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/NASCAR_Craftsman_Truck_Series",
-"date": "2026-11-07"
-},
-"logos/categories/deutsche-tourenwagen-masters.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/Deutsche_Tourenwagen_Masters",
-"date": "2026-11-07"
-},
-"logos/categories/formula-regional-middle-east-trophy.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/Formula_Regional_Middle_East_Trophy",
-"date": "2026-11-07"
-},
-"logos/categories/eurocup-3.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/Eurocup-3",
-"date": "2026-11-07"
-},
-"logos/categories/euroformula-open-championship.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/Euroformula_Open_Championship",
-"date": "2026-11-07"
-},
-"logos/categories/f4-spanish-championship.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/F4_Spanish_Championship",
-"date": "2026-11-07"
-},
-"logos/categories/f4-japanese-championship.png": {
-"origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
-"page": "https://en.wikipedia.org/wiki/F4_Japanese_Championship",
-"date": "2026-11-07"
-},
 "logos/sponsors/petronas.png": {
 "origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
 "page": "https://en.wikipedia.org/wiki/Petronas",
@@ -3737,6 +3672,221 @@
 "logos/categories/usf2000.png": {
 "origin": "Wikipedia/Wikimedia (logo; marca registrada do titular)",
 "page": "https://en.wikipedia.org/wiki/File:2024_USF2000_Championship_Logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/cadillac-hertz-team-jota-12.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Jota_red.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/cadillac-hertz-team-jota-38.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Jota_red.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/chip-ganassi-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Chipganassiracingteams.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/comtoyou-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Comtoyou_Racing_Logo.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/cupra-kiro.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:KiroRaceCoLogo.svg",
+"date": "2026-11-07"
+},
+"logos/teams/ds-penske.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:LogoDS_PENSKE.webp",
+"date": "2026-11-07"
+},
+"logos/teams/dale-coyne-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Dale_coyne_racing_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/dreyer-reinbold-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Dreyer_%26_Reinbold_Racing_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/envision-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Envision_Racing_logo_800x319.png",
+"date": "2026-11-07"
+},
+"logos/teams/evans-gp.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Evans-logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/front-row-motorsports.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Front_Row_Motorsports_Logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/hmd-motorsports-with-a-j-foyt-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:HMDMotorsportsLogo.png",
+"date": "2026-11-07"
+},
+"logos/teams/haas-factory-team.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Haas_Factory_Team_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/hendrick-motorsports.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Hendrick_Motorsports_Logo.svg",
+"date": "2026-11-07"
+},
+"logos/teams/iron-dames.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:IronDamesLogo.png",
+"date": "2026-11-07"
+},
+"logos/teams/jenzer-motorsport.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Jenzer_Motorsport.png",
+"date": "2026-11-07"
+},
+"logos/teams/juncos-hollinger-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:2023_Juncos_Hollinger_Racing_Logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/kaulig-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Kaulig_racing_new_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/legacy-motor-club.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Legacy_Motor_Club_new_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/mahindra-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Mahindra_Racing.svg",
+"date": "2026-11-07"
+},
+"logos/teams/manthey-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:MantheyLogo.png",
+"date": "2026-11-07"
+},
+"logos/teams/nissan-formula-e-team.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Nissan_Formula_E_Team_Logo.webp",
+"date": "2026-11-07"
+},
+"logos/teams/pinnacle-motorsport.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Pinnacle_Motorsport_Logo.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/porsche-formula-e-team.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Porsche_Formula_E_Team_logo.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/prema-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Prema.png",
+"date": "2026-11-07"
+},
+"logos/teams/rahal-letterman-lanigan-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Rahal_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/richard-childress-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Richard_Childress_Racing_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/rick-ware-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:RickWareRacingLogo.png",
+"date": "2026-11-07"
+},
+"logos/teams/schubert-motorsport.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Schubert_Motorsport_Logo.svg",
+"date": "2026-11-07"
+},
+"logos/teams/team-penske.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Team_Penske_logo.svg",
+"date": "2026-11-07"
+},
+"logos/teams/threebond-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Threebond_Logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/toyota-racing-7.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Toyota_Gazoo_Racing_stacked_logo.svg",
+"date": "2026-11-07"
+},
+"logos/teams/toyota-racing-8.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Toyota_Gazoo_Racing_stacked_logo.svg",
+"date": "2026-11-07"
+},
+"logos/teams/trackhouse-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Trackhouse_Racing_Logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/van-amersfoort-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://en.wikipedia.org/wiki/File:Van_Amersfoort_Racing_(logo).png",
+"date": "2026-11-07"
+},
+"logos/teams/wood-brothers-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Wood_Brothers_Racing.png",
+"date": "2026-11-07"
+},
+"logos/teams/andretti-formula-e.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Andretti-global-logo-1.webp",
+"date": "2026-11-07"
+},
+"logos/teams/citroen-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Citroen_Racing_Logo.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/ferrari-af-corse-50.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:AFCorseLogo.png",
+"date": "2026-11-07"
+},
+"logos/teams/ferrari-af-corse-51.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:AFCorseLogo.png",
+"date": "2026-11-07"
+},
+"logos/teams/real-racing.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:Real_Racing_3_logo.png",
+"date": "2026-11-07"
+},
+"logos/teams/team-roberts.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:IMG_KR_TEAM_ROBERTS.jpg",
+"date": "2026-11-07"
+},
+"logos/teams/lola-yamaha-abt-formula-e-team.png": {
+"origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
+"page": "https://commons.wikimedia.org/wiki/File:ABT_Logo_black.png",
 "date": "2026-11-07"
 }
 }

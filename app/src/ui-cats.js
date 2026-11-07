@@ -14,7 +14,7 @@ function catDriverCell(did, cat, team) {
   if (!d) return '<span class="muted">—</span>';
   const t = team && catTeam(cat, team);
   const ac = d.academy && Career.team(G, d.academy);
-  return `<div class="row" style="gap:8px;flex-wrap:nowrap">${headshot(d, 'sm')}<div style="min-width:0"><button class="linkbtn" data-act="driverPage" data-id="${d.id}"><b>${esc(d.name)}</b></button> ${natTag(d.nat)}<div class="small muted">${t ? `<span class="tdot" style="background:${t.color}"></span>${esc(t.name)}` : ''}${ac ? ` · <span title="Academia">${esc(ac.short)} jr.</span>` : ''}${d.team ? ` · reserva ${esc(Career.team(G, d.team).short)}` : ''}</div></div></div>`;
+  return `<div class="row" style="gap:8px;flex-wrap:nowrap">${headshot(d, 'sm')}<div style="min-width:0"><button class="linkbtn" data-act="driverPage" data-id="${d.id}"><b>${esc(d.name)}</b></button> ${natTag(d.nat)}<div class="small muted">${t ? `${teamLogo(t, 'xs')} ${esc(t.name)}` : ''}${ac ? ` · <span title="Academia">${esc(ac.short)} jr.</span>` : ''}${d.team ? ` · reserva ${esc(Career.team(G, d.team).short)}` : ''}</div></div></div>`;
 }
 
 SCREENS.cats = {
@@ -61,7 +61,7 @@ function catMini(did) { const d = Career.driver(G, did); return d ? `<button cla
 function catTeamsHtml(cat) {
   return `<div class="grid g3">${cat.teams.slice().sort((a, b) => b.str - a.str).map(t => {
     const ds = cat.entries.filter(e => e.team === t.id);
-    return `<div class="panel cat-team" style="--tc:${t.color}"><div class="panel-h"><h3>${esc(t.name)}</h3><span class="small muted">${t.nat ? natTag(t.nat) : ''} força ${t.str}</span></div>${t.carImg && imgUrl(t.carImg) ? `<div class="panel-b" style="padding-bottom:0"><img class="carimg" src="${imgUrl(t.carImg)}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()"></div>` : ''}<div class="panel-b stack" style="gap:8px">${ds.map(e => catDriverCell(e.did, cat, null)).join('') || '<span class="muted small">Sem pilotos.</span>'}</div></div>`;
+    return `<div class="panel cat-team" style="--tc:${t.color}"><div class="panel-h"><div class="row" style="gap:10px;flex-wrap:nowrap">${teamLogo(t)}<h3>${esc(t.name)}</h3></div><span class="small muted">${t.nat ? natTag(t.nat) : ''} força ${t.str}</span></div>${t.carImg && imgUrl(t.carImg) ? `<div class="panel-b" style="padding-bottom:0"><img class="carimg" src="${imgUrl(t.carImg)}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()"></div>` : ''}<div class="panel-b stack" style="gap:8px">${ds.map(e => catDriverCell(e.did, cat, null)).join('') || '<span class="muted small">Sem pilotos.</span>'}</div></div>`;
   }).join('')}</div>`;
 }
 function catChampsHtml(cat) {

@@ -170,7 +170,13 @@ function headshot(d, cls = '') {
 function teamLogo(t, cls = '') {
   const u = t && (imgUrl(t.logo) || (typeof Assets !== 'undefined' ? Assets.logoByName('teams', t.fullName || t.name) : null));
   if (u) return `<span class="tlogo ${cls}" style="--tc:${t.color}"><img src="${u}" alt="" loading="lazy" onerror="this.remove()"></span>`;
-  return `<span class="tlogo txt ${cls}" style="--tc:${t ? t.color : '#555'}">${esc(t ? t.short : '')}</span>`;
+  return `<span class="tlogo txt ${cls}" style="--tc:${t ? t.color : '#555'}">${esc(t ? t.short || teamAbbr(t.name) : '')}</span>`;
+}
+/* sigla de equipe sem logo: iniciais das palavras que importam (máx. 3 letras) */
+function teamAbbr(name) {
+  const w = String(name || '').replace(/#\d+/g, '').split(/[\s-]+/).filter(x => x && !/^(racing|team|motorsport|motorsports|with|by|the|de|da|and|&|gp|competition|engineering)$/i.test(x));
+  if (!w.length) return String(name || '?').slice(0, 3).toUpperCase();
+  return (w.length === 1 ? w[0].slice(0, 3) : w.slice(0, 3).map(x => x[0]).join('')).toUpperCase();
 }
 function carImg(t, cls = '') { const u = t && imgUrl(t.carImg); return u ? `<img class="carimg ${cls}" src="${u}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()">` : ''; }
 
