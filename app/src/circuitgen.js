@@ -122,13 +122,105 @@ CircuitGen.shape = (p, seed) => {
   return null;
 };
 
+/* ---------- gerador por trechos (0.8) ----------
+   A pista é montada como um piloto a percorreria: reta, curva, reta...
+   - p.straights retas longas (a maior com p.longest metros);
+   - p.turns curvas, divididas entre rápidas (p.fast %), lentas (p.slow %) e médias;
+     lentas viram grampos ou chicanes; rápidas são arcos longos e abertos;
+   - pista de rua: cantos de 90°, retas de quarteirão, poucas curvas abertas;
+   - a soma dos ângulos fecha a volta (360°), o erro de posição é distribuído
+     ao longo do traçado e a pista é escalada para a extensão pedida;
+   - traçados que se cruzam ou encostam são descartados (outra semente). */
+CircuitGen.build = (p, seed) => {
+  const street = p.type === 'street';
+  const turns = clamp(Math.round(p.turns || 14), 5, 26);
+  const nStraight = clamp(Math.round(p.straights || 2), 1, 5);
+  const fastP = (p.fast ?? 35) / 100, slowP = (p.slow ?? 30) / 100;
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const r = localRng(seed * 31 + attempt * 7919 + 17);
+    // 1) tipos de curva
+    const kinds = Array.from({ length: turns }, () => { const x = r(); return x < slowP ? (r() < 0.35 ? 'chicane' : 'slow') : x < slowP + fastP ? 'fast' : 'medium'; });
+    // 2) ângulos (graus) e raios relativos; sinal: maioria para o lado do sentido da pista
+    const segs = kinds.map(k => {
+      let ang, rad;
+      if (street) { ang = k === 'fast' ? 45 : k === 'chicane' ? 60 : 90; rad = k === 'fast' ? 60 : 18; }
+      else if (k === 'fast') { ang = 25 + r() * 45; rad = 140 + r() * 160; }
+      else if (k === 'medium') { ang = 55 + r() * 55; rad = 55 + r() * 60; }
+      else if (k === 'chicane') { ang = 35 + r() * 25; rad = 20 + r() * 15; }
+      else { ang = r() < 0.45 ? 150 + r() * 35 : 80 + r() * 50; rad = 16 + r() * 22; }
+      return { k, ang, rad, sign: r() < (street ? 0.72 : 0.68) ? 1 : -1 };
+    });
+    // chicane = par esquerda-direita: acrescenta o contra-giro
+    const all = [];
+    segs.forEach(s => { all.push(s); if (s.k === 'chicane') all.push({ k: 'chicane2', ang: s.ang, rad: s.rad, sign: -s.sign }); });
+    // fecha 360°: escala as curvas no sentido principal
+    const pos = all.filter(s => s.sign > 0), neg = all.filter(s => s.sign < 0);
+    const negSum = neg.reduce((a, s) => a + s.ang, 0), posSum = pos.reduce((a, s) => a + s.ang, 0);
+    if (posSum <= 0) continue;
+    const need = 360 + negSum;
+    let f = need / posSum;
+    if (street) { // ângulos de rua continuam múltiplos de 45°
+      if (Math.abs(f - 1) > 0.01) {
+        pos.forEach(s => (s.ang = Math.max(45, Math.round(s.ang * f / 45) * 45)));
+        // ajusta de 45 em 45 graus até fechar a volta
+        for (let g = 0; g < 60; g++) {
+          const tot = pos.reduce((a, s) => a + s.ang, 0) - negSum;
+          if (tot === 360) break;
+          const c = pos[Math.floor(r() * pos.length)];
+          if (tot > 360 && c.ang > 45) c.ang -= 45; else if (tot < 360 && c.ang < 135) c.ang += 45;
+        }
+        if (pos.reduce((a, s) => a + s.ang, 0) - negSum !== 360) continue;
+      }
+    } else { if (f < 0.55 || f > 1.9) continue; pos.forEach(s => (s.ang *= f)); }
+    // 3) retas: as longas entram depois das curvas lentas (zona de frenagem no fim)
+    const L = all.map(() => (street ? 80 + r() * 160 : 40 + r() * 180));
+    const slowIdx = all.map((s, i) => [s, i]).filter(([s]) => s.k === 'slow' || s.k === 'medium').map(([, i]) => i);
+    const order = slowIdx.length ? slowIdx : all.map((_, i) => i);
+    for (let k = 0; k < nStraight; k++) {
+      const i = order[Math.floor(r() * order.length)];
+      L[i] = k === 0 ? clamp(p.longest || 900, 300, 2000) : (street ? 250 : 350) + r() * 450;
+    }
+    // 4) percorre: reta, curva (arco amostrado)
+    const pts = [[0, 0]]; let x = 0, y = 0, h = 0;
+    const step = 12;
+    all.forEach((s, i) => {
+      for (let d = step; d <= L[i]; d += step) { x += Math.cos(h) * step; y += Math.sin(h) * step; pts.push([x, y]); }
+      const a = s.ang * Math.PI / 180 * s.sign, arc = Math.abs(a) * s.rad, n = Math.max(2, Math.ceil(arc / step));
+      for (let k = 0; k < n; k++) { h += a / n; x += Math.cos(h) * arc / n; y += Math.sin(h) * arc / n; pts.push([x, y]); }
+    });
+    // 5) fecha: distribui o erro ao longo da volta
+    const ex = x, ey = y, N = pts.length - 1;
+    const closed = pts.map(([px, py], i) => [px - ex * i / N, py - ey * i / N]);
+    // 6) cruzamentos e trechos encostados
+    const sm = closed.filter((_, i) => i % 3 === 0);
+    if (CircuitGen._crosses(sm)) continue;
+    let tooClose = false;
+    const tot = closed.length;
+    for (let i = 0; i < tot && !tooClose; i += 4) for (let j = i + 24; j < tot - (i < 24 ? 24 - i : 0); j += 4) { if (Math.hypot(closed[i][0] - closed[j][0], closed[i][1] - closed[j][1]) < 26) { tooClose = true; break; } }
+    if (tooClose) continue;
+    // 7) normaliza e começa no meio da reta mais longa
+    const xs = closed.map(q => q[0]), ys = closed.map(q => q[1]);
+    const mx = Math.min(...xs), my = Math.min(...ys), span = Math.max(Math.max(...xs) - mx, Math.max(...ys) - my);
+    let norm = closed.map(q => [+((q[0] - mx) / span).toFixed(4), +((q[1] - my) / span).toFixed(4)]);
+    let li = 0, run = 0, best = 0, bestEnd = 0;
+    for (let i = 1; i < norm.length; i++) { const a0 = Math.atan2(norm[i][1] - norm[i - 1][1], norm[i][0] - norm[i - 1][0]); const a1 = i > 1 ? Math.atan2(norm[i - 1][1] - norm[i - 2][1], norm[i - 1][0] - norm[i - 2][0]) : a0; if (Math.abs(a0 - a1) < 0.01) { run++; if (run > best) { best = run; bestEnd = i; } } else run = 0; }
+    li = Math.max(0, bestEnd - Math.floor(best / 2));
+    norm = norm.slice(li).concat(norm.slice(1, li + 1));
+    // reduz pontos (o desenho usa ~200)
+    const keepEvery = Math.max(1, Math.floor(norm.length / 220));
+    const out = norm.filter((_, i) => i % keepEvery === 0); out.push(out[0]);
+    return { shape: out, turns: all.length, meters: Math.round(pts.length * step) };
+  }
+  return null;
+};
+
 CircuitGen.create = (p) => {
   const seed = Math.floor(Math.random() * 1e9);
   const d = CircuitGen.derive(p);
   const id = 'gen-' + (p.name || 'circuito').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + seed.toString(36).slice(-4);
   return {
     id, gp: `GP ${p.gpName || p.city || p.name}`, circuit: p.name, place: p.city, country: p.country || 'BRA', length: p.length, turns: p.turns,
-    ...d, rain: clamp((p.rain ?? 20) / 100, 0, 0.9), shape: CircuitGen.shape(p, seed) || undefined, shapeSeed: seed % 100000, generated: true,
+    ...d, rain: clamp((p.rain ?? 20) / 100, 0, 0.9), shape: (CircuitGen.build(p, seed % 100000) || {}).shape || CircuitGen.shape(p, seed) || undefined, shapeSeed: seed % 100000, generated: true,
     elevation: p.elevation, abrasion: p.abrasion, gen: { ...p }, lat: p.lat ?? null, lon: p.lon ?? null, type: p.type === 'street' ? 'STREET' : 'RACE', alloc: null,
   };
 };

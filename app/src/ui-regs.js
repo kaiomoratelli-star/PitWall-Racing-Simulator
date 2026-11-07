@@ -162,4 +162,4 @@ SCREENS.finance.html = function () {
 
 /* "gerar outro traçado" também vale para os circuitos gerados (respeitando os parâmetros) */
 const _edShape = ACT.edShape;
-ACT.edShape = (el) => { const t = edDb().tracks[+el.dataset.i]; if (t.generated && t.gen) { t.shapeSeed = Math.floor(Math.random() * 1e6); t.shape = CircuitGen.shape(t.gen, t.shapeSeed) || t.shape; return render(); } _edShape(el); };
+ACT.edShape = (el) => { const t = edDb().tracks[+el.dataset.i]; if (t.generated && t.gen) { t.shapeSeed = Math.floor(Math.random() * 1e6); t.shape = (CircuitGen.build(t.gen, t.shapeSeed % 100000) || {}).shape || CircuitGen.shape(t.gen, t.shapeSeed) || t.shape; return render(); } _edShape(el); };

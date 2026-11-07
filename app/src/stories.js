@@ -127,7 +127,8 @@ Stories.state = (G) => (G.stories = G.stories || { queue: [], hidden: [], log: [
     S.queue.push({ due: G.season.round + 1 + Math.floor(r() * 3), y: G.season.year, q, did: d.id, tid: t.id });
     const o = ['therace', 'motorsport', 'autosport', 'planetf1'][Math.floor(r() * 4)];
     Career.news(G, byLang(`Vazamento: ${d.name} tem acordo com a ${t.name} para ${G.season.year + 1}`, `Leak: ${d.name} has a deal with ${t.name} for ${G.season.year + 1}`), 'rumor', byLang('Fontes do paddock dão o acordo como fechado. O anúncio oficial deve sair nas próximas semanas.', 'Paddock sources say the deal is done. The official announcement is expected in the coming weeks.'), { dr: [d.id], tm: [t.id], outlet: o });
-    P(G, { by: o, kind: 'rumor', text: byLang(`EXCLUSIVO: ${d.name} e ${t.name} têm acordo para ${G.season.year + 1}. Anúncio oficial em breve.`, `EXCLUSIVE: ${d.name} and ${t.name} have agreed terms for ${G.season.year + 1}. Official announcement soon.`), hype: 1.6 });
+    P(G, { by: o, kind: 'rumor', driver: d.id, text: byLang(`EXCLUSIVO: ${d.name} e ${t.name} têm acordo para ${G.season.year + 1}. Anúncio oficial em breve.`, `EXCLUSIVE: ${d.name} and ${t.name} have agreed terms for ${G.season.year + 1}. Official announcement soon.`), hype: 1.6 });
+    if (G.social && G.social[0]) G.social[0].aboutTeam = t.id;
   };
 })();
 Stories.release = (G, all) => {
