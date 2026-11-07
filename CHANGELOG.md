@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.1 — correções (em andamento)
+- Aceleração de hardware desligada no aplicativo: evita travamentos e problemas de vídeo em alguns computadores (o jogo é 2D e roda bem só com a CPU).
+
 ## 0.8.0 — Disciplinas, P&D por peça, calendário por dia, circuitos e mídia (07/11/2026)
 **Base de pilotos reais (Fase 1)**
 - Nova base com 1.393 pilotos reais e 5.583 temporadas de 41 campeonatos (2022–2027): F1, F2, F3, F1 Academy, Fórmula E, IndyCar, Indy NXT, USF Pro 2000, USF2000, Super Formula, SF Lights, WEC, IMSA, ELMS, Asian Le Mans, NASCAR Cup/O'Reilly/Truck, DTM, Stock Car Pro Series, Supercars, regionais, Eurocup-3, Euroformula, GB3 e F4s.

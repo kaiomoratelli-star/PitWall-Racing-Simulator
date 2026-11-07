@@ -21,6 +21,9 @@ log.info(`iniciando v${app.getVersion()} ${isDev ? '(dev)' : ''} electron ${proc
 
 // limite de memória do V8 e uma única instância aberta
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=2048');
+// sem aceleração de hardware: evita travamentos e artefatos de vídeo em algumas placas e drivers
+// (o jogo é 2D; tudo é desenhado pela CPU sem perda perceptível)
+app.disableHardwareAcceleration();
 if (!smokeMode && !app.requestSingleInstanceLock()) { app.quit(); }
 
 process.on('uncaughtException', (e) => {
