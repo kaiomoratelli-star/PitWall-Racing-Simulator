@@ -22,7 +22,7 @@ Cards.outletMark = (oid) => {
 };
 Cards.teamMark = (t) => (t ? `<span class="ck-tlogo">${teamLogo(t, 'lg')}</span>` : '');
 Cards.wm = () => `<span class="ck-wm">PitWall · ${byLang('simulação', 'simulation')}</span>`;
-Cards.pic = (d, cls = '') => { const u = Cards.photo(d); return u ? `<img class="ck-pic ${cls}" src="${u}" alt="" loading="lazy" onerror="this.remove()">` : `<span class="ck-pic ck-ini ${cls}">${esc(d ? initials(d.name) : '')}</span>`; };
+Cards.pic = (d, cls = '') => { const u = Cards.photo(d); return u ? `<img class="ck-pic ${cls}" src="${u}" alt="" loading="lazy" onerror="this.remove()">` : d && typeof Avatar !== 'undefined' ? `<span class="ck-pic ck-av ${cls}">${Avatar.svg(d)}</span>` : `<span class="ck-pic ck-ini ${cls}">${esc(d ? initials(d.name) : '')}</span>`; };
 Cards.upper = (s) => esc(String(s || '').toUpperCase());
 
 /* c: {kind, outlet, d, t, head, sub, podium:[d1,d2,d3], big} */

@@ -23,6 +23,17 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**Ajustes finais da 0.8.0**
+- Regulamento recalibrado (mais suave):
+  - o regulamento novo aproxima os carros e mexe na ordem sem embaralhar tudo, e quem é forte costuma continuar perto do topo;
+  - o acerto ou erro de conceito vale até ±3,5 pontos;
+  - o piso de diferença entre os carros ficou menor.
+- Retratos ilustrados para os 808 pilotos sem foto, no lugar das iniciais. Todos têm o mesmo estilo e cada um é diferente, com traços derivados da identidade do piloto: formato do rosto, tom de pele, cabelo, sobrancelhas, olhos, barba e óculos. Macacão e fundo vêm nas cores da equipe.
+- As pilotas são identificadas pela Wikidata (60 da base) e por quem corre na F1 Academy.
+- Logos de 38 das 42 competições (F1, F2, F3, F1 Academy, Fórmula E, IndyCar, WEC, IMSA, DTM, Stock Car, NASCAR, F4s e regionais) na tela de categorias e na carreira real dos pilotos. FR Américas, E4, F4 CEZ e Formula Winter Series não têm logo publicado e aparecem com a sigla.
+- Logos de equipes buscados no campo "logo" da ficha de cada artigo. Imagens que parecem foto são recusadas e, sem logo, fica a sigla.
+- Retratos recompactados (12 MB → 7 MB).
+
 **Mídia, circuitos e regulamento (etapa final da 0.8)**
 - Gerador automático de artes no formato vertical das redes, a partir dos acontecimentos do jogo:
   - "Breaking/Urgente" nos vazamentos, com o veículo de imprensa;
