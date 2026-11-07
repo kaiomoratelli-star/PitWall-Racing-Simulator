@@ -77,6 +77,16 @@ def get(url, data=None, tries=2):
     return None
 
 
+# coordenadas de referência quando o artigo não expõe as coordenadas pela API
+FALLBACK = {
+    'Misano World Circuit Marco Simoncelli': [43.9614, 12.6833], 'Autodrom Most': [50.5194, 13.6014], 'Okayama International Circuit': [34.9150, 134.2210],
+    'Slovakia Ring': [48.0545, 17.5636], 'Sydney Motorsport Park': [-33.8031, 150.8706], 'TT Circuit Assen': [52.9617, 6.5236], 'Mobility Resort Motegi': [36.5328, 140.2275],
+    'Vallelunga Circuit': [42.1592, 12.3700], 'Zhuhai International Circuit': [22.3725, 113.5653], 'Norisring': [49.4311, 11.1197],
+    'Circuit International Automobile Moulay El Hassan': [31.6045, -8.0429], 'Ningbo International Speedpark': [29.9640, 121.6060],
+    'Grand Prix of St. Petersburg': [27.7676, -82.6297], 'Surfers Paradise Street Circuit': [-27.9906, 153.4287], 'Grand Prix of Long Beach': [33.7650, -118.1890],
+}
+
+
 def coords(title):
     c = os.path.join(CACHE, 'c_' + re.sub(r'\W+', '_', title) + '.json')
     if os.path.exists(c): return json.load(open(c))
@@ -87,7 +97,8 @@ def coords(title):
         if p.get('coordinates'): out = [p['coordinates'][0]['lat'], p['coordinates'][0]['lon']]
     except Exception:
         pass
-    json.dump(out, open(c, 'w'))
+    out = out or FALLBACK.get(title)
+    if out: json.dump(out, open(c, 'w'))
     return out
 
 
@@ -155,7 +166,7 @@ def best_loop(j, target_m):
     for idx, (a, b, L, p) in enumerate(chains): g.setdefault(a, []).append((b, idx)); g.setdefault(b, []).append((a, idx))
     best = [None, 1e18]
     def dfs(start, cur, used_e, used_n, L, depth):
-        if depth > 14 or L > target_m * 1.3: return
+        if depth > 22 or L > target_m * 1.3: return
         for nxt, ei in g.get(cur, []):
             if ei in used_e: continue
             l2 = L + chains[ei][2]
@@ -165,7 +176,7 @@ def best_loop(j, target_m):
                 continue
             if nxt in used_n: continue
             dfs(start, nxt, used_e + [ei], used_n | {nxt}, l2, depth + 1)
-    for s in list(g.keys())[:60]:
+    for s in list(g.keys())[:200]:
         dfs(s, s, [], {s}, 0.0, 0)
     if not best[0] or best[1] > target_m * 0.15: return None
     # monta a sequência de pontos na ordem do ciclo
