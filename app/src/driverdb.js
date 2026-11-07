@@ -148,8 +148,9 @@ DriverDB.endSeason = (G) => {
   G.db.drivers.forEach(d => {
     if (!d.series || d.retired || d.team) { if (d.team) { d.series = null; d.seriesTeam = null; } return; }
     if (d.series === 'kart') return;                                   // kart: ciclo próprio (kart.js)
-    if (!DriverDB.PRO.has(d.series)) { d.series = null; d.seriesTeam = null; return; }
     const r = localRng(`ser:${G.seed}:${d.id}:${y}`)();
+    // série de formação que o jogo não simula (GB3, USF Pro, Euroformula...): fica 1 a 3 anos, como na vida real, e depois procura vaga
+    if (!DriverDB.PRO.has(d.series)) { d.seriesYears = (d.seriesYears || 1) + 1; if (d.age >= 22 || d.seriesYears > 3 || r < 0.35) { d.series = null; d.seriesTeam = null; } return; }
     const late = DriverDB.LATE.has(d.series);              // turismo, stock car e endurance: carreiras mais longas
     const [from, hard] = late ? [42, 54] : [36, 44];
     if (d.age >= hard || (d.age >= from && r < 0.1 + (d.age - from) * 0.05)) { d.retired = true; d.retiredYear = y; }

@@ -451,7 +451,7 @@ Engine.stepLap = (race, wk) => {
           const r = RNG.next();
           if (race.R.redFlags && (w > 0.75 || (L <= 2 && track.street)) && RNG.chance(0.35)) Engine.deploySC(race, 'RED', byLang('barreira danificada', 'damaged barrier'), wk);
           else if (r < 0.5 * track.scFactor * race.R.scMultiplier) Engine.deploySC(race, 'SC', byLang('acidente', 'accident'));
-          else if (r < 0.8) Engine.deploySC(race, 'VSC', byLang('detritos na pista', 'debris on track'));
+          else if (r < 0.68) Engine.deploySC(race, 'VSC', byLang('detritos na pista', 'debris on track'));   // nem toda batida neutraliza a corrida
           continue;
         } else {
           const loss = RNG.range(3, 11);
@@ -600,7 +600,8 @@ Engine.collision = (race, wk, a, b) => {
     const victim = RNG.chance(0.5) ? a : b;
     victim.status = 'dnf'; victim.dnfReason = byLang('Colisão', 'Collision');
     Engine.event(race, 'crash', byLang(`Batida entre ${names}! ${wk.nameOf(victim.did)} está fora.`, `Crash between ${names}! ${wk.nameOf(victim.did)} is out.`), victim.did);
-    if (RNG.chance(0.55 * wk.track.scFactor)) Engine.deploySC(race, 'SC', byLang('colisão', 'collision')); else Engine.deploySC(race, 'VSC', byLang('detritos', 'debris'));
+    const rs = RNG.next();
+    if (rs < 0.45 * wk.track.scFactor) Engine.deploySC(race, 'SC', byLang('colisão', 'collision')); else if (rs < 0.8) Engine.deploySC(race, 'VSC', byLang('detritos', 'debris'));
   } else if (sev < 0.6) {
     const victim = RNG.chance(0.5) ? a : b;
     victim.damage.wing = 1; victim.T += RNG.range(1, 4);

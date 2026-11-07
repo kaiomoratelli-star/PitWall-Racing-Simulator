@@ -187,7 +187,7 @@ Career.expectedRanks = (G) => {
 /* ---------- temporada ---------- */
 Career.startSeason = (G, first = false) => {
   const year = G.season ? G.season.year + 1 : G.db.rules.startYear;
-  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (typeof Council !== 'undefined') Council.applySeason(G, year); if (v && v.reset) G.db.teams.forEach(t => { t.car.aero = +(82 + (t.car.aero - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); t.car.chassis = +(82 + (t.car.chassis - 82) * 0.45 + RNG.normal(0, 2.6)).toFixed(2); }); }
+  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (typeof Council !== 'undefined') Council.applySeason(G, year); if (v && v.reset) { const ts = G.db.teams; ['aero', 'chassis'].forEach(k => { const m = ts.reduce((a, t) => a + t.car[k], 0) / ts.length; ts.forEach(t => { t.car[k] = +(m + (t.car[k] - m) * 0.75 + RNG.normal(0, 1.6)).toFixed(2); }); }); } }
   const calendar = (G.db.calendar && G.db.calendar.length ? G.db.calendar : G.db.tracks.map(t => t.id)).filter(id => Career.track(G, id));
   G.season = {
     year, round: 0, calendar, results: [],
@@ -233,8 +233,9 @@ Career.startWeekend = (G) => {
   G.pendingPracticeBonus = 0;
   // forma do fim de semana: alguns carros se dão melhor em certas pistas, pilotos têm dias bons e ruins
   wk.form = {}; wk.dform = {};
-  G.db.teams.forEach(t => (wk.form[t.id] = +(localRngNormal(G.seed + ':' + G.season.year + ':' + t.id + ':' + track.id) * 1.3 + RNG.normal(0, 0.5)).toFixed(2)));
-  G.db.drivers.forEach(d => (wk.dform[d.id] = +(RNG.normal(0, 1.5) * (1.25 - d.consistency / 130)).toFixed(2)));
+  // (0.8.3: menos sorte por fim de semana — antes um carro variava ~1,8 ponto, quase metade da diferença entre equipes)
+  G.db.teams.forEach(t => (wk.form[t.id] = +(localRngNormal(G.seed + ':' + G.season.year + ':' + t.id + ':' + track.id) * 0.85 + RNG.normal(0, 0.3)).toFixed(2)));
+  G.db.drivers.forEach(d => (wk.dform[d.id] = +(RNG.normal(0, 1.1) * (1.25 - d.consistency / 130)).toFixed(2)));
   G.db.teams.forEach(t => (wk.optimum[t.id] = Setup.genOptimum(track, t, localRng(G.seed + ':' + G.season.year + ':' + track.id + ':' + t.id))));
   // acerto das equipes da IA: definido pelo trabalho dos engenheiros durante os treinos
   wk.aiSetups = {};
@@ -640,7 +641,7 @@ Career.projectQuote = (G, area, size) => {
   const dimin = clamp(1 - (cur - ref) / 50, 0.55, 1.2);
   const atr = (A.aeroReg || A.atr) && typeof Regs !== 'undefined' ? Regs.atrFactor(G, team.id) : 1;
   const aeroReg = A.aeroReg && typeof Regs !== 'undefined' ? Regs.aeroMul(G) : 1;
-  const sk = (0.45 + staffR / 100 * 0.75) * (0.8 + team.facilities / 250) * atr * aeroReg * (A.mul || 1);
+  const sk = (0.45 + staffR / 100 * 0.75) * (0.8 + team.facilities / 250) * atr * aeroReg * (A.mul || 1) * (typeof CarDev !== 'undefined' ? CarDev.orgMul(team) : 1);
   const costMul = area === 'facilities' ? 1.8 : area === 'pitCrew' ? 0.6 : area === 'engine' ? 1.4 : 1;
   return {
     area, size, name: `${A.name} — pacote ${S.name.toLowerCase()}`,
@@ -898,11 +899,10 @@ Career.endSeason = (G) => {
   const reg = (G.history.length % (G.db.rules.regulationChangeEvery || 4)) === 0;
   summary.regChange = reg;
   if (reg) Career.record(G, 'regulamento', `Novo regulamento técnico para ${s.year + 1}: o desempenho dos carros foi aproximado e o grid embaralhado.`, { year: s.year });
+  // carro novo sem equalização artificial: mantém a distância para a média do grid (cardev.js)
+  if (typeof CarDev !== 'undefined') CarDev.newCars(G, reg);
   G.db.teams.forEach(t => {
-    // regulamento novo aproxima os carros e mexe na ordem, mas quem é forte costuma continuar perto do topo
-    const k = reg ? 0.62 : 0.84;
-    const pull = (v) => +(82 + (v - 82) * k + RNG.normal(0, reg ? 1.4 : 1.0)).toFixed(2);
-    t.car.aero = pull(t.car.aero); t.car.chassis = pull(t.car.chassis);
+    if (typeof CarDev === 'undefined') { const k = reg ? 0.62 : 0.84; const pull = (v) => +(82 + (v - 82) * k + RNG.normal(0, reg ? 1.4 : 1.0)).toFixed(2); t.car.aero = pull(t.car.aero); t.car.chassis = pull(t.car.chassis); }
     t.car.reliability = +clamp(t.car.reliability * 0.9 + 9 + RNG.normal(0, 1.5), 60, 97).toFixed(1);
   });
   AI.applyNextYear(G);
@@ -914,7 +914,8 @@ Career.endSeason = (G) => {
   G.db.drivers.forEach(d => {
     if (d.retired) return;
     d.age++;
-    if (d.age >= 33) Career.ATTRS_GROW.forEach(k => (d[k] = +clamp(d[k] - RNG.range(0, (d.age - 31) * 0.45), 30, 99).toFixed(2)));
+    if (typeof Talent !== 'undefined') Talent.age(G, d);            // curva de idade por piloto (talent.js)
+    else if (d.age >= 33) Career.ATTRS_GROW.forEach(k => (d[k] = +clamp(d[k] - RNG.range(0, (d.age - 31) * 0.45), 30, 99).toFixed(2)));
     if (d.retiring) { d.retiring = false; d.retired = true; d.retiredYear = s.year; retired.push(d); }
     else if (!d.team && !d.cat && !d.series && d.age >= 33 && RNG.chance(0.35 + (d.age - 33) * 0.1)) { d.retired = true; d.retiredYear = s.year; retired.push(d); }
     if (d.team) d.contractYears--;

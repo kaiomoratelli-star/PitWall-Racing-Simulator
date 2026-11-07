@@ -68,20 +68,22 @@ if (mode === 'sim') {
       const sd = Math.sqrt(cars.reduce((a, b) => a + (b - m) ** 2, 0) / cars.length);
       const act = G.db.drivers.filter(d => !d.retired && !d.dead);
       const f1 = G.db.drivers.filter(d => d.team && d.seat !== 'R').map(driverOverall).sort((a, b) => a - b);
+      const f1n90 = f1.filter(v => v >= 90).length;
+      const tiers = typeof Talent !== 'undefined' ? Talent.census(G) : {};
       const spent = G.db.teams.map(t => G.player.teamId === t.id ? G.finances.spent : (t.spent || 0));
       const y = G.season.year;
       const dups = DriverDB.duplicates(G).length;
       const sum = Career.endSeason(G);
       out.push({ y, champ: sum.championName + ' / ' + sum.constructorName, win: win.size, pod: pod.size, sd: +sd.toFixed(2), cmin: +Math.min(...cars).toFixed(1), cmax: +Math.max(...cars).toFixed(1),
         n90: act.filter(d => driverOverall(d) >= 90).length, n85: act.filter(d => driverOverall(d) >= 85).length, pot90: act.filter(d => (d.potential || 0) >= 90).length, act: act.length,
-        f1med: f1[Math.floor(f1.length / 2)], f1min: f1[0], spentMin: Math.round(Math.min(...spent)), spentMax: Math.round(Math.max(...spent)),
+        f1med: f1[Math.floor(f1.length / 2)], f1min: f1[0], f1n90, gen: tiers.geracional || 0, acima: tiers.acima || 0, spentMin: Math.round(Math.min(...spent)), spentMax: Math.round(Math.max(...spent)),
         cashMax: Math.round(Math.max(...G.db.teams.map(t => t.cash || 0))), cashMin: Math.round(Math.min(...G.db.teams.map(t => t.cash || 0))), corp: Math.round(G.db.teams.reduce((a, t) => a + (t.corporate || 0), 0)),
         breaches: (G.capBreaches || []).filter(b => b.y === y).length, dups, diag: Diag.run(G).errors.length });
     }
     return out;
   })()`);
-  const tab = `| Ano | Campeões | Equipes vencedoras | Equipes no pódio | Desvio carros | Carro pior–melhor | Ativos ≥90 | Ativos ≥85 | Potencial ≥90 | Ativos | F1 mediana / pior | Gasto no teto (mín–máx) | Caixa (mín–máx) | Patrimônio somado | Estouros do teto | Duplicatas | Erros |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n` +
-    rows.map(r => `| ${r.y} | ${r.champ} | ${r.win} | ${r.pod} | ${r.sd} | ${r.cmin}–${r.cmax} | ${r.n90} | ${r.n85} | ${r.pot90} | ${r.act} | ${r.f1med} / ${r.f1min} | ${r.spentMin}–${r.spentMax} | ${r.cashMin}–${r.cashMax} | ${r.corp} | ${r.breaches} | ${r.dups} | ${r.diag} |`).join('\n');
+  const tab = `| Ano | Campeões | Equipes vencedoras | Equipes no pódio | Desvio carros | Carro pior–melhor | Ativos ≥90 | Ativos ≥85 | Potencial ≥90 | Ativos | F1 ≥90 | Geracionais / acima da média vivos | F1 mediana / pior | Gasto no teto (mín–máx) | Caixa (mín–máx) | Patrimônio somado | Estouros do teto | Duplicatas | Erros |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n` +
+    rows.map(r => `| ${r.y} | ${r.champ} | ${r.win} | ${r.pod} | ${r.sd} | ${r.cmin}–${r.cmax} | ${r.n90} | ${r.n85} | ${r.pot90} | ${r.act} | ${r.f1n90} | ${r.gen} / ${r.acima} | ${r.f1med} / ${r.f1min} | ${r.spentMin}–${r.spentMax} | ${r.cashMin}–${r.cashMax} | ${r.corp} | ${r.breaches} | ${r.dups} | ${r.diag} |`).join('\n');
   const f = path.join(ROOT, 'docs', 'RELATORIO-SIMULACAO.md');
   const head = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : `# Relatório de simulações longas\n\nGerado por \`scripts/audit.js sim\`. Cada seção é uma carreira simulada do início ao fim, sem interface, com a mesma semente reproduzível. Os números servem para comparar versões: carros que convergem, talentos inflando, dinheiro sem controle, duplicatas e erros de integridade.\n`;
   fs.writeFileSync(f, head + `\n## ${seasons} temporadas · semente ${seed} · modo ${gm} · ${today} (${((Date.now() - t0) / 1000).toFixed(0)} s)\n\n${tab}\n`);

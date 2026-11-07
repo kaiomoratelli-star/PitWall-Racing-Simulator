@@ -27,10 +27,9 @@ Kart.spawn = (G, ch, age) => {
   const ref = Cats.get(G, ch.f4.find(id => Cats.get(G, id)) || 'f4it') || { id: 'kart', tier: 6, range: [50, 63] };
   const nat = RNG.pick(ch.nats);
   const ovr = Math.round(clamp(ref.range[0] - 16 + (age - 12) * 3 + RNG.normal(0, 3.5), 30, ref.range[0] - 1));
-  const taken = (n) => G.db.drivers.some(x => x.name === n);
-  let name = randomName(nat);
-  for (let i = 0; i < 15 && taken(name); i++) name = randomName(nat);
-  if (taken(name)) return null;
+  // nome único (antes desistia quando o nome sorteado já existia, e o kart encolhia com os anos)
+  const name = typeof Talent !== 'undefined' ? Talent.uniqueName(G, nat) : randomName(nat);
+  if (!name) return null;
   const d = Cats.makeDriver(G, { name, nat, regen: true }, ref, ovr, age);
   d.cat = null; d.ctm = null; d.series = 'kart'; d.seriesTeam = ch.name.replace('Kart · ', ''); d.kart = { c: ch.id, since: G.season ? G.season.year : 2027, res: [] };
   d.popularity = Math.min(d.popularity, 6);

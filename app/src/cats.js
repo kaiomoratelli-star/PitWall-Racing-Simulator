@@ -363,7 +363,8 @@ Cats.develop = (G) => {
     // vale para quem está nas categorias e para quem saiu delas (inclusive já na F1) enquanto jovem
     if (d.retired || !(d.cat || ((d.regen || d.id.startsWith('c-')) && d.age <= 27))) return;
     const o = driverOverall(d);
-    const k = d.age <= 17 ? 0.22 : d.age <= 19 ? 0.18 : d.age <= 21 ? 0.14 : d.age <= 24 ? 0.1 : d.age <= 27 ? 0.05 : d.age >= 32 ? -0.04 : 0;
+    // a queda por idade fica em talent.js (Talent.age), igual para todas as séries
+    const k = d.age <= 17 ? 0.22 : d.age <= 19 ? 0.18 : d.age <= 21 ? 0.14 : d.age <= 24 ? 0.1 : d.age <= 27 ? 0.05 : 0;
     const res = d.lastCat && d.lastCat.y === G.season.year ? clamp((10 - d.lastCat.pos) * 0.08, -0.6, 0.8) : 0;
     const gain = k > 0 ? Math.max(0, (d.potential - o) * k) + res + RNG.normal(0, 0.6) : k * 10 + RNG.normal(0, 0.4);
     if (gain) Cats.shift(d, gain);

@@ -65,6 +65,11 @@ Market.awardSuperlicense = (G, catId, standings) => {
 /* ---------- avaliação de candidatos pela equipe ---------- */
 Market.academyOf = (G, d) => (G.academies || []).find(a => a.members.includes(d.id));
 Market.candidateScore = (G, t, d) => {
+  // F1: titular precisa ter nota de F1 (80+); abaixo disso só se não houver ninguém
+  const f1Pen = driverOverall(d) < (typeof Talent !== 'undefined' ? Talent.F1_MIN : 80) ? 40 : 0;
+  return Market._candidateScore(G, t, d) - f1Pen;
+};
+Market._candidateScore = (G, t, d) => {
   const P = AI.persona(t);
   let s = driverOverall(d) * 1.0;
   // a equipe enxerga uma estimativa do potencial (olheiros dela), não o número real

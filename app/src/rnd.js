@@ -114,7 +114,7 @@ RnD.quote = (G, cfg) => {
     use = (S.wt ? ww * wt / S.wt : 0) + (S.cfd ? (S.wt ? 1 - ww : 1) * cfd / S.cfd : 0);
     q = 0.25 + 0.75 * Math.pow(clamp(use, 0, 1.4), 0.75);
   }
-  const sk = (0.45 + staffR / 100 * 0.75) * (0.8 + team.facilities / 250) * aeroReg * (A.mul || 1);
+  const sk = (0.45 + staffR / 100 * 0.75) * (0.8 + team.facilities / 250) * aeroReg * (A.mul || 1) * (typeof CarDev !== 'undefined' ? CarDev.orgMul(team) : 1);
   const g = S.base * amb.gain * q * sk * dimin * (next ? 1.35 : 1);
   const wtShare = S.wt ? clamp(wt / S.wt, 0, 1.3) : 0.6;
   const risk = Math.round(clamp(22 - staffR / 8 + amb.risk - wtShare * 7 - (q - 0.7) * 8, 3, 42));

@@ -40,10 +40,11 @@ AI.areaGain = (t, area, money) => {
   const sk = 0.3 + (t.staff[staffKey] || 75) / 100 * 0.9;
   const fac = 0.6 + (t.facilities || 70) / 200;
   const cur = t.car[area];
-  // retornos decrescentes medidos contra a média do grid (não contra um valor fixo)
-  const ref = (AI.gridAvg && AI.gridAvg[area]) || 85;
+  // retornos decrescentes contra um valor fixo do regulamento (não contra a média do grid, que ajudava quem está atrás)
+  const ref = area === 'reliability' ? 88 : ((AI.G && AI.G.carRef && AI.G.carRef[area]) || 86) + 3;
   const dimin = clamp(1 - (cur - ref) / 70, 0.8, 1.1);
-  return money * 0.085 / (AI.costScale || 1) * sk * fac * dimin * (area === 'reliability' ? 1 : regMul);
+  const org = typeof CarDev !== 'undefined' ? CarDev.orgMul(t) : 1;
+  return money * 0.085 / (AI.costScale || 1) * sk * fac * dimin * org * (area === 'reliability' ? 1 : regMul);
 };
 
 /* uma rodada de decisões por corrida para cada equipe da IA */
@@ -58,6 +59,8 @@ AI.raceTick = (G) => {
   G.db.teams.forEach(t => {
     if (t.id === G.player.teamId) return;
     const P = AI.persona(t);
+    // projetos que ficaram prontos chegam ao carro (cardev.js)
+    if (typeof CarDev !== 'undefined') CarDev.deliver(G, t);
     // receitas e custos fixos
     // receitas do ano (comercial + patrocínio + donos, econ.js) e custos da estrutura
     const income = typeof Econ !== 'undefined' ? t.budget / races : t.budget * 0.82 / races;
@@ -76,6 +79,7 @@ AI.raceTick = (G) => {
     const racesLeft = Math.max(1, races - G.season.round);
     let spend = Math.min(available * (0.25 + P.ambition * 0.35), capLeft / racesLeft * (0.8 + P.ambition * 0.4), t.budget * 0.06);
     if (spend < 0.3) spend = 0;
+    if (typeof CarDev !== 'undefined' && CarDev.full(t)) spend = 0;     // sem vaga de projeto: não começa outro
     if (spend > 0) {
       // prioridade: área mais fraca em relação ao grid, com viés da personalidade
       const avgOf = k => avg(G.db.teams.map(x => x.car[k]));
@@ -87,11 +91,14 @@ AI.raceTick = (G) => {
       const hopeless = late > 0.55 && (pos > 3 || P.ambition < 0.5);
       const nys = (typeof Regs !== 'undefined' ? Regs.r(G).nextYearStartPct : 45) / 100;
       const focus = late > nys ? clamp((hopeless ? 0.6 : 0.25) + (late - nys), 0, 0.85) : 0;
-      let g = AI.areaGain(t, area, spend) * clamp(RNG.normal(1, 0.35 + P.risk * 0.2), -0.2, 2.2);
-      const now = g * (area === 'reliability' ? 1 : 1 - focus);
-      const bank = area === 'reliability' ? 0 : g * focus * 1.3;
-      t.car[area] = +clamp(t.car[area] + now, 30, area === 'reliability' ? 99 : 110).toFixed(2);
-      t.nextYearBank = +(t.nextYearBank + bank).toFixed(3);
+      let g = AI.areaGain(t, area, spend) * clamp(RNG.normal(1, 0.25 + P.risk * 0.2), 0.2, 2.2);
+      let now = g * (area === 'reliability' ? 1 : 1 - focus);
+      if (typeof CarDev !== 'undefined') { CarDev.start(G, t, area, g, area === 'reliability' ? 0 : focus, P); now = 0; g = 0; }   // ganho chega depois (fila)
+      else {
+        const bank = area === 'reliability' ? 0 : g * focus * 1.3;
+        t.car[area] = +clamp(t.car[area] + now, 30, area === 'reliability' ? 99 : 110).toFixed(2);
+        t.nextYearBank = +(t.nextYearBank + bank).toFixed(3);
+      }
       t.cash = +(t.cash - spend).toFixed(3);
       t.spent = +(t.spent + spend).toFixed(3);
       t.lastDev = { area, spend: +spend.toFixed(2), gain: +now.toFixed(2), round: G.season.round };
@@ -150,6 +157,8 @@ AI.seasonEnd = (G, sc) => {
 AI.applyNextYear = (G) => {
   G.db.teams.forEach(t => {
     if (t.id === G.player.teamId) return;
+    // projetos ainda na fila no fim do ano entram no carro novo
+    if (typeof CarDev !== 'undefined' && (t.devQ || []).length) { t.devQ.forEach(p => { t.nextYearBank = +((t.nextYearBank || 0) + Math.max(0, p.now) * 0.6 + p.bank).toFixed(3); }); t.devQ = []; }
     if (t.nextYearBank > 0) {
       t.car.aero = +(t.car.aero + t.nextYearBank * 0.55).toFixed(2);
       t.car.chassis = +(t.car.chassis + t.nextYearBank * 0.45).toFixed(2);
