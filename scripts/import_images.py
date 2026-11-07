@@ -36,7 +36,29 @@ def get(url, binary=True, tries=5):
         body, code = r.stdout.rsplit(b'\n', 1) if b'\n' in r.stdout else (r.stdout, b'0')
         if code == b'200': return body if binary else body.decode('utf-8', 'ignore')
         if code in (b'404', b'403'): return None
-        time.sleep(20 * (i + 1) if code == b'429' else 4 * (i + 1))  # 429: o Commons limita o ritmo; espera de verdade
+        time.sleep(8 * (i + 1) if code == b'429' else 3 * (i + 1))  # 429: o Commons limita o ritmo
+    return None
+
+
+def img_candidates(url):
+    """Mesma foto em tamanhos padrão do Commons (miniaturas sofrem menos limite que o original)."""
+    base = url.split('?')[0]
+    m = re.match(r'https://upload\.wikimedia\.org/wikipedia/commons/(?:thumb/)?(\w)/(\w\w)/([^/]+)(?:/\d+px-[^/]+)?$', base)
+    if not m: return [base]
+    a, b, f = m.groups()
+    th = lambda w: f'https://upload.wikimedia.org/wikipedia/commons/thumb/{a}/{b}/{f}/{w}px-{f}'
+    return [base if '/thumb/' in base else th(960), th(500), th(250), th(330), th(1280)]
+
+
+def get_img(url, rounds=3):
+    for r in range(rounds):
+        for c in img_candidates(url):
+            res = subprocess.run(['curl', '-sSL', '-A', UA, '--max-time', '60', '-w', '\n%{http_code}', c], capture_output=True)
+            body, code = res.stdout.rsplit(b'\n', 1) if b'\n' in res.stdout else (res.stdout, b'0')
+            if code == b'200' and len(body) > 2000: return body
+            if code == b'404': continue
+            time.sleep(1.5)
+        time.sleep(6 * (r + 1))
     return None
 
 
@@ -77,9 +99,10 @@ def faces():
                     best = (int(cols[0]), int(top0 + hw * 0.15), int(hw), int(hw * 1.2))
         if best is not None:
             x, y, w, h = best
-            side = min(int(w / 0.45), H, Wd)
+            # o resto da foto fica: maior quadrado possível, com o rosto no centro
+            side = min(H, Wd)
             cx, cy = x + w / 2, y + h * 0.5
-            left = int(min(max(0, cx - side / 2), Wd - side)); top = int(min(max(0, cy - side * 0.45), H - side))
+            left = int(min(max(0, cx - side / 2), Wd - side)); top = int(min(max(0, cy - side / 2), H - side))
             ok = True
         else:
             side = min(H, Wd); left = (Wd - side) // 2; top = 0 if H > Wd else (H - side) // 2; ok = False
@@ -117,13 +140,34 @@ def faces():
         json.dump(thumbs, open(tcf, 'w'))
         time.sleep(3)
     print(f'  {len(thumbs)} URLs de miniatura', flush=True)
-    for i, d in enumerate(todo):
+    retry = []
+    for i, d in enumerate(todo + [None] + [None]):
+        if d is None:   # passadas extras pelas fotos que pegaram limite de ritmo
+            if not retry: break
+            todo_r, retry = retry, []
+            print(f'  nova passada: {len(todo_r)} foto(s)', flush=True)
+            time.sleep(30)
+            for d2 in todo_r:
+                url = thumbs.get(d2['img']) or thumbs.get(d2['img'].replace('_', ' '))
+                b = get_img(url, rounds=2) if url else None
+                if not b: retry.append(d2); continue
+                open(os.path.join('/tmp/res/commons', d2['uid'] + '.img'), 'wb').write(b)
+                try:
+                    im, ok = center(Image.open(io.BytesIO(b)))
+                except Exception:
+                    continue
+                if not ok: continue
+                im.save(os.path.join(out_dir, d2['uid'] + '.webp'), 'WEBP', quality=84)
+                save_src('faces/' + d2['uid'] + '.webp', 'Wikimedia Commons (licença do arquivo, ver página)', 'https://commons.wikimedia.org/wiki/File:' + d2['img'].replace(' ', '_'))
+                done += 1; ok_n += ok
+            json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
+            continue
         url = thumbs.get(d['img']) or thumbs.get(d['img'].replace('_', ' '))
         if not url: continue
         cache = os.path.join('/tmp/res/commons', d['uid'] + '.img'); os.makedirs('/tmp/res/commons', exist_ok=True)
-        b = open(cache, 'rb').read() if os.path.exists(cache) else get(url)
-        if not b: continue
-        if not os.path.exists(cache): open(cache, 'wb').write(b); time.sleep(0.6)
+        b = open(cache, 'rb').read() if os.path.exists(cache) else get_img(url, rounds=1)
+        if not b: retry.append(d); continue
+        if not os.path.exists(cache): open(cache, 'wb').write(b); time.sleep(0.4)
         try:
             im, ok = center(Image.open(io.BytesIO(b)))
         except Exception:

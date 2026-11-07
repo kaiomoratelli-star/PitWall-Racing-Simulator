@@ -179,15 +179,15 @@ CT.push({ k: 'points12', cat: 'esp', basis: 'posição no campeonato', proposer:
   desc: () => 'Com 11 equipes e 22 carros, as equipes do fundo pedem mais posições pontuando, ideia que a F1 já discutiu. Tira peso das vitórias e premia regularidade.',
   ops: () => [{ op: 'rules', k: 'points', v: [25, 18, 15, 12, 10, 8, 6, 5, 4, 3, 2, 1] }],
   imp: (tid, M) => -M[tid].strength * 0.65, fia: 0.1, fom: 0.3 });
-CT.push({ k: 'trackLimits', cat: 'esp', basis: 'agressividade dos pilotos', proposer: 'fia', when: 'now',
+CT.push({ k: 'trackLimits', cat: 'esp', basis: 'agressividade dos pilotos', proposer: 'fia',
   gen: (G, R) => (R.trackLimitWarnings > 2 ? { a: R.trackLimitWarnings, b: R.trackLimitWarnings - 1 } : null),
-  title: (p) => `Limites de pista: punição depois de ${p.b} advertências (hoje ${p.a}), já nesta temporada`,
-  desc: () => 'Depois de corridas com dezenas de voltas deletadas, a FIA quer endurecer a regra imediatamente. Pilotos agressivos são os mais punidos.',
+  title: (p, G) => `Limites de pista: punição depois de ${p.b} advertências (hoje ${p.a}) a partir de ${G.season.year + 1}`,
+  desc: () => 'Depois de corridas com dezenas de voltas deletadas, a FIA quer endurecer a regra na próxima temporada. Pilotos agressivos são os mais punidos.',
   ops: (p) => [{ op: 'regs', k: 'trackLimitWarnings', v: p.b }],
   imp: (tid, M) => -M[tid].aggr * 0.4, fia: 0.55, fom: 0.05 });
-CT.push({ k: 'strict', cat: 'esp', basis: 'agressividade dos pilotos', proposer: 'fia', when: 'now',
+CT.push({ k: 'strict', cat: 'esp', basis: 'agressividade dos pilotos', proposer: 'fia',
   gen: (G, R) => (R.penaltyStrictness < 1.4 ? { a: R.penaltyStrictness, b: +(R.penaltyStrictness + 0.3).toFixed(1) } : null),
-  title: () => 'Comissários mais rigorosos nas disputas roda a roda, já nesta temporada',
+  title: (p, G) => `Comissários mais rigorosos nas disputas roda a roda a partir de ${G.season.year + 1}`,
   desc: () => 'Novas diretrizes de corrida para manobras na freada e por fora. Mais punições para quem joga o rival para fora da pista.',
   ops: (p) => [{ op: 'regs', k: 'penaltyStrictness', v: p.b }],
   imp: (tid, M) => -M[tid].aggr * 0.4, fia: 0.45, fom: -0.1 });
@@ -254,7 +254,8 @@ Council.make = (G, t, p, M, r, proposerTid) => {
   let proposer = proposerTid || t.proposer;
   // a autora é a equipe que mais ganha (nunca a do jogador: ele só propõe pela própria tela)
   if (proposer === 'team') proposer = Object.entries(imp).filter(([tid]) => !Council.isPlayer(G, tid)).sort((a, b) => b[1] - a[1])[0][0];
-  const eff = t.when === 'now' ? 'now' : G.season.year + (typeof t.when === 'number' ? t.when : 1);
+  // regra nova vale na temporada seguinte; imediato só para segurança urgente (t.safety)
+  const eff = t.when === 'now' && t.safety ? 'now' : G.season.year + (typeof t.when === 'number' ? t.when : 1);
   return { id: 'cp' + (++C.seq), k: t.k, cat: t.cat, p, title: t.title(p, G), desc: t.desc(p, G), basis: t.basis, eff, proposer, imp, noise,
     fia: +(t.fia + (r() - 0.5) * 0.5).toFixed(2), fom: +(t.fom + (r() - 0.5) * 0.5).toFixed(2), lobby: {}, acts: {}, vote: null, vetoAsk: false };
 };

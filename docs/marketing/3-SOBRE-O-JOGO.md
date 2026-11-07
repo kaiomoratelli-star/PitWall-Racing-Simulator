@@ -81,6 +81,11 @@
 - (Versão 0.8) Calendário por dia: avance até o próximo acontecimento; decisões (vermelho) e mensagens importantes (amarelo) precisam de atenção antes de seguir. Peças são fabricadas uma por carro: a primeira vai para o carro escolhido e o outro só recebe quando a segunda fica pronta.
 - (Versão 0.8) P&D por peça: escolha a peça (asa dianteira, assoalho, sidepods, suspensão...), o foco, a ambição e quanto túnel de vento e CFD usar, dentro da cota do regulamento. A pesquisa do carro do ano seguinte também é por peça e ocupa vaga. Carro de 2026 visto de cima mostra o que está em desenvolvimento, e cada atualização mostra o antes e o depois.
 
+## Circuitos (versão 0.8)
+- Licenças de Grau 1 a partir da lista oficial da FIA (04/11/2026); renovações futuras simuladas pelo jogo e marcadas como tal.
+- Circuitos reserva assumem etapas que ficam sem licença.
+- Gerador de circuitos com checagem básica de requisitos (não é homologação).
+
 ## Corrida
 - Simulação volta a volta.
 - Pneus C1 a C5 escolhidos para cada GP, com temperatura do pneu e da pista.

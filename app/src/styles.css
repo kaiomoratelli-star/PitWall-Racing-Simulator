@@ -718,3 +718,4 @@ body.flag-red .main::after { border-color: var(--red); box-shadow: inset 0 0 60p
 .mail.p-decision .dot { background: var(--red); }
 .mail.p-important { box-shadow: inset 3px 0 0 var(--yellow); }
 .mail.p-important .dot { background: var(--yellow); }
+.checks { list-style: none; padding: 0; margin: 4px 0; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }

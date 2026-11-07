@@ -23,6 +23,14 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**Circuitos (Fase 5)**
+- Licenças de circuito a partir da lista oficial de circuitos licenciados pela FIA (atualizada em 04/11/2026; `scripts/import_fia_circuits.py`, `app/data/fia-circuits.js`): grau, validade, extensão e largura de referência.
+- A F1 só corre com licença de Grau 1 válida na data da corrida. Depois da lista oficial, as renovações são simuladas pelo jogo (quase sempre renovam) e aparecem marcadas como simulação, nunca como decisão real da FIA. Na primeira temporada da carreira o calendário real é mantido.
+- Circuitos reserva: etapa sem licença na virada da temporada dá lugar a um circuito com Grau 1 válido, de preferência da mesma região, com notícia e registro.
+- Página do circuito mostra a licença, a fonte e se ela vale na data da corrida. O editor de calendário lista a licença de cada etapa e os circuitos reserva.
+- Circuitos criados no gerador passam por uma checagem básica do jogo (extensão de 3,5 a 7 km, distância de corrida, curvas, reta de ultrapassagem, pit lane), sempre com o aviso de que não é homologação nem licença real.
+- Conselho: regra nova vale a partir da temporada seguinte; mudança imediata só para segurança urgente (limites de pista e rigor dos comissários passaram para a temporada seguinte).
+
 **Calendário por dia, notificações e navegação**
 - O tempo passa dia a dia. A central mostra a data de hoje, os próximos acontecimentos (fim de semana de corrida, projetos e peças) e o botão "Avançar", que pula para o próximo dia com algo relevante. O fim de semana começa na sexta e, depois da corrida, o dia passa a ser a segunda-feira seguinte. A data aparece no topo da tela.
 - Caixa de entrada com prioridade: vermelho para decisões pendentes e amarelo para mensagens importantes não lidas (projeto pronto, peça nova instalada). As duas travam o avanço do tempo até serem resolvidas ou lidas; um aviso na central leva direto para elas.
