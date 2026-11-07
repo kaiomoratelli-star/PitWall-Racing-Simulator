@@ -58,10 +58,16 @@ function catCalHtml(cat) {
   </tbody></table></div></div>`;
 }
 function catMini(did) { const d = Career.driver(G, did); return d ? `<button class="linkbtn" data-act="driverPage" data-id="${d.id}">${esc(shortName(d))}</button>` : '—'; }
+/* de onde vem a vaga: anúncio da fonte, grid real de 2026, projeção do jogo ou piloto fictício */
+function catEntryStatus(e) {
+  if (!e.st || !Cats.STATUS[e.st]) return '';
+  const cls = e.st === 'anunciado' ? 'pos' : e.st === 'gerado' ? 'neg' : 'muted';
+  return `<div class="small ${cls}" style="margin-top:-6px;padding-left:4px">${esc(Cats.STATUS[e.st])}</div>`;
+}
 function catTeamsHtml(cat) {
   return `<div class="grid g3">${cat.teams.slice().sort((a, b) => b.str - a.str).map(t => {
     const ds = cat.entries.filter(e => e.team === t.id);
-    return `<div class="panel cat-team" style="--tc:${t.color}"><div class="panel-h"><div class="row" style="gap:10px;flex-wrap:nowrap">${teamLogo(t)}<h3>${esc(t.name)}</h3></div><span class="small muted">${t.nat ? natTag(t.nat) : ''} força ${t.str}</span></div>${t.carImg && imgUrl(t.carImg) ? `<div class="panel-b" style="padding-bottom:0"><img class="carimg" src="${imgUrl(t.carImg)}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()"></div>` : ''}<div class="panel-b stack" style="gap:8px">${ds.map(e => catDriverCell(e.did, cat, null)).join('') || '<span class="muted small">Sem pilotos.</span>'}</div></div>`;
+    return `<div class="panel cat-team" style="--tc:${t.color}"><div class="panel-h"><div class="row" style="gap:10px;flex-wrap:nowrap">${teamLogo(t)}<h3>${esc(t.name)}</h3></div><span class="small muted">${t.nat ? natTag(t.nat) : ''} força ${t.str}</span></div>${t.carImg && imgUrl(t.carImg) ? `<div class="panel-b" style="padding-bottom:0"><img class="carimg" src="${imgUrl(t.carImg)}" alt="Carro ${esc(t.name)}" loading="lazy" onerror="this.remove()"></div>` : ''}<div class="panel-b stack" style="gap:8px">${ds.map(e => catDriverCell(e.did, cat, null) + catEntryStatus(e)).join('') || '<span class="muted small">Sem pilotos.</span>'}</div></div>`;
   }).join('')}</div>`;
 }
 function catChampsHtml(cat) {

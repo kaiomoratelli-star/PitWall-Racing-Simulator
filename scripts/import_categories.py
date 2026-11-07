@@ -101,11 +101,12 @@ def parse_date(t, year):
         if mon.lower() in MONTHS:
             out = '%04d-%02d-%02d' % (int(y) if y else year, MONTHS[mon.lower()], int(d))
     # formato americano: "April 11" / "April 11–12"
-    for mon, d in re.findall(r'([A-Z][a-z]+)\s+(\d{1,2})(?:\s*[–-]\s*(?:[A-Z][a-z]+\s+)?\d{1,2})?', t):
+    # (?!\d): "May 2026" não pode virar "20 de maio"
+    for mon, d in re.findall(r'([A-Z][a-z]+)\s+(\d{1,2})(?!\d)(?:\s*[–-]\s*(?:[A-Z][a-z]+\s+)?\d{1,2}(?!\d))?', t):
         if mon.lower() in MONTHS:
-            last = re.findall(r'([A-Z][a-z]+)\s+(\d{1,2})', t)
+            last = re.findall(r'([A-Z][a-z]+)\s+(\d{1,2})(?!\d)', t)
             m2, d2 = mon, d
-            tail = re.search(re.escape(mon) + r'\s+\d{1,2}\s*[–-]\s*(?:([A-Z][a-z]+)\s+)?(\d{1,2})', t)
+            tail = re.search(re.escape(mon) + r'\s+\d{1,2}(?!\d)\s*[–-]\s*(?:([A-Z][a-z]+)\s+)?(\d{1,2})(?!\d)', t)
             if tail: m2, d2 = (tail.group(1) or mon), tail.group(2)
             if m2.lower() in MONTHS:
                 cand = '%04d-%02d-%02d' % (year, MONTHS[m2.lower()], int(d2))

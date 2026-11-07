@@ -132,6 +132,17 @@
 - Os jovens evoluem, ganham pontos de superlicença e sobem de categoria até a F1.
 - Novos talentos surgem todos os anos; em testes de 10 a 20 temporadas, pilotos que hoje estão na F4 chegaram a campeões mundiais.
 
+## Economia de verdade (versão 0.8.2)
+- Cada equipe vive das próprias receitas: distribuição comercial pela posição no Mundial, patrocínio limitado pela exposição da marca e aporte dos donos.
+- Fábrica, pessoal, operação e frete custam caro e contam no teto orçamentário, que é auditado no fim do ano para todas as equipes, com multa e menos túnel de vento para quem estourar.
+- Equipe pequena não gasta o teto inteiro; equipe rica gasta e ainda manda lucro para os donos. O excedente do caixa vai para o patrimônio e não volta sozinho para o carro.
+- Equipe em crise corta estrutura e depende dos donos para sobreviver.
+
+## Base de dados conferida (versão 0.8.2)
+- Uma pessoa, um registro: apelidos e variações de nome reunidos sem misturar homônimos.
+- Grid inicial de 2027 com o grid real de 2026 e os anúncios oficiais; cada vaga mostra se é anunciada, a confirmar ou projeção do jogo.
+- Calendário oficial da F1 2027 e categorias de suporte no mesmo fim de semana.
+
 ## Mundo vivo
 - Notícias de veículos de imprensa reais, com imagens.
 - Rede social com perfis reais de pilotos, equipes e imprensa.

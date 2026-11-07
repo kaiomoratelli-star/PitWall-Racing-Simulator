@@ -137,7 +137,7 @@ ACT.negotiate = (el) => {
 function negModal() {
   const n = UI.neg; const d = Career.driver(G, n.did); const team = Career.team(G);
   const under = d.team && d.team !== team.id && d.contractYears > 0;
-  const buyout = under ? +(d.salary * d.contractYears * 0.8 + 1).toFixed(1) : 0;
+  const buyout = d.team ? Market.releaseFee(G, d) : 0;
   const acc = Market.driverAccepts(G, d, team, { salary: n.salary, years: n.years, role: n.role, clauses: n.clauses });
   modal(`${n.renew ? 'Renovação' : 'Negociação'} — ${d.name}`, `
     <div class="row">${headshot(d)}<div><div>${natTag(d.nat)} ${d.age} anos · nota <b>${driverOverall(d)}</b> · potencial ${potText(d)} ${slChip(d)}</div><div class="small muted">${d.team ? esc(Market.contractText(G, d)) : 'Sem contrato'} · pede cerca de ${fmtMoney(Market.ask(d))}/ano${d.manager ? ` · empresário: ${esc(d.manager)}` : ''}</div></div></div>
@@ -147,7 +147,7 @@ function negModal() {
       <label class="field"><span>Contrato até</span><select class="inp" id="ng-y" data-chg="negField" data-k="years">${[1, 2, 3, 4, 5].map(k => opt(k, String(G.season.year + k), n.years)).join('')}</select></label>
       <label class="field"><span>Função</span><select class="inp" id="ng-r" data-chg="negField" data-k="role">${opt(1, 'Carro #1', n.role)}${opt(2, 'Carro #2', n.role)}${opt('R', 'Reserva', n.role)}</select></label>
     </div>
-    ${!n.renew && d.team ? `<label class="check"><input type="checkbox" id="ng-now" ${n.now ? 'checked' : ''} data-chg="negField" data-k="now"> ${under ? `Pagar multa de ${fmtMoney(buyout)} e trazer agora` : 'Trazer agora (contrato atual já termina)'}; senão, pré-contrato para ${G.season.year + 1}</label>` : ''}
+    ${!n.renew && d.team ? `<label class="check"><input type="checkbox" id="ng-now" ${n.now ? 'checked' : ''} data-chg="negField" data-k="now"> Pagar multa de ${fmtMoney(buyout)} e tentar trazer agora (a equipe atual precisa liberar); senão, pré-contrato para ${G.season.year + 1}</label>` : ''}
     <div class="grid g2" style="gap:12px;margin:4px 0 10px">${[['performance', 'Cláusula de desempenho', 'Na metade da temporada, se ele estiver muito abaixo do esperado (comparado ao carro e ao companheiro), você pode encerrar o contrato no fim do ano sem pagar multa. Diminui a chance de ele aceitar.'], ['release', 'Cláusula de saída', 'Se uma equipe que está à sua frente no campeonato de construtores fizer proposta, ele pode sair no fim do ano sem multa e você não pode bloquear. Aumenta a chance de ele aceitar.']].map(([k, l, tip]) => `<div><label class="check"><input type="checkbox" ${(n.clauses || []).includes(k) ? 'checked' : ''} data-chg="negClause" data-k="${k}"> ${l}</label><div class="small muted" style="margin:3px 0 0 26px;line-height:1.4">${tip}</div></div>`).join('')}</div>
     <div class="callout">Chance estimada de aceitar: <b>${Math.round((n.renew ? clamp(acc.p + 0.2, 0, 0.98) : acc.p) * 100)}%</b>. Ele considera competitividade da equipe, salário, papel, lealdade e ambição.</div>`,
     `<button class="btn" data-act="closeModal">Encerrar conversa</button><button class="btn primary" data-act="negSend">Enviar proposta</button>`);

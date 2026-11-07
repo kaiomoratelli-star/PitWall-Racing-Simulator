@@ -90,7 +90,7 @@ Events.TEMPLATES = [
     }
   },
   {
-    key: 'sponsor_offer', w: 2.2, cond: (G) => G.sponsors.length < 6, build: (G, c) => {
+    key: 'sponsor_offer', w: 2.2, cond: (G) => G.sponsors.length < 6 && (typeof Econ === 'undefined' || sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length < Econ.sponsorPool(Career.team(G)) * 0.95), build: (G, c) => {
       const sp = Career.genSponsors(G, c.team, 1)[0];
       const big = { ...sp, perRace: +(sp.perRace * 1.5).toFixed(2), objective: RNG.pick(['top5', 'podium', 'top10both']) };
       return {
@@ -234,7 +234,8 @@ Events.TEMPLATES = [
   },
   {
     key: 'rival_crisis', w: 0.8, build: (G, c) => {
-      const t = RNG.pick(G.db.teams.filter(x => x.id !== c.team.id && x.budget < 130));
+      const poor = G.db.teams.filter(x => x.id !== c.team.id).sort((a, b) => (a.cash ?? a.budget) - (b.cash ?? b.budget)).slice(0, 2);
+      const t = RNG.pick(poor.filter(x => (x.cash ?? 0) < x.budget * 0.25));
       if (!t) return null;
       return {
         from: 'Rumores do paddock', tag: 'market', title: `${t.name} em crise financeira`,

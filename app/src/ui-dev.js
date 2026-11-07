@@ -103,7 +103,7 @@ function devCfg(G) {
     const gains = Object.entries(q.split).map(([f, w]) => `<dt>${esc(T(RnD.FIELD_LABEL[f] || f))}</dt><dd class="pos">+${(q.min * w).toFixed(2)}–${(q.max * w).toFixed(2)}</dd>`).join('');
     const busy = G.projects.some(p => !p.buildOnly && p.area === area && !!p.next === !!c.next);
     const err = q.blocked || (RnD.used(G) >= slots ? 'Sem vaga livre.' : busy ? 'Já há um projeto desta peça com este alvo.' : q.wt > P.wt ? 'Túnel insuficiente.' : q.cfd > P.cfd ? 'CFD insuficiente.' : null);
-    const config = `<div class="panel"><div class="panel-h"><h3>Novo projeto</h3><span class="small muted">Teto disponível ${fmtMoney(G.db.rules.budgetCap - G.finances.spent)} · caixa ${fmtMoney(G.finances.balance)}</span></div>
+    const config = `<div class="panel"><div class="panel-h"><h3>Novo projeto</h3><span class="small muted">Espaço no teto ${fmtMoney(Math.max(0, Career.capRoom(G)))} · caixa ${fmtMoney(G.finances.balance)}</span></div>
       <div class="panel-b devcfg">
         <div class="devcarcol">${devCarSvg(area, running)}<div class="small muted" style="text-align:center"><span class="lgd sel"></span>escolhida <span class="lgd run"></span>em projeto</div></div>
         <div class="stack" style="gap:12px">

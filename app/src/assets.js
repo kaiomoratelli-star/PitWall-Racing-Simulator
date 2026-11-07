@@ -33,6 +33,7 @@ Assets.face = (d) => {
   const a = d.img ? `faces/${String(d.img).replace(/^drivers\//, '').replace(/\.webp$/, '')}.webp` : null;
   if (a && Assets.has(a)) return imgUrl(a);
   if (d.uid && Assets.has(`faces/${d.uid}.webp`)) return imgUrl(`faces/${d.uid}.webp`);
+  if (d.ddb && Assets.has(`faces/ddb/${d.ddb}.webp`)) return imgUrl(`faces/ddb/${d.ddb}.webp`);
   return null;
 };
 /* logo por nome (equipes das categorias, fabricantes, patrocinadores, entidades) */

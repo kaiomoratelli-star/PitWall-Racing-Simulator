@@ -138,6 +138,7 @@ def plain(t):
     t = LINK.sub(lambda m: (m.group(2) or m.group(1)), t)
     t = re.sub(r'\{\{[^{}]*\}\}', '', t)
     t = re.sub(r"'''?", '', t)
+    t = re.sub(r'<br\s*/?>', ' ', t, flags=re.I)        # quebra de linha vira espaço ("Racing<br>with" → "Racing with")
     t = re.sub(r'<[^>]+>', '', t)
     return re.sub(r'\s+', ' ', t).strip()
 

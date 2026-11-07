@@ -152,6 +152,12 @@ Disc.init = (G) => {
       for (let i = 0; i < 10 && taken(n); i++) n = Disc.femaleName(d.nat);
       for (let i = 0; taken(n) && i < 25; i++) n = n.replace(/^(\S+)( [A-Z]\.)? /, `$1 ${'ABCDEFGHIJKLMNOPRSTUVWXYZ'[i]}. `);
       d.name = n;
+      // id coerente com o nome (antes ficava o id do nome masculino sorteado: c-logan-parker = "Madison Reed")
+      const ids = new Set(G.db.drivers.filter(o => o !== d).map(o => o.id));
+      let id = 'c-' + Cats.norm(n).replace(/ /g, '-').slice(0, 30);
+      while (ids.has(id)) id += 'x';
+      if (Cats._ids) { Cats._ids.delete(d.id); Cats._ids.add(id); }
+      d.id = id;
     }
     return d;
   };

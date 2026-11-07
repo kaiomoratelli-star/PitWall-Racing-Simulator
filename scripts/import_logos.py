@@ -135,6 +135,44 @@ def comps():
     print('competições com logo:', got, '/', len(SERIES))
 
 
+# instituções, organizadores e fornecedores de pneus (V0.8.2)
+INST = {'aco': "Automobile Club de l'Ouest", 'imsa': 'International Motor Sports Association', 'formula-one-group': 'Formula One Group',
+        'nascar': 'NASCAR', 'indycar': 'IndyCar', 'fia': 'Fédération Internationale de l\'Automobile', 'jaf': 'Japan Automobile Federation',
+        'cbsa': 'Confederação Brasileira de Automobilismo', 'itr': 'ITR (company)', 'motorsport-uk': 'Motorsport UK', 'aci': "Automobile Club d'Italia"}
+TYRES = {'pirelli': 'Pirelli', 'hankook': 'Hankook Tire', 'bridgestone': 'Bridgestone', 'firestone': 'Firestone Tire and Rubber Company', 'goodyear': 'Goodyear Tire and Rubber Company',
+         'yokohama': 'Yokohama Rubber Company', 'michelin': 'Michelin', 'dunlop': 'Dunlop Tyres', 'kumho': 'Kumho Tire'}
+MISSING_COMPS = {'fram': 'Formula Regional Americas Championship', 'e4': 'E4 Championship', 'f4cez': 'Formula 4 CEZ Championship', 'fws': 'Formula Winter Series'}
+
+
+def inst():
+    for kind, table in (('institutions', INST), ('tyres', TYRES), ('categories', MISSING_COMPS)):
+        for key, title in table.items():
+            t, text = wikitext(title)
+            f = logo_file(text) if text else None
+            r = save_logo(kind, key, f, t or title) if f else None
+            print(f'{kind:12} {key:18} {title:42} -> {r or "sem logo"}', flush=True)
+
+
+def inst_wd():
+    """instituições e categorias sem logo na ficha: logo (P154) do item na Wikidata"""
+    global API
+    for kind, table in (('institutions', INST), ('tyres', TYRES), ('categories', MISSING_COMPS)):
+        for key, title in table.items():
+            dest = os.path.join(IMG, 'logos', kind, slug(key) + '.png')
+            if os.path.exists(dest): continue
+            API = 'https://www.wikidata.org/w/api.php'
+            j = api({'action': 'wbsearchentities', 'search': title, 'language': 'en', 'type': 'item', 'limit': 3})
+            f = None
+            for e in (j or {}).get('search', [])[:3]:
+                c = api({'action': 'wbgetclaims', 'entity': e['id'], 'property': 'P154'})
+                cl = (c or {}).get('claims', {}).get('P154') or []
+                if cl: f = cl[0]['mainsnak'].get('datavalue', {}).get('value'); break
+            API = 'https://commons.wikimedia.org/w/api.php'
+            r = save_logo(kind, key, f, title) if f else None
+            print(f'wikidata {kind:12} {key:18} -> {r or "sem logo"}', flush=True)
+    API = 'https://en.wikipedia.org/w/api.php'
+
+
 def teams():
     t = open(os.path.join(ROOT, 'app', 'data', 'categories.js'), encoding='utf-8').read()
     cats = json.loads(t[t.index('{'):t.rstrip().rindex('}') + 1])['cats']
@@ -227,3 +265,4 @@ if __name__ == '__main__':
     if not a or '--teams' in a: teams(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
     if not a or '--wd' in a: wikidata_pass(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
     if not a or '--langs' in a: langs_pass(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
+    if '--inst' in a: inst(); inst_wd(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)

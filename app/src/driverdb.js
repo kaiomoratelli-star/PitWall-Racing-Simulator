@@ -100,6 +100,35 @@ DriverDB.addSl = (d, p) => {
     if (pts) d.sl.push({ y: s.y, cat: s.s, pts, real: true });
   });
 };
+/* DriverDB (driverdb.com, DRIVERDB_2026): fonte de conferência. Liga cada perfil ao piloto do jogo pela mesma
+   regra de identidade (persons.js) e só preenche o que falta: apelido, nascimento, nacionalidade, foto.
+   Nascimento diferente do da Wikipedia/Wikidata não é trocado: vai para G.ddbConflicts (relatório). */
+DriverDB.applyDdb = (G, opts = {}) => {
+  if (typeof DRIVERDB_2026 === 'undefined' || typeof Persons === 'undefined') return 0;
+  const idx = Persons.index(G.db.drivers);
+  const people = DRIVERDB_2026.people || {};
+  const seen = new Set(); let n = 0;
+  G.ddbConflicts = [];
+  Object.entries(DRIVERDB_2026.series || {}).forEach(([sid, rows]) => rows.forEach(row => {
+    const [slug, name] = row;
+    if (seen.has(slug)) return; seen.add(slug);
+    const p = people[slug] || {};
+    const nm = p.name || name;
+    const d = idx.find(nm, { nat: p.nat || null });
+    if (!d) return;
+    n++;
+    d.ddb = slug;
+    if (Persons.key(nm) !== Persons.key(d.name) && !(d.aliases || []).includes(nm)) d.aliases = [...(d.aliases || []), nm];
+    if (!d.nat && p.nat) d.nat = p.nat;
+    if (p.dob && !d.dob) {
+      d.dob = p.dob; d.dobSrc = 'DriverDB';
+      if (opts.fixAge !== false && G.db.rules.startYear) d.age = (G.season ? G.season.year : G.db.rules.startYear) - Number(p.dob.slice(0, 4));
+    } else if (p.dob && d.dob && d.dob.endsWith('-01-01') && p.dob.slice(0, 4) === d.dob.slice(0, 4) && p.dob !== d.dob) {
+      d.dob = p.dob; d.dobSrc = 'DriverDB';                       // a fonte anterior só tinha o ano (gravado como 1º de janeiro)
+    } else if (p.dob && d.dob && p.dob !== d.dob) G.ddbConflicts.push({ id: d.id, name: d.name, game: d.dob, ddb: p.dob });
+  }));
+  return n;
+};
 /* duplicidades: mesmo uid em dois pilotos, ou mesmo nome e nascimento */
 DriverDB.duplicates = (G) => {
   const seen = new Map(), out = [];
@@ -113,6 +142,7 @@ DriverDB.duplicates = (G) => {
 /* fim de temporada: quem corre em série profissional segue lá até se aposentar pela idade;
    quem estava numa série de base passa a disputar vaga nas categorias do jogo */
 DriverDB.PRO = new Set(['indycar', 'fe', 'sf', 'wec', 'imsa', 'elms', 'alms', 'nascup', 'nasxf', 'nastr', 'dtm', 'stockcar', 'supercars', 'nxt', 'f2', 'f3', 'sfl']);
+DriverDB.LATE = new Set(['nascup', 'nasxf', 'nastr', 'stockcar', 'supercars', 'wec', 'imsa', 'elms', 'alms', 'dtm']);
 DriverDB.endSeason = (G) => {
   const y = G.season.year;
   G.db.drivers.forEach(d => {
@@ -120,6 +150,8 @@ DriverDB.endSeason = (G) => {
     if (d.series === 'kart') return;                                   // kart: ciclo próprio (kart.js)
     if (!DriverDB.PRO.has(d.series)) { d.series = null; d.seriesTeam = null; return; }
     const r = localRng(`ser:${G.seed}:${d.id}:${y}`)();
-    if (d.age >= 42 || (d.age >= 36 && r < 0.12 + (d.age - 36) * 0.06)) { d.retired = true; d.retiredYear = y; }
+    const late = DriverDB.LATE.has(d.series);              // turismo, stock car e endurance: carreiras mais longas
+    const [from, hard] = late ? [42, 54] : [36, 44];
+    if (d.age >= hard || (d.age >= from && r < 0.1 + (d.age - from) * 0.05)) { d.retired = true; d.retiredYear = y; }
   });
 };

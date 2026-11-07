@@ -37,15 +37,18 @@ Time.raceDate = (G, i) => {
     // a data real é de um ano anterior: mantém mês e cai no domingo mais próximo
     let iso = `${y}-${tr.date.slice(5)}`;
     if (iso.endsWith('-02-29')) iso = `${y}-02-28`;
+    // dia da corrida: domingo, salvo exceções do calendário oficial (Las Vegas corre no sábado)
+    const want = tr.raceDay ?? 0;
     const w = new Date(iso + 'T12:00:00Z').getUTCDay();
-    iso = Time.addDays(iso, w <= 3 ? -w : 7 - w);
+    let dlt = (want - w + 7) % 7; if (dlt > 3) dlt -= 7;
+    iso = Time.addDays(iso, dlt);
     const prev = idx > 0 ? Time.raceDate(G, idx - 1) : null;
-    if (prev && Time.diff(prev, iso) < 7) iso = Time.addDays(prev, 7);
+    if (prev && Time.diff(prev, iso) < 6) iso = Time.addDays(prev, tr.raceDay != null ? 6 : 7);
     return iso;
   }
   return Time.addDays(`${y}-03-08`, idx * 14);
 };
-Time.weekendDay = (G, i = G.season.round) => Time.addDays(Time.raceDate(G, i), -2);
+Time.weekendDay = (G, i = G.season.round) => { const tr = Career.track(G, G.season.calendar[clamp(i, 0, G.season.calendar.length - 1)]); return Time.addDays(Time.raceDate(G, i), tr && tr.raceDay === 6 ? -1 : -2); };
 
 Time.init = (G) => {
   if (!G.season) return;

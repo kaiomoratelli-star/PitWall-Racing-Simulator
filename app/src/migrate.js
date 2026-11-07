@@ -5,10 +5,17 @@
    ============================================================ */
 'use strict';
 
-const SAVE_VERSION = 6;
+const SAVE_VERSION = 7;
 
+/* calendário padrão das versões até a 0.8.1 (temporada 2026 como foi disputada): só ele é trocado pelo oficial de 2027 */
+const MIGRATE_OLD_CAL = 'melbourne,shanghai,suzuka,miami,montreal,monaco,catalunya,spielberg,silverstone,spa-francorchamps,hungaroring,zandvoort,monza,madring,baku,sepang,marina-bay,austin,mexico-city,interlagos,las-vegas,lusail,yas-marina';
 const Migrate = {
   steps: {
+    // v6 -> v7 (v0.8.2): uma pessoa = um registro, grid real (veteranos ativos), calendário oficial de 2027,
+    // datas corrigidas das categorias e economia com receitas, fábrica, teto auditado e patrimônio
+    6: (G) => {
+      Migrate.v7(G);
+    },
     // v5 -> v6 (v0.8): identidade das equipes por temporada (ex.: Gucci Racing Alpine em 2027),
     // modos de pneu e de energia separados (a corrida em andamento converte o modo antigo sozinha)
     5: (G) => {
@@ -73,6 +80,7 @@ const Migrate = {
       (G.history || []).forEach(h => Career.record(G, 'titulo', `${h.year}: ${h.championName} campeão de pilotos; ${h.constructorName} campeã de construtores.`, { year: h.year }));
     },
   },
+  OLD_CAL: MIGRATE_OLD_CAL,
   run(G) {
     return Migrate._run(G);
   },
@@ -88,4 +96,61 @@ const Migrate = {
     if (G.version > SAVE_VERSION) throw new Error(`Este save é de uma versão mais nova do jogo (v${G.version}). Atualize o Pit Wall.`);
     return done;
   },
+};
+
+/* passo v6 -> v7 em funções separadas (cada parte é segura sozinha) */
+Migrate.v7 = (G) => {
+  const y = G.season ? G.season.year : 2027;
+  const first = y === (G.db.rules.startYear || 2027);
+  if (typeof Cats !== 'undefined') Cats._ids = null;
+  // 1) pilotas geradas da F1 Academy com id do nome masculino sorteado
+  if (typeof Persons !== 'undefined' && typeof Cats !== 'undefined') {
+    const ids = new Set(G.db.drivers.map(d => d.id));
+    G.db.drivers.filter(d => d.regen && d.gender === 'F' && d.id.startsWith('c-') && d.id.replace(/x+$/, '') !== 'c-' + Cats.norm(d.name).replace(/ /g, '-').slice(0, 30)).forEach(d => {
+      let id = 'c-' + Cats.norm(d.name).replace(/ /g, '-').slice(0, 30);
+      while (ids.has(id)) id += 'x';
+      ids.add(id);
+      const old = d.id; d.id = id;
+      Persons.walk(G, old, id, new Set([d]));
+    });
+  }
+  // 2) uma pessoa, um registro (os apelidos do DriverDB ajudam a reconhecer a mesma pessoa)
+  if (typeof DriverDB !== 'undefined' && DriverDB.applyDdb) DriverDB.applyDdb(G, { fixAge: false });
+  if (typeof Persons !== 'undefined') Persons.dedupe(G);
+  // 3) veteranos aposentados pela regra antiga ao criar a carreira (ainda na primeira temporada)
+  if (first) G.db.drivers.forEach(d => {
+    if (!d.retired || d.dead || d.quit || d.retiredYear !== y || d.team) return;
+    const r26 = (d.realSeasons || []).filter(s => s[0] === 2026);
+    if (!r26.length) return;
+    d.retired = false; delete d.retiredYear;
+    d.series = r26[0][1]; d.seriesTeam = r26[0][2] || null; d.seriesStatus = r26[0][4] || null;
+    (G.persons = G.persons || { merged: [], renamed: [] }).reactivated = ((G.persons.reactivated) || []).concat([d.id]);
+  });
+  if (G.persons && G.persons.reactivated && G.persons.reactivated.length) Career.record(G, 'decisao', byLang(`Base de dados: ${G.persons.reactivated.length} pilotos ativos em 2026 tinham sido aposentados por engano na criação da carreira e voltaram ao universo.`, `Database: ${G.persons.reactivated.length} drivers active in 2026 had been retired by mistake when the career was created and are back in the universe.`));
+  // 4) calendário oficial de 2027 (só se o calendário ainda for o padrão antigo; calendários editados ficam)
+  if (typeof Circuits !== 'undefined' && (G.db.calendar || []).join(',') === Migrate.OLD_CAL) {
+    if (Circuits.applyOfficial(G.db) && G.season && G.season.round === 0 && !G.weekend && first) {
+      G.season.calendar = G.db.calendar.slice();
+      G.today = null; G.todayYear = null;
+      if (typeof Cats !== 'undefined' && Cats.on(G) && Cats.list(G, true).every(c => !c.season || c.season.next === 0)) Cats.startSeason(G, y);
+    }
+  }
+  // 5) categorias: datas da Fórmula E e nomes de equipe corrigidos na importação
+  if (G.cats && typeof REAL_CATS !== 'undefined') REAL_CATS.cats.forEach(C => {
+    const cat = G.cats.byId[C.id]; if (!cat) return;
+    if (cat.baseCal && C.calendar && cat.baseCal.length === C.calendar.length) cat.baseCal.forEach((e, i) => { e.date = C.calendar[i].date; });
+    (cat.teams || []).forEach(t => { const r = C.teams.find(x => x.id === t.id); if (r && r.name !== t.name) t.name = r.name; });
+  });
+  // 6) economia: receitas, aporte dos donos, patrimônio
+  if (typeof Econ !== 'undefined') {
+    G.db.teams.forEach(t => { if (t.ownerFunding == null) t.ownerFunding = Econ.OWNER[t.id] ?? 30; if (t.corporate == null) t.corporate = 0; t.budget = Math.round(Econ.revenue(G, t).total); });
+    if (G.finances) {
+      if (G.finances.corporate == null) G.finances.corporate = 0;
+      if (!G.finances.season && G.season) {
+        const S = { year: y, byCat: {}, inc: 0, exp: 0 };
+        (G.finances.ledger || []).filter(x => x.year === y).forEach(x => { S.byCat[x.cat] = +((S.byCat[x.cat] || 0) + x.amount).toFixed(3); if (x.amount > 0) S.inc += x.amount; else S.exp += x.amount; });
+        G.finances.season = S;
+      }
+    }
+  }
 };

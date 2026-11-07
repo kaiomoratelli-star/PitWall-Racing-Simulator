@@ -44,6 +44,8 @@ Career.create = (baseDb, opts) => {
   db.drivers.forEach(d => { d.history = d.history || []; });
   db.teams.forEach(t => { t.history = t.history || []; });
   const team = obs ? null : byId(db.teams, opts.teamId);
+  // orçamento de cada equipe a partir das receitas reais do modelo (econ.js)
+  if (typeof Econ !== 'undefined') Econ.init({ db, history: [] });
   const G = {
     version: SAVE_VERSION, seed, createdAt: Date.now(), savedAt: null, mode: obs ? 'observer' : 'manager',
     log: [], archive: [],
@@ -91,8 +93,12 @@ Career.initPeople = (G) => {
   if (typeof Sisters !== 'undefined') Sisters.ensure(G);
   Market.state(G);
   Staff.refreshMarket(G);
-  if (typeof Cats !== 'undefined' && G.options.categories !== false) Cats.init(G);
-  if (typeof DriverDB !== 'undefined') DriverDB.init(G);
+  const freshCats = typeof Cats !== 'undefined' && G.options.categories !== false && !G.cats;
+  if (freshCats) Cats.init(G, null, { defer: true });
+  if (typeof DriverDB !== 'undefined') { DriverDB.init(G); DriverDB.applyDdb(G); }
+  // uma pessoa, um registro (fontes com nomes diferentes para o mesmo piloto) e só então o grid inicial
+  if (typeof Persons !== 'undefined') Persons.dedupe(G);
+  if (freshCats && Cats.on(G)) Cats.initialGrid(G);
   if (typeof Disc !== 'undefined') Disc.init(G);
   if (typeof Kart !== 'undefined') Kart.init(G);
   if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);
@@ -122,11 +128,17 @@ Career.news = (G, title, tag = 'geral', body = '', refs) => {
   if (G.news.length > 150) G.news.length = 150;
 };
 
+Career.CAP_OUT = new Set(['salário', 'motor', 'mercado', 'marketing', 'multa', 'academia', 'patrimônio', 'receita']);
 Career.ledger = (G, desc, amount, cat = 'geral') => {
   G.finances.balance = +(G.finances.balance + amount).toFixed(3);
-  if (amount < 0 && cat !== 'salário' && cat !== 'motor') G.finances.spent += -amount;
+  // teto: todo gasto elegível conta (fábrica, operação, P&D, reparos, staff contratado...)
+  if (amount < 0 && !Career.CAP_OUT.has(cat)) G.finances.spent += -amount;
   G.finances.ledger.unshift({ year: G.season.year, round: G.season.round, desc, amount: +amount.toFixed(3), cat });
-  if (G.finances.ledger.length > 200) G.finances.ledger.length = 200;
+  if (G.finances.ledger.length > 400) G.finances.ledger.length = 400;
+  // totais da temporada por categoria (o extrato guarda só as últimas linhas)
+  const S = G.finances.season && G.finances.season.year === G.season.year ? G.finances.season : (G.finances.season = { year: G.season.year, byCat: {}, inc: 0, exp: 0 });
+  S.byCat[cat] = +((S.byCat[cat] || 0) + amount).toFixed(3);
+  if (amount > 0) S.inc = +(S.inc + amount).toFixed(3); else S.exp = +(S.exp + amount).toFixed(3);
 };
 
 /* ---------- utilidades de consulta ---------- */
@@ -479,8 +491,9 @@ Career.postRaceEffects = (G, summary, race) => {
 
   // finanças do jogador
   const races = G.season.calendar.length;
-  const tvShare = team.budget * 0.36 / races;
-  Career.ledger(G, `Direitos comerciais — ${track.gp}`, tvShare, 'receita');
+  // receita comercial, aporte dos donos, fábrica e marketing (econ.js)
+  if (typeof Econ !== 'undefined') Econ.playerRace(G, team);
+  else Career.ledger(G, `Direitos comerciais — ${track.gp}`, team.budget * 0.36 / races, 'receita');
   G.sponsors.forEach(s => {
     Career.ledger(G, `Patrocínio: ${s.name}`, s.perRace * Staff.commercialMul(team), 'receita');
     report.money += s.perRace;
@@ -489,7 +502,8 @@ Career.postRaceEffects = (G, summary, race) => {
     if (met && s.bonus) { Career.ledger(G, `Bônus de ${s.name} (objetivo cumprido)`, s.bonus, 'receita'); report.lines.push(`${s.name} pagou bônus de ${fmtMoney(s.bonus)}.`); }
   });
   const myPts = sum(my.map(r => r.pts));
-  if (myPts > 0) Career.ledger(G, 'Prêmio por pontos', myPts * 0.09, 'receita');
+  // pontos viram dinheiro pela distribuição comercial do ano seguinte (posição no Mundial), não por corrida
+  if (myPts > 0 && typeof Econ === 'undefined') Career.ledger(G, 'Prêmio por pontos', myPts * 0.09, 'receita');
   const sal = sum(Career.teamDrivers(G, team.id).map(d => d.salary)) / races;
   Career.ledger(G, 'Salários dos pilotos', -sal, 'salário');
   const staffCost = Staff.payroll(team) / races;
@@ -497,7 +511,7 @@ Career.postRaceEffects = (G, summary, race) => {
   Career.ledger(G, `Logística e operação — ${track.gp}`, -(1.25 + team.facilities * 0.006 + (track.street ? 0.2 : 0)) * Staff.opsMul(team), 'operação');
   const legKm = CircuitGen.legKm(G);
   if (legKm) Career.ledger(G, `Frete e viagem (${legKm.toLocaleString('pt-BR')} km)`, -CircuitGen.freight(legKm) * Staff.opsMul(team), 'operação');
-  Career.ledger(G, 'Arrendamento de motor', -(Engine.engineOf(G.db, team).cost / races), 'motor');
+  if (!team.works) Career.ledger(G, 'Arrendamento de motor', -(Engine.engineOf(G.db, team).cost / races), 'motor');
   my.forEach(r => {
     if (r.status === 'dnf' && /Acidente|Colisão/.test(r.reason || '')) {
       const cost = RNG.range(0.9, 2.6);
@@ -565,17 +579,24 @@ Career.genSponsors = (G, team, n) => {
     const pool = own.filter(x => !used.has(x)).length ? own.filter(x => !used.has(x)) : Career.SPONSOR_POOL.filter(x => !used.has(x));
     const name = own.length && !used.has(own[0]) ? own[0] : RNG.pick(pool);
     used.add(name);
-    out.push(Career.makeSponsor(G, team, name));
+    out.push(Career.makeSponsor(G, team, name, undefined, out));
   }
   return out;
 };
-Career.makeSponsor = (G, team, name, tier) => {
+Career.makeSponsor = (G, team, name, tier, pending) => {
   const rep = team.reputation;
   const exp = Career.expectedRanks(G)[team.id];
   const objs = exp <= 3 ? ['podium', 'top5', 'top10both'] : exp <= 6 ? ['top5', 'top10both', 'points'] : ['points', 'finish', 'top10both'];
   const objective = RNG.pick(objs);
-  const perRace = +((team.budget * 0.62 / 24 / 3) * RNG.range(0.7, 1.3) * (tier || 1)).toFixed(2);
-  return { id: Career.nextId(G, 's'), name, perRace, objective, bonus: +(perRace * RNG.range(0.3, 0.7)).toFixed(2), seasons: RNG.int(1, 3), satisfaction: 70 };
+  // o mercado de patrocínio da equipe é limitado (reputação, exposição): cada contrato novo ocupa parte dele
+  const races = (G.season && G.season.calendar.length) || 24;
+  const pool = typeof Econ !== 'undefined' ? Econ.sponsorPool(team) : team.budget * 0.62;
+  const cur = [...(G.sponsors || []), ...(pending || [])];
+  const used = sum(cur.map(s => s.perRace)) * races;
+  const room = Math.max(pool * 0.04, pool * 1.1 - used);
+  const share = cur.length === 0 ? 0.42 : cur.length === 1 ? 0.3 : 0.22;
+  const perRace = +(Math.min(pool * share, room) / races * RNG.range(0.85, 1.15) * (tier || 1)).toFixed(2);
+  return { id: Career.nextId(G, 's'), name, perRace, objective, bonus: +(perRace * RNG.range(0.12, 0.3)).toFixed(2), seasons: RNG.int(1, 3), satisfaction: 70 };
 };
 
 /* ---------- P&D ---------- */
@@ -607,6 +628,8 @@ Career.slots = (team) => 1 + Math.floor(team.facilities / 32);
 /* custos de P&D acompanham o teto orçamentário do regulamento (referência: US$ 145 mi) */
 Career.costScale = (G) => clamp((G.db.rules.budgetCap || 145) / 145, 0.4, 4);
 
+/* espaço no teto: limite − gasto do ano − compromisso da fábrica e da operação até a última etapa */
+Career.capRoom = (G) => (typeof Econ !== 'undefined' ? Econ.capRoom(G, Career.team(G), G.finances.spent) : G.db.rules.budgetCap - G.finances.spent);
 Career.projectQuote = (G, area, size) => {
   const team = Career.team(G);
   const A = Career.AREAS[area], S = Career.SIZES[size];
@@ -633,7 +656,7 @@ Career.startProject = (G, area, size) => {
   const q = Career.projectQuote(G, area, size);
   if (q.blocked) return q.blocked;
   if (G.projects.some(p => p.area === area)) return `Já existe um projeto de ${Career.AREAS[area].name.toLowerCase()} em andamento: o mesmo departamento não toca dois ao mesmo tempo.`;
-  if (G.finances.spent + q.cost > G.db.rules.budgetCap) return `O projeto estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
+  if (Career.capRoom(G) < q.cost) return `O projeto estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}): sobram ${fmtMoney(Math.max(0, Career.capRoom(G)))} depois dos gastos já feitos e do custo da fábrica até o fim do ano.`;
   if (G.finances.balance - q.cost < -15) return 'Caixa insuficiente para este projeto.';
   Career.ledger(G, `P&D: ${q.name}`, -q.cost, 'P&D');
   Career.record(G, 'pd', `${team.name} iniciou o projeto "${q.name}" (${fmtMoney(q.cost)}, ${q.races} GPs).`, { teams: [team.id] });
@@ -738,7 +761,11 @@ Career.makeOffer = (G, did, salary, years, role, immediate) => {
   if (G.offersThisRound && G.offersThisRound[did]) return { ok: false, msg: `${d.name} já respondeu uma proposta nesta rodada. Tente após a próxima corrida.` };
   G.offersThisRound = G.offersThisRound || {}; G.offersThisRound[did] = true;
   const ev = Career.offerEval(G, d, salary, years, role);
-  const buyout = immediate ? ev.buyout : 0;
+  const buyout = immediate && d.team ? (typeof Market !== 'undefined' && Market.releaseFee ? Market.releaseFee(G, d) : ev.buyout) : 0;
+  if (immediate && d.team && typeof Market !== 'undefined' && Market.teamReleases) {
+    const rel = Market.teamReleases(G, d, buyout);
+    if (!rel.ok && G.finances.balance >= buyout) return { ok: false, msg: `A ${rel.team.name} não libera ${d.name} no meio do contrato (multa de ${fmtMoney(buyout)}). Tente um pré-contrato para quando o contrato acabar.` };
+  }
   if (buyout && G.finances.balance < buyout) return { ok: false, msg: `Multa rescisória de ${fmtMoney(buyout)} acima do seu caixa.` };
   if (!RNG.chance(ev.p)) {
     Career.news(G, `${d.name} recusa proposta da ${team.name}`, 'mercado');
@@ -854,8 +881,8 @@ Career.endSeason = (G) => {
   if (typeof Media !== 'undefined') Media.seasonEnd(G, summary);
   AI.seasonEnd(G, sc);
   if (team) {
-    const prize = (G.db.rules.prizePerPosition[myPos - 1] || 8) * 1;
-    Career.ledger(G, `Premiação do Mundial (${ordinal(myPos)} lugar)`, prize, 'receita');
+    // a premiação do Mundial é paga ao longo do ano seguinte como distribuição comercial (econ.js)
+    if (typeof Econ === 'undefined') Career.ledger(G, `Premiação do Mundial (${ordinal(myPos)} lugar)`, (G.db.rules.prizePerPosition[myPos - 1] || 8), 'receita');
     const delta = (G.board.target - myPos) * 9 + (myPos <= G.board.target ? 8 : -6);
     G.board.confidence = clamp(G.board.confidence + delta, 0, 100);
   }
@@ -864,10 +891,8 @@ Career.endSeason = (G) => {
     const t = Career.team(G, x.tid);
     const n = sc.length;
     t.reputation = clamp(Math.round(t.reputation * 0.8 + (100 - i * (60 / n)) * 0.2), 30, 99);
-    // orçamento volta à base de cada equipe, corrigido por resultado e reputação (antes era limitado a 220 mi e apagava os orçamentos reais)
-    t.baseBudget = t.baseBudget || t.budget;
-    const target = t.baseBudget * (0.86 + 0.28 * (1 - i / Math.max(1, n - 1))) * (0.82 + t.reputation / 260);
-    t.budget = Math.round(clamp(t.budget * 0.65 + target * 0.35 + RNG.normal(0, 6), 90, 950));
+    // orçamento do ano seguinte: recalculado pelas receitas (econ.js, depois do fechamento)
+    if (typeof Econ === 'undefined') { t.baseBudget = t.baseBudget || t.budget; const target = t.baseBudget * (0.86 + 0.28 * (1 - i / Math.max(1, n - 1))) * (0.82 + t.reputation / 260); t.budget = Math.round(clamp(t.budget * 0.65 + target * 0.35 + RNG.normal(0, 6), 90, 950)); }
   });
   // carro do próximo ano: regressão + foco no próximo ano
   const reg = (G.history.length % (G.db.rules.regulationChangeEvery || 4)) === 0;

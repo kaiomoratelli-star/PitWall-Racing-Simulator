@@ -161,7 +161,24 @@ Circuits.addReal = (db) => {
     return ss(G, first);
   };
 })();
+/* calendário oficial (F1_CALENDAR_2027): ordem, datas, sprints e dia da corrida (Las Vegas no sábado).
+   As datas ficam em cada pista; nas temporadas seguintes o jogo repete o mês e o dia no fim de semana mais próximo. */
+Circuits.applyOfficial = (db) => {
+  if (typeof F1_CALENDAR_2027 === 'undefined' || !db || !db.tracks) return false;
+  const C = F1_CALENDAR_2027;
+  if (!C.rounds.every(([id]) => db.tracks.some(t => t.id === id))) return false;
+  const ids = C.rounds.map(r => r[0]);
+  db.tracks.forEach(t => { if (ids.includes(t.id)) return; if (t.sprint) t.sprint = false; });
+  C.rounds.forEach(([id, date, sprint, wd]) => {
+    const t = db.tracks.find(x => x.id === id);
+    t.date = date; t.sprint = !!sprint; t.calSrc = C.source;
+    if (wd != null) t.raceDay = wd; else delete t.raceDay;
+  });
+  db.calendar = ids.slice();
+  db.calendarSrc = { source: C.source, verified: C.verified, year: C.year };
+  return true;
+};
 (function () {
   const ddb = defaultDb;
-  defaultDb = function () { const db = ddb(); Circuits.addReal(db); return db; };
+  defaultDb = function () { const db = ddb(); Circuits.addReal(db); Circuits.applyOfficial(db); return db; };
 })();

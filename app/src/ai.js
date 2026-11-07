@@ -20,7 +20,8 @@ AI.init = (G) => {
   G.db.teams.forEach(t => {
     if (!t.ai || !AI.PERSONAS[t.ai.persona]) {
       const r = localRng(G.seed + ':persona:' + t.id);
-      const keys = t.reputation >= 85 ? ['ambitious', 'balanced', 'gambler'] : t.budget < 110 ? ['survivor', 'prudent', 'gambler', 'balanced'] : ['balanced', 'prudent', 'ambitious', 'gambler'];
+      const small = G.db.teams.slice().sort((a, b) => a.budget - b.budget).slice(0, 3).includes(t);
+      const keys = t.reputation >= 85 ? ['ambitious', 'balanced', 'gambler'] : small ? ['survivor', 'prudent', 'gambler', 'balanced'] : ['balanced', 'prudent', 'ambitious', 'gambler'];
       t.ai = { persona: keys[Math.floor(r() * keys.length)] };
     }
     if (t.cash == null) t.cash = Math.round(t.budget * 0.3);
@@ -58,17 +59,20 @@ AI.raceTick = (G) => {
     if (t.id === G.player.teamId) return;
     const P = AI.persona(t);
     // receitas e custos fixos
-    const income = t.budget * 0.82 / races; // receita livre depois de impostos, juros e custos fora do teto
+    // receitas do ano (comercial + patrocínio + donos, econ.js) e custos da estrutura
+    const income = typeof Econ !== 'undefined' ? t.budget / races : t.budget * 0.82 / races;
+    const factory = typeof Econ !== 'undefined' ? Econ.factory(G, t) / races : 0;
+    const mkt = typeof Econ !== 'undefined' ? Econ.marketing(G, t) / races : 0;
     const salaries = sum(Career.teamDrivers(G, t.id).map(d => d.salary)) / races;
     const staffCost = (t.staffList ? Staff.payroll(t) : sum(Object.values(t.staff)) * 0.1) / races;
     const ops = (1.25 + t.facilities * 0.006 + CircuitGen.freight(CircuitGen.legKm(G))) * (t.staffList ? Staff.opsMul(t) : 1);
     const engine = t.works ? 0 : Engine.engineOf(G.db, t).cost / races;
-    t.cash = +(t.cash + income - salaries - staffCost - ops - engine).toFixed(3);
-    t.spent += ops;
+    t.cash = +(t.cash + income - salaries - staffCost - ops - engine - factory - mkt).toFixed(3);
+    t.spent += ops + factory;
     // investimento: nunca gasta o que não tem, respeita o teto
     const reserve = t.budget * (0.04 + P.thrift * 0.08);
     const available = Math.max(0, t.cash - reserve);
-    const capLeft = Math.max(0, cap - t.spent);
+    const capLeft = Math.max(0, typeof Econ !== 'undefined' ? Econ.capRoom(G, t, t.spent) : cap - t.spent);
     const racesLeft = Math.max(1, races - G.season.round);
     let spend = Math.min(available * (0.25 + P.ambition * 0.35), capLeft / racesLeft * (0.8 + P.ambition * 0.4), t.budget * 0.06);
     if (spend < 0.3) spend = 0;
@@ -127,9 +131,9 @@ AI.seasonEnd = (G, sc) => {
   sc.forEach((x, i) => {
     const t = Career.team(G, x.tid);
     if (!t || t.id === G.player.teamId) return;
-    t.cash = +(t.cash + (G.db.rules.prizePerPosition[i] || 8)).toFixed(2);
-    // excedente: parte vira infraestrutura (fora do teto), o resto é distribuído aos donos
-    const keep = t.budget * 0.32;
+    if (typeof Econ === 'undefined') t.cash = +(t.cash + (G.db.rules.prizePerPosition[i] || 8)).toFixed(2);
+    // excedente: parte vira infraestrutura (fora do teto), o resto é distribuído aos donos (patrimônio)
+    const keep = typeof Econ !== 'undefined' ? Econ.reserve(G, t) : t.budget * 0.32;
     if (t.cash > keep) {
       const P = AI.persona(t);
       const excess = t.cash - keep;
@@ -138,6 +142,7 @@ AI.seasonEnd = (G, sc) => {
       t.facilities = +clamp(t.facilities + gain, 30, 100).toFixed(1);
       const dividend = (excess - infra) * (0.55 + P.thrift * 0.35);
       t.cash = +(t.cash - infra - dividend).toFixed(2);
+      t.corporate = +((t.corporate || 0) + dividend).toFixed(2);
       Career.record(G, 'financas', `${t.name} fechou ${G.season.year} com sobra de caixa: investiu ${fmtMoney(infra)} em instalações (+${gain.toFixed(1)}) e distribuiu ${fmtMoney(dividend)} aos proprietários.`, { teams: [t.id] });
     }
   });

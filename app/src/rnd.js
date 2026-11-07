@@ -146,7 +146,7 @@ RnD.start = (G, cfg) => {
   const P = RnD.pool(G);
   if (q.wt > P.wt) return `Túnel de vento insuficiente neste período (restam ${P.wt} execuções).`;
   if (q.cfd > P.cfd) return `CFD insuficiente neste período (restam ${P.cfd} simulações).`;
-  if (G.finances.spent + q.cost > G.db.rules.budgetCap) return `O projeto estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
+  if (Career.capRoom(G) < q.cost) return `O projeto estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}): sobram ${fmtMoney(Math.max(0, Career.capRoom(G)))} depois do custo da fábrica até o fim do ano.`;
   if (G.finances.balance - q.cost < -15) return 'Caixa insuficiente para este projeto.';
   G.atrPool.wt -= q.wt; G.atrPool.cfd -= q.cfd;
   G.nextYearFocus = 0;   // o foco geral foi substituído pela pesquisa por peça
@@ -257,7 +257,7 @@ RnD.buildCopy = (G, partId) => {
   if (G.projects.some(p => p.buildOnly && p.id === partId)) return 'Essa peça já está sendo fabricada.';
   const S = RnD.SPEC[part.area];
   const cost = +(S.cost * 0.35 / 2 * Career.costScale(G)).toFixed(1);
-  if (G.finances.spent + cost > G.db.rules.budgetCap) return `A peça estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
+  if (Career.capRoom(G) < cost) return `A peça estouraria o teto orçamentário (${fmtMoney(G.db.rules.budgetCap)}).`;
   Career.ledger(G, `Fabricação: ${Career.AREAS[part.area].name}`, -cost, 'P&D');
   G.projects.push({ id: part.id, v2: true, dayMode: true, buildOnly: true, area: part.area, name: part.name, size: 'small', split: part.split, gain: part.gain, failed: part.failed, stage: 'build', bLeft: S.build, buildDays: S.build, copies: 2, copiesLeft: 1, fitted: part.seats.slice(), first: part.seats[0], min: 0, max: 0, risk: 0, cost, left: 1, total: 1 });
   return null;

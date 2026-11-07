@@ -7,7 +7,7 @@ O material de marketing fica em `docs/marketing/` e `docs/brand/`.
 ## Regras do dono
 - Tudo em português do Brasil (interface, textos, commits, documentação). O jogo também tem inglês: todo texto novo da interface precisa de uma linha em `app/src/i18n-en.js`, e frases montadas no núcleo usam `byLang(pt, en)` (ver `docs/ARQUITETURA.md`, seção Idiomas).
 - Dados reais são permitidos e desejados: pilotos, equipes, patrocinadores, imprensa, imagens. O jogo ainda não é vendido; no futuro será pago (não escrever que é gratuito). Antes de vender, imagens e marcas de terceiros precisarão de licença ou substituição.
-- Versão atual: 0.8.0 (a 0.9 está em construção; plano em `docs/ROADMAP-0.9.md`).
+- Versão atual: 0.8.2 (estabilização: 0.8.2 database e economia, 0.8.3 economia completa e equilíbrio, 0.8.4 equipes, mercado e política; auditoria em `docs/AUDITORIA-0.8.2.md`).
 - Não usar a palavra "IA" na interface do jogo.
 - Escândalos sempre com pessoas e organizações fictícias.
 - Identidade visual: vermelho `#E10600`, carbono `#15151E`, Titillium Web 900 itálico e IBM Plex Mono (ver `docs/marketing/2-GUIA-DA-MARCA.md`). Títulos em caixa alta no padrão F1; se os arquivos da Formula1 Display estiverem em `app/assets/fonts`, o build usa.
@@ -15,7 +15,7 @@ O material de marketing fica em `docs/marketing/` e `docs/brand/`.
 
 ## Estrutura
 - `app/src/`: código do jogo em JS puro. A ordem de carregamento fica em `scripts/modules.js` e o build é `node scripts/build.js`.
-  - Núcleo: `util`, `data`, `engine`, `physics`, `regs`, `setup`, `practice`, `narrator`, `quali`, `racelog`, `circuitgen`, `migrate`, `ai`, `staff`, `market`, `career`, `events`, `media`, `cats`, `sisters`, `council`, `lang-en`, `diag`.
+  - Núcleo: `util`, `data`, `persons` (identidade dos pilotos: uma pessoa, um registro), `engine`, `physics`, `regs`, `setup`, `practice`, `narrator`, `quali`, `racelog`, `circuitgen`, `migrate`, `ai`, `staff`, `market`, `career`, `econ` (receitas, fábrica, teto auditado, patrimônio), `events`, `media`, `cats`, `sisters`, `council`, `lang-en`, `diag`.
   - Interface: `ui-*.js`, `i18n.js`, `i18n-en.js`, `sound.js`, `main.js`, `styles.css`.
 - `app/data/`: dados reais gerados por scripts. Não editar à mão; usar `scripts/import_real_data.py`, `import_records.py` e `import_categories.py`.
 - `desktop/`: Electron (janela, tela de abertura, saves em `%APPDATA%`, logs).
@@ -30,6 +30,9 @@ npm test                         # verificação de escopo + 10 + 4 temporadas n
 npm run test:ui                  # estresse da corrida ao vivo pela interface (Playwright)
 node scripts/sim-test.js 20 99   # teste longo (20 temporadas)
 xvfb-run -a node scripts/smoke.js   # testa o app Electron de verdade
+node scripts/audit.js db         # duplicatas (docs/DUPLICATAS.md) e conferência com o DriverDB (docs/VERIFICACAO-DATABASE.md)
+node scripts/audit.js sim 20 7   # simulação longa com métricas de realismo (docs/RELATORIO-SIMULACAO.md)
+python3 scripts/import_driverdb.py  # baixa classificações 2026 e perfis do DriverDB (cache em /tmp/res/driverdb)
 npx electron-builder --win nsis --x64 --publish never   # instalador local (funciona no Linux)
 ```
 
@@ -38,3 +41,4 @@ npx electron-builder --win nsis --x64 --publish never   # instalador local (func
 - Cada push na `main` dispara o CI no Windows (`.github/workflows/windows.yml`): build, instalação silenciosa, teste do executável, atualização e desinstalação. Se tudo passar, o CI publica a release `v<versão do package.json>`.
 - Para lançar uma versão nova, suba `version` em `package.json` e em `package-lock.json` e escreva a entrada no `CHANGELOG.md`.
 - A simulação é determinística (RNG com semente). Não use `Math.random` no núcleo.
+- Ultrarrealismo (plano em `docs/AUDITORIA-0.8.2.md`): não equilibrar o grid artificialmente, não inventar pilotos, contratos ou transferências (vaga sem fonte = "a confirmar" ou "projeção do jogo"), não duplicar pessoas (use `Persons.index` antes de criar um piloto), e jogador e IA seguem as mesmas regras financeiras (`econ.js`).

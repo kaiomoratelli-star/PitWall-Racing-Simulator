@@ -517,7 +517,7 @@ SCREENS.dev = {
     const teams = G.db.teams.slice().sort((a, b) => Engine.carRating(G.db, b) - Engine.carRating(G.db, a));
     const area = UI.params.area || 'aero';
     const quotes = Object.keys(Career.SIZES).map(s => Career.projectQuote(G, area, s));
-    const capLeft = G.db.rules.budgetCap - G.finances.spent;
+    const capLeft = Career.capRoom(G);
     return `
     <div class="page-head"><div><div class="eyebrow">${esc(team.name)}</div><h1>Carro e P&D</h1></div><span class="chip">${G.projects.length}/${slots} projetos ativos</span></div>
     <div class="grid g2">
@@ -553,9 +553,10 @@ ACT.startProject = (el) => { const err = Career.startProject(G, el.dataset.area,
 SCREENS.finance = {
   html() {
     const L = G.finances.ledger.filter(x => x.year === G.season.year);
-    const cats = {};
-    L.forEach(x => { cats[x.cat] = (cats[x.cat] || 0) + x.amount; });
-    const inc = sum(L.filter(x => x.amount > 0).map(x => x.amount)), exp = sum(L.filter(x => x.amount < 0).map(x => x.amount));
+    const S = G.finances.season && G.finances.season.year === G.season.year ? G.finances.season : null;
+    const cats = S ? { ...S.byCat } : {};
+    if (!S) L.forEach(x => { cats[x.cat] = (cats[x.cat] || 0) + x.amount; });
+    const inc = S ? S.inc : sum(L.filter(x => x.amount > 0).map(x => x.amount)), exp = S ? S.exp : sum(L.filter(x => x.amount < 0).map(x => x.amount));
     const cap = G.db.rules.budgetCap;
     // série de saldo por etapa
     let bal = G.finances.balance; const pts = [];
@@ -572,8 +573,14 @@ SCREENS.finance = {
       <div class="panel"><div class="panel-b stack"><span class="label">Caixa</span><span class="stat-big num ${G.finances.balance < 0 ? 'neg' : ''}">${fmtMoney(G.finances.balance)}</span></div></div>
       <div class="panel"><div class="panel-b stack"><span class="label">Receitas na temporada</span><span class="stat-big num pos">${fmtMoney(inc)}</span></div></div>
       <div class="panel"><div class="panel-b stack"><span class="label">Despesas na temporada</span><span class="stat-big num neg">${fmtMoney(exp)}</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Teto orçamentário</span><span class="stat-big num">${Math.round(G.finances.spent / cap * 100)}%</span>${bar(G.finances.spent, cap, G.finances.spent > cap * 0.9 ? 'r' : '')}<span class="small muted">${fmtMoney(G.finances.spent)} de ${fmtMoney(cap)} (salários e motor ficam fora)</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Teto orçamentário</span><span class="stat-big num">${Math.round(G.finances.spent / cap * 100)}%</span>${bar(G.finances.spent, cap, G.finances.spent > cap * 0.9 ? 'r' : '')}<span class="small muted">${fmtMoney(G.finances.spent)} de ${fmtMoney(cap)} · espaço real ${fmtMoney(Math.max(0, Career.capRoom(G)))} (a fábrica até o fim do ano já está reservada; salários de pilotos, motor e marketing ficam fora)</span></div></div>
     </div>
+    ${typeof Econ !== 'undefined' ? (() => { const tm = Career.team(G); const rv = Econ.revenue(G, tm); const br = (G.capBreaches || []).filter(b => b.tid === tm.id); return `<div class="grid g4">
+      <div class="panel"><div class="panel-b stack"><span class="label">Receita prevista no ano</span><span class="stat-big num">${fmtMoney(rv.commercial + sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length + rv.owner)}</span><span class="small muted">comercial ${fmtMoney(rv.commercial)} (${ordinal(Econ.lastPos(G, tm))} no último Mundial) · patrocínio ${fmtMoney(sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length)} · donos ${fmtMoney(rv.owner)}</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Mercado de patrocínio</span><span class="stat-big num">${Math.round(sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length / Math.max(1, Econ.sponsorPool(tm)) * 100)}%</span>${bar(sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length, Econ.sponsorPool(tm), '')}<span class="small muted">do que as marcas pagam por uma equipe com a sua exposição (${fmtMoney(Econ.sponsorPool(tm))}/ano). Mais resultado e reputação aumentam esse limite.</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Custos fixos no ano</span><span class="stat-big num neg">${fmtMoney(-(Econ.factory(G, tm) + Econ.marketing(G, tm)))}</span><span class="small muted">fábrica e pessoal ${fmtMoney(Econ.factory(G, tm))} (dentro do teto)${tm.costCut && tm.costCut < 1 ? ` · estrutura reduzida a ${Math.round(tm.costCut * 100)}%` : ''} · marketing ${fmtMoney(Econ.marketing(G, tm))}</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Patrimônio dos donos</span><span class="stat-big num">${fmtMoney(G.finances.corporate || 0)}</span><span class="small muted">O caixa da equipe pode guardar até ${fmtMoney(Econ.reserve(G, tm))}; o excedente do ano vai para os donos e não volta sozinho para o carro.${br.length ? ` Auditorias do teto: ${br.map(b => `${b.y} ${b.material ? 'infração material' : 'infração menor'} (+${b.pct}%)`).join('; ')}.` : ''}</span></div></div>
+    </div>`; })() : ''}
     <div class="grid g2">
       <div class="panel"><div class="panel-h"><h3>Saldo ao longo da temporada</h3></div><div class="panel-b">${uniq.length > 1 ? lineChart('bal', { series: [{ name: 'Caixa', color: 'var(--accent)', pts: uniq, width: 2.5 }], h: 220, xLabel: 'Etapa', yFmt: v => fmtMoney(v), legend: false }) : '<div class="empty">O gráfico aparece após a primeira corrida.</div>'}</div></div>
       <div class="panel"><div class="panel-h"><h3>Por categoria</h3></div><div class="panel-b tight"><table class="tbl">${Object.entries(cats).sort((a, b) => a[1] - b[1]).map(([k, v]) => `<tr><td style="text-transform:capitalize">${esc(k)}</td><td class="r num ${v < 0 ? 'neg' : 'pos'}">${fmtMoney(v)}</td></tr>`).join('') || '<tr><td class="empty">Sem lançamentos.</td></tr>'}</table></div></div>
@@ -722,7 +729,7 @@ SCREENS.paddock = {
         ${carImg(t) ? `<div class="panel-b" style="padding-bottom:0">${carImg(t)}</div>` : ''}
         <div class="panel-b grid g2">
           <div class="stack" style="gap:8px">${attrRow('Carro (geral)', Engine.carRating(G.db, t))}${attrRow('Confiabilidade', Engine.reliability(G.db, t), 'g')}${attrRow('Média do staff', avg(Object.values(t.staff)), 'b')}${attrRow('Reputação', t.reputation, 'b')}</div>
-          ${(t.sponsors || []).length ? `<div class="spons-row" style="margin-bottom:8px">${t.sponsors.map(sponsorTag).join('')}</div>` : ''}<dl class="kv"><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd><dt>Orçamento anual</dt><dd>${fmtMoney(t.budget)}</dd><dt>Caixa${mine ? '' : ' (estimado)'}</dt><dd class="${(mine ? G.finances.balance : t.cash) < 0 ? 'neg' : ''}">${fmtMoney(mine ? G.finances.balance : t.cash)}</dd><dt>Gasto no teto</dt><dd>${fmtMoney(mine ? G.finances.spent : t.spent)}</dd>${t.lastDev && !mine ? `<dt>Último investimento</dt><dd>${esc(Career.AREAS[t.lastDev.area].name)} ${fmtMoney(t.lastDev.spend)}</dd>` : ''}<dt>Melhor temporada</dt><dd>${best ? `${ordinal(best.pos)} em ${best.y}` : '—'}</dd>${t.realStats ? `<dt>História na F1</dt><dd>${t.realStats.titles} títulos · ${t.realStats.wins} vitórias</dd>` : ''}${(t.sponsors || []).length ? `<dt>Parceiros</dt><dd style="white-space:normal">${t.sponsors.map(esc).join(', ')}</dd>` : ''}<dt>Pilotos</dt><dd>${ds.map(d => esc(d.name.split(' ').slice(-1)[0])).join(' · ')}</dd></dl>
+          ${(t.sponsors || []).length ? `<div class="spons-row" style="margin-bottom:8px">${t.sponsors.map(sponsorTag).join('')}</div>` : ''}<dl class="kv"><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd><dt>Receita anual prevista</dt><dd>${fmtMoney(t.budget)}</dd>${typeof Econ !== 'undefined' ? `<dt>Aporte dos donos</dt><dd>${fmtMoney(Econ.owner(t))}/ano</dd>` : ''}<dt>Caixa${mine ? '' : ' (estimado)'}</dt><dd class="${(mine ? G.finances.balance : t.cash) < 0 ? 'neg' : ''}">${fmtMoney(mine ? G.finances.balance : t.cash)}</dd><dt>Gasto no teto</dt><dd>${fmtMoney(mine ? G.finances.spent : t.spent)}</dd>${t.lastDev && !mine ? `<dt>Último investimento</dt><dd>${esc(Career.AREAS[t.lastDev.area].name)} ${fmtMoney(t.lastDev.spend)}</dd>` : ''}<dt>Melhor temporada</dt><dd>${best ? `${ordinal(best.pos)} em ${best.y}` : '—'}</dd>${t.realStats ? `<dt>História na F1</dt><dd>${t.realStats.titles} títulos · ${t.realStats.wins} vitórias</dd>` : ''}${(t.sponsors || []).length ? `<dt>Parceiros</dt><dd style="white-space:normal">${t.sponsors.map(esc).join(', ')}</dd>` : ''}<dt>Pilotos</dt><dd>${ds.map(d => esc(d.name.split(' ').slice(-1)[0])).join(' · ')}</dd></dl>
         </div></div>`;
     }).join('')}</div>`;
   },

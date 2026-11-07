@@ -5,3 +5,5 @@ release/
 *.log
 .smoke/
 __pycache__/
+scripts/.driverdb-photo-todo.json
+scripts/.driverdb-logo-todo.json

@@ -297,6 +297,27 @@ Market.midSeasonSackings = (G, p) => {
   });
 };
 
+/* ---------- saída no meio do contrato: multa e consentimento da equipe atual ----------
+   Antes a multa era salário × anos restantes × 0,8 (zero no último ano) e a equipe atual não era consultada:
+   dava para tirar o Antonelli da Mercedes de graça. Agora a multa nunca é menor que metade do valor de mercado
+   e a equipe atual decide se libera (titular de equipe de ponta quase nunca sai no meio do ano). */
+Market.releaseFee = (G, d) => {
+  const races = Math.max(1, G.season.calendar.length);
+  const left = Math.max(0, (d.contractYears || 0) + 1 - G.season.round / races);
+  return +Math.max(d.salary * left * 0.8 + 1, Career.marketValue(d) * 0.5).toFixed(1);
+};
+Market.teamReleases = (G, d, fee) => {
+  const t = Career.team(G, d.team); if (!t) return { ok: true };
+  const rank = Career.expectedRanks(G)[t.id] || 6;
+  const mates = Career.teamDrivers(G, t.id).filter(x => x.seat !== 'R');
+  const lead = d.seat !== 'R' && mates.every(x => x === d || driverOverall(d) >= driverOverall(x));
+  let p = d.seat === 'R' ? 0.6 : rank <= 4 ? (lead ? 0.02 : 0.08) : rank <= 7 ? 0.2 : 0.35;
+  if ((d.morale ?? 70) < 45) p += 0.25;                                   // piloto insatisfeito força a saída
+  if (fee >= Career.marketValue(d) * 1.2) p += 0.15;                     // proposta irrecusável
+  const key = `${G.season.year}:${G.season.round}:${d.id}`;
+  const r = localRng(`rel:${G.seed}:${key}`)();
+  return { ok: r < p, p, team: t };
+};
 /* ---------- negociação do jogador (com contraproposta) ---------- */
 Market.playerOffer = (G, did, offer, immediate) => {
   const d = Career.driver(G, did), t = Career.team(G);
@@ -307,6 +328,12 @@ Market.playerOffer = (G, did, offer, immediate) => {
   const pk = `${G.season.year}:${G.season.round}:${did}`;
   M.patience[pk] = (M.patience[pk] || 0) + 1;
   if (M.patience[pk] > 3) return { status: 'reject', msg: `${d.name} encerrou as conversas por enquanto. Tente de novo depois da próxima corrida.` };
+  if (immediate && d.team && !offer.renew && d.team !== t.id) {
+    const fee = Market.releaseFee(G, d);
+    if (G.finances.balance < fee) return { status: 'reject', msg: `A multa para tirar ${d.name} da ${Career.team(G, d.team).name} agora é de ${fmtMoney(fee)}, acima do seu caixa.` };
+    const rel = Market.teamReleases(G, d, fee);
+    if (!rel.ok) return { status: 'reject', msg: `A ${rel.team.name} não libera ${d.name} no meio do contrato (multa de ${fmtMoney(fee)}). Tente um pré-contrato para quando o contrato acabar.` };
+  }
   const acc = Market.driverAccepts(G, d, t, offer);
   const pAdj = offer.renew ? clamp(acc.p + 0.2 + ((d.morale || 70) - 60) / 120, 0.03, 0.98) : acc.p;
   const ratio = offer.salary / Math.max(0.4, acc.ask);
@@ -324,7 +351,7 @@ Market.playerSign = (G, did, offer, immediate) => {
     Career.news(G, `${t.name} renova com ${d.name} até ${G.season.year + offer.years}`, 'mercado');
     return `${d.name} renovou até ${G.season.year + offer.years}.`;
   }
-  const buyout = d.team && d.contractYears > 0 && immediate ? +(d.salary * d.contractYears * 0.8 + 1).toFixed(1) : 0;
+  const buyout = d.team && immediate ? Market.releaseFee(G, d) : 0;
   if (immediate || !d.team) {
     if (buyout) { Career.ledger(G, `Multa rescisória: ${d.name}`, -buyout, 'mercado'); const ft = Career.team(G, d.team); if (ft) ft.cash += buyout; }
     Career.placeDriver(G, d, t.id, offer.role, offer.salary, offer.years);

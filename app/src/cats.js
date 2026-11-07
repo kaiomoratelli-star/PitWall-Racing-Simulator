@@ -36,7 +36,9 @@ Cats.rollPotential = (ovr, age, q, rnd) => {
 };
 Cats.STYLES = ['complete', 'aggressive', 'smooth', 'qualifier', 'tyre-whisperer', 'racer', 'wet-master', 'calculator'];
 Cats.makeDriver = (G, spec, C, ovr, age) => {
-  const ids = Cats._ids || (Cats._ids = new Set(G.db.drivers.map(d => d.id)));
+  // ids já usados nesta carreira (o cache é refeito quando a lista de pilotos muda de carreira ou é podada)
+  if (!Cats._ids || Cats._idsArr !== G.db.drivers) { Cats._ids = new Set(G.db.drivers.map(d => d.id)); Cats._idsArr = G.db.drivers; }
+  const ids = Cats._ids;
   let id = 'c-' + Cats.norm(spec.name).replace(/ /g, '-').slice(0, 30);
   while (ids.has(id)) id += 'x';
   ids.add(id);
@@ -83,13 +85,14 @@ Cats.seatCount = (C) => {
 };
 
 /* ---------- inicialização: grids reais de 2026 → temporada 2027 ---------- */
-Cats.init = (G, only) => {
+Cats.init = (G, only, opts) => {
   // only: lista de ids para acrescentar categorias novas a uma carreira em andamento (migração)
   const defs = Cats.defs().filter(C => !only || only.includes(C.id));
   if (!defs.length || (G.cats && !only)) return;
   Cats._ids = null;
   G.cats = G.cats || { order: [], byId: {} };
   const byName = new Map(G.db.drivers.map(d => [Cats.norm(d.name), d]));
+  const people = Persons.index(G.db.drivers);
   const sorted = defs.slice().sort((a, b) => (Cats.SECONDARY[a.id] ? 1 : 0) - (Cats.SECONDARY[b.id] ? 1 : 0) || a.tier - b.tier);
   sorted.forEach(C => {
     const n = Math.max(2, C.standings.length);
@@ -106,17 +109,19 @@ Cats.init = (G, only) => {
       }),
       baseCal: C.calendar, entries: [], seats: Cats.seatCount(C), archive: [], season: null,
     };
-    C.drivers.forEach(spec => {
+    // categoria que voltou no jogo (ex.: ADAC F4, encerrada em 2022): equipes e calendário reais, mas o grid
+    // da última temporada real tem pilotos que hoje estão em outras séries. As vagas são preenchidas no grid inicial.
+    (C.revived ? [] : C.drivers).forEach(spec => {
       const st = C.standings.find(x => Cats.norm(x[1]) === Cats.norm(spec.name));
       const pos = spec.pos || (st && st[0]) || null;
       const q = pos ? 1 - (pos - 1) / (n - 1) : 0.25;
       const [lo, hi] = C.range;
       const ovr = Math.round(clamp(lo + (hi - lo) * Math.pow(clamp(q, 0, 1), 1.15) + ((hashStr(spec.name) % 25) - 12) / 10, lo - 3, hi + 1));
       const age = spec.dob ? 2027 - Number(spec.dob.slice(0, 4)) : C.age + ((hashStr(spec.name) % 3) - 1);
-      let d = byName.get(Cats.norm(spec.name));
+      let d = byName.get(Cats.norm(spec.name)) || people.find(spec.name, { nat: spec.nat, dob: spec.dob });
       if (!d) {
         d = Cats.makeDriver(G, { ...spec, q }, C, ovr, age);
-        G.db.drivers.push(d); byName.set(Cats.norm(spec.name), d);
+        G.db.drivers.push(d); byName.set(Cats.norm(spec.name), d); people.add(d);
       } else if (d.id.startsWith('c-') && !cat.secondary && ovr > driverOverall(d)) {
         Cats.shift(d, ovr - driverOverall(d)); d.potential = Math.max(d.potential, ovr + 2);
       }
@@ -129,7 +134,8 @@ Cats.init = (G, only) => {
       if (!cat.entries.some(e => e.did === d.id)) cat.entries.push({ did: d.id, team: spec.team, no: spec.no });
     });
     // temporada real de 2026 no histórico da categoria (e pontos de superlicença)
-    if (C.standings.length) {
+    if (C.revived && C.standings.length) cat.archive.push({ y: C.revived, real: true, top: C.standings.slice(0, 1).map(([p, name]) => [null, null, name]), teamChamp: null });
+    else if (C.standings.length) {
       cat.archive.push({ y: 2026, real: true, top: C.standings.slice(0, 10).map(([p, name, pts]) => { const d = byName.get(Cats.norm(name)); return [d ? d.id : null, pts, name]; }), teamChamp: tst[0] ? tst[0][1] : null });
       const table = REAL_EXTRA.superlicense[cat.sl] || [];
       C.standings.slice(0, 10).forEach(([p, name]) => { const d = byName.get(Cats.norm(name)); if (d && table[p - 1]) { d.sl = d.sl || []; if (!d.sl.some(x => x.y === 2026 && x.cat === cat.sl)) d.sl.push({ y: 2026, cat: cat.sl, pts: table[p - 1] }); } });
@@ -147,13 +153,73 @@ Cats.init = (G, only) => {
   });
   if (only) {
     // carreira em andamento: só as categorias novas abrem a temporada agora
-    only.forEach(id => { const cat = Cats.get(G, id); if (!cat) return; cat.season = { year: G.season.year, cal: (cat.baseCal || []).map(e => ({ ...e, date: Cats.dateFor(cat, e.date, G.season.year) })).sort((a, b) => a.date.localeCompare(b.date)), next: 0, res: [], pts: {}, tpts: {}, st: {} }; cat.season.cal.forEach((e, i) => (e.r = i + 1)); });
+    only.forEach(id => { const cat = Cats.get(G, id); if (!cat) return; cat.season = { year: G.season.year, cal: (cat.baseCal || []).map(e => ({ ...e, date: Cats.dateFor(cat, e.date, G.season.year, G, e) })).sort((a, b) => a.date.localeCompare(b.date)), next: 0, res: [], pts: {}, tpts: {}, st: {} }; cat.season.cal.forEach((e, i) => (e.r = i + 1)); });
     return;
   }
-  // F1: pilotos que já correm na F1 não ocupam vaga nas categorias em 2027
-  Cats.progression(G, true);
-  Cats.startSeason(G, G.season.year);
+  // grid inicial: na criação da carreira roda depois da base de pilotos (DriverDB) e da unificação de pessoas
+  if (opts && opts.defer) return;
+  Cats.initialGrid(G);
+};
+
+/* ---------- grid inicial de 2027: grid real de 2026 + anúncios, sem inventar ----------
+   Não há virada de ano simulada antes da primeira temporada: ninguém é promovido, aposentado
+   ou transferido pelo jogo. Cada inscrição recebe um status:
+   - 'anunciado': a fonte lista o piloto na série para 2027;
+   - 'grid 2026': correu a série em 2026 e ainda não há anúncio para 2027 (a confirmar);
+   - 'projeção': vaga aberta (piloto foi para a F1, categoria revivida...) preenchida pelo jogo com piloto real
+     livre que vem da série de acesso ou da mesma disciplina;
+   - 'gerado': sem piloto real disponível, o jogo cria um piloto fictício. */
+Cats.STATUS = { anunciado: 'anunciado para 2027', grid2026: 'grid de 2026 (2027 a confirmar)', projecao: 'projeção do jogo', gerado: 'piloto fictício do jogo' };
+Cats.realIn = (d, cid, y) => (d.realSeasons || []).some(s => s[0] === y && s[1] === cid);
+Cats.initialGrid = (G) => {
+  if (!Cats.on(G)) return;
+  const y = G.season.year;
+  const f1Race = (d) => d.team && d.seat !== 'R';
+  const cats = Cats.list(G, true);
+  const inMain = new Set();
+  cats.filter(c => !c.secondary).forEach(cat => {
+    cat.entries = cat.entries.filter(e => { const d = Career.driver(G, e.did); if (!d || d.retired || d.dead || f1Race(d)) { if (d && f1Race(d)) d.cat = null; return false; } return true; });
+    // uma pessoa, uma categoria principal: fica na série em que correu de verdade em 2026 (ou na de nível mais alto)
+    cat.entries = cat.entries.filter(e => {
+      const d = Career.driver(G, e.did);
+      if (d.cat && d.cat !== cat.id && cats.some(c => c.id === d.cat && !c.secondary)) return false;
+      if (inMain.has(d.id)) return false;
+      inMain.add(d.id); d.cat = cat.id; d.ctm = d.ctm || e.team; return true;
+    });
+    cat.entries.forEach(e => { const d = Career.driver(G, e.did); e.st = Cats.realIn(d, cat.id, y) ? 'anunciado' : 'grid2026'; });
+  });
+  // vagas abertas
+  const free = (d) => !d.retired && !d.dead && !f1Race(d) && !inMain.has(d.id) && !d.futureTeam && d.series !== 'kart';
+  const ordered = cats.filter(c => !c.secondary).sort((a, b) => a.tier - b.tier);
+  ordered.forEach(cat => {
+    let need = cat.seats - cat.entries.length;
+    if (need <= 0) return;
+    const ok = (d) => free(d) && (!cat.women || (typeof Disc !== 'undefined' ? Disc.isWoman(d) : d.gender === 'F')) && (typeof Disc === 'undefined' || Disc.willing(d, cat.disc || 'mono'));
+    const age = (d) => d.age || 99;
+    // 1) correu esta série de verdade em 2026/2027 e não está em outro grid
+    const A = G.db.drivers.filter(d => ok(d) && !d.regen && (Cats.realIn(d, cat.id, 2026) || Cats.realIn(d, cat.id, y) || d.series === cat.id));
+    // 2) projeção: piloto real livre que vem das séries de acesso (ou da mesma série no passado recente)
+    const feeders = new Set([...(Cats.FEEDERS[cat.id] || []), ...Object.keys(Cats.UP).filter(k => Cats.UP[k] === cat.id)]);
+    const last = (d) => (d.realSeasons || []).slice(-1)[0];
+    const B = G.db.drivers.filter(d => ok(d) && !d.regen && !A.includes(d) && last(d) && last(d)[0] >= 2025 && (feeders.has(last(d)[1]) || last(d)[1] === cat.id || (cat.tier >= 5 && /^(f4|e4)/.test(last(d)[1]) && !(Cats.get(G, last(d)[1]) || {}).entries)) && age(d) >= (cat.ageRef || 16) - 3 && age(d) <= (cat.pro ? 45 : (cat.ageRef || 18) + 5));
+    const sc = (d) => driverOverall(d) + (d.potential || 0) * 0.2 + (d.series === cat.id ? 3 : 0);
+    const pick = [...A.sort((a, b) => sc(b) - sc(a)).map(d => [d, Cats.realIn(d, cat.id, y) ? 'anunciado' : 'grid2026']), ...B.sort((a, b) => sc(b) - sc(a)).map(d => [d, 'projecao'])];
+    const seats = Cats.freeSeats(cat);
+    for (let i = 0; need > 0; i++) {
+      let [d, st] = pick[i] || [];
+      if (!d) { d = Cats.newRegen(G, cat); st = 'gerado'; }
+      const team = (d.seriesTeam && (cat.teams.find(t => Cats.norm(t.name).includes(Cats.norm(d.seriesTeam).split(' ')[0])) || {}).id) || seats.shift() || RNG.pick(cat.teams).id;
+      d.cat = cat.id; d.ctm = team; d.series = null; d.seriesTeam = null;
+      inMain.add(d.id);
+      cat.entries.push({ did: d.id, team, no: d.number, st });
+      need--;
+    }
+  });
+  // séries paralelas (inverno): sem aposentados nem pilotos de F1
+  cats.filter(c => c.secondary).forEach(c => { c.entries = c.entries.filter(e => { const d = Career.driver(G, e.did); return d && !d.retired && !d.dead && !f1Race(d); }); });
+  Cats.startSeason(G, y);
   if (typeof Market !== 'undefined') Market.syncAcademies(G);
+  G.cats.gridDone = y;
 };
 
 /* aplica um ganho/perda igual em todos os atributos de pilotagem */
@@ -162,15 +228,28 @@ Cats.shift = (d, delta) => {
 };
 
 /* ---------- temporada ---------- */
-Cats.dateFor = (cat, iso, year) => {
+Cats.SUPPORT = { f2: true, f3: true, f1a: true };       // correm no fim de semana da F1
+Cats.dateFor = (cat, iso, year, G, ev) => {
   const m = iso.slice(5);
   // FE: a temporada começa em dezembro do ano anterior
-  if (cat.id === 'fe' && m.startsWith('12')) return `${year - 1}-${m}`;
-  return `${year}-${m}`;
+  const y = cat.id === 'fe' && m.startsWith('12') ? year - 1 : year;
+  // suporte da F1: mesma pista no calendário da F1 do ano → mesmo domingo
+  if (G && G.season && G.season.year === year && Cats.SUPPORT[cat.id] && ev && typeof Time !== 'undefined') {
+    const n = (s) => Cats.norm(s || '');
+    const i = G.season.calendar.findIndex(id => { const t = Career.track(G, id); return t && ((ev.circuit && n(t.circuit) === n(ev.circuit)) || (ev.place && t.place && n(t.place).split(' ')[0] === n(ev.place).split(' ')[0])); });
+    if (i >= 0) return Time.raceDate(G, i);
+  }
+  // demais: mesmo mês e dia, no mesmo dia da semana da data real (sábado continua sábado, domingo continua domingo)
+  let out = `${y}-${m}`;
+  if (out.endsWith('-02-29')) out = `${y}-02-28`;
+  const w0 = new Date(iso + 'T12:00:00Z').getUTCDay(), w1 = new Date(out + 'T12:00:00Z').getUTCDay();
+  let dlt = (w0 - w1 + 7) % 7; if (dlt > 3) dlt -= 7;
+  const d = new Date(out + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + dlt);
+  return d.toISOString().slice(0, 10);
 };
 Cats.startSeason = (G, year) => {
   Cats.list(G, true).forEach(cat => {
-    cat.season = { year, cal: (cat.baseCal || []).map(e => ({ ...e, date: Cats.dateFor(cat, e.date, year) })).sort((a, b) => a.date.localeCompare(b.date)), next: 0, res: [], pts: {}, tpts: {}, st: {} };
+    cat.season = { year, cal: (cat.baseCal || []).map(e => ({ ...e, date: Cats.dateFor(cat, e.date, year, G, e) })).sort((a, b) => a.date.localeCompare(b.date)), next: 0, res: [], pts: {}, tpts: {}, st: {} };
     cat.season.cal.forEach((e, i) => (e.r = i + 1));
   });
 };
@@ -292,6 +371,18 @@ Cats.develop = (G) => {
   });
 };
 
+/* aposentadoria nas séries profissionais: veteranos correm até mais tarde em turismo, stock car e endurance */
+Cats.RETIRE_AGE = { mono: [36, 44], gt: [42, 54], end: [42, 55], stock: [42, 54], oval: [40, 50] };
+Cats.proRetires = (cat, d) => {
+  const disc = cat.id === 'nascup' || cat.id === 'stockcar' ? 'stock' : cat.id === 'indycar' ? 'oval' : cat.disc || 'mono';
+  const [from, hard] = Cats.RETIRE_AGE[disc] || Cats.RETIRE_AGE.mono;
+  if (d.age >= hard) return true;
+  if (d.age < from) return false;
+  const ovr = driverOverall(d), [lo, hi] = cat.range;
+  const form = clamp((ovr - lo) / Math.max(1, hi - lo), 0, 1);      // quem ainda anda na frente fica mais tempo
+  return RNG.chance(clamp(0.08 + (d.age - from) * 0.05 - form * 0.08, 0.02, 0.6));
+};
+
 /* ---------- progressão entre categorias e preenchimento das vagas ---------- */
 Cats.progression = (G, initial) => {
   if (!Cats.on(G)) return;
@@ -314,7 +405,7 @@ Cats.progression = (G, initial) => {
       const yrs = d.catYears[cat.id];
       const ovr = driverOverall(d);
       if (cat.pro) {
-        if (d.age >= 39 || (d.age >= 34 && RNG.chance(0.18))) { if (!d.team && !d.futureTeam) { d.retired = true; d.retiredYear = y; } d.cat = null; return false; }
+        if (Cats.proRetires(cat, d)) { if (!d.team && !d.futureTeam) { d.retired = true; d.retiredYear = y; } d.cat = null; return false; }
         if (pos > cat.entries.length - 3 && RNG.chance(0.35)) { d.cat = null; return false; }
         return true;
       }
@@ -342,6 +433,8 @@ Cats.progression = (G, initial) => {
       const fits = (Cats.UP[m.from] === cat.id) || (feeders.includes(m.from) && (gt ? m.d.age >= 18 : cat.pro ? (m.from === 'f2' || m.d.nat === 'JPN') : m.pos <= 3));
       if (fits) pool.push({ d: m.d, sc: driverOverall(m.d) * 1.6 + (m.d.potential || 0) * 0.4 - m.pos * 0.6 + (m.d.academy ? 4 : 0) + (typeof Disc !== 'undefined' && gt ? Disc.affinity(G, cat, m.d) : 0) + RNG.normal(0, 2) });
     });
+    // pilotos reais da própria série que estavam fora do grid (meio período, reservas): primeiros da fila
+    G.db.drivers.forEach(d => { if (d.series === cat.id && !d.team && !d.cat && !d.retired && !d.dead && !taken.has(d.id) && !pool.some(p => p.d === d) && (!cat.women || (typeof Disc !== 'undefined' ? Disc.isWoman(d) : d.gender === 'F'))) pool.push({ d, sc: driverOverall(d) * 1.6 + 12 + RNG.normal(0, 2) }); });
     // sem vaga na F1: veteranos e ex-F2 livres vão para a FE e a Super Formula
     if (cat.pro) G.db.drivers.forEach(d => { if (!d.team && !d.cat && !d.series && !d.retired && !d.dead && !taken.has(d.id) && d.age >= 21 && d.age <= (cat.disc === 'mono' ? 36 : 42) && driverOverall(d) >= cat.range[0] - 1 && !pool.some(p => p.d === d) && (typeof Disc === 'undefined' || Disc.willing(d, cat.disc || 'mono'))) pool.push({ d, sc: driverOverall(d) * 1.6 + (d.career && d.career.starts ? 6 : 0) + (cat.id === 'sf' && d.nat === 'JPN' ? 8 : 0) + (typeof Disc !== 'undefined' && cat.disc !== 'mono' ? Disc.affinity(G, cat, d) : 0) + RNG.normal(0, 3) }); });
     pool.sort((a, b) => b.sc - a.sc);
@@ -352,8 +445,8 @@ Cats.progression = (G, initial) => {
       if (!d) d = Cats.newRegen(G, cat);
       taken.add(d.id);
       const team = teamsBySeat[i] || RNG.pick(cat.teams).id;
-      d.cat = cat.id; d.ctm = team;
-      cat.entries.push({ did: d.id, team, no: d.number });
+      d.cat = cat.id; d.ctm = team; if (d.series === cat.id) { d.series = null; d.seriesTeam = null; }
+      cat.entries.push({ did: d.id, team, no: d.number, st: d.regen ? 'gerado' : 'projecao' });
       if (!initial && !d.regen && cat.tier <= 3) Career.record(G, 'categorias', `${d.name} vai correr na ${cat.name} em ${y + 1} pela ${(cat.teams.find(t => t.id === team) || {}).name || 'equipe'}.`, { drivers: [d.id], year: y });
     }
   });

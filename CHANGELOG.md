@@ -1,6 +1,65 @@
 # Changelog
 
-## 0.8.1 — correções (em andamento)
+## 0.8.2 — Auditoria, integridade da database e economia (07/11/2026)
+Primeira etapa do plano de ultrarrealismo (auditoria completa em `docs/AUDITORIA-0.8.2.md`). Inclui a correção da 0.8.1.
+
+**Pilotos: uma pessoa, um registro**
+- Novo sistema de identidade (`persons.js`): cada piloto tem uma chave persistente (Wikidata ou nome canônico + ano de nascimento). Dois registros só viram um com nome compatível (apelidos e transliterações: Cam/Cameron, Nico/Nicolás, Maksimilian/Maximilian) **e** nada em conflito (Wikidata, nascimento, nacionalidade, idade possível, Jr./Sr.). Homônimos ficam separados.
+- Corrigidas as 6 duplicatas encontradas, entre elas o Antonelli em dobro (Mercedes e um "Andrea Kimi Antonelli" na base, que podia ir para outra equipe), Varrone, Popov, Cam Waters, Austin Hill e Abdullah Kamel. As importações procuram a pessoa pelo mesmo índice antes de criar alguém. Relatório em `docs/DUPLICATAS.md`.
+- Corrigido o gerador de ids, que guardava os ids da primeira carreira aberta e criava homônimos ao abrir outra carreira ou carregar um save. Pilotas geradas da F1 Academy ganham id coerente com o nome.
+
+**Grid inicial verdadeiro (sem inventar)**
+- A carreira de 2027 começa com o grid real de 2026 de cada categoria mais os anúncios para 2027. Antes, o jogo simulava uma virada de ano antes da primeira corrida: aposentava veteranos ativos (Will Power, Dixon, Hamlin, Logano, Buemi, Kubica, Cacá Bueno e outros 50) e inventava transferências (Ocon e Zhou na IndyCar, pilotos da NASCAR na Fórmula E, pilotos da F3 na NASCAR).
+- Cada vaga tem origem visível na página da categoria: anunciado para 2027, grid de 2026 (a confirmar), projeção do jogo ou piloto fictício (só quando não há piloto real disponível).
+- Vagas abertas são preenchidas primeiro com pilotos reais daquela série. Com isso, a F1 Academy volta a ter as pilotas reais (Palmowski, Gademan, Larsen...), no lugar de 5 fictícias.
+- A F4 Alemã (encerrada em 2022 na vida real) deixa de usar o grid de 2022 (Antonelli, Câmara, Barnard): volta com pilotos reais de outras F4 ou gerados.
+- Aposentadoria nas séries profissionais por disciplina: monoposto a partir dos 36, turismo, stock car e endurance a partir dos 42, sempre pesando o desempenho.
+
+**Calendário**
+- Calendário oficial da F1 2027 (anunciado em 16/09/2026): 24 etapas, abertura no Bahrein em 14/03, Portimão e Istambul de volta, sem Barcelona e Zandvoort, final em Abu Dhabi em 12/12, Las Vegas no sábado e as 10 sprints oficiais.
+- F2, F3 e F1 Academy correm no mesmo fim de semana da F1; as outras séries mantêm o dia da semana real. Antes a F2 caía numa segunda-feira.
+- Datas da Fórmula E corrigidas: o importador lia "May 2026" como "20 de maio". Também foi corrigido o nome colado "Meyer Shank Racingwith…".
+
+**Economia (contenção da V0.8.2; a reformulação completa vem na 0.8.3)**
+- Receitas reais por GP, iguais para o jogador e para a IA:
+  - distribuição comercial pela posição no último Mundial, mais uma parcela fixa e o bônus histórico de Ferrari, Mercedes, Red Bull, McLaren e Williams;
+  - patrocínio limitado pelo mercado da equipe (reputação e exposição): não dá para multiplicar o orçamento empilhando patrocinadores;
+  - aporte anual dos donos.
+- Custos que faltavam: fábrica e pessoal (dentro do teto, cresce com o porte da estrutura) e marketing. O prêmio por pontos a cada corrida (dupla contagem) foi retirado.
+- O teto vale de verdade:
+  - todo gasto elegível conta, e o espaço para projetos já desconta a fábrica até o fim do ano;
+  - auditoria no fim da temporada para todas as equipes: estouro pequeno dá multa; estouro material dá multa e 10% a menos de túnel de vento e CFD.
+- Orçamento esportivo separado do patrimônio: o caixa da equipe tem limite de reserva, e o excedente vai para os donos.
+- Crise: equipe no vermelho corta estrutura, e os donos decidem se colocam dinheiro.
+- Resultado medido (Williams, mesma semente):
+  - antes: 109 → 714 mi em 2 anos sem investir, cerca de +10 mi por GP;
+  - agora: cerca de +2 mi por GP sem investir, e perto do zero gastando o teto inteiro.
+- Na IA, as grandes chegam ao teto e Haas e Williams gastam 110–130 mi. A diferença entre os carros se mantém em vez de sumir.
+
+**Base de dados e imagens**
+- Conferência com o DriverDB (`scripts/import_driverdb.py`): classificações de 2026 de 22 séries e o perfil de cada piloto. Preenche só o que falta (apelidos, nascimento, nacionalidade, foto); divergências com a Wikipedia/Wikidata ficam listadas, não trocadas. Relatório em `docs/VERIFICACAO-DATABASE.md`.
+- Fotos novas de pilotos (recorte com o rosto no centro) e logos de instituições (FOM, IMSA, NASCAR) e fornecedores de pneus (Pirelli, Bridgestone, Firestone, Goodyear, Hankook, Michelin, Yokohama, Kumho).
+
+**Finanças na interface**
+- Novos painéis:
+  - receita prevista por componente;
+  - uso do mercado de patrocínio;
+  - custos fixos;
+  - patrimônio dos donos e auditorias do teto.
+- "Espaço no teto" real nas telas de P&D.
+- Os totais da temporada não dependem mais do extrato (que guarda só as últimas linhas).
+
+**Ferramentas e saves**
+- `scripts/audit.js`: auditoria da base (`db`) e simulações longas com relatório por temporada (`sim`, em `docs/RELATORIO-SIMULACAO.md`).
+- Save v7, com migração que aplica tudo isto a carreiras em andamento:
+  - unificação de duplicatas;
+  - veteranos reativados se a carreira ainda está na primeira temporada;
+  - calendário oficial (se o calendário não foi editado);
+  - datas corrigidas;
+  - economia.
+- Testado com saves reais da 0.6, da 0.7.1 e da 0.8.0.
+
+## 0.8.1 — correção
 - Aceleração de hardware desligada no aplicativo: evita travamentos e problemas de vídeo em alguns computadores (o jogo é 2D e roda bem só com a CPU).
 
 ## 0.8.0 — Disciplinas, P&D por peça, calendário por dia, circuitos e mídia (07/11/2026)
