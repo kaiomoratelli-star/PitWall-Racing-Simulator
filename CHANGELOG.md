@@ -1,5 +1,72 @@
 # Changelog
 
+## 0.8.3 — Talento, carros, academia, olheiros e patrocínio (07/11/2026)
+Segunda etapa do plano de ultrarrealismo (plano em `docs/PLANO-0.8.3.md`, relatório em `docs/RELATORIO-0.8.3.md`).
+
+**Nível do piloto (oculto) define o teto do potencial**
+- Escala única do automobilismo:
+  - níveis de F1: Geracional (até 96 no auge), Acima da média (90), Bom (88), Mediano (86), Medíocre (84);
+  - abaixo da F1: Vencedor (82, ganha títulos nas categorias de acesso e profissionais), Pelotão (78, meio de grid) e Coadjuvante (74, fundo de grid, carreira curta).
+- O nível não define a carreira: falta de vaga, carro ou sorte fazem um piloto bom ter carreira medíocre.
+- Pilotos reais da F1 com nível definido pelo projeto:
+  - geracionais: Verstappen, Antonelli, Hamilton e Alonso;
+  - acima da média: Leclerc, Norris, Russell, Piastri, Câmara e Bearman;
+  - bons: Sainz, Gasly, Albon, Hülkenberg, Hadjar, Bortoleto e Lindblad;
+  - medianos: Bottas, Pérez e Lawson;
+  - medíocres: Colapinto e Stroll.
+- Os demais pilotos recebem o nível pela nota, pela idade e pelo desempenho real em 2026.
+- Raridade:
+  - geracionais vivos: 2 a 5;
+  - na F1, de 1 a 6 pilotos com nota 90 ou mais (normalmente 2 a 4);
+  - titular da F1 com nota mínima de 80.
+- Corrigido o vazamento que inflava os talentos: a evolução passava do potencial, e o potencial "seguia" a nota.
+- Perfil de cada piloto: pontos fortes e fracos reais (antes os 9 atributos eram quase iguais). Na F1, o duelo real com o companheiro (classificação × corrida) define o desequilíbrio.
+- Idade:
+  - crescimento rápido até os 23 anos;
+  - auge entre 27 e 33;
+  - queda a partir dos 34, com os reflexos (classificação, largada) caindo antes da experiência (pneus, consistência);
+  - longevidade rara (Alonso, Hamilton).
+- Universo estável em décadas: séries fora do jogo recebem pilotos novos e o kart não encolhe mais.
+
+**Carros sem equalização artificial**
+- Saíram o puxão anual para uma média fixa, o piso de diferença entre carros e a compressão extra na troca de regulamento.
+- O carro novo mantém a distância para a média do grid.
+- Cada equipe tem capacidade técnica e uma **eficiência da organização** oculta, que muda devagar com resultados e crises. Por isso duas equipes que gastam o mesmo teto têm carros diferentes.
+- A IA tem as mesmas dificuldades do jogador:
+  - fila de projetos limitada pelas vagas;
+  - prazo de entrega;
+  - falha;
+  - problema de correlação entre túnel e pista;
+  - peça que ganha desempenho e perde confiabilidade.
+- Menos sorte por fim de semana, e nem toda batida neutraliza a corrida.
+- Em 20 a 50 anos simulados, a média fica em 6 a 7 equipes no pódio e 4 a 5 vencedoras por ano (antes 8 a 9 e 6 a 9), com ciclos de domínio de equipe.
+
+**Academia (reformulada)**
+- Contratar um júnior é uma negociação: salário de júnior, duração e multa, com contraproposta. As academias rivais também disputam os melhores.
+- A academia paga o assento de cada piloto (F4 cerca de US$ 350 mil, regional US$ 900 mil, F3 US$ 1,2 milhão, F2 US$ 2,6 milhões).
+- Acompanhamento de onde cada membro corre, posição no campeonato, nota e nível estimado.
+- Plano para o ano seguinte: ficar, subir ou trocar de região (ex.: F4 Brasil → FRECA). O jogo cumpre na virada do ano, comprando a vaga se preciso.
+- Contratos vencem e podem ser renovados; a IA também contrata juniores todo ano.
+
+**Olheiros (reformulados no estilo FM / F1 Manager)**
+- O departamento é formado por olheiros com nome, região de especialidade, qualidade de avaliação e salário, contratados num mercado próprio.
+- Missões: observar um piloto, cobrir uma categoria ou procurar talentos numa região, com relatórios dos destaques.
+- O jogador vê o **nível estimado** (com estrelas e margem de erro), nunca o real. Olheiro bom e da mesma região erra menos.
+
+**Patrocínio**
+- Cada marca tem segmento (energia, banco, tecnologia, cripto, bebidas...) e porte. Marca global de topo só fecha com equipe de reputação alta e paga mais.
+- Exclusividade: uma marca por segmento em cada equipe, e uma marca que patrocina um rival não fecha com você.
+- Valores dentro do mercado da equipe, perto dos reais: patrocinador principal da Mercedes cerca de US$ 80 milhões por ano, da Haas cerca de US$ 40 milhões.
+- Cláusula de posição no Mundial e rompimento no meio do ano se a marca ficar muito insatisfeita.
+- As equipes da IA ganham e perdem marcas conforme os resultados.
+- Logos de marcas patrocinadoras (de 18 para 60, todos conferidos) e da Eurocup-4.
+
+**Circuitos e licenças (item que tinha sumido da interface)**
+- Nova tela no menu com todos os circuitos: grau da licença, validade, origem (lista oficial da FIA ou simulação do jogo) e o histórico das vistorias anuais, que promovem circuitos de Grau 2 ao Grau 1.
+
+**Saves**
+- Por decisão do projeto, as recalibrações desta fase valem para carreiras novas. Os saves antigos abrem e seguem, e a migração completa fica para depois da V1.0 (`docs/PENDENCIAS-V1.md`).
+
 ## 0.8.2 — Auditoria, integridade da database e economia (07/11/2026)
 Primeira etapa do plano de ultrarrealismo (auditoria completa em `docs/AUDITORIA-0.8.2.md`). Inclui a correção da 0.8.1.
 

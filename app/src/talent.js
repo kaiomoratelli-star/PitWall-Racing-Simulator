@@ -115,7 +115,8 @@ Talent.profile = (G, d) => {
   }
   // o estilo do piloto (já existente) continua valendo como tendência
   const prof = STYLE_PROFILES[d.style] || {};
-  Talent.ATTRS.forEach(k => { if (d[k] != null) d[k] = +clamp(d[k] + off[k] + (prof[k] || 0) * 0.5, 30, 99).toFixed(2); });
+  // nenhum atributo foge mais de 12 pontos da tendência do piloto (forte é forte, fraco é fraco, sem absurdos)
+  Talent.ATTRS.forEach(k => { if (d[k] != null) d[k] = +clamp(d[k] + clamp(off[k] + (prof[k] || 0) * 0.5, -12, 12), 30, 99).toFixed(2); });
   Talent.recenter(d, raw0);
   d.longevity = d.longevity ?? (['fernando-alonso', 'lewis-hamilton'].includes(d.id) || r() < 0.08);
   d.profiled = true;

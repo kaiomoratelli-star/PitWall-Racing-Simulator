@@ -77,6 +77,26 @@ Econ.recompute = (G) => {
   });
 };
 
+/* mercado de patrocínio entre as equipes da IA: quem vai mal perde marcas, quem vai bem atrai (exclusividade de marca e de segmento) */
+Econ.aiSponsors = (G) => {
+  if (typeof Career.brand !== 'function') return;
+  const n = G.db.teams.length;
+  const taken = () => new Set(G.db.teams.flatMap(t => t.sponsors || []).concat((G.sponsors || []).map(s => s.name)));
+  G.db.teams.forEach(t => {
+    if (t.id === G.player.teamId && !Career.isObs(G)) return;
+    const pos = Econ.lastPos(G, t);
+    const r = localRng(`aisp:${G.seed}:${t.id}:${G.season.year}`);
+    t.sponsors = t.sponsors || [];
+    if (pos > n - 3 && t.sponsors.length > 2 && r() < 0.3) {
+      const gone = t.sponsors.pop();
+      Career.news(G, byLang(`${gone} encerra o patrocínio da ${t.name}`, `${gone} ends its sponsorship of ${t.name}`), 'mercado');
+    } else if (pos <= 3 && t.sponsors.length < 7 && r() < 0.35) {
+      const segs = new Set(t.sponsors.map(x => Career.brand(x)[0])); const tk = taken();
+      const pool = Object.keys(typeof SPONSOR_BRANDS !== 'undefined' ? SPONSOR_BRANDS : {}).filter(x => !tk.has(x) && !segs.has(Career.brand(x)[0]) && (Career.brand(x)[1] > 1 || (t.reputation || 0) >= 75));
+      if (pool.length) { const b = pool[Math.floor(r() * pool.length)]; t.sponsors.push(b); Career.news(G, byLang(`${b} fecha patrocínio com a ${t.name}`, `${b} signs a sponsorship deal with ${t.name}`), 'mercado'); }
+    }
+  });
+};
 /* compromisso da fábrica e da operação até o fim do ano (já conta para o teto) */
 Econ.committed = (G, t) => {
   const left = Math.max(0, Econ.races(G) - (G.season ? G.season.round : 0));
@@ -182,6 +202,7 @@ Econ.crisis = (G, t, cash) => {
     const team = !Career.isObs(G) && pt ? Career.team(G, pt) : null;
     const r = es(G);
     Econ.recompute(G);
+    Econ.aiSponsors(G);
     G.db.teams.forEach(t => { if (t.id !== pt || Career.isObs(G)) Econ.aiSeasonEnd(G, t); });
     if (team) Econ.playerSeasonEnd(G, team);
     return r;

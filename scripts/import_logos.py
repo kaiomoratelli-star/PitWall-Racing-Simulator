@@ -173,6 +173,41 @@ def inst_wd():
     API = 'https://en.wikipedia.org/w/api.php'
 
 
+# marcas patrocinadoras (sponsor-brands.js) → artigo da Wikipedia; arquivo pelo nome da marca (como o jogo procura)
+BRAND_PAGES = {'Shell': 'Shell plc', 'bp': 'BP', 'HP': 'HP Inc.', 'Ford': 'Ford Motor Company', 'Visa': 'Visa Inc.', 'Kick': 'Kick (service)', 'Gulf': 'Gulf Oil', 'Oracle': 'Oracle Corporation',
+    'AWS': 'Amazon Web Services', 'Snowflake': 'Snowflake Inc.', 'Workday': 'Workday, Inc.', 'Okta': 'Okta, Inc.', 'Santander': 'Banco Santander', 'TWG': 'TWG Global', 'Kraken': 'Kraken (company)',
+    'Emirates': 'Emirates (airline)', 'Tommy Hilfiger': 'Tommy Hilfiger (company)', 'Castore': 'Castore (company)', 'adidas': 'Adidas', 'Puma': 'Puma (brand)', 'Heineken': 'Heineken N.V.',
+    'Pepsico': 'PepsiCo', 'Allwyn': 'Allwyn (company)', 'Stake': 'Stake (online casino)', 'BWT': 'BWT AG', 'LEGO': 'Lego', 'Hantec Markets': 'Hantec Markets', 'Mobil 1': 'Mobil 1', 'Paramount+': 'Paramount+'}
+
+
+def sponsors():
+    global API
+    t = open(os.path.join(ROOT, 'app', 'data', 'sponsor-brands.js'), encoding='utf-8').read()
+    names = re.findall(r"'([^']+)': \['", t)
+    ok = 0
+    for name in names:
+        dest = os.path.join(IMG, 'logos', 'sponsors', slug(name) + '.png')
+        if os.path.exists(dest): ok += 1; continue
+        title = BRAND_PAGES.get(name, name)
+        pt, text = wikitext(title)
+        f = logo_file(text) if text else None
+        r = save_logo('sponsors', name, f, pt or title) if f else None
+        if r != 'ok':
+            API = 'https://www.wikidata.org/w/api.php'
+            j = api({'action': 'wbsearchentities', 'search': title, 'language': 'en', 'type': 'item', 'limit': 3})
+            f2 = None
+            for e in (j or {}).get('search', [])[:3]:
+                c = api({'action': 'wbgetclaims', 'entity': e['id'], 'property': 'P154'})
+                cl = (c or {}).get('claims', {}).get('P154') or []
+                if cl: f2 = cl[0]['mainsnak'].get('datavalue', {}).get('value'); break
+            API = 'https://commons.wikimedia.org/w/api.php'
+            r = save_logo('sponsors', name, f2, title) if f2 else r
+            API = 'https://en.wikipedia.org/w/api.php'
+        ok += r == 'ok'
+        print(f'marca {name:22} -> {r or "sem logo"}', flush=True)
+    print('marcas com logo:', ok, '/', len(names))
+
+
 def teams():
     t = open(os.path.join(ROOT, 'app', 'data', 'categories.js'), encoding='utf-8').read()
     cats = json.loads(t[t.index('{'):t.rstrip().rindex('}') + 1])['cats']
@@ -266,3 +301,4 @@ if __name__ == '__main__':
     if not a or '--wd' in a: wikidata_pass(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
     if not a or '--langs' in a: langs_pass(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
     if '--inst' in a: inst(); inst_wd(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
+    if '--sponsors' in a: sponsors(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)

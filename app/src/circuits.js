@@ -37,7 +37,7 @@ Circuits.REGION = {
 Circuits.region = (c) => Circuits.REGION[c] || 'eu';
 /* circuitos do calendário atual da F1: todos têm licença de Grau 1 (a lista pode não trazer
    pistas de rua temporárias ou em renovação entre um evento e outro) */
-Circuits.F1_NOW = new Set(['melbourne', 'shanghai', 'suzuka', 'miami', 'montreal', 'monaco', 'catalunya', 'spielberg', 'silverstone', 'spa-francorchamps', 'hungaroring', 'zandvoort', 'monza', 'madring', 'baku', 'marina-bay', 'austin', 'mexico-city', 'interlagos', 'las-vegas', 'lusail', 'yas-marina', 'bahrain', 'jeddah']);
+Circuits.F1_NOW = new Set(['melbourne', 'shanghai', 'suzuka', 'miami', 'montreal', 'monaco', 'catalunya', 'spielberg', 'silverstone', 'spa-francorchamps', 'hungaroring', 'zandvoort', 'monza', 'madring', 'baku', 'marina-bay', 'austin', 'mexico-city', 'interlagos', 'las-vegas', 'lusail', 'yas-marina', 'bahrain', 'jeddah', 'portimao', 'istanbul']);
 Circuits.fia = (id) => {
   if (typeof FIA_CIRCUITS === 'undefined') return null;
   if (!Circuits.MAP[id] && typeof REAL_TRACKS !== 'undefined') { const r = REAL_TRACKS.list.find(x => x.id === id); if (r) Circuits.MAP[id] = r.fia; }
@@ -109,7 +109,11 @@ Circuits.prepare = (G, year, first) => {
     const L = Circuits.lic(G, t.id);
     if (L.grade !== '2') return;
     const r = localRng(`vist:${G.seed}:${t.id}:${year}`)();
-    if (r < 0.06) {
+    S.hist = S.hist || [];
+    const ok = r < 0.06;
+    S.hist.push({ y: year, id: t.id, from: '2', ok });
+    if (S.hist.length > 400) S.hist.splice(0, S.hist.length - 400);
+    if (ok) {
       S.lic[t.id] = { grade: '1', expiry: `${year + 3}-12-31`, src: 'sim', since: year, upgrade: true };
       Career.news(G, byLang(`${t.circuit} é aprovado na vistoria e recebe licença de Grau 1`, `${t.circuit} passes inspection and receives a Grade 1 licence`), 'regulamento', byLang('Depois de obras de segurança, o circuito pode receber a Fórmula 1 (vistoria simulada pelo jogo).', 'After safety works, the circuit can host Formula 1 (inspection simulated by the game).'), { tr: t.id });
       out.push({ id: t.id, ok: true, upgrade: true });

@@ -24,6 +24,7 @@ function licChip(L, date) {
 }
 function licSrc(L) {
   if (L.src === 'fia') return byLang(`Lista oficial da FIA de ${fmtDay(Circuits.listDate())}`, `Official FIA list of ${fmtDay(Circuits.listDate())}`);
+  if (L.src === 'f1') return byLang(`Calendário oficial da F1: licença de Grau 1 (não aparece na lista da FIA de ${fmtDay(Circuits.listDate())})`, `Official F1 calendar: Grade 1 licence (not on the FIA list of ${fmtDay(Circuits.listDate())})`);
   if (L.src === 'sim') return byLang(`${L.upgrade ? 'Obras e licença' : 'Renovação'} simulada pelo jogo (${L.since}) — não é decisão real da FIA`, `${L.upgrade ? 'Works and licence' : 'Renewal'} simulated by the game (${L.since}) — not a real FIA decision`);
   return L.note || (L.generated ? byLang('Circuito criado no jogo', 'Circuit created in the game') : byLang(`Não consta na lista oficial de ${fmtDay(Circuits.listDate())}`, `Not on the official list of ${fmtDay(Circuits.listDate())}`));
 }
@@ -83,3 +84,35 @@ function checkHtml(t) {
     if (box && UI.genTrack) box.innerHTML += `<div style="margin-top:8px">${checkHtml(UI.genTrack)}</div>`;
   };
 })();
+
+/* ---------- tela: circuitos e licenças (todas as pistas, grau, validade e vistorias) ---------- */
+NAV.splice(NAV.findIndex(n => n[0] === 'seasons'), 0, ['circuits', 'Circuitos e licenças', 'M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0zm4 0h8M12 8v8']);
+SCREENS.circuits = {
+  html() {
+    const S = Circuits.state(G);
+    const y = G.season.year;
+    const f = UI.params.g || 'all';
+    const cal = new Set(G.season.calendar);
+    const rows = G.db.tracks.map(t => ({ t, L: Circuits.lic(G, t.id), date: Circuits.dateFor(G, t.id, y) }))
+      .filter(x => f === 'all' || (f === '1' ? x.L.grade === '1' : f === '2' ? x.L.grade === '2' : f === 'cal' ? cal.has(x.t.id) : !x.L.grade || !['1', '2'].includes(x.L.grade)))
+      .sort((a, b) => (cal.has(b.t.id) ? 1 : 0) - (cal.has(a.t.id) ? 1 : 0) || String(a.L.grade || '9').localeCompare(String(b.L.grade || '9')) || a.t.circuit.localeCompare(b.t.circuit));
+    const hist = (S.hist || []).slice().reverse();
+    const lastInsp = (id) => hist.find(h => h.id === id);
+    const n1 = G.db.tracks.filter(t => Circuits.lic(G, t.id).grade === '1').length, n2 = G.db.tracks.filter(t => Circuits.lic(G, t.id).grade === '2').length;
+    const promoted = hist.filter(h => h.ok);
+    const seg = [['all', 'Todos'], ['cal', 'No calendário'], ['1', 'Grau 1'], ['2', 'Grau 2'], ['other', 'Outros']].map(([k, l]) => `<button class="${f === k ? 'on' : ''}" data-act="go" data-v="circuits" data-p='{"g":"${k}"}'>${l}</button>`).join('');
+    return `<div class="page-head"><div><div class="eyebrow">FIA · licenças de circuito</div><h1>Circuitos e licenças</h1></div><div class="seg">${seg}</div></div>
+      <p class="small muted" style="max-width:980px;margin:-4px 0 14px">A F1 só corre em circuito com licença de Grau 1 válida na data da corrida. Ponto de partida: lista oficial de circuitos licenciados pela FIA de ${fmtDay(Circuits.listDate())}. Todo ano o jogo faz a vistoria dos circuitos de Grau 2: com obras, alguns sobem para o Grau 1 e passam a ser reservas do calendário. Renovações e vistorias depois da data da lista são simulações do jogo, não decisões reais da FIA.</p>
+      <div class="grid g4">
+        <div class="panel"><div class="panel-b stack"><span class="label">Grau 1</span><span class="stat-big">${n1}</span><span class="small muted">podem receber a F1</span></div></div>
+        <div class="panel"><div class="panel-b stack"><span class="label">Grau 2</span><span class="stat-big">${n2}</span><span class="small muted">vistoria anual para o Grau 1</span></div></div>
+        <div class="panel"><div class="panel-b stack"><span class="label">Promovidos nesta carreira</span><span class="stat-big">${promoted.length}</span><span class="small muted">${promoted.slice(0, 4).map(h => `${esc((Career.track(G, h.id) || {}).circuit || h.id)} (${h.y})`).join(', ') || 'nenhum ainda'}</span></div></div>
+        <div class="panel"><div class="panel-b stack"><span class="label">Vistorias registradas</span><span class="stat-big">${hist.length}</span><span class="small muted">desde o início da carreira</span></div></div>
+      </div>
+      <div class="panel"><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Circuito</th><th>País</th><th>Licença</th><th>Origem</th><th>Última vistoria</th><th></th></tr></thead><tbody>
+        ${rows.map(({ t, L, date }) => { const h = lastInsp(t.id); return `<tr><td><button class="linkbtn" data-act="circuitPage" data-id="${t.id}"><b>${esc(t.circuit)}</b></button>${cal.has(t.id) ? ' <span class="chip acc">calendário</span>' : ''}${t.generated ? ' <span class="chip">criado no jogo</span>' : t.osm ? ' <span class="chip">traçado real</span>' : ''}</td><td>${natTag(t.country)}</td><td>${licChip(L, date)}</td><td class="small muted" style="max-width:320px;white-space:normal">${esc(licSrc(L))}</td><td class="small">${h ? `${h.y}: ${h.ok ? '<span class="pos">aprovado para o Grau 1</span>' : 'mantido no Grau 2'}` : '—'}</td><td></td></tr>`; }).join('') || '<tr><td colspan="6" class="empty">Nenhum circuito.</td></tr>'}
+      </tbody></table></div></div>`;
+  },
+};
+Object.assign(I18N_EN, { 'Circuitos e licenças': 'Circuits and licences', 'No calendário': 'On the calendar', 'Outros': 'Others', 'Promovidos nesta carreira': 'Promoted in this career', 'Vistorias registradas': 'Inspections recorded', 'podem receber a F1': 'can host F1', 'vistoria anual para o Grau 1': 'yearly inspection for Grade 1', 'desde o início da carreira': 'since the start of the career', 'Última vistoria': 'Last inspection', 'Origem': 'Source', 'calendário': 'calendar', 'criado no jogo': 'created in game', 'traçado real': 'real layout', 'nenhum ainda': 'none yet', 'mantido no Grau 2': 'kept at Grade 2', 'aprovado para o Grau 1': 'approved for Grade 1', 'Licença': 'Licence', 'FIA · licenças de circuito': 'FIA · circuit licences' });
+I18N_PATS.unshift([/^A F1 só corre em circuito com licença de Grau 1 válida na data da corrida\..*$/, 'F1 only races at circuits with a valid Grade 1 licence on race day. Starting point: the official FIA list of licensed circuits. Every year the game inspects the Grade 2 circuits: with works, some move up to Grade 1 and become calendar reserves. Renewals and inspections after the list date are game simulations, not real FIA decisions.']);

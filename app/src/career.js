@@ -502,6 +502,14 @@ Career.postRaceEffects = (G, summary, race) => {
     s.satisfaction = clamp((s.satisfaction ?? 70) + (met ? 4 : -3), 0, 100);
     if (met && s.bonus) { Career.ledger(G, `Bônus de ${s.name} (objetivo cumprido)`, s.bonus, 'receita'); report.lines.push(`${s.name} pagou bônus de ${fmtMoney(s.bonus)}.`); }
   });
+  // patrocinador muito insatisfeito pode romper no meio do ano (risco de cancelamento)
+  G.sponsors.slice().forEach(s => {
+    if ((s.satisfaction ?? 70) >= 25 || !RNG.chance(0.05)) return;
+    G.sponsors = G.sponsors.filter(x => x !== s);
+    Career.record(G, 'patrocinio', `${s.name} rompeu o patrocínio da ${team.name} no meio da temporada (satisfação ${Math.round(s.satisfaction)}%).`, { teams: [team.id] });
+    Career.mail(G, { from: 'Comercial', tag: 'money', important: true, title: `${s.name} rompe o contrato`, body: `A ${s.name} usou a cláusula de saída: os resultados ficaram muito abaixo do combinado (satisfação ${Math.round(s.satisfaction)}%). O valor por GP deixa de entrar a partir de agora.` });
+    Career.news(G, `${s.name} deixa a ${team.name} no meio da temporada`, 'mercado');
+  });
   const myPts = sum(my.map(r => r.pts));
   // pontos viram dinheiro pela distribuição comercial do ano seguinte (posição no Mundial), não por corrida
   if (myPts > 0 && typeof Econ === 'undefined') Career.ledger(G, 'Prêmio por pontos', myPts * 0.09, 'receita');
@@ -572,14 +580,23 @@ Career.SPONSOR_OBJ = {
 
 /* Marcas reais que patrocinam o automobilismo. As da própria equipe vêm primeiro. */
 Career.SPONSOR_POOL = ['Heineken', 'DHL', 'AWS', 'Lenovo', 'Crypto.com', 'Rolex', 'Salesforce', 'Globant', 'MSC Cruises', 'Qatar Airways', 'Emirates', 'Allwyn', 'LVMH', 'Paramount+', 'Pepsico', 'Kraken', 'Tata Communications', 'Bitpanda', 'Castrol', 'Puma', 'Ray-Ban', 'Estrella Galicia', 'Gulf', 'Snowflake', 'Workday'];
+/* marca → [segmento, porte] (sponsor-brands.js) */
+Career.brand = (name) => (typeof SPONSOR_BRANDS !== 'undefined' && SPONSOR_BRANDS[name]) || ['outros', 3];
 Career.genSponsors = (G, team, n) => {
   const used = new Set(G.sponsors.map(s => s.name));
+  const segs = new Set(G.sponsors.map(s => s.seg || Career.brand(s.name)[0]));
+  // exclusividade: marca que patrocina outra equipe não fecha com a sua; um patrocinador por segmento
+  const taken = new Set(G.db.teams.filter(t => t.id !== team.id).flatMap(t => t.sponsors || []));
+  const pool0 = [...new Set([...(typeof SPONSOR_BRANDS !== 'undefined' ? Object.keys(SPONSOR_BRANDS) : []), ...Career.SPONSOR_POOL])];
+  const reachable = (name) => { const [, tier] = Career.brand(name); return tier === 3 || (tier === 2 && team.reputation >= 55) || (tier === 1 && team.reputation >= 75); };
   const own = (team.sponsors || []).filter(x => !used.has(x));
   const out = [];
   for (let i = 0; i < n; i++) {
-    const pool = own.filter(x => !used.has(x)).length ? own.filter(x => !used.has(x)) : Career.SPONSOR_POOL.filter(x => !used.has(x));
-    const name = own.length && !used.has(own[0]) ? own[0] : RNG.pick(pool);
-    used.add(name);
+    const ownLeft = own.filter(x => !used.has(x) && !segs.has(Career.brand(x)[0]));
+    const market = pool0.filter(x => !used.has(x) && !taken.has(x) && !segs.has(Career.brand(x)[0]) && reachable(x));
+    const name = ownLeft.length ? ownLeft[0] : market.length ? RNG.pick(market) : RNG.pick(Career.SPONSOR_POOL.filter(x => !used.has(x)));
+    if (!name) break;
+    used.add(name); segs.add(Career.brand(name)[0]);
     out.push(Career.makeSponsor(G, team, name, undefined, out));
   }
   return out;
@@ -595,9 +612,13 @@ Career.makeSponsor = (G, team, name, tier, pending) => {
   const cur = [...(G.sponsors || []), ...(pending || [])];
   const used = sum(cur.map(s => s.perRace)) * races;
   const room = Math.max(pool * 0.04, pool * 1.1 - used);
-  const share = cur.length === 0 ? 0.42 : cur.length === 1 ? 0.3 : 0.22;
-  const perRace = +(Math.min(pool * share, room) / races * RNG.range(0.85, 1.15) * (tier || 1)).toFixed(2);
-  return { id: Career.nextId(G, 's'), name, perRace, objective, bonus: +(perRace * RNG.range(0.12, 0.3)).toFixed(2), seasons: RNG.int(1, 3), satisfaction: 70 };
+  const share = cur.length === 0 ? 0.36 : cur.length === 1 ? 0.24 : cur.length === 2 ? 0.16 : 0.08;
+  const [seg, btier] = Career.brand(name);
+  const brandMul = btier === 1 ? 1.12 : btier === 2 ? 1 : 0.82;      // marca global de topo paga mais
+  const perRace = +(Math.min(pool * share * brandMul, room) / races * RNG.range(0.88, 1.12) * (tier || 1)).toFixed(2);
+  // cláusula de desempenho: terminar o Mundial até tal posição, senão a marca pode sair no fim do ano
+  const clauseMin = clamp(exp + (btier === 1 ? 1 : 2), 1, G.db.teams.length);
+  return { id: Career.nextId(G, 's'), name, seg, brandTier: btier, perRace, objective, bonus: +(perRace * RNG.range(0.12, 0.3)).toFixed(2), seasons: RNG.int(1, 3), satisfaction: 70, clauseMin };
 };
 
 /* ---------- P&D ---------- */
@@ -952,7 +973,7 @@ Career.endSeason = (G) => {
   if (obs) { G.offersThisRound = {}; Career.startSeason(G); return summary; }
   // patrocinadores
   G.sponsors.forEach(sp => sp.seasons--);
-  const leaving = G.sponsors.filter(sp => sp.seasons <= 0 && (sp.satisfaction < 60 || RNG.chance(0.4)));
+  const leaving = G.sponsors.filter(sp => (sp.seasons <= 0 && (sp.satisfaction < 60 || RNG.chance(0.4))) || (sp.clauseMin && myPos > sp.clauseMin && RNG.chance(0.6)));
   G.sponsors = G.sponsors.filter(sp => !leaving.includes(sp));
   G.sponsors.forEach(sp => { if (sp.seasons <= 0) { sp.seasons = RNG.int(1, 2); sp.perRace = +(sp.perRace * RNG.range(0.95, 1.15)).toFixed(2); } });
   leaving.forEach(sp => Career.record(G, 'patrocinio', `${sp.name} encerrou o patrocínio da ${team.name}.`, { teams: [team.id] }));
