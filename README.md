@@ -2,18 +2,23 @@
 
 # PitWall Racing Simulator
 
-**Uma produção Moratelli Game Company (MGC).**
+**Uma produção Moratelli Game Company (MGC).** Versão atual: **0.8.0**.
 
-Simulador de gestão de automobilismo (monopostos) em português, para **Windows 10 e 11 (64 bits)**.
+Simulador de gestão de automobilismo para **Windows 10 e 11 (64 bits)**, em português e inglês.
 
-- **Modo Manager:** você comanda uma equipe, com acerto, estratégia ao vivo, contratos, staff, P&D, finanças e diretoria.
-- **Modo Observador:** todas as equipes são da IA e você acompanha o campeonato sem interferir.
-- Universo com memória: cada contrato, investimento, título e aposentadoria fica registrado.
-- F1 2026 real (equipes, pilotos, contratos, staff, academias, calendário) e a história desde 1950 separada da história simulada.
-- 15 outras categorias simuladas ao mesmo tempo: F2, F3, regionais, sete campeonatos de F4, Super Formula e Fórmula E. Os pilotos sobem de categoria até a F1.
-- Corrida volta a volta com pneus C1–C5, temperatura, clima por local e data, setores, bateria 2026 e Pit Wall.
-- Imprensa e rede social reais, rivalidades, recordes e escândalos fictícios raros.
-- Base de dados 100% editável (regras, regulamento por temporada, equipes, pilotos, pistas, gerador de circuitos, motores, calendário, categorias), com importação e exportação em JSON.
+- **Dois modos:** Manager (você comanda uma equipe de F1) e Observador (acompanha o universo sem interferir).
+- **Universo vivo:** 23 categorias simuladas ao mesmo tempo (F1, F2, F3, F1 Academy, regionais, F4s, Fórmula E, IndyCar, Super Formula, WEC, DTM, Stock Car e NASCAR), kart na base da pirâmide e cerca de 1.400 pilotos reais com a carreira de 2022 a 2027.
+- **Disciplinas:** Monoposto, GT e Endurance, com experiência e adaptação de cada piloto.
+- **Fim de semana completo:** treinos com acerto, classificação ao vivo, corrida volta a volta com pneus e energia, Safety Car, Sprint e pódio.
+- **P&D por peça:** túnel de vento e CFD com cota do regulamento, pesquisa do carro do ano seguinte e fabricação peça a peça para cada carro.
+- **Calendário por dia:** decisões e mensagens importantes precisam de atenção antes de avançar.
+- **Mercado e pessoas:** contratos com cláusulas, academias, olheiros com potencial oculto, empresários e patrocínio pessoal.
+- **Regulamento vivo:** Conselho da FIA e regulamentos novos que mexem no grid.
+- **Circuitos:** licenças pela lista oficial da FIA, circuitos reserva, traçados reais e gerador de circuitos.
+- **Mídia:** notícias, rede social, artes automáticas no estilo das redes e eventos raros com personagens fictícios.
+- **Base 100% editável** (regras, regulamentos, equipes, pilotos, pistas, motores, calendário e categorias), com importação e exportação em JSON.
+
+> Projeto de fãs, sem relação com a Fórmula 1, a FIA, equipes, pilotos ou empresas reais. Os acontecimentos do jogo são fictícios.
 
 ## Instalar
 Baixe `PitWall-Racing-Simulator-Setup-<versão>.exe` em **Releases** (ou no artefato da última
@@ -30,7 +35,7 @@ npm test           # simulação prolongada com diagnóstico
 npm run test:smoke # testa o aplicativo real
 npm run dist       # gera o instalador (no Windows)
 ```
-Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md) e próximos passos em [docs/ROADMAP.md](docs/ROADMAP.md).
+Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), regras do projeto em [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) e histórico de versões em [CHANGELOG.md](CHANGELOG.md).
 
 ## Marca
 Logo da Moratelli Game Company, ícone, tela de abertura e imagens do instalador são gerados por
@@ -40,5 +45,6 @@ Logo da Moratelli Game Company, ícone, tela de abertura e imagens do instalador
 - Resultados, pilotos, equipes e circuitos de 1950 até hoje: [f1db](https://github.com/f1db/f1db) (CC BY 4.0).
 - Fotos de pilotos, carros, logos e mapas oficiais: formula1.com (uso em desenvolvimento; a versão comercial precisará de licença ou de imagens próprias).
 - Geometria real dos circuitos: [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT).
-- Outras categorias (grids, calendários e classificações 2026): Wikipedia; datas de nascimento e redes sociais: Wikidata; fotos: sites oficiais da F2, F3 e Fórmula E e Wikimedia Commons.
-- Para atualizar os dados: `python3 scripts/import_real_data.py`, `python3 scripts/import_records.py` e `python3 scripts/import_categories.py`.
+- Outras categorias e base de pilotos 2022–2027 (grids, calendários e classificações): Wikipedia (CC BY-SA); nascimento, nacionalidade e redes sociais: Wikidata (CC0); fotos: sites oficiais e Wikimedia Commons (licença de cada arquivo em `app/assets/img/sources.json`).
+- Circuitos licenciados: lista oficial da FIA; traçados de circuitos de Grau 2: © colaboradores do OpenStreetMap (ODbL).
+- Para atualizar os dados: `scripts/import_real_data.py`, `import_records.py`, `import_categories.py`, `import_drivers.py`, `import_images.py`, `import_logos.py`, `import_fia_circuits.py` e `import_real_tracks.py`.
