@@ -164,7 +164,66 @@ def teams():
     print('equipes com logo:', got, '/', len(names), '· recusadas por parecer foto:', foto)
 
 
+def wikidata_pass():
+    """Segunda fonte: logo (P154) do item da equipe na Wikidata (arquivo do Commons)."""
+    global API
+    t = open(os.path.join(ROOT, 'app', 'data', 'categories.js'), encoding='utf-8').read()
+    cats = json.loads(t[t.index('{'):t.rstrip().rindex('}') + 1])['cats']
+    names = sorted({tm['name'] for c in cats for tm in c['teams']})
+    got = 0
+    for name in names:
+        dest = os.path.join(IMG, 'logos', 'teams', slug(name.split(' (')[0]) + '.png')
+        if os.path.exists(dest): continue
+        base = re.sub(r'\s+(with|by|powered by)\s+.*$', '', name, flags=re.I)
+        base = re.sub(r'\s*#\d+$', '', base)
+        API = 'https://www.wikidata.org/w/api.php'
+        j = api({'action': 'wbsearchentities', 'search': base, 'language': 'en', 'type': 'item', 'limit': 5})
+        f = None
+        for e in (j or {}).get('search', [])[:5]:
+            c = api({'action': 'wbgetclaims', 'entity': e['id'], 'property': 'P154'})
+            cl = (c or {}).get('claims', {}).get('P154') or []
+            if cl:
+                f = cl[0]['mainsnak'].get('datavalue', {}).get('value'); break
+        API = 'https://commons.wikimedia.org/w/api.php'
+        r = save_logo('teams', name.split(' (')[0], f, base) if f else None
+        got += r == 'ok'
+        print(f'wikidata {name:45} -> {r or "sem logo"}', flush=True)
+    API = 'https://en.wikipedia.org/w/api.php'
+    print('logos novos pela Wikidata:', got)
+
+
+def langs_pass():
+    """Terceira fonte: Wikipedias em outros idiomas (busca pelo nome; campo de logo da ficha)."""
+    global API
+    t = open(os.path.join(ROOT, 'app', 'data', 'categories.js'), encoding='utf-8').read()
+    cats = json.loads(t[t.index('{'):t.rstrip().rindex('}') + 1])['cats']
+    names = sorted({tm['name'] for c in cats for tm in c['teams']})
+    got = 0
+    for name in names:
+        dest = os.path.join(IMG, 'logos', 'teams', slug(name.split(' (')[0]) + '.png')
+        if os.path.exists(dest): continue
+        base = re.sub(r'\s+(with|by|powered by)\s+.*$', '', name, flags=re.I)
+        base = re.sub(r'\s*#\d+$', '', base)
+        r = None
+        for lang in ('it', 'de', 'fr', 'es', 'pt', 'ja', 'nl'):
+            API = f'https://{lang}.wikipedia.org/w/api.php'
+            title = search_title(base, '')
+            if not title: continue
+            pt, text = wikitext(title)
+            if not text: continue
+            m = re.search(r'\|\s*(?:logo|Logo|logotipo|logotype|immagine_logo|image_logo)\s*=\s*(?:\[\[(?:\w+):)?([^|\]\n{}]+\.(?:svg|png|jpg|jpeg|gif))', text)
+            if not m: continue
+            r = save_logo('teams', name.split(' (')[0], m.group(1).strip(), pt)
+            if r == 'ok': break
+        got += r == 'ok'
+        print(f'idiomas {name:45} -> {r or "sem logo"}', flush=True)
+    API = 'https://en.wikipedia.org/w/api.php'
+    print('logos novos em outros idiomas:', got)
+
+
 if __name__ == '__main__':
     a = sys.argv[1:]
     if not a or '--comps' in a: comps(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
     if not a or '--teams' in a: teams(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
+    if not a or '--wd' in a: wikidata_pass(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)
+    if not a or '--langs' in a: langs_pass(); json.dump(sources, open(SRC, 'w'), ensure_ascii=False, indent=0)

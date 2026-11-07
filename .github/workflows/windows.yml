@@ -39,8 +39,14 @@ jobs:
         run: |
           $setup = Get-ChildItem release\*.exe | Where-Object { $_.Name -like '*Setup*' } | Select-Object -First 1
           Write-Host "Instalador: $($setup.Name) ($([math]::Round($setup.Length/1MB,1)) MB)"
-          $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
-          Write-Host "instalador terminou com código $($p.ExitCode)"
+          # Em runner recém-criado, a primeira execução às vezes trava (0xC0000005) enquanto o antivírus
+          # termina de iniciar e atualizar; uma nova tentativa instala normalmente. Até 3 tentativas.
+          for ($t = 1; $t -le 3; $t++) {
+            $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
+            Write-Host "tentativa ${t}: instalador terminou com código $($p.ExitCode)"
+            if ($p.ExitCode -eq 0) { break }
+            Start-Sleep 45
+          }
           $exe = "$env:LOCALAPPDATA\Programs\PitWall Racing Simulator\PitWall Racing Simulator.exe"
           $alt = "$env:ProgramFiles\PitWall Racing Simulator\PitWall Racing Simulator.exe"
           # O NSIS pode devolver o controle antes de terminar, e no runner a verificação do instalador

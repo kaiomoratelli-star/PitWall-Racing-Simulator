@@ -31,7 +31,8 @@
 - Retratos ilustrados para os 808 pilotos sem foto, no lugar das iniciais. Todos têm o mesmo estilo e cada um é diferente, com traços derivados da identidade do piloto: formato do rosto, tom de pele, cabelo, sobrancelhas, olhos, barba e óculos. Macacão e fundo vêm nas cores da equipe.
 - As pilotas são identificadas pela Wikidata (60 da base) e por quem corre na F1 Academy.
 - Logos de 38 das 42 competições (F1, F2, F3, F1 Academy, Fórmula E, IndyCar, WEC, IMSA, DTM, Stock Car, NASCAR, F4s e regionais) na tela de categorias e na carreira real dos pilotos. FR Américas, E4, F4 CEZ e Formula Winter Series não têm logo publicado e aparecem com a sigla.
-- Logos de equipes buscados no campo "logo" da ficha de cada artigo. Imagens que parecem foto são recusadas e, sem logo, fica a sigla.
+- Logos de equipes buscados em três fontes: ficha da Wikipedia em inglês, Wikidata e Wikipedias em sete outros idiomas. São 79 equipes com logo real, revisado um a um, inclusive nas categorias (Penske, Hendrick, Joe Gibbs, Ganassi, Prema, ART, MP, Andretti, Toyota, AF Corse...). As equipes pequenas sem logo publicado mostram a sigla gerada do nome.
+- Instalador: no CI, a instalação silenciosa ganha novas tentativas quando o Windows recém-criado trava a primeira execução (o mesmo pacote instala normalmente na tentativa seguinte e no Wine).
 - Retratos recompactados (12 MB → 7 MB).
 
 **Mídia, circuitos e regulamento (etapa final da 0.8)**
