@@ -489,3 +489,30 @@ I18N_PATS.unshift(
   [/^A multa para tirar (.+) da (.+) agora é de (.+), acima do seu caixa\.$/, 'The fee to take $1 from $2 now is $3, more than your cash.'],
 );
 I18N_PATS.unshift([/^Pagar multa de (.+) e tentar trazer agora \(a equipe atual precisa liberar\); senão, pré-contrato para (\d{4})$/, 'Pay a $1 release fee and try to bring him now (the current team must agree); otherwise, pre-contract for $2']);
+/* 0.8.3: academia, olheiros, níveis */
+Object.assign(I18N_EN, {
+  'Investimento na estrutura': 'Investment in the structure', 'Custo anual dos juniores': 'Yearly junior cost', 'Membros': 'Members', 'Onde corre': 'Racing in', 'Campeonato': 'Championship',
+  'Nível estimado': 'Estimated level', 'Contrato': 'Contract', 'Próxima temporada': 'Next season', 'Negociar': 'Negotiate', 'Talentos sem academia': 'Talents without an academy',
+  'Academias do paddock': 'Paddock academies', 'Encerrar': 'Close', 'Enviar proposta': 'Send offer', 'Duração': 'Length', 'Salário de júnior (US$ mi/ano)': 'Junior salary (US$ m/year)',
+  'Departamento': 'Department', 'Mercado de olheiros': 'Scout market', 'Olheiro': 'Scout', 'Região': 'Region', 'Avaliação': 'Judging', 'Salário': 'Salary', 'Missão': 'Assignment',
+  'Escolher missão…': 'Choose assignment…', 'Cobrir categoria': 'Cover a series', 'Procurar talentos na região': 'Search for talent in a region', 'Encerrar a missão': 'End the assignment',
+  'Dispensar': 'Release', 'Contratar': 'Hire', 'Pilotos': 'Drivers', 'Olheiros': 'Scouts', 'Relatórios': 'Reports', 'livre': 'free', 'observando': 'watching', 'Observar': 'Watch', 'Academia': 'Academy',
+  'Potencial': 'Potential', 'Confiança': 'Confidence', 'baixa': 'low', 'média': 'medium', 'alta': 'high', 'Fazer reserva': 'Make reserve', 'renovar por 2 anos': 'renew for 2 years',
+  'Nenhum relatório ainda. Mande um olheiro observar um piloto.': 'No reports yet. Send a scout to watch a driver.', 'O mercado abre no fim da temporada.': 'The market opens at the end of the season.',
+  'O plano é aplicado na virada do ano: a academia compra a vaga se for preciso': 'The plan is applied at the turn of the year: the academy buys the seat if needed',
+  'O piloto avalia o salário, o prestígio da academia e o interesse de academias rivais. A academia também paga o assento dele na categoria.': 'The driver weighs the salary, the academy prestige and interest from rival academies. The academy also pays for his seat in the series.',
+  'Simulador, preparadores e engenheiros: acelera a evolução dos membros. Cobrado no fim da temporada.': 'Simulator, coaches and engineers: speeds up members’ development. Charged at the end of the season.',
+  'Salários de júnior e o assento de cada um (F4 ~$350K, regional ~$900K, F3 ~$1,2M, F2 ~$2,6M).': 'Junior salaries and each seat (F4 ~$350K, regional ~$900K, F3 ~$1.2M, F2 ~$2.6M).',
+  'Acompanhe onde e como cada um está correndo.': 'Follow where and how each one is racing.', 'renova a cada temporada · contratação custa meio salário': 'renews every season · hiring costs half a salary',
+  'O nível real de um piloto nunca aparece: o departamento estima o nível e a faixa de potencial. A estimativa melhora com observação; olheiros melhores e da mesma região do piloto erram menos. Pilotos do kart e da F4 são os mais difíceis de avaliar.': 'A driver’s real level never shows: the department estimates the level and the potential range. The estimate improves with observation; better scouts and scouts from the driver’s region make fewer mistakes. Karting and F4 drivers are the hardest to assess.',
+  'Europa': 'Europe', 'América do Norte': 'North America', 'América do Sul': 'South America', 'Ásia-Pacífico': 'Asia-Pacific', 'Oriente Médio': 'Middle East',
+  'Até 21 anos, sem equipe na F1 · nível estimado pelos seus olheiros': 'Up to 21, no F1 seat · level estimated by your scouts', 'piloto gerado': 'generated driver', 'Corre em outra categoria': 'Races in another series', 'sem vaga': 'no seat',
+});
+I18N_PATS.unshift(
+  [/^Plano para (\d{4}): decisão da academia$/, 'Plan for $1: academy decides'], [/^Ficar na (.+) mais um ano$/, 'Stay in $1 another year'], [/^Subir para a (.+)$/, 'Move up to $1'], [/^Trocar para a (.+)$/, 'Switch to $1'],
+  [/^(\d+)\/(\d+) olheiros em missão$/, '$1/$2 scouts on assignment'], [/^(\d+)\/(\d+) vagas · salários (.+)\/ano$/, '$1/$2 slots · salaries $3/year'], [/^avaliação (\d+)$/, 'judging $1'],
+  [/^observando (.+) · (\d+) etapa\(s\) para o relatório$/, 'watching $1 · $2 round(s) to the report'], [/^cobrindo (.+) · (\d+) etapa\(s\)$/, 'covering $1 · $2 round(s)'], [/^procurando talentos: (.+) · (\d+) etapa\(s\)$/, 'searching for talent: $1 · $2 round(s)'],
+  [/^pot\. (\d+)–(\d+)$/, 'pot. $1–$2'], [/^(.+)\/ano até (\d{4})$/, '$1/year until $2'], [/^Prestígio da academia: (\d+) \(pesa na decisão dos pilotos\)\.$/, 'Academy prestige: $1 (weighs on drivers’ decisions).'],
+  [/^(\d+) membro\(s\) reais em séries fora do jogo\.$/, '$1 real member(s) in series outside the game.'], [/^Proposta: (.+)\/ano por (\d) ano\(s\)\. (.+) pede (.+)\/ano(.*)\.$/, (m, a, y, n, b, r) => `Offer: ${a}/year for ${y} year(s). ${n} asks ${b}/year${r.replace(/academia\(s\) rival\(is\) interessada\(s\)/, 'rival academies interested')}.`],
+  [/^(.+) anos · (.+) · nota (\d+) · nível estimado (.+)$/, '$1 years · $2 · rating $3 · estimated level $4'],
+);

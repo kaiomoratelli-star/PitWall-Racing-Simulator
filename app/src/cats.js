@@ -410,6 +410,8 @@ Cats.progression = (G, initial) => {
         if (pos > cat.entries.length - 3 && RNG.chance(0.35)) { d.cat = null; return false; }
         return true;
       }
+      // plano da academia: ficar mais um ano na categoria
+      if (d.acPlan && d.acPlan.y === y && d.acPlan.opt === 'stay') return true;
       const up = Cats.UP[cat.id];
       const champion = pos === 1;
       const promote = champion || (pos <= (cat.id === 'f3' ? 6 : 5) && ovr >= cat.range[1] - 3) || yrs >= 3 || (cat.tier >= 5 && d.age >= 18);

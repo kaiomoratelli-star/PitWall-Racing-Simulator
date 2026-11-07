@@ -178,22 +178,60 @@ SCREENS.academy = {
     const shared = typeof Sisters !== 'undefined' && G.sisters ? (a.team !== G.player.teamId ? Career.team(G, a.team) : Sisters.childOf(G, a.team) ? Career.team(G, Sisters.childOf(G, a.team)) : null) : null;
     const members = a.members.map(id => Career.driver(G, id)).filter(Boolean);
     const elsewhere = (a.pending || []).filter(nm => !Market.findDriverByName(G, nm));
-    const prospects = G.db.drivers.filter(d => !d.retired && d.age <= 21 && !Market.academyOf(G, d) && !d.team).sort((x, y) => potMid(y) - potMid(x)).slice(0, 12);
+    const prospects = G.db.drivers.filter(d => !d.retired && d.age <= 21 && !Market.academyOf(G, d) && !d.team).map(d => ({ d, x: Scouting.tierEst(G, d) })).sort((p, q) => q.x.e.mid - p.x.e.mid).slice(0, 14);
+    const y = G.season.year;
+    const memberRow = (d) => {
+      const f = Academy.form(G, d), c = d.acContract, x = Scouting.tierEst(G, d);
+      const opts = Academy.options(G, d);
+      const plan = d.acPlan && d.acPlan.y === y ? d.acPlan.opt : '';
+      const planSel = opts.length ? `<select class="inp" style="width:auto;max-width:220px" data-chg="acPlan" data-id="${d.id}"><option value="">Plano para ${y + 1}: decisão da academia</option>${opts.map(o => `<option value="${o.id}" ${plan === o.id ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>` : '<span class="small muted">—</span>';
+      const ends = c && c.until <= y;
+      return `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}<div class="small muted">${natTag(d.nat)} ${d.age} anos</div></td>
+        <td class="small"><b>${esc(f.where)}</b>${f.team ? `<div class="muted">${esc(f.team)}</div>` : ''}</td>
+        <td class="r num">${f.pos ? `${ordinal(f.pos)}<div class="small muted">${f.pts} pts · ${f.races} etapa(s)</div>` : f.races ? `${f.pts} pts` : '—'}</td>
+        <td class="r num">${driverOverall(d)}</td><td class="small"><b>${esc(byLang(x.t.name, x.t.en))}</b> <span style="color:var(--accent)">${Scouting.stars(x.stars)}</span><div class="muted">pot. ${x.e.lo}–${x.e.hi}</div></td>
+        <td class="small">${c ? `${fmtMoney(c.salary)}/ano até ${c.until}${ends ? `<label class="check small" style="margin-top:4px"><input type="checkbox" ${d.acRenew ? 'checked' : ''} data-chg="acRenew" data-id="${d.id}"> renovar por 2 anos</label>` : ''}` : '—'}</td>
+        <td>${planSel}</td>
+        <td class="row" style="gap:4px;flex-wrap:nowrap">${!d.team ? `<button class="btn sm" data-act="acPromote" data-id="${d.id}">Fazer reserva</button>` : ''}<button class="btn sm danger" data-act="acRemove" data-id="${d.id}" title="Encerrar o contrato${c && c.until > y ? ` (multa ${fmtMoney(c.buyout || 0)})` : ''}">Dispensar</button></td></tr>`;
+    };
     return `<div class="page-head"><div><div class="eyebrow">Jovens pilotos</div><h1>${esc(a.name)}</h1></div><div class="row">${shared ? `<span class="chip acc">Compartilhada com a ${esc(shared.name)}</span>` : ''}<span class="chip ${a.active ? 'good' : 'bad'}">${a.active ? 'Ativa' : 'Inativa'}</span></div></div>
-    <div class="grid g3">
-      <div class="panel"><div class="panel-b stack"><span class="label">Investimento por temporada</span><span class="stat-big">${fmtMoney(a.budget)}</span><input type="range" min="0" max="20" step="1" value="${a.budget}" id="ac-budget" data-chg="acBudget" aria-label="Investimento"><span class="small muted">Mais investimento acelera a evolução dos membros. Cobrado ao fim de cada temporada.</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Estrutura</span><span class="stat-big">${a.level}</span>${bar(a.level)}<span class="small muted">Nível da estrutura de formação (simulador, preparadores, engenheiros).</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Membros no jogo</span><span class="stat-big">${members.length}</span><span class="small muted">${elsewhere.length} membro(s) reais correm em categorias que entram nas próximas etapas do jogo.</span></div></div>
+    <div class="grid g4">
+      <div class="panel"><div class="panel-b stack"><span class="label">Investimento na estrutura</span><span class="stat-big">${fmtMoney(a.budget)}</span><input type="range" min="0" max="20" step="1" value="${a.budget}" id="ac-budget" data-chg="acBudget" aria-label="Investimento"><span class="small muted">Simulador, preparadores e engenheiros: acelera a evolução dos membros. Cobrado no fim da temporada.</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Estrutura</span><span class="stat-big">${a.level}</span>${bar(a.level)}<span class="small muted">Prestígio da academia: ${Math.round(Academy.prestige(G, a))} (pesa na decisão dos pilotos).</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Custo anual dos juniores</span><span class="stat-big num neg">${fmtMoney(Academy.yearCost(G, a))}</span><span class="small muted">Salários de júnior e o assento de cada um (F4 ~$350K, regional ~$900K, F3 ~$1,2M, F2 ~$2,6M).</span></div></div>
+      <div class="panel"><div class="panel-b stack"><span class="label">Membros</span><span class="stat-big">${members.length}</span><span class="small muted">${elsewhere.length ? `${elsewhere.length} membro(s) reais em séries fora do jogo.` : 'Acompanhe onde e como cada um está correndo.'}</span></div></div>
     </div>
-    <div class="panel"><div class="panel-h"><h3>Membros</h3></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th></th><th>Piloto</th><th class="r">Idade</th><th>Situação</th><th class="r">Nota</th><th class="r">Pot.</th><th>SL</th><th></th></tr></thead><tbody>
-      ${members.map(d => `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}</td><td class="r num">${d.age}</td><td class="small">${d.team ? esc(Career.team(G, d.team).name) + (d.seat === 'R' ? ' (reserva)' : ` (carro #${d.seat})`) : 'Sem vaga'}</td><td class="r num">${driverOverall(d)}</td><td class="r num">${potText(d)}</td><td>${slChip(d)}</td><td class="row" style="gap:4px;flex-wrap:nowrap">${!d.team ? `<button class="btn sm" data-act="acPromote" data-id="${d.id}">Fazer reserva</button>` : ''}<button class="btn sm danger" data-act="acRemove" data-id="${d.id}">Dispensar</button></td></tr>`).join('') || '<tr><td colspan="8" class="empty">Nenhum membro.</td></tr>'}
-      ${elsewhere.map(nm => `<tr><td></td><td>${esc(nm)}</td><td></td><td class="small muted" colspan="5">Corre em outra categoria</td></tr>`).join('')}
+    <div class="panel"><div class="panel-h"><h3>Membros</h3><span class="small muted">O plano é aplicado na virada do ano: a academia compra a vaga se for preciso</span></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th></th><th>Piloto</th><th>Onde corre</th><th class="r">Campeonato</th><th class="r">Nota</th><th>Nível estimado</th><th>Contrato</th><th>Próxima temporada</th><th></th></tr></thead><tbody>
+      ${members.map(memberRow).join('') || '<tr><td colspan="9" class="empty">Nenhum membro.</td></tr>'}
+      ${elsewhere.map(nm => `<tr><td></td><td>${esc(nm)}</td><td class="small muted" colspan="7">Corre em outra categoria</td></tr>`).join('')}
     </tbody></table></div></div>
-    <div class="panel"><div class="panel-h"><h3>Talentos sem academia</h3><span class="small muted">Até 21 anos, sem equipe</span></div><div class="panel-b tight tbl-wrap"><table class="tbl">${prospects.map(d => `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}${d.regen ? ' <span class="chip">piloto gerado</span>' : ''}</td><td class="r num">${d.age}</td><td class="r num">${driverOverall(d)}</td><td class="r num">pot. ${potText(d)}</td><td><button class="btn sm" data-act="acAdd" data-id="${d.id}">Contratar para a academia</button></td></tr>`).join('') || '<tr><td class="empty">Nenhum talento livre agora.</td></tr>'}</table></div></div>
+    <div class="panel"><div class="panel-h"><h3>Talentos sem academia</h3><span class="small muted">Até 21 anos, sem equipe na F1 · nível estimado pelos seus olheiros</span></div><div class="panel-b tight tbl-wrap"><table class="tbl">${prospects.map(({ d, x }) => `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}${d.regen ? ' <span class="chip">piloto gerado</span>' : ''}<div class="small muted">${esc(whereOf(d))}</div></td><td class="r num">${d.age}</td><td class="r num">${driverOverall(d)}</td><td class="small"><b>${esc(byLang(x.t.name, x.t.en))}</b> <span style="color:var(--accent)">${Scouting.stars(x.stars)}</span> <span class="muted">(${x.e.label})</span></td><td><button class="btn sm" data-act="acNeg" data-id="${d.id}">Negociar</button></td></tr>`).join('') || '<tr><td class="empty">Nenhum talento livre agora.</td></tr>'}</table></div></div>
     <div class="panel"><div class="panel-h"><h3>Academias do paddock</h3></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Academia</th><th>Equipe</th><th class="r">Membros</th><th>Destaques</th></tr></thead><tbody>${(G.academies || []).filter(x => x.active).map(x => `<tr><td><b>${esc(x.name)}</b></td><td>${tTag(x.team)}</td><td class="r num">${x.members.length + (x.pending || []).filter(nm => !Market.findDriverByName(G, nm)).length}</td><td class="small">${x.members.slice(0, 4).map(id => esc((Career.driver(G, id) || {}).name || '')).join(', ')}</td></tr>`).join('')}</tbody></table></div></div>`;
   },
 };
+/* negociação com um júnior (contrato de academia) */
+function acNegModal() {
+  const n = UI.acNeg; const d = Career.driver(G, n.did);
+  modal(`Academia: ${d.name}`, `<div class="stack" style="gap:10px">
+    <div class="small">${natTag(d.nat)} ${d.age} anos · ${esc(whereOf(d))} · nota ${driverOverall(d)} · nível estimado <b>${esc(Scouting.tierLabel(G, d))}</b></div>
+    ${n.log.length ? `<div class="callout small">${n.log.join('<br>')}</div>` : ''}
+    <div class="grid g2" style="gap:10px"><label class="field"><span>Salário de júnior (US$ mi/ano)</span><input class="inp num" type="number" step="0.01" min="0.02" max="1" value="${n.salary}" data-chg="acNegF" data-k="salary"></label>
+    <label class="field"><span>Duração</span><select class="inp" data-chg="acNegF" data-k="years">${[1, 2, 3].map(v => `<option value="${v}" ${n.years === v ? 'selected' : ''}>${v} ano(s)</option>`).join('')}</select></label></div>
+    <p class="small muted">O piloto avalia o salário, o prestígio da academia e o interesse de academias rivais. A academia também paga o assento dele na categoria.</p></div>`,
+    `<button class="btn" data-act="closeModal">Encerrar</button><button class="btn primary" data-act="acNegSend">Enviar proposta</button>`);
+}
+ACT.acNeg = (el) => { const d = Career.driver(G, el.dataset.id); UI.acNeg = { did: d.id, salary: +Math.max(0.03, Academy.ask(G, d) * 0.7).toFixed(2), years: 2, log: [] }; acNegModal(); };
+CHG.acNegF = (el) => { const n = UI.acNeg; n[el.dataset.k] = Number(el.value); };
+ACT.acNegSend = () => {
+  const n = UI.acNeg; const d = Career.driver(G, n.did);
+  const r = Academy.offer(G, n.did, { salary: n.salary, years: n.years });
+  if (r.status === 'accept') { const msg = Academy.sign(G, n.did, { salary: n.salary, years: n.years }); closeModal(); toast(msg, 'good'); autosave(); render(); return; }
+  if (r.status === 'counter') { n.log.push(`Proposta: ${fmtMoney(n.salary)}/ano por ${n.years} ano(s). <b>${esc(d.name)} pede ${fmtMoney(r.counter.salary)}/ano${r.rivals ? ` (${r.rivals} academia(s) rival(is) interessada(s))` : ''}.</b>`); n.salary = r.counter.salary; acNegModal(); return; }
+  closeModal(); toast(r.msg || 'Proposta recusada.', 'bad'); render();
+};
+CHG.acPlan = (el) => { Academy.setPlan(G, el.dataset.id, el.value || null); autosave(); render(); };
+CHG.acRenew = (el) => { const d = Career.driver(G, el.dataset.id); d.acRenew = el.checked; autosave(); };
 CHG.acBudget = (el) => { const a = Market.myAcademy(G); a.budget = Number(el.value); a.active = a.active || a.budget > 0; autosave(); render(); };
-ACT.acAdd = (el) => { const e = Market.addToAcademy(G, el.dataset.id); if (e) toast(e, 'bad'); else { toast('Contratado para a academia.', 'good'); autosave(); } render(); };
-ACT.acRemove = (el) => { Market.removeFromAcademy(G, el.dataset.id); autosave(); render(); };
+ACT.acAdd = (el) => ACT.acNeg(el);   // contratar agora sempre passa pela negociação
+ACT.acRemove = (el) => { const d = Career.driver(G, el.dataset.id); const c = d && d.acContract; if (c && c.until > G.season.year && c.buyout) Career.ledger(G, `Academia: rescisão de ${d.name}`, -c.buyout, 'academia'); if (d) d.acContract = null; Market.removeFromAcademy(G, el.dataset.id); autosave(); render(); };
 ACT.acPromote = (el) => { const d = Career.driver(G, el.dataset.id); if (G.db.drivers.some(x => x.team === G.player.teamId && x.seat === 'R')) return toast('Você já tem um reserva. Dispense-o ou troque antes.', 'bad'); Career.placeDriver(G, d, G.player.teamId, 'R', Math.max(0.5, d.salary || 0.5), 1); autosave(); toast(`${d.name} agora é seu reserva.`, 'good'); render(); };
