@@ -13,7 +13,7 @@
 
 const Kart = {};
 Kart.CHAMPS = [
-  { id: 'eu', name: 'Kart · Europa', nats: ['GBR', 'ITA', 'GER', 'FRA', 'ESP', 'NED', 'FIN', 'POR', 'SWE', 'BEL', 'DEN'], f4: ['f4it', 'f4es', 'f4gb', 'e4'] },
+  { id: 'eu', name: 'Kart · Europa', nats: ['GBR', 'ITA', 'GER', 'FRA', 'ESP', 'NED', 'FIN', 'POR', 'SWE', 'BEL', 'DEN'], f4: ['f4it', 'f4es', 'f4gb', 'f4de', 'e4'] },
   { id: 'am', name: 'Kart · Américas', nats: ['USA', 'CAN', 'MEX', 'ARG'], f4: ['f4us'] },
   { id: 'br', name: 'Kart · Brasil', nats: ['BRA'], f4: ['f4br'] },
   { id: 'ap', name: 'Kart · Ásia-Pacífico', nats: ['JPN', 'CHN', 'IND', 'AUS'], f4: ['f4jp'] },

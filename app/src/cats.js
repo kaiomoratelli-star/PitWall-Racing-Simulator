@@ -7,12 +7,13 @@
 'use strict';
 
 const Cats = {};
-Cats.SECONDARY = { frme: true, e4: true };            // séries de inverno/paralelas: pilotos vêm de outras categorias
-Cats.PRO = { fe: true, sf: true, indycar: true, wec: true };                    // categorias profissionais (fim de linha fora da F1)
-Cats.UP = { f4it: 'freca', f4es: 'freca', f4gb: 'freca', e4: 'freca', f4br: 'freca', f4us: 'fram', f4jp: 'frj', freca: 'f3', frme: 'f3', fram: 'f3', frj: 'f3', f3: 'f2' };
+Cats.SECONDARY = { frme: true, e4: true, f4uae: true };            // séries de inverno/paralelas: pilotos vêm de outras categorias
+Cats.PRO = { fe: true, sf: true, indycar: true, wec: true, dtm: true, stockcar: true, nascup: true };                    // categorias profissionais (fim de linha fora da F1)
+Cats.UP = { f4de: 'freca', f1a: 'freca', f4uae: 'freca', f4it: 'freca', f4es: 'freca', f4gb: 'freca', e4: 'freca', f4br: 'freca', f4us: 'fram', f4jp: 'frj', freca: 'f3', frme: 'f3', fram: 'f3', frj: 'f3', f3: 'f2' };
 Cats.FEEDERS = {
-  f2: ['f3', 'freca'], f3: ['freca', 'frme', 'fram', 'frj', 'f4it', 'f4es', 'f4gb'], freca: ['f4it', 'f4es', 'f4gb', 'e4', 'f4br'], fram: ['f4us'], frj: ['f4jp'],
+  f2: ['f3', 'freca'], f3: ['freca', 'frme', 'fram', 'frj', 'f4it', 'f4es', 'f4gb', 'f4de'], freca: ['f4it', 'f4es', 'f4gb', 'f4de', 'e4', 'f4br', 'f1a', 'f4uae'], fram: ['f4us'], frj: ['f4jp'],
   fe: ['f2', 'sf'], sf: ['f2', 'frj', 'f3'],
+  dtm: ['wec', 'f2', 'f3', 'freca', 'f4it', 'f4de', 'f4es', 'f4gb'], stockcar: ['f4br', 'fram', 'freca', 'f3', 'f2'], nascup: ['f4us', 'fram', 'indycar'],
 };
 Cats.defs = () => (typeof REAL_CATS !== 'undefined' ? REAL_CATS.cats : []);
 Cats.on = (G) => !!(G && G.cats && G.cats.order.length);
@@ -97,6 +98,7 @@ Cats.init = (G, only) => {
     const cat = {
       id: C.id, name: C.name, short: C.short, tier: C.tier, sl: C.sl, color: C.color, races: C.races, range: C.range, ageRef: C.age, seasonLabel: C.season,
       secondary: !!Cats.SECONDARY[C.id], pro: !!Cats.PRO[C.id], crew: !!C.crew, enabled: true, source: C.page,
+      disc: C.disc || (C.crew ? 'end' : 'mono'), brief: C.brief || null, women: !!C.women, playoffs: !!C.playoffs, revived: C.revived || null,
       teams: C.teams.map((t, i) => {
         const p = tst.findIndex(x => Cats.norm(x[1]).includes(Cats.norm(t.name).split(' ')[0]));
         const q = p >= 0 ? 1 - p / Math.max(1, tst.length - 1) : 0.4;
@@ -334,11 +336,14 @@ Cats.progression = (G, initial) => {
     const pool = [];
     movers.forEach(m => {
       if (taken.has(m.d.id) || m.d.retired || f1Race(m.d)) return;
-      const fits = (Cats.UP[m.from] === cat.id) || (feeders.includes(m.from) && (cat.pro ? (m.from === 'f2' || m.d.nat === 'JPN') : m.pos <= 3));
-      if (fits) pool.push({ d: m.d, sc: driverOverall(m.d) * 1.6 + (m.d.potential || 0) * 0.4 - m.pos * 0.6 + (m.d.academy ? 4 : 0) + RNG.normal(0, 2) });
+      if (cat.women && m.d.gender !== 'F') return;
+      const gt = cat.disc === 'gt';
+      if (typeof Disc !== 'undefined' && !Disc.willing(m.d, cat.disc || 'mono')) return;
+      const fits = (Cats.UP[m.from] === cat.id) || (feeders.includes(m.from) && (gt ? m.d.age >= 18 : cat.pro ? (m.from === 'f2' || m.d.nat === 'JPN') : m.pos <= 3));
+      if (fits) pool.push({ d: m.d, sc: driverOverall(m.d) * 1.6 + (m.d.potential || 0) * 0.4 - m.pos * 0.6 + (m.d.academy ? 4 : 0) + (typeof Disc !== 'undefined' && gt ? Disc.affinity(G, cat, m.d) : 0) + RNG.normal(0, 2) });
     });
     // sem vaga na F1: veteranos e ex-F2 livres vão para a FE e a Super Formula
-    if (cat.pro) G.db.drivers.forEach(d => { if (!d.team && !d.cat && !d.series && !d.retired && !d.dead && !taken.has(d.id) && d.age >= 21 && d.age <= 36 && driverOverall(d) >= cat.range[0] - 1 && !pool.some(p => p.d === d)) pool.push({ d, sc: driverOverall(d) * 1.6 + (d.career && d.career.starts ? 6 : 0) + (cat.id === 'sf' && d.nat === 'JPN' ? 8 : 0) + RNG.normal(0, 3) }); });
+    if (cat.pro) G.db.drivers.forEach(d => { if (!d.team && !d.cat && !d.series && !d.retired && !d.dead && !taken.has(d.id) && d.age >= 21 && d.age <= (cat.disc === 'mono' ? 36 : 42) && driverOverall(d) >= cat.range[0] - 1 && !pool.some(p => p.d === d) && (typeof Disc === 'undefined' || Disc.willing(d, cat.disc || 'mono'))) pool.push({ d, sc: driverOverall(d) * 1.6 + (d.career && d.career.starts ? 6 : 0) + (cat.id === 'sf' && d.nat === 'JPN' ? 8 : 0) + (typeof Disc !== 'undefined' && cat.disc !== 'mono' ? Disc.affinity(G, cat, d) : 0) + RNG.normal(0, 3) }); });
     pool.sort((a, b) => b.sc - a.sc);
     const teamsBySeat = Cats.freeSeats(cat);
     for (let i = 0; i < free; i++) {

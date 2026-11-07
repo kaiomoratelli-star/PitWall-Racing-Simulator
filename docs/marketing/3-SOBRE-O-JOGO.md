@@ -112,7 +112,11 @@
 - (Versão 0.7) Rádio das equipes: chamada de box, pneus no fim, ordens de equipe, reclamações depois de toques, Safety Car, chuva.
 - (Versão 0.7) Relatório pós-corrida no formato oficial da F1: classificação, volta a volta com filtros, gráfico de posições, pit stops e voltas mais rápidas.
 
-## Outras 17 categorias, simuladas ao mesmo tempo
+## Disciplinas (versão 0.8)
+- Monoposto, GT e Endurance: cada piloto tem experiência e rendimento em cada uma, e se adapta melhor ou pior quando troca.
+- Novas categorias simuladas: F4 Emirados, F4 Alemã, F1 Academy (só mulheres), DTM, Stock Car Pro Series e NASCAR Cup Series (com playoffs).
+
+## Outras 23 categorias, simuladas ao mesmo tempo
 - **Lista:**
   - Principais: Fórmula E, IndyCar, WEC (Hypercar) e Super Formula (versão 0.8: IndyCar e WEC);
   - F2 e F3;

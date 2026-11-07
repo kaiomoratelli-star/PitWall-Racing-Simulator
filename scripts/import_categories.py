@@ -20,6 +20,23 @@ os.makedirs(CACHE, exist_ok=True)
 
 # id, nome em português, página da temporada 2026, nível (1 = F1), tabela de superlicença, corridas por etapa, pontuação
 P25 = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+
+def norm_name(n):
+    import unicodedata
+    return re.sub(r'[^a-z]+', ' ', unicodedata.normalize('NFD', n).encode('ascii', 'ignore').decode().lower()).strip()
+
+
+def load_dbnat():
+    try:
+        t = open(os.path.join(ROOT, 'app', 'data', 'drivers-db.js'), encoding='utf-8').read()
+        data = json.loads(t[t.index('{'):t.rstrip().rindex('}') + 1])
+        return {norm_name(d['name']): d.get('nat') for d in data['drivers'] if d.get('nat')}
+    except Exception:
+        return {}
+
+
+DBNAT = load_dbnat()
+
 CATS = [
     dict(id='f2', name='Fórmula 2', short='F2', page='2026 Formula 2 Championship', tier=2, sl='f2', races=[['Sprint', [10, 8, 6, 5, 4, 3, 2, 1], 0, 1, 10], ['Principal', P25, 2, 1, 0]], range=(72, 81), age=20, site='f2', color='#0090d0', season='mar-dez'),
     dict(id='f3', name='Fórmula 3', short='F3', page='2026 FIA Formula 3 Championship', tier=3, sl='f3', races=[['Sprint', [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], 0, 0, 12], ['Principal', P25, 2, 0, 0]], range=(66, 78), age=18, site='f3', color='#e0458b', season='mar-set'),
@@ -37,6 +54,12 @@ CATS = [
     dict(id='e4', name='E4 Championship', short='E4', page='2026 E4 Championship', tier=5.2, sl='f4', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0], ['Corrida 3', P25, 0, 0, 0]], range=(52, 65), age=16, color='#5b2c83', season='mai-out'),
     dict(id='f4br', name='F4 Brasil', short='F4 BRA', page='2026 F4 Brazilian Championship', tier=5.4, sl='f4', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0], ['Corrida 3', P25, 0, 0, 0]], range=(50, 63), age=16, color='#009c3b', season='abr-nov'),
     dict(id='f4us', name='F4 Estados Unidos', short='F4 USA', page='2026 Formula 4 United States Championship', tier=5.5, sl='f4', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0], ['Corrida 3', P25, 0, 0, 0]], range=(49, 62), age=16, color='#3c3b6e', season='abr-out'),
+    dict(id='f4uae', name='F4 Emirados (F4 Oriente Médio)', short='F4 ME', page='2025 F4 Middle East Championship', tier=5.3, sl='f4', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0], ['Corrida 3', P25, 0, 0, 0]], range=(50, 63), age=16, color='#00732f', season='jan-fev', brief='Categoria de início de ano nos Emirados (antiga F4 UAE, hoje F4 Oriente Médio): pilotos saídos do kart se preparam para as F4 mais importantes.', disc='mono'),
+    dict(id='f4de', name='F4 Alemã', short='F4 GER', page='2022 ADAC Formula 4 Championship', tier=5.05, sl='f4', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0], ['Corrida 3', P25, 0, 0, 0]], range=(52, 66), age=16, color='#000000', season='abr-out', brief='Uma das principais F4 da Europa. O campeonato real terminou em 2022; no jogo ele volta a partir da última temporada real.', disc='mono', revived=2022),
+    dict(id='f1a', name='F1 Academy', short='F1A', page='2026 F1 Academy season', tier=4.8, sl='f1a', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 2, 1, 0]], range=(48, 62), age=18, color='#ec008c', season='mar-nov', brief='Categoria oficial de base da F1, somente para mulheres.', disc='mono', women=True),
+    dict(id='dtm', name='DTM', short='DTM', page='2026 Deutsche Tourenwagen Masters', tier=2.3, sl='dtm', races=[['Corrida 1', P25, 3, 0, 0], ['Corrida 2', P25, 3, 0, 0]], range=(68, 80), age=28, color='#0a1f44', season='abr-out', brief='Principal categoria GT da Europa. Recebe pilotos sem espaço no kart europeu e nas F4, mas principalmente vindos do endurance.', disc='gt'),
+    dict(id='stockcar', name='Stock Car Pro Series', short='STOCK', page='2026 Stock Car Pro Series', tier=2.6, sl='stockcar', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', [20, 17, 15, 13, 11, 10, 9, 8, 7, 6], 0, 0, 10]], range=(62, 76), age=30, color='#ffd200', season='mar-dez', brief='Destino de quem não teve sucesso no kart ou na F4 do Brasil ou vem de outras categorias; maioria de sul-americanos.', disc='gt'),
+    dict(id='nascup', name='NASCAR Cup Series', short='NASCAR', page='2026 NASCAR Cup Series', tier=2.2, sl='nascup', races=[['Corrida', [40, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], 0, 0, 0]], range=(66, 80), age=30, color='#ffd659', season='fev-nov', brief='Um show à parte: quase só americanos, com playoffs no fim do ano e um formato próprio. Pilotos europeus raramente chegam aqui.', disc='gt', playoffs=True),
     dict(id='f4jp', name='F4 Japonesa', short='F4 JPN', page='2026 F4 Japanese Championship', tier=5.4, sl='f4', races=[['Corrida 1', P25, 0, 0, 0], ['Corrida 2', P25, 0, 0, 0]], range=(50, 63), age=17, color='#bc002d', season='abr-nov'),
 ]
 
@@ -364,7 +387,14 @@ def main():
             if not img and os.path.exists(os.path.join(IMG_DIR, 'drivers', slug(e['name']) + '.webp')): img = 'cats/drivers/%s.webp' % slug(e['name'])  # mantém fotos já baixadas
             d['img'] = img
             drivers.append(d)
-        out['cats'].append({k: C[k] for k in ('id', 'name', 'short', 'tier', 'sl', 'races', 'range', 'age', 'color', 'season', 'page')} | {'crew': bool(C.get('crew'))} | {
+        # nacionalidade: tabelas sem bandeira (NASCAR) usam a base de pilotos; sem dado, o país da categoria
+        DEF_NAT = {'nascup': 'USA', 'stockcar': 'BRA', 'dtm': 'GER'}
+        for d in drivers:
+            if not d.get('nat'):
+                d['nat'] = DBNAT.get(norm_name(d['name'])) or DEF_NAT.get(C['id']) or d.get('nat')
+        if C['id'] == 'stockcar':
+            for ev in C['_cal']: ev['nat'] = 'BRA'
+        out['cats'].append({k: C[k] for k in ('id', 'name', 'short', 'tier', 'sl', 'races', 'range', 'age', 'color', 'season', 'page')} | {'crew': bool(C.get('crew'))} | {k: C[k] for k in ('brief', 'disc', 'women', 'playoffs', 'revived') if C.get(k) is not None} | {
             'teams': teams, 'drivers': drivers, 'calendar': C['_cal'], 'standings': C['_st'][:40], 'teamStandings': C['_tst'][:20]})
         print(f"{C['id']:6} fotos {sum(1 for d in drivers if d['img'])}/{len(drivers)} · carros {sum(1 for t in teams if t['carImg'])}/{len(teams)} · nascimento {sum(1 for d in drivers if d['dob'])}/{len(drivers)}")
     js = 'const REAL_CATS = ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n'

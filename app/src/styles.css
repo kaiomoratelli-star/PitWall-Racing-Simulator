@@ -736,3 +736,8 @@ body.flag-red .main::after { border-color: var(--red); box-shadow: inset 0 0 60p
 .nimg.art.blueprint { background: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 18px), repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 18px), #12305a; }
 .nimg.art.blueprint .devcar { width: auto; height: 90%; transform: rotate(-90deg); }
 .nimg.art.blueprint .devcar .cz > * { fill: transparent; stroke: #cfe4ff; }
+.discs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.disc { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+.disc.exp, .disc.instant { border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
+.disc.none { opacity: .85; }
+.catbrief { margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

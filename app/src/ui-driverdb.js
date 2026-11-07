@@ -21,6 +21,12 @@ ACT.driverPage = (el) => {
   if (d.series && top) top.insertAdjacentHTML('afterend', `<div class="small"><span class="chip">${esc(DriverDB.seriesName(d.series))}</span> ${esc(d.seriesTeam || '')}</div>`);
   if (d.seatStatus && top) top.insertAdjacentHTML('afterend', `<div class="small muted">Assento em ${d.seatStatus.y}: ${esc(d.seatStatus.status)}</div>`);
   box.insertAdjacentHTML('beforeend', realCareerHtml(d));
+  if (typeof Disc !== 'undefined') box.insertAdjacentHTML('afterbegin', discHtml(d));
 };
+/* disciplinas: experiência e adaptação em Monoposto, GT e Endurance */
+function discHtml(d) {
+  const ic = { instant: '★', exp: '●', some: '◐', none: '○' };
+  return `<div class="discs">${Disc.LIST.map(k => { const L = Disc.level(d, k); const w = Disc.willing(d, k); return `<div class="disc ${L.k}"><span class="label">${esc(Disc.label(k))}</span><b>${ic[L.k]} ${esc(L.txt)}</b><span class="small muted">${byLang('rendimento', 'performance')} ${Math.round(Disc.fit(d, k) * 100)}%${w ? '' : ' · ' + byLang('não aceita correr', 'will not race')}</span></div>`; }).join('')}</div>`;
+}
 /* série atual para quem corre fora das categorias simuladas */
 function seriesLabel(d) { return d && d.series && typeof DriverDB !== 'undefined' ? `${DriverDB.seriesName(d.series)}${d.seriesTeam ? ' · ' + d.seriesTeam : ''}` : null; }
