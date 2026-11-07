@@ -11,7 +11,7 @@ Primeira etapa do plano de ultrarrealismo (auditoria completa em `docs/AUDITORIA
 **Grid inicial verdadeiro (sem inventar)**
 - A carreira de 2027 começa com o grid real de 2026 de cada categoria mais os anúncios para 2027. Antes, o jogo simulava uma virada de ano antes da primeira corrida: aposentava veteranos ativos (Will Power, Dixon, Hamlin, Logano, Buemi, Kubica, Cacá Bueno e outros 50) e inventava transferências (Ocon e Zhou na IndyCar, pilotos da NASCAR na Fórmula E, pilotos da F3 na NASCAR).
 - Cada vaga tem origem visível na página da categoria: anunciado para 2027, grid de 2026 (a confirmar), projeção do jogo ou piloto fictício (só quando não há piloto real disponível).
-- Vagas abertas são preenchidas primeiro com pilotos reais daquela série. Com isso, a F1 Academy volta a ter as pilotas reais (Palmowski, Gademan, Larsen...), no lugar de 5 fictícias.
+- Vagas abertas são preenchidas primeiro com pilotos reais daquela série. Com isso, a F1 Academy volta a ter só pilotas reais (20 de 20: Palmowski, Gademan, Larsen...), no lugar de 5 fictícias.
 - A F4 Alemã (encerrada em 2022 na vida real) deixa de usar o grid de 2022 (Antonelli, Câmara, Barnard): volta com pilotos reais de outras F4 ou gerados.
 - Aposentadoria nas séries profissionais por disciplina: monoposto a partir dos 36, turismo, stock car e endurance a partir dos 42, sempre pesando o desempenho.
 
