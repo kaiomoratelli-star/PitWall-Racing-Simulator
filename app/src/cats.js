@@ -354,6 +354,8 @@ Cats.progression = (G, initial) => {
   });
   // quem ficou sem vaga: jovens desistem, veteranos ficam livres
   movers.forEach(m => { if (!taken.has(m.d.id) && !f1Race(m.d) && !m.d.team && !m.d.futureTeam) { m.d.cat = null; if (m.d.age < 21 && !m.d.academy && RNG.chance(0.7)) { m.d.retired = true; m.d.retiredYear = y; m.d.quit = true; } } });
+  // séries paralelas (inverno): quem desistiu sai também da lista de inscritos
+  cats.filter(c => c.secondary).forEach(c => { c.entries = c.entries.filter(e => { const d = Career.driver(G, e.did); return d && !d.retired && !d.dead; }); });
   // sem vaga em lugar nenhum e sem passado na F1: com o tempo, deixam o automobilismo de monoposto
   if (!initial) G.db.drivers.forEach(d => {
     if (d.retired || d.team || d.cat || d.series || d.futureTeam || (d.career && d.career.starts) || d.academy) return;

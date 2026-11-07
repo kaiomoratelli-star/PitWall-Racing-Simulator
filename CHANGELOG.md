@@ -23,6 +23,15 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**Notícias e eventos (Fase 6)**
+- Linha do tempo no estilo das redes sociais: respostas de torcedores, contagem de comentários, reposts e curtidas (dá para curtir). Perfis de criadores de conteúdo (GlockDepre, Primeira Fila F1, Boteco F1, Ressaca F1, Rafael Lopes, Kevin Nicolas, EFFE, GP em Casa, Luca Morelli, Mariana Becker, Juliana Cerasolli, F1das_frase, Tiago Mendonça, Estagiário da F1) reagem a vitórias, títulos, contratações, abandonos e polêmicas da F1, sempre com o selo "simulação" e textos genéricos e respeitosos; nenhum @ é atribuído a eles.
+- Anúncios em etapas: depois das conversas (rumores), sai um vazamento de jornalista e o anúncio oficial da equipe só chega de 1 a 3 etapas depois. Envolvendo a sua equipe, sai na hora.
+- Notícias sem foto ganham arte gerada: transferência (de uma equipe para outra), técnica (prancheta com o carro), números do piloto ou ícone do assunto. A matéria traz um quadro "Em números" de quem é citado.
+- Eventos raros por nível, sempre com personagens e organizações fictícias: raro (túnel de vento parado, atraso de logística), muito raro (escândalo) e extremo. O escândalo acontece numa etapa e é descoberto de 1 a 6 etapas depois, ou acobertado; a descoberta traz consequências em cadeia (multa, patrocinadores, reputação).
+- Ciclo da vida: com frequência baixíssima, personagens fictícios idosos (funcionários e ex-pilotos gerados) podem morrer de causas naturais, com notícia, homenagens e a seção "Memória" na aba Histórias. Pessoas reais só entram se a opção for ligada em Salvar e opções (desligada por padrão).
+- Diagnóstico ganhou o modo de depuração: forçar incidente raro, escândalo fictício, falecimento de personagem fictício e liberar anúncios pendentes, com o registro dos eventos e dos escândalos acobertados.
+- Corrigido: pilotos que desistiam na virada do ano continuavam inscritos nas séries paralelas (E4, FR Oriente Médio).
+
 **Circuitos (Fase 5)**
 - Licenças de circuito a partir da lista oficial de circuitos licenciados pela FIA (atualizada em 04/11/2026; `scripts/import_fia_circuits.py`, `app/data/fia-circuits.js`): grau, validade, extensão e largura de referência.
 - A F1 só corre com licença de Grau 1 válida na data da corrida. Depois da lista oficial, as renovações são simuladas pelo jogo (quase sempre renovam) e aparecem marcadas como simulação, nunca como decisão real da FIA. Na primeira temporada da carreira o calendário real é mantido.
