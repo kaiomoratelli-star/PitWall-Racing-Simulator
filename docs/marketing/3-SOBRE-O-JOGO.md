@@ -87,6 +87,10 @@
 - Eventos raros com personagens fictícios, que podem ser descobertos depois ou acobertados, e consequências em cadeia.
 
 ## Circuitos (versão 0.8)
+- Circuitos reais de Grau 2 com traçado real (OpenStreetMap) e vistoria anual para chegar ao Grau 1.
+- Gerador de circuitos que monta a pista trecho a trecho conforme as escolhas.
+- Artes automáticas no estilo das redes (breaking, oficial, resultado, campeão).
+- Regulamentos novos embaralham o grid: equipes acertam ou erram o conceito.
 - Licenças de Grau 1 a partir da lista oficial da FIA (04/11/2026); renovações futuras simuladas pelo jogo e marcadas como tal.
 - Circuitos reserva assumem etapas que ficam sem licença.
 - Gerador de circuitos com checagem básica de requisitos (não é homologação).

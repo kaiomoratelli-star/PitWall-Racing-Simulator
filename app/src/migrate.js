@@ -17,6 +17,7 @@ const Migrate = {
       if (typeof Cats !== 'undefined' && G.cats) { const add = ['indycar', 'wec', 'f4uae', 'f4de', 'f1a', 'dtm', 'stockcar', 'nascup'].filter(id => !G.cats.byId[id]); if (add.length) Cats.init(G, add); }
       // base de pilotos reais (ligação à carreira real e pilotos de outras séries)
       if (typeof DriverDB !== 'undefined' && !G.driverDbDone) DriverDB.init(G);
+      if (typeof Circuits !== 'undefined') Circuits.addReal(G.db);
       if (typeof Disc !== 'undefined') Disc.init(G);
       if (typeof Kart !== 'undefined') Kart.init(G);
       if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);

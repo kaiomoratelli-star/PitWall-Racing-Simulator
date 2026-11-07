@@ -741,3 +741,43 @@ body.flag-red .main::after { border-color: var(--red); box-shadow: inset 0 0 60p
 .disc.exp, .disc.instant { border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
 .disc.none { opacity: .85; }
 .catbrief { margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* ---------- artes geradas (0.8) ---------- */
+.ck { container-type: inline-size; position: relative; aspect-ratio: 4 / 5; width: 100%; max-width: 420px; overflow: hidden; border-radius: 6px; color: #111; background: linear-gradient(160deg, #f4f4f6 0%, #d9d9de 100%); font-family: var(--f-display); display: flex; flex-direction: column; }
+.ck-top { display: flex; align-items: center; gap: 10px; padding: 12px 14px 6px; z-index: 2; }
+.ck-word { font-family: var(--f-wide); font-weight: 900; font-size: 10.5cqw; letter-spacing: .01em; line-height: 1; white-space: nowrap; overflow: hidden; }
+.ck-olog { height: 8cqw; max-width: 26cqw; object-fit: contain; flex: none; }
+.ck-oword { flex: none; font-size: 3.4cqw; padding: 3px 6px; background: #e10600; color: #fff; border-radius: 3px; white-space: nowrap; }
+.ck-body { position: relative; flex: 1; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.ck-pic { width: 78%; aspect-ratio: 1; object-fit: cover; object-position: center 30%; border-radius: 4px; }
+.ck-ini { display: flex; align-items: center; justify-content: center; background: var(--tc); color: #fff; font-size: 64px; }
+.ck-slash { position: absolute; right: -10%; bottom: -10%; width: 60%; height: 55%; background: linear-gradient(135deg, transparent 49%, rgba(255,255,255,.85) 50%); }
+.ck-tlogo { position: absolute; right: 12px; bottom: 10px; z-index: 2; }
+.ck-tlogo .tlogo, .ck-tlogo img { width: 64px !important; height: 64px !important; }
+.ck-foot { padding: 8px 14px 22px; background: #fff; z-index: 2; text-align: center; }
+.ck-name { font-family: var(--f-wide); font-weight: 900; font-size: 8.4cqw; line-height: 1.02; }
+.ck-sub { font-size: 4cqw; letter-spacing: .04em; }
+.ck-wm { position: absolute; right: 8px; top: 3px; font: 600 9px var(--f-body); color: rgba(0,0,0,.45); z-index: 3; }
+.ck-official, .ck-champ { color: #fff; background: linear-gradient(160deg, var(--tc) 0%, var(--tc2) 100%); }
+.ck-official .ck-foot, .ck-champ .ck-foot { background: rgba(0,0,0,.55); }
+.ck-official .ck-wm, .ck-champ .ck-wm { color: rgba(255,255,255,.55); }
+.ck-champ .ck-word { font-size: 7.4cqw; }
+.ck-result { background: linear-gradient(180deg, #15151e 0%, #2a2a36 100%); color: #fff; }
+.ck-result .ck-foot { background: var(--tc); }
+.ck-result .ck-wm { color: rgba(255,255,255,.5); }
+.ck-pod { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); align-items: end; gap: 6px; padding: 8px 12px; }
+.ck-step { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 6px; }
+.ck-step .ck-pic { width: 100%; }
+.ck-step.s1 { padding-bottom: 28px; }
+.ck-step b { font-size: 22px; }
+.ck-step span { font-size: 12px; }
+.ck-wrap { margin-top: 8px; max-width: 360px; }
+.ck-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.nimg.cardimg { background: #15151e; display: flex; align-items: center; justify-content: center; padding: 8px; }
+.nimg.cardimg .ck { max-width: 300px; }
+
+.ck-top .ck-tlogo { position: static; }
+.ck-top .ck-tlogo .tlogo, .ck-top .ck-tlogo img { width: 13cqw !important; height: 13cqw !important; }
+.ck-official .ck-top, .ck-champ .ck-top { justify-content: space-between; flex-direction: row-reverse; }
+.ck-body .ck-tlogo .tlogo, .ck-body .ck-tlogo img { width: 17cqw !important; height: 17cqw !important; }
+.ck-step b { font-size: 6cqw; } .ck-step span { font-size: 3.2cqw; }

@@ -26,8 +26,6 @@ Circuits.MAP = {
 /* fatos que explicam a ausência na lista (só o que é verificável) */
 Circuits.NOTE = {
   jacarepagua: 'Autódromo demolido em 2012.',
-  melbourne: 'Circuito de rua temporário: não consta na lista de 04/11/2026.',
-  lusail: 'Não consta na lista de 04/11/2026.',
   istanbul: 'Na lista de 04/11/2026 só aparece um traçado curto (Grau 6R), não o traçado de Grande Prêmio.',
   kyalami: 'Não consta na lista de 04/11/2026.',
   'watkins-glen': 'Não consta na lista de 04/11/2026.',
@@ -37,8 +35,12 @@ Circuits.REGION = {
   USA: 'am', CAN: 'am', MEX: 'am', BRA: 'am', ARG: 'am', RSA: 'af',
 };
 Circuits.region = (c) => Circuits.REGION[c] || 'eu';
+/* circuitos do calendário atual da F1: todos têm licença de Grau 1 (a lista pode não trazer
+   pistas de rua temporárias ou em renovação entre um evento e outro) */
+Circuits.F1_NOW = new Set(['melbourne', 'shanghai', 'suzuka', 'miami', 'montreal', 'monaco', 'catalunya', 'spielberg', 'silverstone', 'spa-francorchamps', 'hungaroring', 'zandvoort', 'monza', 'madring', 'baku', 'marina-bay', 'austin', 'mexico-city', 'interlagos', 'las-vegas', 'lusail', 'yas-marina', 'bahrain', 'jeddah']);
 Circuits.fia = (id) => {
   if (typeof FIA_CIRCUITS === 'undefined') return null;
+  if (!Circuits.MAP[id] && typeof REAL_TRACKS !== 'undefined') { const r = REAL_TRACKS.list.find(x => x.id === id); if (r) Circuits.MAP[id] = r.fia; }
   const n = Circuits.MAP[id];
   return n ? FIA_CIRCUITS.list.find(r => r.name === n) || null : null;
 };
@@ -51,6 +53,7 @@ Circuits.lic = (G, id) => {
   if (S.lic[id]) return S.lic[id];
   const f = Circuits.fia(id);
   if (f) return { grade: f.grade, expiry: f.expiry, src: 'fia', width: f.width };
+  if (Circuits.F1_NOW.has(id)) return { grade: '1', expiry: '2029-12-31', src: 'f1' };
   const t = Career.track(G, id);
   return { grade: null, expiry: null, src: 'none', generated: !!(t && t.generated), note: Circuits.NOTE[id] || null };
 };
@@ -101,6 +104,17 @@ Circuits.prepare = (G, year, first) => {
       out.push({ id: t.id, ok: false });
     }
   });
+  // vistoria anual (simulada): circuitos de Grau 2 podem ser aprovados para o Grau 1
+  if (!first) G.db.tracks.forEach(t => {
+    const L = Circuits.lic(G, t.id);
+    if (L.grade !== '2') return;
+    const r = localRng(`vist:${G.seed}:${t.id}:${year}`)();
+    if (r < 0.06) {
+      S.lic[t.id] = { grade: '1', expiry: `${year + 3}-12-31`, src: 'sim', since: year, upgrade: true };
+      Career.news(G, byLang(`${t.circuit} é aprovado na vistoria e recebe licença de Grau 1`, `${t.circuit} passes inspection and receives a Grade 1 licence`), 'regulamento', byLang('Depois de obras de segurança, o circuito pode receber a Fórmula 1 (vistoria simulada pelo jogo).', 'After safety works, the circuit can host Formula 1 (inspection simulated by the game).'), { tr: t.id });
+      out.push({ id: t.id, ok: true, upgrade: true });
+    }
+  });
   // calendário: sai quem não tem Grau 1 válido na data; entra um reserva
   if (cal) {
     cal.forEach((id, i) => {
@@ -126,6 +140,19 @@ Circuits.reserves = (G, year, country) => {
     .sort((a, b) => b.s - a.s);
 };
 
+/* circuitos reais de Grau 2 (traçado do OpenStreetMap) entram na base como reservas */
+Circuits.addReal = (db) => {
+  if (typeof REAL_TRACKS === 'undefined' || !db || !db.tracks) return 0;
+  let n = 0;
+  REAL_TRACKS.list.forEach(r => {
+    if (db.tracks.some(t => t.id === r.id)) return;
+    const p = { type: r.street ? 'street' : 'permanent', length: r.km, turns: r.turns, fast: r.street ? 15 : 35, slow: r.street ? 45 : 30, straights: r.longest > 900 ? 2 : 1, longest: r.longest, elevation: 20, abrasion: 50 };
+    const d = CircuitGen.derive(p);
+    db.tracks.push({ id: r.id, gp: `GP de ${r.circuit}`, circuit: r.circuit, place: '', country: r.country, length: r.km, turns: r.turns, ...d, rain: 0.2, shape: r.shape, lat: r.lat, lon: r.lon, type: r.street ? 'STREET' : 'RACE', real: true, osm: true, fia: r.fia });
+    n++;
+  });
+  return n;
+};
 (function () {
   const ss = Career.startSeason;
   Career.startSeason = (G, first) => {
@@ -133,4 +160,8 @@ Circuits.reserves = (G, year, country) => {
     if (G.db && G.db.tracks) Circuits.prepare(G, year, !G.season);
     return ss(G, first);
   };
+})();
+(function () {
+  const ddb = defaultDb;
+  defaultDb = function () { const db = ddb(); Circuits.addReal(db); return db; };
 })();

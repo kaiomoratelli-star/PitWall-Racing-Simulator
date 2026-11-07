@@ -23,6 +23,24 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**Mídia, circuitos e regulamento (etapa final da 0.8)**
+- Gerador automático de artes no formato vertical das redes, a partir dos acontecimentos do jogo:
+  - "Breaking/Urgente" nos vazamentos, com o veículo de imprensa;
+  - "Oficial" da equipe nas contratações;
+  - "Resultado" com o pódio e as fotos;
+  - "Campeão mundial".
+  As artes aparecem na linha do tempo, na manchete das notícias e na nova aba "Artes". Cada uma traz foto do piloto, logo da equipe, logo do veículo quando disponível e a marca discreta "PitWall · simulação".
+- Logos dos veículos de imprensa (Formula1.com, Autosport, Motorsport.com, Sky, BBC, ESPN, Marca, L'Équipe, Gazzetta, ge e outros) baixados com a fonte registrada.
+- Novo gerador de circuitos, montado trecho a trecho. As retas longas, as curvas rápidas, médias e lentas, os grampos, as chicanes e a escolha entre rua (cantos de 90°) e permanente mudam o formato. A volta fecha exatamente, e traçados que se cruzam ou encostam são descartados.
+- Licenças:
+  - todos os circuitos do calendário atual da F1 têm Grau 1, inclusive os que a lista oficial não traz (Albert Park, Lusail);
+  - circuitos de Grau 2 passam por vistoria anual simulada e podem ser aprovados para o Grau 1;
+  - circuitos reais de Grau 2 entram como reserva com o traçado real do OpenStreetMap (extensão conferida com a lista da FIA); sem traçado real confiável, o circuito não entra.
+- Regulamento:
+  - a cada regulamento novo, cada equipe acerta ou erra o conceito do carro, pela força técnica e um pouco de sorte, com notícias de quem acertou e quem errou;
+  - um piso de diferença entre os carros impede que o grid fique todo junto com os anos;
+  - em testes de 12 a 16 temporadas, seis equipes diferentes foram campeãs.
+
 **Disciplinas e novas categorias**
 - As categorias agora se dividem como na vida real em Monoposto, GT e Endurance.
 - O perfil de cada piloto mostra a experiência e o rendimento em cada uma das três, com base na carreira real de 2022 a 2027 e no que ele corre no jogo.
