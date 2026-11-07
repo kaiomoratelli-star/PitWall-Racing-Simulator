@@ -336,7 +336,7 @@ Cats.progression = (G, initial) => {
     const pool = [];
     movers.forEach(m => {
       if (taken.has(m.d.id) || m.d.retired || f1Race(m.d)) return;
-      if (cat.women && m.d.gender !== 'F') return;
+      if (cat.women && !(typeof Disc !== 'undefined' ? Disc.isWoman(m.d) : m.d.gender === 'F')) return;
       const gt = cat.disc === 'gt';
       if (typeof Disc !== 'undefined' && !Disc.willing(m.d, cat.disc || 'mono')) return;
       const fits = (Cats.UP[m.from] === cat.id) || (feeders.includes(m.from) && (gt ? m.d.age >= 18 : cat.pro ? (m.from === 'f2' || m.d.nat === 'JPN') : m.pos <= 3));

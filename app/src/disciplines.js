@@ -101,7 +101,11 @@ Disc.femaleName = (nat) => {
   const pool = NAME_POOL[nat] || NAME_POOL.GBR;
   return `${RNG.pick(f)} ${RNG.pick(pool.l)}`;
 };
+/* pilotas: base de pilotos (Wikidata P21) e quem já correu na F1 Academy */
+Disc.WOMEN = typeof DRIVER_WOMEN !== 'undefined' ? new Set(DRIVER_WOMEN) : new Set();
+Disc.isWoman = (d) => !!d && (d.gender === 'F' || (d.uid && Disc.WOMEN.has(d.uid)));
 Disc.init = (G) => {
+  G.db.drivers.forEach(d => { if (!d.gender && d.uid && Disc.WOMEN.has(d.uid)) d.gender = 'F'; });
   if (G.cats) Object.values(G.cats.byId).forEach(c => { if (!c.disc) c.disc = c.crew ? 'end' : Disc.of(c.id); });
   G.db.drivers.forEach(d => { if (!d.gender && (d.realSeasons || []).some(s => s[1] === 'f1a')) d.gender = 'F'; });
   if (G.cats && G.cats.byId.f1a) G.cats.byId.f1a.entries.forEach(e => { const d = Career.driver(G, e.did); if (d) d.gender = 'F'; });

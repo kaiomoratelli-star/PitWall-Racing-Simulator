@@ -874,8 +874,9 @@ Career.endSeason = (G) => {
   summary.regChange = reg;
   if (reg) Career.record(G, 'regulamento', `Novo regulamento técnico para ${s.year + 1}: o desempenho dos carros foi aproximado e o grid embaralhado.`, { year: s.year });
   G.db.teams.forEach(t => {
-    const k = reg ? 0.45 : 0.82;
-    const pull = (v) => +(82 + (v - 82) * k + RNG.normal(0, reg ? 2.6 : 1.1)).toFixed(2);
+    // regulamento novo aproxima os carros e mexe na ordem, mas quem é forte costuma continuar perto do topo
+    const k = reg ? 0.62 : 0.84;
+    const pull = (v) => +(82 + (v - 82) * k + RNG.normal(0, reg ? 1.4 : 1.0)).toFixed(2);
     t.car.aero = pull(t.car.aero); t.car.chassis = pull(t.car.chassis);
     t.car.reliability = +clamp(t.car.reliability * 0.9 + 9 + RNG.normal(0, 1.5), 60, 97).toFixed(1);
   });

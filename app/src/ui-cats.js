@@ -27,7 +27,7 @@ SCREENS.cats = {
     const done = s ? s.next : 0, total = s ? s.cal.length : 0;
     const nextEv = s && s.cal[s.next];
     const P = (o) => JSON.stringify({ c: id, t: tab, ...o });
-    const chips = CAT_GROUPS.map(([g, ids, main]) => `<div class="catgroup ${main ? 'main' : ''}"><span class="label">${g}</span>${ids.map(x => Cats.get(G, x)).filter(Boolean).map(c => `<button class="catchip ${c.id === id ? 'on' : ''} ${c.enabled ? '' : 'off'}" style="--cc:${c.color}" data-act="go" data-v="cats" data-p='${JSON.stringify({ c: c.id, t: tab })}'>${esc(c.short)}</button>`).join('')}</div>`).join('');
+    const chips = CAT_GROUPS.map(([g, ids, main]) => `<div class="catgroup ${main ? 'main' : ''}"><span class="label">${g}</span>${ids.map(x => Cats.get(G, x)).filter(Boolean).map(c => `<button class="catchip ${c.id === id ? 'on' : ''} ${c.enabled ? '' : 'off'}" style="--cc:${c.color}" data-act="go" data-v="cats" data-p='${JSON.stringify({ c: c.id, t: tab })}'>${Assets.compLogo(c.id, 'chip')}${esc(c.short)}</button>`).join('')}</div>`).join('');
     let body = '';
     if (tab === 'stand') body = catStandHtml(cat);
     if (tab === 'cal') body = catCalHtml(cat);
@@ -36,7 +36,7 @@ SCREENS.cats = {
     return `<div class="page-head"><div><div class="eyebrow">Outras categorias</div><h1>${esc(cat.name)}</h1></div><div class="seg">${[['stand', 'Classificação'], ['cal', 'Calendário e resultados'], ['teams', 'Equipes'], ['champs', 'Campeões']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="go" data-v="cats" data-p='${P({ t: k })}'>${l}</button>`).join('')}</div></div>
     <div class="catbar">${chips}</div>
     ${cat.brief ? `<div class="callout catbrief"><span class="chip">${esc(Disc.label(cat.disc || 'mono'))}</span>${cat.women ? ` <span class="chip">${byLang('só mulheres', 'women only')}</span>` : ''}${cat.playoffs ? ` <span class="chip">${byLang('playoffs: os 4 melhores decidem o título na última etapa', 'playoffs: the top 4 decide the title in the final round')}</span>` : ''} ${esc(cat.brief)}</div>` : ''}
-    <div class="cathead" style="--cc:${cat.color}"><div><div class="label">Temporada ${s ? s.year : ''} · ${cat.seasonLabel || ''}</div><div class="cat-prog"><b>${done}</b>/${total} etapas${nextEv ? ` · próxima: <b>${esc(nextEv.place || nextEv.circuit)}</b> (${catDate(nextEv.date)})` : done ? ' · temporada encerrada' : ''}</div></div>
+    <div class="cathead" style="--cc:${cat.color}">${Assets.compLogo(cat.id, 'head')}<div style="flex:1"><div class="label">Temporada ${s ? s.year : ''} · ${cat.seasonLabel || ''}</div><div class="cat-prog"><b>${done}</b>/${total} etapas${nextEv ? ` · próxima: <b>${esc(nextEv.place || nextEv.circuit)}</b> (${catDate(nextEv.date)})` : done ? ' · temporada encerrada' : ''}</div></div>
       <div class="small muted" style="text-align:right">${cat.entries.length} pilotos · ${cat.teams.length} equipes · ${cat.races.length} corrida(s) por etapa${REAL_EXTRA.superlicense[cat.sl] ? ` · superlicença: ${REAL_EXTRA.superlicense[cat.sl].slice(0, 3).join('/')} pts aos 3 primeiros` : ''}${cat.enabled ? '' : ' · <b class="neg">desligada</b>'}</div></div>
     ${body}`;
   },

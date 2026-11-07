@@ -7,7 +7,7 @@
 const STATUS_LBL = { disputou: 'disputou', inscrito: 'inscrito', 'anunciado (lista provisória)': 'anunciado (provisório)' };
 function realCareerHtml(d) {
   if (!d || !d.realSeasons || !d.realSeasons.length) return '';
-  const rows = d.realSeasons.slice().reverse().map(([y, s, team, pos, st, pts, w]) => `<tr><td class="num">${y}</td><td>${esc(DriverDB.seriesName(s))}</td><td class="small">${esc(team || '—')}</td><td class="r num">${pos ? pos + 'º' : '—'}</td><td class="r num">${pts != null ? pts : '—'}</td><td class="r num">${w || ''}</td><td class="small muted">${esc(STATUS_LBL[st] || st || '')}</td></tr>`).join('');
+  const rows = d.realSeasons.slice().reverse().map(([y, s, team, pos, st, pts, w]) => `<tr><td class="num">${y}</td><td><span class="row" style="gap:6px;flex-wrap:nowrap">${Assets.compLogo(s, 'xs')}${esc(DriverDB.seriesName(s))}</span></td><td class="small">${esc(team || '—')}</td><td class="r num">${pos ? pos + 'º' : '—'}</td><td class="r num">${pts != null ? pts : '—'}</td><td class="r num">${w || ''}</td><td class="small muted">${esc(STATUS_LBL[st] || st || '')}</td></tr>`).join('');
   return `<div class="stack" style="gap:6px"><div class="row between"><h4>Carreira real</h4><span class="small muted">Wikipedia e Wikidata · verificado em ${esc(DRIVER_DB.meta.verified)}</span></div>
     <div class="tbl-wrap" style="max-height:260px;overflow:auto"><table class="tbl"><thead><tr><th>Ano</th><th>Série</th><th>Equipe</th><th class="r">Pos.</th><th class="r">Pts</th><th class="r">Vit.</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }

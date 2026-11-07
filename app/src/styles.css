@@ -781,3 +781,10 @@ body.flag-red .main::after { border-color: var(--red); box-shadow: inset 0 0 60p
 .ck-official .ck-top, .ck-champ .ck-top { justify-content: space-between; flex-direction: row-reverse; }
 .ck-body .ck-tlogo .tlogo, .ck-body .ck-tlogo img { width: 17cqw !important; height: 17cqw !important; }
 .ck-step b { font-size: 6cqw; } .ck-step span { font-size: 3.2cqw; }
+.hs.av { background: none; }
+.hs.av svg, .ck-av svg { width: 100%; height: 100%; display: block; }
+.ck-av { display: block; overflow: hidden; }
+.complogo { object-fit: contain; flex: none; }
+.complogo.xs { width: 34px; height: 18px; }
+.complogo.chip { height: 22px; max-width: 52px; margin-right: 7px; vertical-align: middle; background: #fff; border-radius: 4px; padding: 2px 4px; }
+.complogo.head { height: 54px; max-width: 120px; margin-right: 16px; background: rgba(255,255,255,.92); border-radius: 6px; padding: 6px; }

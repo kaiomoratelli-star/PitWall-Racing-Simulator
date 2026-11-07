@@ -37,3 +37,6 @@ Assets.face = (d) => {
 };
 /* logo por nome (equipes das categorias, fabricantes, patrocinadores, entidades) */
 Assets.logoByName = (kind, name) => { const rel = `logos/${kind}/${Assets.slug(String(name || '').split(' (')[0])}.png`; return Assets.has(rel) ? imgUrl(rel) : null; };
+
+/* logo de uma competição pelo id (categorias simuladas e séries da base) */
+Assets.compLogo = (id, cls = '') => { const u = Assets.has(`logos/categories/${id}.png`) ? imgUrl(`logos/categories/${id}.png`) : null; return u ? `<img class="complogo ${cls}" src="${u}" alt="" loading="lazy" onerror="this.remove()">` : ''; };

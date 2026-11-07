@@ -9,7 +9,7 @@
 'use strict';
 
 const RegCal = {};
-RegCal.TARGET_SD = 3.4;   // desvio-padrão mínimo do desempenho médio (aero + chassi) entre equipes
+RegCal.TARGET_SD = 2.0;   // desvio-padrão mínimo do desempenho médio (aero + chassi) entre equipes
 RegCal.normal = (r) => Math.sqrt(-2 * Math.log(Math.max(1e-9, r()))) * Math.cos(2 * Math.PI * r());
 RegCal.tech = (t) => {
   const vals = Object.values(t.staff || {}).filter(v => typeof v === 'number');
@@ -19,15 +19,15 @@ RegCal.tech = (t) => {
 RegCal.concept = (G, year) => {
   const out = G.db.teams.map(t => {
     const r = localRng(`concept:${G.seed}:${t.id}:${year}`);
-    const delta = clamp(RegCal.tech(t) * 1.1 + RegCal.normal(r) * 2.3, -6, 6);
+    const delta = clamp(RegCal.tech(t) * 0.8 + RegCal.normal(r) * 1.3, -3.5, 3.5);
     t.car.aero = +(t.car.aero + delta * 0.6).toFixed(2);
     t.car.chassis = +(t.car.chassis + delta * 0.4).toFixed(2);
     t.concept = { y: year, delta: +delta.toFixed(2) };
     return { t, delta };
   }).sort((a, b) => b.delta - a.delta);
   const best = out[0], worst = out[out.length - 1];
-  if (best && best.delta > 2) Career.news(G, byLang(`${best.t.name} acerta em cheio o regulamento de ${year}`, `${best.t.name} nails the ${year} regulations`), 'tecnica', byLang('Os primeiros dados de túnel e simulador apontam o carro novo entre os melhores conceitos do grid.', 'Early wind tunnel and simulator data put the new car among the best concepts on the grid.'), { tm: [best.t.id] });
-  if (worst && worst.delta < -2) Career.news(G, byLang(`${worst.t.name} erra o conceito do carro de ${year}`, `${worst.t.name} gets the ${year} car concept wrong`), 'tecnica', byLang('A equipe admite que o projeto não respondeu como o esperado e promete reação ao longo do ano.', 'The team admits the design did not respond as expected and promises a reaction during the year.'), { tm: [worst.t.id] });
+  if (best && best.delta > 1.5) Career.news(G, byLang(`${best.t.name} acerta em cheio o regulamento de ${year}`, `${best.t.name} nails the ${year} regulations`), 'tecnica', byLang('Os primeiros dados de túnel e simulador apontam o carro novo entre os melhores conceitos do grid.', 'Early wind tunnel and simulator data put the new car among the best concepts on the grid.'), { tm: [best.t.id] });
+  if (worst && worst.delta < -1.5) Career.news(G, byLang(`${worst.t.name} erra o conceito do carro de ${year}`, `${worst.t.name} gets the ${year} car concept wrong`), 'tecnica', byLang('A equipe admite que o projeto não respondeu como o esperado e promete reação ao longo do ano.', 'The team admits the design did not respond as expected and promises a reaction during the year.'), { tm: [worst.t.id] });
   Career.record(G, 'regulamento', `${year}: ${out.map(x => `${x.t.short || x.t.name} ${x.delta >= 0 ? '+' : ''}${x.delta.toFixed(1)}`).join(', ')} (acerto do conceito no regulamento novo).`, { year });
   return out;
 };
