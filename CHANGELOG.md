@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.0 — em desenvolvimento
+## 0.8.0 — Disciplinas, P&D por peça, calendário por dia, circuitos e mídia (07/11/2026)
 **Base de pilotos reais (Fase 1)**
 - Nova base com 1.393 pilotos reais e 5.583 temporadas de 41 campeonatos (2022–2027): F1, F2, F3, F1 Academy, Fórmula E, IndyCar, Indy NXT, USF Pro 2000, USF2000, Super Formula, SF Lights, WEC, IMSA, ELMS, Asian Le Mans, NASCAR Cup/O'Reilly/Truck, DTM, Stock Car Pro Series, Supercars, regionais, Eurocup-3, Euroformula, GB3 e F4s.
 - Cada piloto tem um id único (Wikidata), as variações de nome reunidas, nascimento, nacionalidade esportiva e a carreira temporada a temporada com equipe, número, posição, pontos e status: disputou (2022–2025), inscrito (2026) ou anunciado (2027, lista provisória), com fonte e data de verificação. Rumores não entram como fato.
@@ -30,12 +30,12 @@
   - "Resultado" com o pódio e as fotos;
   - "Campeão mundial".
   As artes aparecem na linha do tempo, na manchete das notícias e na nova aba "Artes". Cada uma traz foto do piloto, logo da equipe, logo do veículo quando disponível e a marca discreta "PitWall · simulação".
-- Logos dos veículos de imprensa (Formula1.com, Autosport, Motorsport.com, Sky, BBC, ESPN, Marca, L'Équipe, Gazzetta, ge e outros) baixados com a fonte registrada.
+- Logos revisados um a um: 79 logos reais de equipes, patrocinadores, fabricantes, categorias, entidades e veículos de imprensa (BBC Sport, Marca, AS, Bild, Olé, auto motor und sport, FIA). Fotos que não eram logos foram descartadas. Sem logo, a arte usa o nome do veículo.
 - Novo gerador de circuitos, montado trecho a trecho. As retas longas, as curvas rápidas, médias e lentas, os grampos, as chicanes e a escolha entre rua (cantos de 90°) e permanente mudam o formato. A volta fecha exatamente, e traçados que se cruzam ou encostam são descartados.
 - Licenças:
   - todos os circuitos do calendário atual da F1 têm Grau 1, inclusive os que a lista oficial não traz (Albert Park, Lusail);
   - circuitos de Grau 2 passam por vistoria anual simulada e podem ser aprovados para o Grau 1;
-  - circuitos reais de Grau 2 entram como reserva com o traçado real do OpenStreetMap (extensão conferida com a lista da FIA); sem traçado real confiável, o circuito não entra.
+  - 29 circuitos reais de Grau 2 entram como reserva (Brno, Laguna Seca, Road America, Sebring, Donington, Dijon, Misano, Motegi, Zolder e outros) com o traçado real do OpenStreetMap e a extensão conferida com a lista da FIA; quem não tem traçado real confiável não entra.
 - Regulamento:
   - a cada regulamento novo, cada equipe acerta ou erra o conceito do carro, pela força técnica e um pouco de sorte, com notícias de quem acertou e quem errou;
   - um piso de diferença entre os carros impede que o grid fique todo junto com os anos;
