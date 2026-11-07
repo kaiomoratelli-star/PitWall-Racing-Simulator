@@ -6,7 +6,7 @@
 NAV.splice(NAV.findIndex(n => n[0] === 'seasons'), 0, ['cats', 'Outras categorias', 'M3 17l4-10 4 6 3-4 7 8M3 21h18']);
 
 // ecossistemas: as principais em destaque; depois as escadas de formação de cada mundo
-const CAT_GROUPS = [['Principais', ['fe', 'indycar', 'wec', 'sf'], true], ['Monopostos · rumo à F1', ['f2', 'f3']], ['Monopostos · regionais', ['freca', 'frme', 'fram']], ['Monopostos · Fórmula 4', ['f4it', 'f4es', 'f4gb', 'e4', 'f4br']], ['Ecossistema Indy', ['f4us']], ['Ecossistema Super Formula', ['frj', 'f4jp']]];
+const CAT_GROUPS = [['Monoposto · principais', ['fe', 'indycar', 'sf'], true], ['GT', ['dtm', 'stockcar', 'nascup'], true], ['Endurance', ['wec'], true], ['Monoposto · rumo à F1', ['f2', 'f3', 'f1a']], ['Monoposto · regionais', ['freca', 'frme', 'fram']], ['Monoposto · Fórmula 4', ['f4it', 'f4de', 'f4es', 'f4gb', 'e4', 'f4br', 'f4uae']], ['Ecossistema Indy', ['f4us']], ['Ecossistema Super Formula', ['frj', 'f4jp']]];
 function catDate(iso) { const [y, m, d] = iso.split('-'); return `${Number(d)} ${['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][Number(m) - 1]}`; }
 function catTeam(cat, tid) { return cat.teams.find(t => t.id === tid) || { name: '—', color: '#555' }; }
 function catDriverCell(did, cat, team) {
@@ -35,6 +35,7 @@ SCREENS.cats = {
     if (tab === 'champs') body = catChampsHtml(cat);
     return `<div class="page-head"><div><div class="eyebrow">Outras categorias</div><h1>${esc(cat.name)}</h1></div><div class="seg">${[['stand', 'Classificação'], ['cal', 'Calendário e resultados'], ['teams', 'Equipes'], ['champs', 'Campeões']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="go" data-v="cats" data-p='${P({ t: k })}'>${l}</button>`).join('')}</div></div>
     <div class="catbar">${chips}</div>
+    ${cat.brief ? `<div class="callout catbrief"><span class="chip">${esc(Disc.label(cat.disc || 'mono'))}</span>${cat.women ? ` <span class="chip">${byLang('só mulheres', 'women only')}</span>` : ''}${cat.playoffs ? ` <span class="chip">${byLang('playoffs: os 4 melhores decidem o título na última etapa', 'playoffs: the top 4 decide the title in the final round')}</span>` : ''} ${esc(cat.brief)}</div>` : ''}
     <div class="cathead" style="--cc:${cat.color}"><div><div class="label">Temporada ${s ? s.year : ''} · ${cat.seasonLabel || ''}</div><div class="cat-prog"><b>${done}</b>/${total} etapas${nextEv ? ` · próxima: <b>${esc(nextEv.place || nextEv.circuit)}</b> (${catDate(nextEv.date)})` : done ? ' · temporada encerrada' : ''}</div></div>
       <div class="small muted" style="text-align:right">${cat.entries.length} pilotos · ${cat.teams.length} equipes · ${cat.races.length} corrida(s) por etapa${REAL_EXTRA.superlicense[cat.sl] ? ` · superlicença: ${REAL_EXTRA.superlicense[cat.sl].slice(0, 3).join('/')} pts aos 3 primeiros` : ''}${cat.enabled ? '' : ' · <b class="neg">desligada</b>'}</div></div>
     ${body}`;

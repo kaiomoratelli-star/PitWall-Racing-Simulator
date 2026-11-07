@@ -23,6 +23,25 @@
 - Pilotos fictícios gerados nunca repetem o nome de outro piloto do universo.
 - Patrocinadores com logo nas tabelas de patrocínio, finanças e página da equipe.
 
+**Disciplinas e novas categorias**
+- As categorias agora se dividem como na vida real em Monoposto, GT e Endurance.
+- O perfil de cada piloto mostra a experiência e o rendimento em cada uma das três, com base na carreira real de 2022 a 2027 e no que ele corre no jogo.
+- Sem experiência, o piloto rende menos até se adaptar: de Endurance para GT é fácil, de Monoposto para Endurance é médio, de Monoposto para GT é mais difícil e de GT para Monoposto é bem difícil. A adaptabilidade ajuda.
+- Alguns pilotos não aceitam correr fora da própria disciplina. Max Verstappen e Fernando Alonso se adaptam na hora a qualquer uma.
+- Seis categorias simuladas com grids, equipes, calendários e classificações reais, e um resumo na tela da categoria:
+  - F4 Emirados (hoje F4 Oriente Médio, temporada 2025): série de início de ano;
+  - F4 Alemã: o campeonato real terminou em 2022 e volta no jogo a partir da última temporada;
+  - F1 Academy: só mulheres;
+  - DTM;
+  - Stock Car Pro Series;
+  - NASCAR Cup Series, com o formato próprio: os 4 melhores antes da última etapa decidem o título nela.
+- Vagas das categorias GT seguem a origem dos pilotos:
+  - DTM: europeus e quem vem do endurance;
+  - Stock Car: sul-americanos e quem não subiu na base do Brasil;
+  - NASCAR: americanos (europeus raramente).
+- A F4 Alemã e a F1 Academy alimentam a FRECA. As séries de base não simuladas continuam fornecendo pilotos.
+- Tela de categorias organizada por disciplina.
+
 **Notícias e eventos (Fase 6)**
 - Linha do tempo no estilo das redes sociais: respostas de torcedores, contagem de comentários, reposts e curtidas (dá para curtir). Perfis de criadores de conteúdo (GlockDepre, Primeira Fila F1, Boteco F1, Ressaca F1, Rafael Lopes, Kevin Nicolas, EFFE, GP em Casa, Luca Morelli, Mariana Becker, Juliana Cerasolli, F1das_frase, Tiago Mendonça, Estagiário da F1) reagem a vitórias, títulos, contratações, abandonos e polêmicas da F1, sempre com o selo "simulação" e textos genéricos e respeitosos; nenhum @ é atribuído a eles.
 - Anúncios em etapas: depois das conversas (rumores), sai um vazamento de jornalista e o anúncio oficial da equipe só chega de 1 a 3 etapas depois. Envolvendo a sua equipe, sai na hora.

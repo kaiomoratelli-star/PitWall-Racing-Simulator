@@ -14,9 +14,10 @@ const Migrate = {
     5: (G) => {
       if (G.season && typeof Identity !== 'undefined') Identity.apply(G, G.season.year);
       // IndyCar e WEC passam a ser simuladas (a Fórmula E já era)
-      if (typeof Cats !== 'undefined' && G.cats) { const add = ['indycar', 'wec'].filter(id => !G.cats.byId[id]); if (add.length) Cats.init(G, add); }
+      if (typeof Cats !== 'undefined' && G.cats) { const add = ['indycar', 'wec', 'f4uae', 'f4de', 'f1a', 'dtm', 'stockcar', 'nascup'].filter(id => !G.cats.byId[id]); if (add.length) Cats.init(G, add); }
       // base de pilotos reais (ligação à carreira real e pilotos de outras séries)
       if (typeof DriverDB !== 'undefined' && !G.driverDbDone) DriverDB.init(G);
+      if (typeof Disc !== 'undefined') Disc.init(G);
       if (typeof Kart !== 'undefined') Kart.init(G);
       if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);
       Potential.state(G);
