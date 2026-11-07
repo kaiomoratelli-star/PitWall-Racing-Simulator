@@ -14,7 +14,16 @@ const Smoke = {
       if (mode === 'test') {
         NC.mode = 'manager'; NC.teamId = (BASE.teams.find(t => t.id === 'williams') || BASE.teams[BASE.teams.length - 1]).id; NC.slot = 'slot3'; NC.seed = '2027';
         ACT.ncStart(); step('carreira criada (manager)');
-        ACT.toWeekend(); ACT.fpSend({ dataset: { d: Career.lineup(G, G.player.teamId)[0].id } }); Practice.advance(G, 900); ACT.endPractice(); ACT.runQuali(); ACT.toStrategy(); ACT.startRace();
+        // fluxo do jogador no calendário por dia: resolver decisões e mensagens importantes,
+        // "Avançar" até o fim de semana e só então entrar nele
+        for (let i = 0; i < 60 && !G.weekend && G.today < Time.weekendDay(G); i++) {
+          Time.blockers(G).forEach(m => { if (m.choices && m.resolved == null) Events.resolve(G, m.id, 0); m.read = true; });
+          ACT.advanceTime();
+        }
+        step(`chegou ao fim de semana em ${G.today}`);
+        ACT.toWeekend();
+        if (!G.weekend) throw new Error('o fim de semana não começou depois de avançar até a data');
+        ACT.fpSend({ dataset: { d: Career.lineup(G, G.player.teamId)[0].id } }); Practice.advance(G, 900); ACT.endPractice(); ACT.runQuali(); ACT.toStrategy(); ACT.startRace();
         ACT.raceSkip(); await ACT.finishWeekend(); step('GP 1 disputado pela interface');
         for (let i = 0; i < 3; i++) simulateRound();
         step(`${G.season.round} etapas concluídas`);
