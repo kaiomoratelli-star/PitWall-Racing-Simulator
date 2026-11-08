@@ -121,8 +121,7 @@ function trackHero85(tr) {
   if (!tr) return null;
   if (tr.heroImg && (typeof Assets === 'undefined' || Assets.has(tr.heroImg))) return imgUrl(tr.heroImg);
   const own = `tracks/${tr.id}-hero.webp`; if (typeof Assets !== 'undefined' && Assets.has(own)) return imgUrl(own);
-  const night = /marina-bay|las-vegas|lusail|bahrain|jeddah|yas-marina/.test(tr.id);
-  const themes = night ? ['night'] : ['start', 'battle', 'fans', 'flag', 'safetycar'];
+  const themes = ['battle', 'safetycar', 'start', 'flag'];   // fotos genéricas de pista (nada que mostre outra cidade)
   const avail = themes.filter(k => NEWSBANK85[k]); if (!avail.length) return null;
   const k = avail[newsHash85(tr.id) % avail.length];
   return newsPhoto85({ id: tr.id, title: tr.id }, k);
