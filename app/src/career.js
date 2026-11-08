@@ -733,15 +733,6 @@ Career.driverGrowth = (G) => {
 
 /* ---------- staff ---------- */
 Career.STAFF_ROLES = { technical: 'Diretor técnico', aero: 'Chefe de aerodinâmica', engineering: 'Engenheiro-chefe de pista', strategy: 'Chefe de estratégia' };
-Career.refreshStaffMarket = (G) => {
-  G.staffMarket = [];
-  Object.keys(Career.STAFF_ROLES).forEach(role => {
-    for (let i = 0; i < 2; i++) {
-      const rating = Math.round(clamp(RNG.normal(80, 8), 60, 98));
-      G.staffMarket.push({ id: Career.nextId(G, 'st'), role, name: randomName(RNG.pick(NATS)), rating, fee: +(Math.max(0.5, (rating - 60) * 0.18)).toFixed(1) });
-    }
-  });
-};
 Career.hireStaff = (G, sid) => {
   const s = G.staffMarket.find(x => x.id === sid);
   if (!s) return 'Profissional indisponível.';

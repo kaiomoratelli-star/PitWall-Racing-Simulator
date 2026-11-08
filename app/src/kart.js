@@ -19,7 +19,6 @@ Kart.CHAMPS = [
   { id: 'ap', name: 'Kart · Ásia-Pacífico', nats: ['JPN', 'CHN', 'IND', 'AUS'], f4: ['f4jp'] },
 ];
 Kart.SIZE = { eu: 34, am: 16, br: 14, ap: 16 };
-Kart.byId = (id) => Kart.CHAMPS.find(c => c.id === id);
 Kart.on = (G) => !!(G && G.kart && typeof Cats !== 'undefined' && Cats.on(G));
 Kart.drivers = (G, cid) => G.db.drivers.filter(d => d.series === 'kart' && !d.retired && !d.dead && (!cid || (d.kart && d.kart.c === cid)));
 

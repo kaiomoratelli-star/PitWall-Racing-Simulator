@@ -247,4 +247,3 @@ Persons.index = (drivers) => {
   };
   return { add, find };
 };
-Persons.find = (G, name, spec) => Persons.index(G.db.drivers).find(name, spec);

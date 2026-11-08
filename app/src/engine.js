@@ -48,48 +48,8 @@ Engine.SETUP_KEYS = [
   ['brake', 'Balanço de freio', 'Traseiro', 'Dianteiro'],
 ];
 
-Engine.genOptimum = (track, team, rng) => {
-  const w = track.weights;
-  const aeroNeed = clamp((w.aero - 0.18) / 0.32, 0, 1);  // 0 = Monza, 1 = Mônaco
-  const engNeed = clamp((w.engine - 0.12) / 0.43, 0, 1);
-  const j = (s) => (rng() - 0.5) * s;
-  return {
-    wing: Math.round(clamp(12 + aeroNeed * 76 + j(30), 3, 97)),
-    susp: Math.round(clamp(track.street ? 26 + j(36) : 62 + j(50), 3, 97)),
-    gear: Math.round(clamp(20 + engNeed * 62 + j(34), 3, 97)),
-    brake: Math.round(clamp(50 + j(64), 3, 97)),
-  };
-};
 
-Engine.setupQuality = (setup, opt) => {
-  const keys = ['wing', 'susp', 'gear', 'brake'];
-  const wts = { wing: 1.3, susp: 1, gear: 1, brake: 0.7 };
-  let d = 0;
-  for (const k of keys) d += Math.abs((setup[k] ?? 50) - opt[k]) * wts[k];
-  return clamp(1 - d / 125, 0, 1);
-};
 
-/* Feedback do piloto — quanto mais experiente, mais preciso */
-Engine.setupFeedback = (setup, opt, driver) => {
-  const fbk = driver.feedback != null ? (driver.experience * 0.4 + driver.feedback * 0.6) : driver.experience;
-  const noise = (100 - fbk) / 100 * 14 + 3;
-  const out = [];
-  const say = {
-    wing: ['O carro desliza muito nas curvas, falta carga.', 'Estamos lentos demais nas retas, carga em excesso.'],
-    susp: ['O carro rola demais e fica preguiçoso na troca de direção.', 'Muito rígido, está pulando nas zebras.'],
-    gear: ['Batendo no limitador antes do fim da reta, marchas curtas.', 'Falta força na saída das curvas lentas, marchas longas.'],
-    brake: ['A traseira escapa nas frenagens, freio muito atrás.', 'Travando as dianteiras, freio muito à frente.'],
-  };
-  for (const [k] of Engine.SETUP_KEYS) {
-    const diff = (setup[k] - opt[k]) + RNG.normal(0, noise);
-    const mag = Math.abs(diff);
-    let level;
-    if (mag < 6) level = 0; else if (mag < 16) level = 1; else if (mag < 30) level = 2; else level = 3;
-    const dir = diff < 0 ? 0 : 1;
-    out.push({ key: k, level, dir, text: level === 0 ? 'Equilíbrio bom aqui.' : say[k][dir] });
-  }
-  return out;
-};
 
 /* ---------- clima ---------- */
 Engine.genWeather = (track, laps, rainMult = 1) => {
@@ -216,68 +176,6 @@ Engine.paceComponents = (ctx) => {
   return { car, driver, setup, tyre, fuel, weather, mode, total: ctx.track.baseLap + car + driver + setup + tyre + fuel + weather + mode };
 };
 
-/* ---------- classificação (Q1/Q2/Q3) ---------- */
-Engine.runQualifying = (wk, entries, opts = {}) => {
-  // entries: [{did, tid, team, drv, setupQ, carPerf, risk}]
-  const n = entries.length;
-  const out1 = n > 12 ? Math.ceil((n - 10) / 2) : 0;
-  const out2 = n > 12 ? (n - 10) - out1 : 0;
-  const single = wk.db.rules.regs && wk.db.rules.regs.qualiFormat === 'single';
-  const sessions = n > 12 && !single ? [{ name: 'Q1', keep: n - out1 }, { name: 'Q2', keep: n - out1 - out2 }, { name: 'Q3', keep: 0 }] : [{ name: 'Q', keep: 0 }];
-  const track = wk.track;
-  let alive = entries.map(e => e.did);
-  const res = {};
-  entries.forEach(e => (res[e.did] = { did: e.did, tid: e.tid, times: {}, best: Infinity, eliminatedIn: null, incidents: [] }));
-  const log = [];
-  const qWet = wk.weather.quali.wet;
-  sessions.forEach((s, si) => {
-    const evo = [0, -0.18, -0.34][si] || 0;
-    const sessWet = clamp(qWet + RNG.range(-0.08, 0.08) * (qWet > 0 ? 1 : 0), 0, 1);
-    alive.forEach(did => {
-      const e = entries.find(x => x.did === did);
-      const comp = sessWet > 0.6 ? 'W' : sessWet > 0.18 ? 'I' : 'S';
-      let best = Infinity;
-      for (let run = 0; run < 2; run++) {
-        const pc = Engine.paceComponents({ db: wk.db, track, team: e.team, drv: e.drv, setupQ: e.setupQ, compound: comp, wear: 2, fuel: 5, w: sessWet, mode: 'normal', quali: true, carPerf: e.carPerf });
-        const riskMean = e.risk === 'push' ? -0.17 : e.risk === 'safe' ? 0.12 : 0;
-        const sd = 0.12 + (100 - e.drv.consistency) * 0.008 + sessWet * 0.25;
-        let t = pc.total + evo + riskMean + RNG.normal(0, sd);
-        const errP = (0.012 + (100 - e.drv.consistency) * 0.0012) * (e.risk === 'push' ? 2.2 : e.risk === 'safe' ? 0.5 : 1) * (1 + sessWet * 2);
-        if (RNG.chance(errP)) {
-          const big = RNG.chance(0.18);
-          t = big ? Infinity : t + RNG.range(0.8, 3.5);
-          res[did].incidents.push(`${s.name}: ${big ? 'bateu e não marcou tempo nesta tentativa' : 'erro na volta rápida'}`);
-          log.push({ s: s.name, did, text: big ? 'batida' : 'erro' });
-          if (big) break;
-        }
-        best = Math.min(best, t);
-      }
-      res[did].times[s.name] = best;
-    });
-    const sorted = alive.slice().sort((a, b) => res[a].times[s.name] - res[b].times[s.name]);
-    if (s.keep > 0) {
-      sorted.slice(s.keep).forEach(did => (res[did].eliminatedIn = s.name));
-      alive = sorted.slice(0, s.keep);
-    } else {
-      alive = sorted;
-    }
-  });
-  // grid: Q3 order, depois Q2 eliminados, depois Q1
-  const order = [];
-  const lastS = sessions[sessions.length - 1].name;
-  const byS = (sn, list) => list.sort((a, b) => res[a].times[sn] - res[b].times[sn]);
-  order.push(...byS(lastS, entries.map(e => e.did).filter(d => !res[d].eliminatedIn)));
-  if (sessions.length > 1) {
-    order.push(...byS('Q2', entries.map(e => e.did).filter(d => res[d].eliminatedIn === 'Q2')));
-    order.push(...byS('Q1', entries.map(e => e.did).filter(d => res[d].eliminatedIn === 'Q1')));
-  }
-  order.forEach((did, i) => {
-    res[did].pos = i + 1;
-    const ts = Object.values(res[did].times).filter(isFinite);
-    res[did].best = ts.length ? Math.min(...ts) : null;
-  });
-  return { order, res, sessions: sessions.map(s => s.name), wet: qWet };
-};
 
 /* ---------- corrida ---------- */
 const FAILURES = ['Falha no motor', 'Problema de câmbio', 'Perda de pressão hidráulica', 'Falha elétrica', 'Superaquecimento', 'Problema nos freios', 'Falha na unidade de energia'];

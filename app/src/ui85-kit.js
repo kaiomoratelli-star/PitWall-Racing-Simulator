@@ -6,7 +6,6 @@
 
 const K85 = {};
 const at85 = (o) => o ? (o.act ? ` data-act="${o.act}"${o.v ? ` data-v="${o.v}"` : ''}${o.p ? ` data-p='${esc(JSON.stringify(o.p))}'` : ''}${o.id != null ? ` data-id="${esc(o.id)}"` : ''}${o.extra || ''}` : '') : '';
-K85.go = (v, p) => ({ act: 'go', v, p });
 K85.tone = (v) => v >= 88 ? 'elite' : v >= 82 ? 'hi' : v >= 75 ? 'mid' : v >= 68 ? 'lo' : 'bad';
 K85.toneP = (v) => v >= 70 ? 'hi' : v >= 45 ? 'mid' : v >= 30 ? 'lo' : 'bad';   // percentuais (confiança, moral)
 K85.head = ({ t, s, act, tabs, tab, tabAct, eyebrow }) => `<div class="n-ph"><div>${eyebrow ? `<span class="n-eyebrow">${eyebrow}</span>` : ''}<h1>${esc(t)}</h1>${s ? `<p>${s}</p>` : ''}</div><span class="n-grow"></span>${tabs ? `<div class="n-tabs">${tabs.map(([v, l]) => `<button class="${v === tab ? 'on' : ''}" ${tabAct ? `data-act="${tabAct}" data-val="${esc(v)}"` : `data-act="go" data-v="${UI.view}" data-p='${esc(JSON.stringify(Object.assign({}, UI.params || {}, { tab: v })))}'`}>${esc(l)}</button>`).join('')}</div>` : ''}${act ? `<div class="n-acts">${act}</div>` : ''}</div>`;
@@ -34,7 +33,6 @@ K85.list = (items) => `<div class="n-list">${items.map(it => `<div class="n-li${
 K85.help = (t) => `<div class="n-help">${esc(t)}</div>`;
 K85.empty = (t, act) => `<div class="n-empty"><i></i><div><p>${esc(t)}</p>${act ? `<div style="margin-top:8px">${act}</div>` : ''}</div></div>`;
 K85.form = (arr, lg) => `<span class="n-form${lg ? ' lg' : ''}">${arr.map(v => `<i class="${v === 'AB' ? 'r' : v <= 3 ? 'pd' : v <= 10 ? 'pt' : ''}">${v}</i>`).join('')}</span>`;
-K85.pips = (n, max = 5) => `<span class="n-pips">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
 
 /* ---------- gráficos SVG ---------- */
 K85.spark = (vals, o = {}) => {

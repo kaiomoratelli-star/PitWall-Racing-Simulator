@@ -22,7 +22,6 @@ Disc.SERIES = {
   dtm: 'gt', stockcar: 'gt', supercars: 'gt', nascup: 'gt', nasxf: 'gt', nastr: 'gt',
 };
 Disc.of = (sid) => Disc.SERIES[sid] || 'mono';
-Disc.ofCat = (G, cid) => { const c = G && G.cats && G.cats.byId[cid]; return (c && c.disc) || Disc.of(cid); };
 /* exigência do jogador: adaptação instantânea */
 Disc.INSTANT = new Set(['max-verstappen', 'fernando-alonso']);
 /* facilidade de adaptação: de → para */

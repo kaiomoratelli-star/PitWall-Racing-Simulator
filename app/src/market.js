@@ -53,14 +53,6 @@ Market.slPoints = (G, d) => {
   return sum((d.sl || []).filter(x => x.y >= y - 3 && x.y <= y).map(x => x.pts));
 };
 Market.slEligible = (G, d) => !!(d.slEligible || (d.career && d.career.starts > 0) || Market.slPoints(G, d) >= 40) && d.age >= 18;
-Market.awardSuperlicense = (G, catId, standings) => {
-  const table = (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.superlicense[catId]) || (typeof DriverDB !== 'undefined' && DriverDB.SL[catId]) || null;
-  if (!table) return;
-  standings.forEach((x, i) => {
-    const d = Career.driver(G, x.did); if (!d || !table[i]) return;
-    d.sl = d.sl || []; d.sl.push({ y: G.season.year, cat: catId, pts: table[i] });
-  });
-};
 
 /* ---------- avaliação de candidatos pela equipe ---------- */
 Market.academyOf = (G, d) => (G.academies || []).find(a => a.members.includes(d.id));
@@ -400,7 +392,6 @@ Market.academyTick = (G) => {
     });
   });
 };
-Market.academyCost = (a) => +(a.budget * 1).toFixed(1);
 /* academia do jogador (se for equipe irmã, a academia compartilhada da principal) */
 Market.myAcademy = (G) => { const a = (G.academies || []).find(x => x.team === G.player.teamId); return a && a.sharedWith ? (G.academies.find(x => x.team === a.sharedWith) || a) : a; };
 Market.addToAcademy = (G, did) => {

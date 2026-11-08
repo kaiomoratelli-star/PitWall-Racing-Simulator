@@ -134,14 +134,6 @@ function edEngines(db) {
   </tbody></table></div>`;
 }
 
-function edCalendar(db) {
-  const inCal = db.calendar.map(id => db.tracks.find(t => t.id === id)).filter(Boolean);
-  const out = db.tracks.filter(t => !db.calendar.includes(t.id));
-  return `<div class="grid g2"><div><h4 style="margin-bottom:8px">Calendário (${inCal.length} etapas)</h4><table class="tbl">${inCal.map((t, i) => `<tr><td class="num">${i + 1}</td><td>${esc(t.gp)}</td><td class="r"><button class="btn sm ghost" data-act="edCal" data-op="up" data-i="${i}" aria-label="Subir">▲</button><button class="btn sm ghost" data-act="edCal" data-op="down" data-i="${i}" aria-label="Descer">▼</button><button class="btn sm ghost" data-act="edCal" data-op="rm" data-i="${i}" aria-label="Remover">✕</button></td></tr>`).join('')}</table>
-  <div class="row" style="margin-top:10px"><button class="btn sm" data-act="edCal" data-op="shuffle">Embaralhar</button></div>
-  ${ED.target === 'career' ? '<p class="small muted" style="margin-top:8px">Na carreira atual, o novo calendário vale a partir da próxima temporada.</p>' : ''}</div>
-  <div><h4 style="margin-bottom:8px">Pistas fora do calendário</h4><table class="tbl">${out.map(t => `<tr><td>${esc(t.gp)}</td><td class="r"><button class="btn sm" data-act="edCal" data-op="add" data-id="${t.id}">Adicionar</button></td></tr>`).join('') || '<tr><td class="muted">Todas as pistas estão no calendário.</td></tr>'}</table></div></div>`;
-}
 ACT.edCal = (el) => {
   const c = edDb().calendar; const i = +el.dataset.i;
   const op = el.dataset.op;

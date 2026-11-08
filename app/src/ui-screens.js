@@ -330,9 +330,7 @@ ACT.nextSeason = () => {
 
 /* ================= CAIXA DE ENTRADA ================= */
 const TAG_LABEL = { board: 'Diretoria', media: 'Mídia', money: 'Comercial', dev: 'Técnico', team: 'Equipe', fia: 'Federação', market: 'Paddock', ai: 'Paddock' };
-function mailRow(m, sel) {
-  return `<button class="mail ${m.read ? '' : 'unread'} ${sel ? 'on' : ''}" data-act="openMail" data-id="${m.id}"><span class="dot"></span><span style="min-width:0"><span class="t">${esc(m.title)}</span><br><span class="small muted">${esc(m.from)}</span></span><span class="row" style="gap:4px;flex-wrap:nowrap">${m.choices && m.resolved == null ? '<span class="chip acc">decidir</span>' : ''}</span></button>`;
-}
+function mailRow() { return ''; }   // substituída em ui-time.js
 SCREENS.inbox = {
   html() {
     const sel = UI.params.id ? G.inbox.find(m => m.id === UI.params.id) : (G.inbox.find(m => m.choices && m.resolved == null) || G.inbox[0]);
@@ -424,50 +422,7 @@ function pointsChart() {
   return lineChart('pts', { series, h: 320, xLabel: 'Etapa', yFmt: v => Math.round(v) });
 }
 
-/* ================= CALENDÁRIO ================= */
-SCREENS.calendar = {
-  html() {
-    const cal = G.season.calendar;
-    return `
-    <div class="page-head"><div><div class="eyebrow">Temporada ${G.season.year}</div><h1>Calendário</h1></div></div>
-    <div class="panel"><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Etapa</th><th>Grande Prêmio</th><th>Circuito</th><th>Vencedor</th><th>Pole</th><th>Sua melhor posição</th><th>Condições</th></tr></thead><tbody>
-    ${cal.map((tid, i) => {
-      const tr = Career.track(G, tid); const r = G.season.results[i];
-      const mine = r ? r.cls.filter(c => c.tid === G.player.teamId) : [];
-      const best = mine.length ? Math.min(...mine.map(c => c.status === 'fin' ? c.pos : 99)) : null;
-      return `<tr class="${i === G.season.round ? 'me' : ''}"><td class="num">${i + 1}</td><td><b>${esc(tr.gp)}</b>${tr.sprint ? ' <span class="chip acc">Sprint</span>' : ''}<div class="small muted">${esc(gpDate(tr))}</div></td><td><button class="linkbtn muted" data-act="circuitPage" data-id="${tr.id}">${esc(tr.circuit)}</button></td><td>${r ? dTag(r.winner) : i === G.season.round ? '<span class="chip acc">próxima</span>' : ''}</td><td>${r ? dTag(r.pole, false) : ''}</td><td class="num">${best ? (best === 99 ? 'Abandono' : ordinal(best)) : ''}</td><td class="small">${r ? (r.wet > 0.25 ? '<span class="chip" style="color:var(--blue)">Chuva</span> ' : '') + (r.sc ? `<span class="chip" style="color:var(--yellow)">SC ×${r.sc}</span>` : '') : ''}</td></tr>`;
-    }).join('')}
-    </tbody></table></div></div>`;
-  },
-};
 
-/* ================= EQUIPE ================= */
-SCREENS.team = {
-  html() {
-    const team = Career.team(G);
-    const ds = Career.teamDrivers(G, team.id).sort((a, b) => (a.seat === 'R' ? 9 : a.seat) - (b.seat === 'R' ? 9 : b.seat));
-    const year = G.season.year;
-    return `
-    <div class="page-head"><div><div class="eyebrow">${esc(team.name)}</div><h1>Pilotos e staff</h1></div><button class="btn" data-act="go" data-v="market">Ir ao mercado</button></div>
-    <div class="grid g2">
-      ${ds.map(d => driverCard(d, year)).join('')}
-    </div>
-    <div class="grid g2">
-      <div class="panel"><div class="panel-h"><h3>Staff técnico</h3><span class="small muted">Chefe: ${esc(G.player.name)}</span></div><div class="panel-b stack">
-        ${Object.entries(Career.STAFF_ROLES).map(([k, l]) => `<div>${attrRow(`${l}${team.staffNames && team.staffNames[k] ? ` · ${esc(team.staffNames[k])}` : ''}`, team.staff[k], 'b')}</div>`).join('')}
-        ${attrRow('Pit crew', team.pitCrew, 'g')}
-        ${attrRow('Instalações', team.facilities)}
-        <p class="small muted">Diretor técnico melhora confiabilidade e projetos; aerodinâmica e engenharia aceleram o P&D e o acerto automático; estratégia melhora a previsão do tempo e as decisões automáticas de pit.</p>
-      </div></div>
-      <div class="panel"><div class="panel-h"><h3>Mercado de staff</h3><span class="small muted">Renova a cada temporada</span></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Cargo</th><th>Nome</th><th class="r">Nível</th><th class="r">Atual</th><th class="r">Custo</th><th></th></tr></thead><tbody>
-        ${G.staffMarket.map(s => `<tr><td class="small">${Career.STAFF_ROLES[s.role]}</td><td>${esc(s.name)}</td><td class="r num ${ratingClass(s.rating)}">${s.rating}</td><td class="r num muted">${team.staff[s.role]}</td><td class="r num">${fmtMoney(s.fee)}</td><td><button class="btn sm" data-act="hireStaff" data-id="${s.id}" ${s.rating <= team.staff[s.role] ? 'disabled' : ''}>Contratar</button></td></tr>`).join('') || '<tr><td class="empty" colspan="6">Ninguém disponível.</td></tr>'}
-      </tbody></table></div></div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Patrocinadores</h3><span class="small muted">${fmtMoney(sum(G.sponsors.map(s => s.perRace)))} por GP</span></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Marca</th><th class="r">Por GP</th><th>Objetivo</th><th class="r">Bônus</th><th class="r">Temporadas</th><th>Satisfação</th></tr></thead><tbody>
-      ${G.sponsors.map(s => `<tr><td>${sponsorTag(s.name)}</td><td class="r num">${fmtMoney(s.perRace)}</td><td class="small">${Career.SPONSOR_OBJ[s.objective]}</td><td class="r num">${fmtMoney(s.bonus)}</td><td class="r num">${s.seasons}</td><td style="min-width:120px">${pctBar(s.satisfaction)}</td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  },
-};
 function driverCard(d, year) {
   const st = G.season.stats[d.id] || {};
   const seatLabel = d.seat === 'R' ? 'Reserva' : `Carro #${d.seat}`;
@@ -509,111 +464,10 @@ ACT.releaseDlg = (el) => {
 };
 ACT.releaseGo = (el) => { const err = Career.releaseDriver(G, el.dataset.id); closeModal(); if (err) toast(err, 'bad'); else { toast('Piloto dispensado.'); autosave(); } render(); };
 
-/* ================= CARRO E P&D ================= */
-SCREENS.dev = {
-  html() {
-    const team = Career.team(G);
-    const eng = Engine.engineOf(G.db, team);
-    const slots = Career.slots(team);
-    const teams = G.db.teams.slice().sort((a, b) => Engine.carRating(G.db, b) - Engine.carRating(G.db, a));
-    const area = UI.params.area || 'aero';
-    const quotes = Object.keys(Career.SIZES).map(s => Career.projectQuote(G, area, s));
-    const capLeft = Career.capRoom(G);
-    return `
-    <div class="page-head"><div><div class="eyebrow">${esc(team.name)}</div><h1>Carro e P&D</h1></div><span class="chip">${G.projects.length}/${slots} projetos ativos</span></div>
-    <div class="grid g2">
-      <div class="panel"><div class="panel-h"><h3>Seu carro</h3><span class="small muted">Motor ${esc(eng.name)}</span></div><div class="panel-b stack">
-        ${attrRow('Aerodinâmica', team.car.aero)}${attrRow('Chassi e suspensão', team.car.chassis)}${attrRow('Potência do motor', eng.power + (team.car.engineBonus || 0), 'b')}${attrRow('Confiabilidade', Engine.reliability(G.db, team), 'g')}${attrRow('Cuidado com pneus', team.car.tyreCare, 'g')}
-        <div class="sep"></div>
-        <div class="label">Foco no carro do próximo ano: ${G.nextYearFocus}%</div>
-        <input type="range" min="0" max="100" step="10" value="${G.nextYearFocus}" id="nyf" data-chg="nyFocus" aria-label="Foco no próximo ano">
-        <p class="small muted">Parte dos ganhos de aerodinâmica e chassi vai para o carro novo, com bônus de 35%. Acumulado: <b class="pos">+${G.nextYearBank.toFixed(2)}</b>.</p>
-      </div></div>
-      <div class="panel"><div class="panel-h"><h3>Comparativo do grid</h3></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Equipe</th><th class="r">Geral</th><th class="r">Aero</th><th class="r">Chassi</th><th class="r">Motor</th><th class="r">Confiab.</th></tr></thead><tbody>
-        ${teams.map(t => { const e = Engine.engineOf(G.db, t); return `<tr class="${t.id === team.id ? 'me' : ''}"><td>${tTag(t.id)}</td><td class="r num"><b>${Engine.carRating(G.db, t).toFixed(1)}</b></td><td class="r num">${t.car.aero.toFixed(1)}</td><td class="r num">${t.car.chassis.toFixed(1)}</td><td class="r num">${(e.power + (t.car.engineBonus || 0)).toFixed(1)}</td><td class="r num">${Engine.reliability(G.db, t).toFixed(0)}</td></tr>`; }).join('')}
-      </tbody></table></div></div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Projetos em andamento</h3></div><div class="panel-b stack">
-      ${G.projects.length ? G.projects.map(p => `<div class="row between"><div style="min-width:0"><b>${esc(p.name)}</b><div class="small muted">Ganho previsto +${p.min}–${p.max} · risco ${p.risk}%</div></div><div style="width:200px"><div class="label">${p.total - p.left}/${p.total} GPs</div>${bar(p.total - p.left, p.total, 'g')}</div></div>`).join('') : '<p class="muted">Nenhum projeto em andamento.</p>'}
-    </div></div>
-    <div class="panel"><div class="panel-h"><h3>Novo projeto</h3><span class="small muted">Teto disponível ${fmtMoney(capLeft)} · caixa ${fmtMoney(G.finances.balance)}</span></div>
-      <div class="tabs">${Object.entries(Career.AREAS).map(([k, a]) => `<button class="${area === k ? 'on' : ''}" data-act="go" data-v="dev" data-p='{"area":"${k}"}'>${a.name}</button>`).join('')}</div>
-      <div class="panel-b grid g3">
-        ${quotes.map(q => `<div class="panel" style="background:var(--panel2)"><div class="panel-b stack">
-          <h3>${Career.SIZES[q.size].name}</h3>
-          <dl class="kv"><dt>Custo</dt><dd>${fmtMoney(q.cost)}</dd><dt>Duração</dt><dd>${q.races} GPs</dd><dt>Ganho</dt><dd class="pos">+${q.min}–${q.max}</dd><dt>Risco de falha</dt><dd>${q.risk}%</dd></dl>
-          <button class="btn primary" data-act="startProject" data-area="${q.area}" data-size="${q.size}" ${G.projects.length >= slots ? 'disabled' : ''}>Iniciar</button>
-        </div></div>`).join('')}
-      </div></div>`;
-  },
-};
 CHG.nyFocus = (el) => { G.nextYearFocus = Number(el.value); render(); };
 ACT.startProject = (el) => { const err = Career.startProject(G, el.dataset.area, el.dataset.size); if (err) toast(err, 'bad'); else { toast('Projeto iniciado.', 'good'); autosave(); } render(); };
 
-/* ================= FINANÇAS ================= */
-SCREENS.finance = {
-  html() {
-    const L = G.finances.ledger.filter(x => x.year === G.season.year);
-    const S = G.finances.season && G.finances.season.year === G.season.year ? G.finances.season : null;
-    const cats = S ? { ...S.byCat } : {};
-    if (!S) L.forEach(x => { cats[x.cat] = (cats[x.cat] || 0) + x.amount; });
-    const inc = S ? S.inc : sum(L.filter(x => x.amount > 0).map(x => x.amount)), exp = S ? S.exp : sum(L.filter(x => x.amount < 0).map(x => x.amount));
-    const cap = G.db.rules.budgetCap;
-    // série de saldo por etapa
-    let bal = G.finances.balance; const pts = [];
-    const byRound = {};
-    G.finances.ledger.filter(x => x.year === G.season.year).forEach(x => { byRound[x.round] = (byRound[x.round] || 0) + x.amount; });
-    const rounds = Object.keys(byRound).map(Number).sort((a, b) => b - a);
-    pts.push([G.season.round + 1, bal]);
-    rounds.forEach(r => { bal -= byRound[r]; pts.push([r + 1 - 1, bal]); });
-    pts.sort((a, b) => a[0] - b[0]);
-    const uniq = []; pts.forEach(p => { const u = uniq.find(q => q[0] === p[0]); if (u) u[1] = p[1]; else uniq.push(p); });
-    return `
-    <div class="page-head"><div><div class="eyebrow">Temporada ${G.season.year}</div><h1>Finanças</h1></div></div>
-    <div class="grid g4">
-      <div class="panel"><div class="panel-b stack"><span class="label">Caixa</span><span class="stat-big num ${G.finances.balance < 0 ? 'neg' : ''}">${fmtMoney(G.finances.balance)}</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Receitas na temporada</span><span class="stat-big num pos">${fmtMoney(inc)}</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Despesas na temporada</span><span class="stat-big num neg">${fmtMoney(exp)}</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Teto orçamentário</span><span class="stat-big num">${Math.round(G.finances.spent / cap * 100)}%</span>${bar(G.finances.spent, cap, G.finances.spent > cap * 0.9 ? 'r' : '')}<span class="small muted">${fmtMoney(G.finances.spent)} de ${fmtMoney(cap)} · espaço real ${fmtMoney(Math.max(0, Career.capRoom(G)))} (a fábrica até o fim do ano já está reservada; salários de pilotos, motor e marketing ficam fora)</span></div></div>
-    </div>
-    ${typeof Econ !== 'undefined' ? (() => { const tm = Career.team(G); const rv = Econ.revenue(G, tm); const br = (G.capBreaches || []).filter(b => b.tid === tm.id); return `<div class="grid g4">
-      <div class="panel"><div class="panel-b stack"><span class="label">Receita prevista no ano</span><span class="stat-big num">${fmtMoney(rv.commercial + sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length + rv.owner)}</span><span class="small muted">comercial ${fmtMoney(rv.commercial)} (${ordinal(Econ.lastPos(G, tm))} no último Mundial) · patrocínio ${fmtMoney(sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length)} · donos ${fmtMoney(rv.owner)}</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Mercado de patrocínio</span><span class="stat-big num">${Math.round(sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length / Math.max(1, Econ.sponsorPool(tm)) * 100)}%</span>${bar(sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length, Econ.sponsorPool(tm), '')}<span class="small muted">do que as marcas pagam por uma equipe com a sua exposição (${fmtMoney(Econ.sponsorPool(tm))}/ano). Mais resultado e reputação aumentam esse limite.</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Custos fixos no ano</span><span class="stat-big num neg">${fmtMoney(-(Econ.factory(G, tm) + Econ.marketing(G, tm)))}</span><span class="small muted">fábrica e pessoal ${fmtMoney(Econ.factory(G, tm))} (dentro do teto)${tm.costCut && tm.costCut < 1 ? ` · estrutura reduzida a ${Math.round(tm.costCut * 100)}%` : ''} · marketing ${fmtMoney(Econ.marketing(G, tm))}</span></div></div>
-      <div class="panel"><div class="panel-b stack"><span class="label">Patrimônio dos donos</span><span class="stat-big num">${fmtMoney(G.finances.corporate || 0)}</span><span class="small muted">O caixa da equipe pode guardar até ${fmtMoney(Econ.reserve(G, tm))}; o excedente do ano vai para os donos e não volta sozinho para o carro.${br.length ? ` Auditorias do teto: ${br.map(b => `${b.y} ${b.material ? 'infração material' : 'infração menor'} (+${b.pct}%)`).join('; ')}.` : ''}</span></div></div>
-    </div>`; })() : ''}
-    <div class="grid g2">
-      <div class="panel"><div class="panel-h"><h3>Saldo ao longo da temporada</h3></div><div class="panel-b">${uniq.length > 1 ? lineChart('bal', { series: [{ name: 'Caixa', color: 'var(--accent)', pts: uniq, width: 2.5 }], h: 220, xLabel: 'Etapa', yFmt: v => fmtMoney(v), legend: false }) : '<div class="empty">O gráfico aparece após a primeira corrida.</div>'}</div></div>
-      <div class="panel"><div class="panel-h"><h3>Por categoria</h3></div><div class="panel-b tight"><table class="tbl">${Object.entries(cats).sort((a, b) => a[1] - b[1]).map(([k, v]) => `<tr><td style="text-transform:capitalize">${esc(k)}</td><td class="r num ${v < 0 ? 'neg' : 'pos'}">${fmtMoney(v)}</td></tr>`).join('') || '<tr><td class="empty">Sem lançamentos.</td></tr>'}</table></div></div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Extrato</h3></div><div class="panel-b tight tbl-wrap" style="max-height:480px;overflow:auto"><table class="tbl"><thead><tr><th>Etapa</th><th>Descrição</th><th>Categoria</th><th class="r">Valor</th></tr></thead><tbody>
-      ${G.finances.ledger.slice(0, 120).map(x => `<tr><td class="num muted">${x.year}·${x.round + 1}</td><td>${esc(x.desc)}</td><td class="small muted">${esc(x.cat)}</td><td class="r num ${x.amount < 0 ? 'neg' : 'pos'}">${fmtMoney(x.amount)}</td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  },
-  after() { bindCharts(); },
-};
 
-/* ================= MERCADO ================= */
-SCREENS.market = {
-  html() {
-    const f = UI.params.f || 'all';
-    const sort = UI.params.s || 'ovr';
-    let ds = G.db.drivers.filter(d => !d.retired && d.team !== G.player.teamId);
-    if (f === 'free') ds = ds.filter(d => !d.team);
-    if (f === 'young') ds = ds.filter(d => d.age <= 23);
-    if (f === 'expiring') ds = ds.filter(d => d.team && d.contractYears <= 0);
-    const key = { ovr: d => -driverOverall(d), pot: d => -potMid(d), age: d => d.age, val: d => -Career.marketValue(d) }[sort];
-    ds.sort((a, b) => key(a) - key(b));
-    const P = (o) => JSON.stringify({ f, s: sort, ...o }).replace(/'/g, '');
-    return `
-    <div class="page-head"><div><div class="eyebrow">Transferências</div><h1>Mercado de pilotos</h1></div></div>
-    <div class="row"><div class="seg">${[['all', 'Todos'], ['free', 'Sem equipe'], ['young', 'Jovens (≤23)'], ['expiring', 'Contrato acabando']].map(([k, l]) => `<button class="${f === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ f: k })}'>${l}</button>`).join('')}</div>
-      <span class="spacer"></span><span class="small muted">Ordenar</span><div class="seg">${[['ovr', 'Nota'], ['pot', 'Potencial'], ['age', 'Idade'], ['val', 'Valor']].map(([k, l]) => `<button class="${sort === k ? 'on' : ''}" data-act="go" data-v="market" data-p='${P({ s: k })}'>${l}</button>`).join('')}</div></div>
-    <div class="panel"><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th>Nac.</th><th class="r">Idade</th><th>Equipe</th><th>Estilo</th><th class="r">Nota</th><th class="r">Potencial</th><th class="r">Contrato</th><th class="r">Valor/ano</th><th class="r">Moral</th><th></th></tr></thead><tbody>
-      ${ds.map(d => `<tr><td>${dTag(d.id)}${d.rookie ? ' <span class="chip">novato</span>' : ''}${d.futureTeam ? ` <span class="chip acc">→ ${esc(Career.team(G, d.futureTeam.team).short)}</span>` : ''}</td><td>${natTag(d.nat)}</td><td class="r num">${d.age}</td><td class="small">${d.team ? esc(Career.team(G, d.team).name) + (d.seat === 'R' ? ' (res.)' : '') : '<span class="muted">Livre</span>'}</td><td class="small muted">${esc(STYLE_LABELS[d.style] || '')}</td><td class="r num ${ratingClass(driverOverall(d))}"><b>${driverOverall(d)}</b></td><td class="r num">${potText(d)}</td><td class="r num">${d.team ? G.season.year + Math.max(0, d.contractYears) : '—'}</td><td class="r num">${fmtMoney(Career.marketValue(d))}</td><td class="r num">${Math.round(d.morale)}</td><td><button class="btn sm" data-act="offerDlg" data-id="${d.id}">Proposta</button></td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  },
-};
 ACT.offerDlg = (el) => {
   const d = Career.driver(G, el.dataset.id);
   const val = Career.marketValue(d);
@@ -642,13 +496,6 @@ ACT.offerGo = (el) => {
   closeModal(); toast(r.msg, r.ok ? 'good' : 'bad'); autosave(); render();
 };
 
-/* ================= NOTÍCIAS ================= */
-SCREENS.news = {
-  html() {
-    return `<div class="page-head"><div><div class="eyebrow">Paddock</div><h1>Notícias</h1></div></div>
-    <div class="panel"><div class="mail-list">${G.news.map(n => `<div class="mail" style="cursor:default"><span></span><span style="min-width:0"><span class="t"><b>${esc(n.title)}</b></span>${n.body ? `<br><span class="small muted">${esc(n.body)}</span>` : ''}</span><span class="small muted num">${n.year}·${n.round + 1}</span></div>`).join('') || '<div class="empty">Sem notícias.</div>'}</div></div>`;
-  },
-};
 
 /* ================= HISTÓRICO ================= */
 SCREENS.history = {
@@ -804,11 +651,7 @@ function gpVisual(tr) {
   return hero ? `<div class="map hero" style="background-image:url('${hero}')"><canvas id="hubMap"></canvas></div>` : `<div class="map"><canvas id="hubMap"></canvas></div>`;
 }
 /* data do GP no ano da temporada (calendário real usado como referência) */
-function gpDate(tr) {
-  if (!tr.date || !G) return '';
-  const [, m, d] = tr.date.split('-').map(Number);
-  return new Date(G.season.year, m - 1, d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
+function gpDate() { return ''; }   // substituída em ui-time.js
 
 /* apagar um jogo salvo (a função existia sem botão) */
 ACT.delSlot = async (el) => {

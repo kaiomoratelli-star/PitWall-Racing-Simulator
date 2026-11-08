@@ -195,55 +195,7 @@ function leaderChartHtml(race) {
   return strip + html;
 }
 
-function pitWallHtml(race, wk, tr, cars) {
-  const ctl = $('#ctl'); if (!ctl) return;
-  const obs = Career.isObs(G);
-  if (obs && !UI.followTeam) UI.followTeam = cars[0] ? cars[0].tid : G.db.teams[0].id;
-  const tid = obs ? UI.followTeam : G.player.teamId;
-  const mine = race.cars.filter(c => c.tid === tid);
-  const card = (c) => {
-    const i = cars.indexOf(c), ahead = cars[i - 1], behind = cars[i + 1];
-    const props = Engine.tprops(tr, c.tyre.c);
-    const drvE = Career.ctx(G).effOf(c.did), teamC = Career.team(G, c.tid);
-    const wearRate = Engine.wearRate(c.tyre.c, tr, drvE, teamC, Engine.tyreModeOf(c), race.wet[race.lap] || 0, c.tyre.temp);
-    const share = race.R ? race.R.electricShare : 50;
-    const ovtUse = -Engine.ersDelta(drvE, teamC.car.energy ?? 80, 'overtake', share);
-    const autonomy = ovtUse > 0 ? Math.floor((c.soc ?? 100) / ovtUse) : null;
-    const spark = (c.ersH || []).map(v => `<i class="${v >= 0 ? 'up' : 'dn'}" style="height:${Math.min(100, Math.abs(v) * 9)}%" title="${v > 0 ? '+' : ''}${v}%"></i>`).join('');
-    const lapsTo70 = Math.max(0, Math.round((70 - c.tyre.wear) / Math.max(0.3, wearRate)));
-    const radio = c.status === 'run' ? Events.radio(race, c, wk) : [];
-    if (c.status === 'run' && c.tyre.temp > props.hi) radio.push(`Pneus superaquecendo (${Math.round(c.tyre.temp)}°C).`);
-    if (c.status === 'run' && c.tyre.temp < props.lo && c.tyre.age > 1) radio.push(`Pneus frios (${Math.round(c.tyre.temp)}°C), sem aderência.`);
-    if (c.status === 'run' && (c.soc ?? 100) < 15) radio.push('Bateria baixa: economize energia.');
-    const gapA = ahead && c.status === 'run' && ahead.status === 'run' ? (c.T - ahead.T) : null;
-    const gapB = behind && behind.status === 'run' && c.status === 'run' ? (behind.T - c.T) : null;
-    const ctrl = !obs && c.status === 'run' && !race.finished;
-    return `<div class="pw-car">
-      <div class="row between"><div class="row" style="gap:10px;flex-wrap:nowrap">${headshot(Career.driver(G, c.did), 'sm')}<span class="big num">P${c.pos}</span><div>${dTag(c.did)}<div class="small muted">Largou em ${c.grid} · ${c.pits} parada(s)${c.lastStop ? ` · última ${c.lastStop}s` : ''}${c.damage.wing ? ' · <span class="neg">asa danificada</span>' : ''}${c.damage.power ? ' · <span class="neg">perda de potência</span>' : ''}</div></div></div>
-      ${c.status !== 'run' ? `<span class="chip bad">${c.status === 'fin' ? 'Terminou' : esc(c.dnfReason || 'Abandono')}</span>` : ''}</div>
-      ${c.status === 'run' ? `<div class="pw-grid">
-        <div><span class="label">À frente</span><b>${gapA != null ? `${esc(rawName(ahead.did))} ${gapA.toFixed(1)}s` : '—'}</b></div>
-        <div><span class="label">Atrás</span><b>${gapB != null ? `${esc(rawName(behind.did))} ${gapB.toFixed(1)}s` : '—'}</b></div>
-        <div><span class="label">Pneu</span><b>${tyreIcon(c.tyre.c)} ${props.name} · ${c.tyre.age}v</b></div>
-        <div><span class="label">Desgaste</span>${bar(c.tyre.wear, 100, c.tyre.wear > 70 ? 'r' : '')}<span class="small num">${Math.round(c.tyre.wear)}% · ~${lapsTo70} v até 70%</span></div>
-        <div><span class="label">Temperatura</span><b class="${tempClass(tr, c.tyre.c, c.tyre.temp)}">${Math.round(c.tyre.temp)}°C</b><span class="small muted"> janela ${props.lo}–${props.hi}</span></div>
-        ${share > 0 ? `<div><span class="label">Bateria</span>${bar(c.soc ?? 100, 100, (c.soc ?? 100) < 20 ? 'r' : 'g')}<span class="small num">${Math.round(c.soc ?? 100)}% · +${Math.round(c.ersIn || 0)} / −${Math.round(c.ersOut || 0)}</span><div class="ers-spark" title="Saldo de energia por volta (últimas 15)">${spark}</div><span class="small muted">${autonomy != null ? `~${autonomy} v em ultrapassagem` : ''}</span></div>` : ''}
-        <div><span class="label">Plano</span><b>${c.plan.stops} parada(s)${c.auto ? ' · automático' : ' · manual'}</b></div>
-        <div><span class="label">Velocidade máx.</span><b class="num">${c.vmax || '—'} km/h</b></div>
-      </div>` : ''}
-      ${ctrl ? `<div class="pw-modes">
-        <div><span class="label">Pneus</span>${segBtns('carTyreMode', Engine.tyreModeOf(c), [['save', 'Conservar'], ['normal', 'Equilibrado'], ['push', 'Atacar']], `data-d="${c.did}"`)}</div>
-        ${share > 0 ? `<div><span class="label">Energia (ERS)</span>${segBtns('carErsMode', Engine.ersModeOf(c), [['harvest', 'Recarregar'], ['balanced', 'Neutro'], ['overtake', 'Ultrapassagem']], `data-d="${c.did}"`)}</div>` : ''}
-        <div class="row" style="gap:6px"><button class="btn sm ${c.autoModes ? 'primary' : ''}" data-act="carAutoModes" data-d="${c.did}" title="O engenheiro escolhe os modos de pneu e de energia a cada volta">${c.autoModes ? 'Modos: engenheiro' : 'Modos: manual'}</button>
-        <button class="btn sm ${c.auto ? '' : 'primary'}" data-act="carAuto" data-d="${c.did}">${c.auto ? 'Paradas: automático' : 'Paradas: manual'}</button></div></div>
-      <div class="row"><span class="small muted">Box:</span>${['S', 'M', 'H', 'I', 'W'].map(t => `<button class="btn sm ${c.pitReq === t ? 'primary' : ''}" data-act="carPit" data-d="${c.did}" data-c="${t}" title="${esc(Engine.tyreLabel(tr, t))}">${tyreIcon(t)}</button>`).join('')}${c.pitReq ? `<span class="chip acc">Box nesta volta: ${esc(Engine.tyreLabel(tr, c.pitReq))}</span>` : ''}</div>` : ''}
-      ${radio.length && c.status === 'run' ? `<div class="radio">Engenheiro${(() => { const s = Staff.get(Career.team(G, c.tid), mine.indexOf(c) === 0 ? 'raceEng1' : 'raceEng2'); return s ? ` (${esc(s.name)})` : ''; })()}: ${esc(radio.join(' '))}</div>` : ''}
-    </div>`;
-  };
-  ctl.innerHTML = `<div class="panel-h"><h3>Pit Wall${obs ? ' · acompanhamento' : ''}</h3>
-    ${obs ? `<select class="inp" style="width:auto" data-chg="followTeam" aria-label="Equipe">${G.db.teams.map(t => opt(t.id, t.name, tid)).join('')}</select>` : (mine.filter(c => c.status === 'run').length === 2 && !race.finished ? '<button class="btn sm" data-act="teamOrder">Ordem de equipe: trocar posições</button>' : '')}</div>
-    <div class="pw-cars">${mine.map(card).join('')}</div>`;
-}
+function pitWallHtml() { /* substituída em ui85-race.js */ }
 CHG.followTeam = (el) => { UI.followTeam = el.value; updateRace(); };
 
 /* detecta ultrapassagens para o efeito visual na torre */

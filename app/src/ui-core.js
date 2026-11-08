@@ -97,38 +97,7 @@ function render() {
   if (window.claude && window.claude.hot && window.claude.hot.snapshot) { /* registrado em main */ }
 }
 
-function shellHtml(inner) {
-  if (Career.isObs(G)) return shellObsHtml(inner);
-  const team = Career.team(G);
-  const unread = G.inbox.filter(m => !m.read).length;
-  const pending = G.inbox.filter(m => m.choices && m.resolved == null).length;
-  const sc = Career.standingsC(G);
-  const pos = sc.findIndex(x => x.tid === team.id) + 1;
-  const navItems = NAV.filter(navVisible).map(n => {
-    if (n[0] === 'g') return `<div class="nav-group label">${n[1]}</div>`;
-    const badge = n[0] === 'inbox' && (pending || unread) ? `<span class="badge">${pending || unread}</span>` : n[0] === 'weekend' && G.weekend ? '<span class="chip acc">ao vivo</span>' : '';
-    const on = UI.view === n[0] || (n[0] === 'weekend' && ['race', 'weekend'].includes(UI.view));
-    return `<button class="navitem ${on ? 'on' : ''}" data-act="go" data-v="${n[0]}"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${n[2]}"/></svg>${n[1]}${badge}</button>`;
-  }).join('');
-  return `
-  <header class="topbar">
-    <button class="btn ghost sm navbtn" data-act="toggleNav" aria-label="Menu">☰</button>
-    <button class="btn ghost sm backbtn" data-act="back" aria-label="Voltar" title="Voltar (Alt + ←)" ${UI.hist && UI.hist.length ? '' : 'disabled'}>←</button>
-    <button class="brand" data-act="go" data-v="hub"><span class="slash"></span><span class="word">PIT WALL</span></button>
-    <div class="top-team"><span class="livery" style="background:linear-gradient(${team.color} 60%, ${team.color2} 60%)"></span><span class="name">${esc(team.name)}</span></div>
-    <div class="top-stats">
-      <div class="top-stat"><span class="label">Data</span><b>${typeof Time !== 'undefined' && (Time.init(G), G.today) ? esc(Time.fmt(G.today)) : G.season.year}</b></div>
-      <div class="top-stat hide-sm"><span class="label">Temporada</span><b>${G.season.year} · ${Math.min(G.season.round + 1, G.season.calendar.length)}/${G.season.calendar.length}</b></div>
-      <div class="top-stat hide-sm"><span class="label">Construtores</span><b>${ordinal(pos)}</b></div>
-      <div class="top-stat"><span class="label">Caixa</span><b class="${G.finances.balance < 0 ? 'neg' : ''}">${fmtMoney(G.finances.balance)}</b></div>
-      <div class="top-stat"><span class="label">Diretoria</span><b class="${G.board.confidence < 30 ? 'neg' : G.board.confidence > 70 ? 'pos' : ''}">${Math.round(G.board.confidence)}%</b></div>
-    </div>
-  </header>
-  <div class="shell">
-    <nav class="nav ${UI.navOpen ? 'open' : ''}" aria-label="Navegação">${navItems}</nav>
-    <main class="main"><div class="main-inner">${inner}</div></main>
-  </div>`;
-}
+function shellHtml(inner) { return inner; }   // substituída em ui85-shell.js
 function navHtml(items) {
   return items.filter(navVisible).map(n => {
     if (n[0] === 'g') return `<div class="nav-group label">${n[1]}</div>`;
@@ -136,39 +105,13 @@ function navHtml(items) {
     return `<button class="navitem ${on ? 'on' : ''}" data-act="go" data-v="${n[0]}"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${n[2]}"/></svg>${n[1]}</button>`;
   }).join('');
 }
-function shellObsHtml(inner) {
-  const sd = Career.standingsD(G);
-  const leader = sd[0] && sd[0].pts > 0 ? Career.driver(G, sd[0].did) : null;
-  const items = NAV.filter(n => !MANAGER_ONLY.has(n[0]) && n[0] !== 'weekend' && !(n[0] === 'g' && n[1] === 'Equipe'));
-  return `
-  <header class="topbar">
-    <button class="btn ghost sm navbtn" data-act="toggleNav" aria-label="Menu">☰</button>
-    <button class="btn ghost sm backbtn" data-act="back" aria-label="Voltar" title="Voltar (Alt + ←)" ${UI.hist && UI.hist.length ? '' : 'disabled'}>←</button>
-    <button class="brand" data-act="go" data-v="hub"><span class="slash"></span><span class="word">PIT WALL</span></button>
-    <span class="chip acc">Modo Observador</span>
-    <div class="top-stats">
-      <div class="top-stat hide-sm"><span class="label">Temporada</span><b>${G.season.year} · ${Math.min(G.season.round + 1, G.season.calendar.length)}/${G.season.calendar.length}</b></div>
-      <div class="top-stat"><span class="label">Líder</span><b>${leader ? esc(leader.name.split(' ').slice(-1)[0]) + ' ' + sd[0].pts : '—'}</b></div>
-    </div>
-  </header>
-  <div class="shell">
-    <nav class="nav ${UI.navOpen ? 'open' : ''}" aria-label="Navegação">${navHtml(items)}</nav>
-    <main class="main"><div class="main-inner">${inner}</div></main>
-  </div>`;
-}
+function shellObsHtml(inner) { return inner; }   // substituída em ui85-shell.js
 
 /* ---------- imagens reais (empacotadas na versão desktop) ---------- */
 const ACCENT = '#E10600';
 function imgUrl(p) { return (typeof HAS_IMG !== 'undefined' && HAS_IMG && p) ? 'assets/img/' + p : null; }
 function initials(name) { return String(name || '?').split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
-function headshot(d, cls = '') {
-  // retrato com o rosto centralizado (scripts/import_images.py) quando existe; senão a foto original
-  const face = d && typeof Assets !== 'undefined' ? Assets.face(d) : null;
-  const u = face || (d && imgUrl(d.img));
-  const tc = d && d.team && G ? teamColor(d.team) : '#3a3a44';
-  if (u) return `<span class="hs ${cls}" style="--tc:${tc}"><img src="${u}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg');this.remove()"></span>`;
-  return `<span class="hs noimg ${cls}" style="--tc:${tc}"><b>${esc(initials(d && d.name))}</b></span>`;
-}
+function headshot() { return ''; }   // substituída em ui-avatar.js
 function teamLogo(t, cls = '') {
   const u = t && ((t.logo && String(t.logo).startsWith('data:image/') ? t.logo : imgUrl(t.logo)) || (typeof Assets !== 'undefined' ? Assets.logoByName('teams', t.fullName || t.name) : null));
   if (u) return `<span class="tlogo ${cls}" style="--tc:${t.color}"><img src="${u}" alt="" loading="lazy" onerror="this.remove()"></span>`;

@@ -137,28 +137,7 @@ SCREENS.dev = {
 };
 CHG.devArea = (el) => go('dev', { area: el.value });
 
-/* ---------- finanças: projeção ---------- */
-const _finHtml = SCREENS.finance.html;
-SCREENS.finance.html = function () {
-  const base = _finHtml.call(this);
-  const L = G.finances.ledger.filter(x => x.year === G.season.year);
-  const played = Math.max(1, G.season.round);
-  const left = G.season.calendar.length - G.season.round;
-  const net = sum(L.map(x => x.amount)) / played;
-  const pos = Career.standingsC(G).findIndex(x => x.tid === G.player.teamId) + 1;
-  const prize = typeof Econ !== 'undefined' ? 0 : (G.db.rules.prizePerPosition[pos - 1] || 10);
-  const proj = G.finances.balance + net * left + prize;
-  const capProj = typeof Econ !== 'undefined' ? G.finances.spent + Econ.committed(G, Career.team(G)) - Econ.cap(G) * 0.03 * (left / G.season.calendar.length) : G.finances.spent / played * G.season.calendar.length;
-  const cats = {};
-  L.forEach(x => { if (x.amount < 0) cats[x.cat] = (cats[x.cat] || 0) - x.amount; });
-  const team = Career.team(G);
-  return base.replace('<div class="grid g2">', `<div class="panel"><div class="panel-h"><h3>Previsão para o fim de ${G.season.year}</h3><span class="small muted">Média das ${played} etapa(s) disputada(s)</span></div><div class="panel-b grid g4">
-    <div><div class="label">Caixa projetado</div><div class="stat-big ${proj < 0 ? 'neg' : 'pos'}">${fmtMoney(proj)}</div><div class="small muted">${prize ? `inclui ${fmtMoney(prize)} de prêmio (${ordinal(pos)})` : `a posição final (${ordinal(pos)} agora) define a distribuição comercial do ano que vem`}</div></div>
-    <div><div class="label">Resultado por GP</div><div class="stat-big ${net < 0 ? 'neg' : 'pos'}">${fmtMoney(net)}</div></div>
-    <div><div class="label">Teto no fim do ano</div><div class="stat-big ${capProj > G.db.rules.budgetCap ? 'neg' : ''}">${Math.round(capProj / G.db.rules.budgetCap * 100)}%</div><div class="small muted">${capProj > G.db.rules.budgetCap ? 'Risco de estourar o teto: punição esportiva e multa' : 'Dentro do limite'}</div></div>
-    <div><div class="label">Folha fixa por ano</div><div class="stat-big">${fmtMoney(sum(Career.teamDrivers(G, team.id).map(d => d.salary)) + Staff.payroll(team))}</div><div class="small muted">pilotos ${fmtMoney(sum(Career.teamDrivers(G, team.id).map(d => d.salary)))} · funcionários ${fmtMoney(Staff.payroll(team))}</div></div>
-  </div></div><div class="grid g2">`);
-};
+
 
 /* "gerar outro traçado" também vale para os circuitos gerados (respeitando os parâmetros) */
 const _edShape = ACT.edShape;

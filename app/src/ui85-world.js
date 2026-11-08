@@ -209,3 +209,9 @@ SCREENS.seasonEnd = {
     after() { if (old.after) old.after.call(this); },
   };
 })();
+
+/* página da equipe: painel completo do dono (humor, dívida, aporte, venda, trocas de dono) que a página nova tinha perdido */
+(function () {
+  const h = SCREENS.teamPage.html;
+  SCREENS.teamPage.html = function () { const t = Career.team(G, UI.params.id) || G.db.teams[0]; return h.call(this) + (typeof ownerPanelHtml === 'function' ? `<div class="tp85-own">${ownerPanelHtml(t)}</div>` : ''); };
+})();

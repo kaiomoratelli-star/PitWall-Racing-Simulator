@@ -17,50 +17,6 @@ function teamLineage(tid) {
 }
 function inLineage(lin, cid, y) { return lin.some(l => l.id === cid && (l.from == null || y >= l.from) && (l.to == null || y <= l.to)); }
 
-SCREENS.teamPage = {
-  html() {
-    const t = Career.team(G, UI.params.id) || G.db.teams[0];
-    const lin = teamLineage(t.id);
-    const lore = LORE[t.id] || {};
-    // títulos e temporadas reais da linhagem
-    const realSeasons = [];
-    const titles = [];
-    const winners = {};
-    if (HIST) HIST.seasons.forEach(s => {
-      const i = s.c.findIndex(x => inLineage(lin, x[0], s.y));
-      if (i >= 0 && s.c[i][2] != null) realSeasons.push({ y: s.y, pos: s.c[i][2], pts: s.c[i][1], name: (RREC && RREC.names[s.c[i][0]]) || hTeam(s.c[i][0]) });
-      if (s.complete && i === 0) titles.push({ y: s.y, name: (RREC && RREC.names[s.c[0][0]]) || hTeam(s.c[0][0]) });
-      s.r.forEach(r => { if (r[5][0] && inLineage(lin, r[5][0], s.y)) winners[r[4][0]] = (winners[r[4][0]] || 0) + 1; });
-    });
-    const sim = (t.history || []).filter(h => h.sim);
-    const simTitles = (G.history || []).filter(h => h.constructor === t.id).map(h => h.year);
-    (G.archive || []).forEach(a => a.races.forEach(r => { const c = r.c.find(x => x[0] === r.w); if (c && c[1] === t.id) winners[r.w] = (winners[r.w] || 0) + 1; }));
-    const topW = Object.entries(winners).sort((a, b) => b[1] - a[1]).slice(0, 8);
-    const rs = t.realStats || {};
-    const lineTotals = lin.reduce((acc, l) => { const h = HIST && HIST.constructors[l.id]; if (h && !acc.seen.has(l.id)) { acc.seen.add(l.id); acc.wins += h[3]; acc.pod += h[4]; acc.poles += h[5]; acc.starts += h[2]; } return acc; }, { wins: 0, pod: 0, poles: 0, starts: 0, seen: new Set() });
-    const best = realSeasons.concat(sim.map(h => ({ y: h.y, pos: h.pos, sim: true }))).sort((a, b) => a.pos - b.pos || a.y - b.y)[0];
-    const maxY = Math.max(...realSeasons.map(s => s.y), ...sim.map(s => s.y), 0);
-    const chart = realSeasons.slice(-30).concat(sim.map(h => ({ y: h.y, pos: h.pos, sim: true })));
-    return `<div class="team-hero" style="--tc:${t.color};--tc2:${t.color2 || '#111'}"><div class="th-txt">${teamLogo(t)}<div><div class="eyebrow">${esc(lore.base || natTag(t.country))}${lore.debut ? ` · na F1 desde ${lore.debut}` : ''}</div><h1>${esc(t.name)}</h1><div class="small">${esc(t.chassisName || '')}${t.puName ? ' · ' + esc(t.puName) : ''} · chefe de equipe ${esc(t.principal)}</div></div></div>${carImg(t, 'th-car')}</div>
-    <div class="grid g4" style="margin-top:14px">
-      <div class="panel"><div class="panel-b"><div class="label">Títulos de construtores</div><div class="stat-big">${(rs.titles || 0) + simTitles.length}</div><div class="small muted">${rs.titles || 0} reais${simTitles.length ? ` · ${simTitles.length} na carreira` : ''}</div></div></div>
-      <div class="panel"><div class="panel-b"><div class="label">Vitórias (nome atual)</div><div class="stat-big">${(rs.wins || 0) + sim.reduce((s, h) => s + (h.w || 0), 0)}</div><div class="small muted">Linhagem completa: ${lineTotals.wins} vitórias</div></div></div>
-      <div class="panel"><div class="panel-b"><div class="label">Pódios / poles</div><div class="stat-big">${(rs.podiums || 0) + sim.reduce((s, h) => s + (h.pod || 0), 0)} / ${rs.poles || 0}</div><div class="small muted">Linhagem: ${lineTotals.pod} pódios · ${lineTotals.poles} poles</div></div></div>
-      <div class="panel"><div class="panel-b"><div class="label">Melhor temporada</div><div class="stat-big">${best ? ordinal(best.pos) : '—'}</div><div class="small muted">${best ? `${best.y}${best.sim ? ' (simulada)' : ''}` : ''}</div></div></div>
-    </div>
-    <div class="grid g2">
-      <div class="panel"><div class="panel-h"><h3>Linhagem</h3><span class="small muted">Mesma estrutura, nomes diferentes</span></div><div class="panel-b"><div class="lineage">${lin.map(l => `<div class="lin"><b>${esc(l.name)}</b><span class="num small muted">${l.from || '?'}–${l.to || 'hoje'}</span></div>`).join('') || '<p class="muted">Sem histórico real.</p>'}</div>
-        ${titles.length || simTitles.length ? `<div class="label" style="margin-top:14px">Anos de título</div><div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px">${titles.map(x => `<span class="chip" title="${esc(x.name)}">${x.y}</span>`).join('')}${simTitles.map(y => `<span class="chip ai">${y}</span>`).join('')}</div>` : ''}
-      </div></div>
-      <div class="panel"><div class="panel-h"><h3>Chefes de equipe</h3></div><div class="panel-b tight"><table class="tbl"><tbody>${(lore.principals || []).slice().reverse().map(([n, a, b]) => `<tr><td>${esc(n)}</td><td class="r num muted">${a}–${b || 'hoje'}</td></tr>`).join('')}${(t.history || []).filter(h => h.sim && h.principal).reduce((acc, h) => { if (!acc.length || acc[acc.length - 1][0] !== h.principal) acc.push([h.principal, h.y, h.y]); else acc[acc.length - 1][2] = h.y; return acc; }, []).filter(([n]) => !(lore.principals || []).some(p => p[0] === n)).map(([n, a, b]) => `<tr><td>${esc(n)} ${simTag()}</td><td class="r num muted">${a}–${b}</td></tr>`).join('')}</tbody></table></div></div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Posição no Mundial, ano a ano</h3><span class="small muted">Últimas temporadas reais e as simuladas desta carreira</span></div><div class="panel-b"><div class="poschart">${chart.map(s => `<div class="pc ${s.sim ? 'sim' : ''}" title="${s.y}: ${ordinal(s.pos)}${s.sim ? ' (simulada)' : ''}"><i style="height:${Math.max(6, 100 - (s.pos - 1) * 9)}%"></i><span>${String(s.y).slice(2)}</span></div>`).join('')}</div>${maxY ? '' : '<p class="muted">Sem temporadas registradas.</p>'}</div></div>
-    <div class="grid g2">
-      <div class="panel"><div class="panel-h"><h3>Maiores vencedores pela equipe</h3></div><div class="panel-b tight"><table class="tbl"><tbody>${topW.map(([id, n]) => `<tr><td>${dLink(id)}</td><td class="r num">${n}</td></tr>`).join('') || '<tr><td class="empty">Ainda sem vitórias.</td></tr>'}</tbody></table></div></div>
-      <div class="panel"><div class="panel-h"><h3>Hoje</h3></div><div class="panel-b"><dl class="kv"><dt>Pilotos</dt><dd>${Career.lineup(G, t.id).map(d => esc(d.name)).join(' · ')}</dd><dt>Motor</dt><dd>${esc(Engine.engineOf(G.db, t).name)}${t.works ? ' (fábrica)' : ''}</dd><dt>Orçamento</dt><dd>${fmtMoney(t.budget)}</dd><dt>Reputação</dt><dd>${Math.round(t.reputation)}</dd><dt>Pontos ${G.season.year}</dt><dd>${G.season.standC[t.id] || 0}</dd></dl></div></div>
-    </div>`;
-  },
-};
 function dLink(id) { const d = Career.driver(G, id); return d ? `<button class="linkbtn" data-act="driverPage" data-id="${esc(id)}">${esc(d.name)}</button>` : esc(hName(id)); }
 ACT.teamPage = (el) => go('teamPage', { id: el.dataset.id });
 

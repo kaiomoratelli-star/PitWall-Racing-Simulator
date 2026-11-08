@@ -130,14 +130,6 @@ Engine.aiModes = (race, car, gapAhead, gapBehind) => {
   else if (lapsLeft <= 5 && wear < 80) tyre = 'push';
   return { tyre, ers };
 };
-Engine.aiMode = (race, car, gapAhead, gapBehind) => {
-  const soc = car.soc ?? 100;
-  if (race.sc) return 'normal';
-  if (soc < 18) return 'save';
-  if ((gapAhead < 1.2 || gapBehind < 0.9) && soc > 35) return 'push';
-  if (car.tyre.wear > 70 && car.plan && car.plan.stops <= car.pits) return 'save';
-  return 'normal';
-};
 /* estimativa de estratégia (usada na tela de pré-corrida) */
 Engine.strategyForecast = (track, laps, drv, team) => {
   const life = (code) => 70 / Math.max(0.5, Engine.wearRate(code, track, drv, team, 'normal', 0));

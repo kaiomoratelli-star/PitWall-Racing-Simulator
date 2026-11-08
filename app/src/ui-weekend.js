@@ -4,11 +4,6 @@
    ============================================================ */
 'use strict';
 
-function stepsHtml(phase) {
-  const st = [['practice', 'Treinos'], ['quali', 'Classificação'], ['strategy', 'Estratégia'], ['race', 'Corrida'], ['post', 'Resultado']];
-  const idx = st.findIndex(s => s[0] === phase);
-  return `<div class="steps">${st.map((s, i) => `<div class="step ${i < idx ? 'done' : i === idx ? 'on' : ''}"><span class="n">${i + 1}</span><span class="t">${s[1]}</span></div>`).join('')}</div>`;
-}
 function wkHead(sub) {
   const tr = Career.track(G, G.weekend.trackId);
   const fc = G.weekend.forecast;
@@ -102,29 +97,7 @@ ACT.startRace = () => { Career.startRace(G); autosave(); UI.racePaused = true; U
 
 /* ---------- corrida ao vivo ---------- */
 const SPEEDS = [[1, '1×', 1300], [2, '2×', 650], [4, '4×', 300], [8, '8×', 140], [20, '20×', 45]];
-SCREENS.race = {
-  html() {
-    const wk = G.weekend;
-    if (!wk || !wk.race) return '<div class="empty">Nenhuma corrida em andamento.</div>';
-    const race = wk.race;
-    const tr = Career.track(G, wk.trackId);
-    return `
-    <div class="page-head"><div><div class="eyebrow">${esc(tr.circuit)} · Etapa ${wk.round + 1}</div><h1>${esc(tr.gp)}</h1></div></div>
-    <div class="panel race-hud" id="hud"></div>
-    <div class="race-grid">
-      <div class="panel tower" id="tower"></div>
-      <div class="stack">
-        <div class="panel"><div class="trackbox"><canvas id="raceMap"></canvas></div></div>
-        <div class="panel" id="ctl"></div>
-        <div class="panel"><div class="panel-h"><h3>Rádio e direção de prova</h3></div><div class="feed" id="feed"></div></div>
-      </div>
-    </div>
-    <div id="raceEnd"></div>`;
-  },
-  after() { UI.tickStart = performance.now(); updateRace(true); startRaceAnim(); if (!UI.racePaused && !G.weekend.race.finished) scheduleTick(); },
-};
 
-function speedMs() { return (SPEEDS.find(s => s[0] === UI.raceSpeed) || SPEEDS[0])[2]; }
 function scheduleTick() {
   clearTimeout(UI.raceTimer);
   UI.raceTimer = setTimeout(() => {
@@ -164,81 +137,7 @@ ACT.teamOrder = () => {
   updateRace();
 };
 
-function flagHtml(race) {
-  if (race.finished) return '<span class="flag chk">Bandeirada</span>';
-  if (race.sc) return race.sc.type === 'SC' ? '<span class="flag sc">Safety Car</span>' : '<span class="flag vsc">VSC</span>';
-  if (race.lap === 0) return '<span class="flag" style="background:var(--panel2)">Grid formado</span>';
-  return '<span class="flag green">Bandeira verde</span>';
-}
 
-function updateRace(full) {
-  const wk = G.weekend; if (!wk || !wk.race) return;
-  const race = wk.race;
-  const L = race.lap;
-  const w = race.wet[Math.max(1, L)] || 0;
-  const hud = $('#hud');
-  if (hud) hud.innerHTML = `
-    <div class="lapcount num">${Math.min(L, race.laps)}<small>/${race.laps}</small></div>
-    ${flagHtml(race)}
-    <span class="chip" style="${w > 0.2 ? 'color:var(--blue)' : ''}">Pista ${Engine.wetLabel(w).toLowerCase()}</span>
-    ${race.fastest ? `<span class="chip"><span class="pur">VMR</span> ${dName(race.fastest.did)} ${fmtLap(race.fastest.time)}</span>` : ''}
-    <span class="spacer"></span>
-    <button class="btn ${UI.racePaused ? 'primary' : ''}" data-act="racePlay" ${race.finished ? 'disabled' : ''}>${UI.racePaused ? (L === 0 ? 'Largar' : 'Continuar') : 'Pausar'}</button>
-    <button class="btn" data-act="raceStep" ${race.finished ? 'disabled' : ''}>+1 volta</button>
-    ${segBtns('raceSpeed', UI.raceSpeed, SPEEDS.map(s => [s[0], s[1]]))}
-    <button class="btn ghost" data-act="raceSkip" ${race.finished ? 'disabled' : ''}>Simular até o fim</button>`;
-  // torre de cronometragem
-  const cars = race.cars.slice().sort((a, b) => a.pos - b.pos);
-  const lead = cars[0];
-  const tower = $('#tower');
-  if (tower) tower.innerHTML = `<table><thead></thead><tbody>${cars.map((c, i) => {
-    const mine = c.tid === G.player.teamId;
-    const prev = cars[i - 1];
-    let gap = '';
-    if (c.status === 'dnf') gap = `<span class="neg">AB</span>`;
-    else if (race.finished && c.lapsDown) gap = `+${c.lapsDown} v`;
-    else if (i === 0) gap = L ? 'Líder' : '';
-    else gap = L ? fmtGap(c.T - lead.T).replace('+', '+') : '';
-    const intv = c.status !== 'dnf' && i > 0 && prev && prev.status !== 'dnf' && L ? (c.T - prev.T).toFixed(1) : '';
-    const posChange = c.grid - c.pos;
-    return `<tr class="${mine ? 'me' : ''} ${c.status === 'dnf' ? 'out' : ''}">
-      <td class="p">${c.pos}</td>
-      <td style="width:6px;padding:0"><span class="tcolor" style="background:${teamColor(c.tid)}"></span></td>
-      <td class="nm">${dName(c.did)}${c.pendingPen ? ` <span class="chip bad">+${c.pendingPen}s</span>` : ''}${c.drs && !race.finished ? ' <span class="chip good">DRS</span>' : ''}</td>
-      <td class="small ${posChange > 0 ? 'pos' : posChange < 0 ? 'neg' : 'muted'} num">${L ? (posChange > 0 ? '▲' + posChange : posChange < 0 ? '▼' + -posChange : '–') : ''}</td>
-      <td class="gp">${gap}</td>
-      <td class="gp muted">${intv}</td>
-      <td>${c.status === 'dnf' ? '' : tyreIcon(c.tyre.c)}</td>
-      <td class="num small muted">${c.status === 'dnf' ? esc((c.dnfReason || '').split(' ')[0]) : Math.round(c.tyre.wear) + '%'}</td>
-      <td class="num small ${c.best && race.fastest && c.best === race.fastest.time ? 'pur' : 'muted'}">${c.lastLap && c.status !== 'dnf' ? fmtLap(c.lastLap) : ''}</td>
-      <td class="num small muted">${c.pits ? 'P' + c.pits : ''}</td>
-    </tr>`;
-  }).join('')}</tbody></table>`;
-  // controles
-  const ctl = $('#ctl');
-  const mine = race.cars.filter(c => c.tid === G.player.teamId);
-  if (ctl && Career.isObs(G)) {
-    // observador: acompanha as estratégias dos 6 primeiros, sem controles
-    ctl.innerHTML = `<div class="panel-h"><h3>Muro dos boxes · acompanhamento</h3><span class="small muted">Decisões tomadas pelos estrategistas de cada equipe</span></div><div class="panel-b tight"><table class="tbl">${cars.filter(c => c.status !== 'dnf').slice(0, 6).map(c => `<tr><td class="num">P${c.pos}</td><td>${dTag(c.did, false)}</td><td>${tyreIcon(c.tyre.c)}</td><td class="num small">${Math.round(c.tyre.wear)}% · ${c.tyre.age}v</td><td class="small muted">${c.pits} parada(s) · plano ${c.plan.stops}</td><td class="small">${c.mode === 'push' ? 'atacando' : c.mode === 'save' ? 'poupando' : ''}</td></tr>`).join('')}</table></div>`;
-  } else if (ctl) ctl.innerHTML = `<div class="panel-h"><h3>Muro dos boxes</h3>${mine.filter(c => c.status === 'run').length === 2 ? '<button class="btn sm" data-act="teamOrder">Ordem de equipe: trocar posições</button>' : ''}</div>` + mine.map(c => {
-    const radio = c.status === 'run' ? Events.radio(race, c, wk) : [];
-    return `<div class="car-ctl">
-      <div class="row between"><div class="row" style="gap:12px"><span class="big num">P${c.pos}</span><div>${dTag(c.did)}<div class="small muted">Largou em ${c.grid} · ${c.pits} parada(s)${c.damage.wing ? ' · <span class="neg">asa danificada</span>' : ''}${c.damage.power ? ' · <span class="neg">perda de potência</span>' : ''}</div></div></div>
-      ${c.status === 'run' ? `<div class="wear">${tyreIcon(c.tyre.c)} <span>${Math.round(c.tyre.wear)}% · ${c.tyre.age} v</span></div>` : `<span class="chip bad">${c.status === 'fin' ? 'Terminou' : esc(c.dnfReason || 'Abandono')}</span>`}</div>
-      ${c.status === 'run' && !race.finished ? `
-      <div class="row">${segBtns('carMode', c.mode, [['save', 'Poupar'], ['normal', 'Normal'], ['push', 'Atacar']], `data-d="${c.did}"`)}
-        <button class="btn sm ${c.auto ? '' : 'primary'}" data-act="carAuto" data-d="${c.did}">${c.auto ? 'Paradas: automático' : 'Paradas: manual'}</button></div>
-      <div class="row"><span class="small muted">Chamar para o box:</span>${['S', 'M', 'H', 'I', 'W'].map(t => `<button class="btn sm ${c.pitReq === t ? 'primary' : ''}" data-act="carPit" data-d="${c.did}" data-c="${t}" title="${TYRES[t].name}">${tyreIcon(t)}</button>`).join('')}${c.pitReq ? `<span class="chip acc">Box nesta volta: ${TYRES[c.pitReq].name}</span>` : ''}</div>
-      ${radio.length ? `<div class="radio">Engenheiro: ${esc(radio.join(' '))}</div>` : ''}` : ''}
-    </div>`;
-  }).join('');
-  // feed
-  const feed = $('#feed');
-  if (feed) feed.innerHTML = race.events.slice().reverse().slice(0, 80).map(e => `<div class="${e.type}"><span class="l">V${e.lap}</span><span>${esc(e.text)}</span></div>`).join('') || '<div><span class="l">—</span><span class="muted">Carros alinhados no grid. Clique em Largar.</span></div>';
-  // fim
-  const end = $('#raceEnd');
-  if (end) end.innerHTML = race.finished ? raceEndHtml(race) : '';
-}
 
 function raceEndHtml(race) {
   const cls = race.classification;
@@ -387,28 +286,6 @@ function seriesColor(lr, did, used) {
   const col = teamColor(c.tid);
   const dash = used[col] ? '5 4' : null; used[col] = true;
   return { col, dash };
-}
-function lapChartHtml(lr) {
-  const sel = analysisPick(lr);
-  const used = {};
-  const scLaps = new Set(); (lr.scHistory || []).forEach(s => { for (let l = s.from; l <= s.to + 1; l++) scLaps.add(l); });
-  const series = sel.ids.map(did => {
-    const c = lr.cars.find(x => x.did === did);
-    const pitLaps = new Set(c.stints.map(s => s.to).filter(Boolean)); c.stints.forEach(s => pitLaps.add(s.from + 1));
-    const { col, dash } = seriesColor(lr, did, used);
-    const pts = [];
-    for (let l = 1; l < c.times.length; l++) {
-      const t = c.times[l]; if (t == null) continue;
-      if (sel.clean && (l === 1 || pitLaps.has(l) || scLaps.has(l))) { pts.push(null); continue; }
-      pts.push([l, t]);
-    }
-    return { name: rawName(did), color: col, dash, pts, width: c.tid === G.player.teamId ? 2.6 : 1.8 };
-  });
-  const bands = (lr.scHistory || []).map(s => ({ from: s.from, to: s.to, color: '#f5c518' }));
-  const best = sel.ids.map(did => lr.cars.find(x => x.did === did)).map(c => ({ c, avg: avg(c.times.filter((t, l) => t && l > 1)) }));
-  return `${driverPicker(lr, sel)}<div class="row" style="margin-bottom:8px"><label class="check small"><input type="checkbox" ${sel.clean ? 'checked' : ''} data-act="anaClean"> Esconder 1ª volta, voltas de box e de Safety Car</label></div>
-  ${lineChart('laps', { series, h: 340, xLabel: 'Volta', yFmt: v => fmtLap(v), tipFmt: v => fmtLap(v), bands })}
-  <div class="tbl-wrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Piloto</th><th class="r">Melhor</th><th class="r">Média</th><th class="r">Ultrapassagens</th><th class="r">Paradas</th><th class="r">Acerto</th></tr></thead><tbody>${best.map(({ c, avg: a }) => `<tr><td>${dTag(c.did)}</td><td class="r num">${fmtLap(c.best)}</td><td class="r num">${fmtLap(a)}</td><td class="r num">${c.overtakes}</td><td class="r num">${c.pits}</td><td class="r num">${Math.round((c.setupQ || 0) * 100)}%</td></tr>`).join('')}</tbody></table></div>`;
 }
 function posChartHtml(lr) {
   const used = {};

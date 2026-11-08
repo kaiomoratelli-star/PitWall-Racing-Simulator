@@ -233,6 +233,5 @@ ACT.acNegSend = () => {
 CHG.acPlan = (el) => { Academy.setPlan(G, el.dataset.id, el.value || null); autosave(); render(); };
 CHG.acRenew = (el) => { const d = Career.driver(G, el.dataset.id); d.acRenew = el.checked; autosave(); };
 CHG.acBudget = (el) => { const a = Market.myAcademy(G); a.budget = Number(el.value); a.active = a.active || a.budget > 0; autosave(); render(); };
-ACT.acAdd = (el) => ACT.acNeg(el);   // contratar agora sempre passa pela negociação
 ACT.acRemove = (el) => { const d = Career.driver(G, el.dataset.id); const c = d && d.acContract; if (c && c.until > G.season.year && c.buyout) Career.ledger(G, `Academia: rescisão de ${d.name}`, -c.buyout, 'academia'); if (d) d.acContract = null; Market.removeFromAcademy(G, el.dataset.id); autosave(); render(); };
 ACT.acPromote = (el) => { const d = Career.driver(G, el.dataset.id); if (G.db.drivers.some(x => x.team === G.player.teamId && x.seat === 'R')) return toast('Você já tem um reserva. Dispense-o ou troque antes.', 'bad'); Career.placeDriver(G, d, G.player.teamId, 'R', Math.max(0.5, d.salary || 0.5), 1); autosave(); toast(`${d.name} agora é seu reserva.`, 'good'); render(); };

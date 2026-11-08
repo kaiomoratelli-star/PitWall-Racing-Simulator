@@ -45,11 +45,8 @@ SCREENS.owners = {
 NAV.splice(NAV.findIndex(n => n[0] === 'paddock') + 1, 0, ['owners', 'Donos e equipes', 'M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5M9 11h.01M15 11h.01']);
 
 /* painel do dono na página da equipe */
-(function () {
-  const tp = SCREENS.teamPage.html;
-  SCREENS.teamPage.html = function () {
-    const out = tp.call(this);
-    const t = Career.team(G, UI.params.id) || G.db.teams[0];
+function ownerPanelHtml(t) {
+    const out = '';
     if (!t || typeof Owners === 'undefined') return out;
     Owners.ensureTeam(G, t);
     const m = ownMood(t.ownerMood);
@@ -65,8 +62,7 @@ NAV.splice(NAV.findIndex(n => n[0] === 'paddock') + 1, 0, ['owners', 'Donos e eq
       ${t.entered ? `<dt>${byLang('Estreia', 'Debut')}</dt><dd>${t.entered}</dd>` : ''}
       ${(() => { const p = Owners.partnerOf(G, t.id); const kids = Object.entries(Owners.partners(G)).filter(([c, x]) => x.parent === t.id).map(([c]) => (Career.team(G, c) || {}).name).filter(Boolean); const sis = (G.sisters || {})[t.id]; return (p ? `<dt>${byLang('Parceria técnica', 'Technical partnership')}</dt><dd>${esc(Career.team(G, p.parent).name)} (${esc(byLang(p.parts.join(', '), (p.partsEn || p.parts).join(', ')))})</dd>` : '') + (kids.length ? `<dt>${byLang('Parceiras técnicas', 'Technical partners')}</dt><dd>${esc(kids.join(', '))}</dd>` : '') + (sis ? `<dt>${byLang('Equipe irmã de', 'Sister team of')}</dt><dd>${esc(Career.team(G, sis).name)} ${byLang('(mesmo dono)', '(same owner)')}</dd>` : ''); })()}
     </dl>${hist ? `<div style="margin-top:8px">${hist}</div>` : ''}${lin ? `<div class="label" style="margin-top:10px">${byLang('Trocas de dono', 'Ownership changes')}</div>${lin}` : ''}</div></div>`;
-  };
-})();
+}
 
 /* ---------- opções de eventos (nova carreira e Salvar e opções) ---------- */
 function chaosOptionsHtml(o, act) {

@@ -5,10 +5,6 @@
    ============================================================ */
 'use strict';
 
-function fmtRaceTime(sec) {
-  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
-  return `${h}:${String(m).padStart(2, '0')}:${s.toFixed(3).padStart(6, '0')}`;
-}
 function lrCar(lr, did) { return lr.cars.find(c => c.did === did); }
 
 const _postHtml = SCREENS.post.html;
@@ -128,22 +124,4 @@ function fastestHtml(lr, res) {
 }
 
 /* ---------- cerimônia de pódio ---------- */
-function podiumHtml(res, lr) {
-  const top = res.cls.filter(r => r.status === 'fin').slice(0, 3);
-  if (top.length < 3) return '';
-  const mine = Career.isObs(G) ? null : G.player.teamId;
-  const winT = top[0].T;
-  const step = (r, place) => {
-    const d = Career.driver(G, r.did), t = Career.team(G, r.tid);
-    const gap = place === 1 ? fmtRaceTime(r.T) : `+${(r.T - winT).toFixed(3)}s`;
-    return `<div class="pd-col p${place} ${mine && r.tid === mine ? 'mine' : ''}" style="--tc:${t.color}">
-      <div class="pd-who">${headshot(d, 'xl')}<div class="pd-name">${natTag(d.nat)} <b>${esc(d.name)}</b></div><div class="pd-team">${teamLogo(t, 'sm')}<span>${esc(t.name)}</span></div><div class="small num muted">${gap}</div>${mine && r.tid === mine ? `<div class="pd-mine">Moral ${Math.round(d.morale)} · +${r.pts} pts</div>` : ''}</div>
-      <div class="pd-step"><span>${place}</span>${place === 1 ? '<svg class="pd-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6v3H9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>' : ''}</div>
-    </div>`;
-  };
-  const conf = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 37) % 100}%;animation-delay:${((i * 53) % 30) / 10}s;background:${['#E10600', '#ffd400', '#fff', '#3ddc6f', '#4aa3ff'][i % 5]}"></i>`).join('');
-  const myOnPodium = mine && top.some(r => r.tid === mine);
-  return `<div class="panel podium ${myOnPodium ? 'mine' : ''}"><div class="pd-conf" aria-hidden="true">${conf}</div>
-    <div class="pd-head"><span class="eyebrow">${esc(Career.track(G, lr.trackId).gp)} · ${lr.year}</span>${myOnPodium ? '<b class="pd-badge">Pódio da sua equipe!</b>' : ''}</div>
-    <div class="pd-stage">${step(top[1], 2)}${step(top[0], 1)}${step(top[2], 3)}</div></div>`;
-}
+function podiumHtml() { return ''; }   // o pódio tem tela própria (ui85-race.js)

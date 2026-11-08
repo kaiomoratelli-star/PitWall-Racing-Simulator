@@ -105,7 +105,6 @@ function fmtMoney(m) {
   return neg ? `−${txt}` : txt;
 }
 function ordinal(n) { return `${n}º`; }
-function plural(n, s, p) { return n === 1 ? s : (p || s + 's'); }
 
 /* Nomes para staff, novatos e pilotos gerados — por nacionalidade */
 const NAME_POOL = {

@@ -56,10 +56,7 @@ function socialAvatar(by) {
   if (by.kind === 'media') return `<span class="sav media">${esc(by.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase())}</span>`;
   return `<span class="sav fan">${esc(by.handle[0].toUpperCase())}</span>`;
 }
-function socialFeedHtml(list, max, compact) {
-  if (!list.length) return '<div class="empty">Nada nas redes ainda. As postagens aparecem depois das corridas e das notícias do mercado.</div>';
-  return `<div class="sfeed ${compact ? 'compact' : ''}">${list.slice(0, max).map(p => `<div class="spost"><div class="sav-wrap">${socialAvatar(p.by)}</div><div class="sbody"><div class="shead"><b>${esc(p.by.name)}</b>${p.by.kind !== 'fan' ? '<span class="sverif" title="Conta oficial">✓</span>' : ''}<span class="muted small">@${esc(p.by.handle)} · ${p.y}${p.r != null ? ' · etapa ' + (p.r + 1) : ''}</span></div><div class="stext">${esc(p.text)}</div><div class="sstats small muted"><span>♥ ${fmtCount(p.likes)}</span><span>⟲ ${fmtCount(p.reposts)}</span></div></div></div>`).join('')}</div>`;
-}
+function socialFeedHtml() { return ''; }   // substituída em ui-stories.js
 
 /* ---------- histórias e rivalidades ---------- */
 function storiesHtml() {
