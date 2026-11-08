@@ -1,11 +1,11 @@
 {
 "faces/alexander-albon.webp": {
-"origin": "formula1.com (Formula One Management), recorte centralizado",
+"origin": "formula1.com (Formula One Management), recorte refeito a partir da foto de corpo inteiro (0.8.5)",
 "page": "drivers/alexander-albon.webp",
 "date": "2026-11-07"
 },
 "faces/arvid-lindblad.webp": {
-"origin": "formula1.com (Formula One Management), recorte centralizado",
+"origin": "formula1.com (Formula One Management), recorte refeito a partir da foto de corpo inteiro (0.8.5)",
 "page": "drivers/arvid-lindblad.webp",
 "date": "2026-11-07"
 },
@@ -25,7 +25,7 @@
 "date": "2026-11-07"
 },
 "faces/franco-colapinto.webp": {
-"origin": "formula1.com (Formula One Management), recorte centralizado",
+"origin": "formula1.com (Formula One Management), recorte refeito a partir da foto de corpo inteiro (0.8.5)",
 "page": "drivers/franco-colapinto.webp",
 "date": "2026-11-07"
 },
@@ -65,7 +65,7 @@
 "date": "2026-11-07"
 },
 "faces/liam-lawson.webp": {
-"origin": "formula1.com (Formula One Management), recorte centralizado",
+"origin": "formula1.com (Formula One Management), recorte refeito a partir da foto de corpo inteiro (0.8.5)",
 "page": "drivers/liam-lawson.webp",
 "date": "2026-11-07"
 },
@@ -90,7 +90,7 @@
 "date": "2026-11-07"
 },
 "faces/pierre-gasly.webp": {
-"origin": "formula1.com (Formula One Management), recorte centralizado",
+"origin": "formula1.com (Formula One Management), recorte refeito a partir da foto de corpo inteiro (0.8.5)",
 "page": "drivers/pierre-gasly.webp",
 "date": "2026-11-07"
 },
@@ -4838,5 +4838,831 @@
 "origin": "Wikipedia (logo da ficha do artigo; marca registrada do titular)",
 "page": "https://commons.wikimedia.org/wiki/File:Hugo_Boss_logo_2021.svg",
 "date": "2026-11-08"
+},
+"news/pitstop-0.webp": {
+"origin": "Wikimedia Commons, Steve_Melnyk",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Paddock_Access_(24840806808).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Paddock Access (24840806808).jpg"
+},
+"news/pitstop-1.webp": {
+"origin": "Wikimedia Commons, Steve_Melnyk",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Paddock_Access_(24840809858).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Paddock Access (24840809858).jpg"
+},
+"news/pitstop-2.webp": {
+"origin": "Wikimedia Commons, zhul",
+"page": "https://commons.wikimedia.org/wiki/File:Malaysia_F1_GP_2013_(9168061638).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Malaysia F1 GP 2013 (9168061638).jpg"
+},
+"news/podium-0.webp": {
+"origin": "Wikimedia Commons, https://www.flickr.com/photos/77326563@N06/",
+"page": "https://commons.wikimedia.org/wiki/File:2019_Chinese_Grand_Prix_podium_(46896881704).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:2019 Chinese Grand Prix podium (46896881704).jpg"
+},
+"news/podium-1.webp": {
+"origin": "Wikimedia Commons, Jen Ross",
+"page": "https://commons.wikimedia.org/wiki/File:Champagne_-_F2_Podium_(41932830900).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Champagne - F2 Podium (41932830900).jpg"
+},
+"news/podium-2.webp": {
+"origin": "Wikimedia Commons, Lukas Raich",
+"page": "https://commons.wikimedia.org/wiki/File:FIA_F2_Austria_2018_podium_ceremony_(1).jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:FIA F2 Austria 2018 podium ceremony (1).jpg"
+},
+"news/crash-0.webp": {
+"origin": "Wikimedia Commons, Steffen Prößdorf",
+"page": "https://commons.wikimedia.org/wiki/File:2024-08-24_Motorsport,_Formel_1,_Gro%C3%9Fer_Preis_der_Niederlande_2024_STP_3279_by_Stepro.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2024-08-24 Motorsport, Formel 1, Großer Preis der Niederlande 2024 STP 3279 by Stepro.jpg"
+},
+"news/crash-1.webp": {
+"origin": "Wikimedia Commons, Stephen Ross",
+"page": "https://commons.wikimedia.org/wiki/File:Rossi_crash_2015_Singapore_GP.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Rossi crash 2015 Singapore GP.jpg"
+},
+"news/crash-2.webp": {
+"origin": "Wikimedia Commons, nhayashida",
+"page": "https://commons.wikimedia.org/wiki/File:Hamilton_crash_qualifying.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Hamilton crash qualifying.jpg"
+},
+"news/crash-3.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Michael_Schumacher_after_crash_2012_Japan_FP2.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Michael Schumacher after crash 2012 Japan FP2.jpg"
+},
+"news/crash-4.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Paul_di_Resta_crashs_at_Spoon_Japan_FP2.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Paul di Resta crashs at Spoon Japan FP2.jpg"
+},
+"news/crash-5.webp": {
+"origin": "Wikimedia Commons, Nic Redhead from Birmingham, UK",
+"page": "https://commons.wikimedia.org/wiki/File:Kovalainen%27s_Crashed_Caterham_-_2012_Canadian_Grand_Prix.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Kovalainen's Crashed Caterham - 2012 Canadian Grand Prix.jpg"
+},
+"news/crash-6.webp": {
+"origin": "Wikimedia Commons, emperornie",
+"page": "https://commons.wikimedia.org/wiki/File:Gutierrez_china_2013.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Gutierrez china 2013.jpg"
+},
+"news/safetycar-0.webp": {
+"origin": "Wikimedia Commons, Ysys3455",
+"page": "https://commons.wikimedia.org/wiki/File:F1%E3%82%BB%E3%83%BC%E3%83%95%E3%83%86%E3%82%A3%E3%82%AB%E3%83%BC_%E9%88%B4%E9%B9%BF2026.jpg",
+"license": "CC0",
+"date": "2026-11-08",
+"title": "File:F1セーフティカー 鈴鹿2026.jpg"
+},
+"news/safetycar-1.webp": {
+"origin": "Wikimedia Commons, Michał Obrochta",
+"page": "https://commons.wikimedia.org/wiki/File:Formula_1_Safety_Car_Mercedes-AMG_GT_R.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Formula 1 Safety Car Mercedes-AMG GT R.jpg"
+},
+"news/safetycar-2.webp": {
+"origin": "Wikimedia Commons, Takayuki Suzuki from Kanagawa, Japan",
+"page": "https://commons.wikimedia.org/wiki/File:Safety_Car_in_Heavy_Rain_(Mercedes_AMG_GT_S)_(37876671395).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Safety Car in Heavy Rain (Mercedes AMG GT S) (37876671395).jpg"
+},
+"news/safetycar-3.webp": {
+"origin": "Wikimedia Commons, emperornie",
+"page": "https://commons.wikimedia.org/wiki/File:2016_Formula_1_Chinese_Grand_Prix_(26165156313).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:2016 Formula 1 Chinese Grand Prix (26165156313).jpg"
+},
+"news/safetycar-4.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Safety_Car_2015_Malaysia.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Safety Car 2015 Malaysia.jpg"
+},
+"news/safetycar-5.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Safety_Car_with_Lewis_Hamilton_2014_Singapore.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Safety Car with Lewis Hamilton 2014 Singapore.jpg"
+},
+"news/rain-0.webp": {
+"origin": "Wikimedia Commons, Andrew Locking",
+"page": "https://commons.wikimedia.org/wiki/File:Hamilton_-_2016_Monaco_GP_02.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Hamilton - 2016 Monaco GP 02.jpg"
+},
+"news/rain-1.webp": {
+"origin": "Wikimedia Commons, Jake Archibald from London, England",
+"page": "https://commons.wikimedia.org/wiki/File:Rio_Haryanto_-_Manor_(32261820424).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Rio Haryanto - Manor (32261820424).jpg"
+},
+"news/rain-2.webp": {
+"origin": "Wikimedia Commons, Jake Archibald from London, England",
+"page": "https://commons.wikimedia.org/wiki/File:Fernando_Alonso_-_McLaren_(32952236382).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Fernando Alonso - McLaren (32952236382).jpg"
+},
+"news/rain-3.webp": {
+"origin": "Wikimedia Commons, Jake Archibald from London, England",
+"page": "https://commons.wikimedia.org/wiki/File:Fernando_Alonso_-_McLaren_(33108837915).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Fernando Alonso - McLaren (33108837915).jpg"
+},
+"news/rain-4.webp": {
+"origin": "Wikimedia Commons, Jake Archibald from London, England",
+"page": "https://commons.wikimedia.org/wiki/File:Fernando_Alonso_-_McLaren_(33108835665).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Fernando Alonso - McLaren (33108835665).jpg"
+},
+"news/rain-5.webp": {
+"origin": "Wikimedia Commons, Jake Archibald from London, England",
+"page": "https://commons.wikimedia.org/wiki/File:Fernando_Alonso_-_McLaren_(32952230372).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Fernando Alonso - McLaren (32952230372).jpg"
+},
+"news/garage-0.webp": {
+"origin": "Wikimedia Commons, Declan M Martin",
+"page": "https://commons.wikimedia.org/wiki/File:Haas_garage_USGP_2021.jpg",
+"license": "Public domain",
+"date": "2026-11-08",
+"title": "File:Haas garage USGP 2021.jpg"
+},
+"news/garage-1.webp": {
+"origin": "Wikimedia Commons, Dell Inc.",
+"page": "https://commons.wikimedia.org/wiki/File:2011_British_GP_-_Lotus_garage.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2011 British GP - Lotus garage.jpg"
+},
+"news/garage-2.webp": {
+"origin": "Wikimedia Commons, Unknown authorUnknown author",
+"page": "https://commons.wikimedia.org/wiki/File:1965_Syracuse_GP_-_Surtees,_Siffert_and_Clark.jpg",
+"license": "Public domain",
+"date": "2026-11-08",
+"title": "File:1965 Syracuse GP - Surtees, Siffert and Clark.jpg"
+},
+"news/history-0.webp": {
+"origin": "Wikimedia Commons, 50DAG2026",
+"page": "https://commons.wikimedia.org/wiki/File:Mario_Andretti_Paddock_dagWmC.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Mario Andretti Paddock dagWmC.jpg"
+},
+"news/history-1.webp": {
+"origin": "Wikimedia Commons, 50DAG2026",
+"page": "https://commons.wikimedia.org/wiki/File:Carlos_Niki_Paddock_dagWmC.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Carlos Niki Paddock dagWmC.jpg"
+},
+"news/history-2.webp": {
+"origin": "Wikimedia Commons, 50DAG2026",
+"page": "https://commons.wikimedia.org/wiki/File:Denny_and_Carlos_Paddock_dagWmC.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Denny and Carlos Paddock dagWmC.jpg"
+},
+"news/history-3.webp": {
+"origin": "Wikimedia Commons, 50DAG2026",
+"page": "https://commons.wikimedia.org/wiki/File:Lotus_Pit_Garage_Gunner_Nilsson_wmDAG.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Lotus Pit Garage Gunner Nilsson wmDAG.jpg"
+},
+"news/paddock-0.webp": {
+"origin": "Wikimedia Commons, Neil",
+"page": "https://commons.wikimedia.org/wiki/File:Red_Bull_F1_Paddock_(54667091948).jpg",
+"license": "CC BY 4.0",
+"date": "2026-11-08",
+"title": "File:Red Bull F1 Paddock (54667091948).jpg"
+},
+"news/paddock-1.webp": {
+"origin": "Wikimedia Commons, 35mmMan",
+"page": "https://commons.wikimedia.org/wiki/File:F4_paddock_(42226280150).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F4 paddock (42226280150).jpg"
+},
+"news/paddock-2.webp": {
+"origin": "Wikimedia Commons, Steve_Melnyk",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Paddock_Access_(37996087434).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Paddock Access (37996087434).jpg"
+},
+"news/paddock-3.webp": {
+"origin": "Wikimedia Commons, Steve_Melnyk",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Paddock_Access_(37996088254).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Paddock Access (37996088254).jpg"
+},
+"news/paddock-4.webp": {
+"origin": "Wikimedia Commons, Steve_Melnyk",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Paddock_Access_(37996080104).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Paddock Access (37996080104).jpg"
+},
+"news/paddock-5.webp": {
+"origin": "Wikimedia Commons, Steve_Melnyk",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Paddock_Access_(37996076484).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Paddock Access (37996076484).jpg"
+},
+"news/paddock-6.webp": {
+"origin": "Wikimedia Commons, William Murphy from Dublin, Ireland",
+"page": "https://commons.wikimedia.org/wiki/File:Vodafone_McLaren_Mercedes_Formula_1_Car_(7322757828).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Vodafone McLaren Mercedes Formula 1 Car (7322757828).jpg"
+},
+"news/paddock-7.webp": {
+"origin": "Wikimedia Commons, William Murphy from Dublin, Ireland",
+"page": "https://commons.wikimedia.org/wiki/File:Vodafone_McLaren_Mercedes_Formula_1_Car_(7322760694).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Vodafone McLaren Mercedes Formula 1 Car (7322760694).jpg"
+},
+"news/press-0.webp": {
+"origin": "Wikimedia Commons, Francesco Crippa",
+"page": "https://commons.wikimedia.org/wiki/File:2012_Italian_GP_-_drivers_press_conference.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2012 Italian GP - drivers press conference.jpg"
+},
+"news/press-1.webp": {
+"origin": "Wikimedia Commons, Francesco Crippa",
+"page": "https://commons.wikimedia.org/wiki/File:2012_Italian_GP_-_funny_Ferrari_drivers.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2012 Italian GP - funny Ferrari drivers.jpg"
+},
+"news/press-2.webp": {
+"origin": "Wikimedia Commons, LG전자",
+"page": "https://commons.wikimedia.org/wiki/File:Sebastian_Vettel_-_Press_conference,_2010_German_Grand_Prix.jpeg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Sebastian Vettel - Press conference, 2010 German Grand Prix.jpeg"
+},
+"news/press-3.webp": {
+"origin": "Wikimedia Commons, Mrandrew16",
+"page": "https://commons.wikimedia.org/wiki/File:Pressconference_of_Minardi_in_Tel-Aviv.JPG",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Pressconference of Minardi in Tel-Aviv.JPG"
+},
+"news/fans-0.webp": {
+"origin": "Wikimedia Commons, pedrik",
+"page": "https://commons.wikimedia.org/wiki/File:End_of_an_great_weekend_at_the_races_(14754473389).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:End of an great weekend at the races (14754473389).jpg"
+},
+"news/fans-1.webp": {
+"origin": "Wikimedia Commons, Deni Williams from São Paulo, Brasil / Brazil",
+"page": "https://commons.wikimedia.org/wiki/File:2010_IZOD_IndyCar_Series_-_S%C3%A3o_Paulo_Indy_300_Torcedores_nas_outras_arquibancadas_-_Fans_on_the_other_grandstands_(27083905695).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2010 IZOD IndyCar Series - São Paulo Indy 300 Torcedores nas outras arquibancadas - Fans on the other grandstands (27083905695).jpg"
+},
+"news/fans-2.webp": {
+"origin": "Wikimedia Commons, momentcaptured1 from NYC, USA",
+"page": "https://commons.wikimedia.org/wiki/File:Indianapolis_500_-_Race_Day_(5787488619).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Indianapolis 500 - Race Day (5787488619).jpg"
+},
+"news/factory-0.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:Wind_Tunnel_Models_at_Formula_1_Exhibition,_London.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Wind Tunnel Models at Formula 1 Exhibition, London.jpg"
+},
+"news/factory-1.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:Wind_Tunnel_Model_Car_at_Formula_1_Exhibition,_London.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Wind Tunnel Model Car at Formula 1 Exhibition, London.jpg"
+},
+"news/factory-2.webp": {
+"origin": "Wikimedia Commons, Unknown authorUnknown author",
+"page": "https://commons.wikimedia.org/wiki/File:2017_Manor_MRT06_60%25_model.jpg",
+"license": "CC0",
+"date": "2026-11-08",
+"title": "File:2017 Manor MRT06 60% model.jpg"
+},
+"news/factory-3.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Red_Bull_Racing_factory_entrance.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Red Bull Racing factory entrance.jpg"
+},
+"news/factory-4.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:McLaren_MP4-23_Steering_Wheel_at_Formula_1_Exhibition,_London.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:McLaren MP4-23 Steering Wheel at Formula 1 Exhibition, London.jpg"
+},
+"news/factory-5.webp": {
+"origin": "Wikimedia Commons, Declan M Martin",
+"page": "https://commons.wikimedia.org/wiki/File:Alpine_F1_steering_wheel.jpg",
+"license": "Public domain",
+"date": "2026-11-08",
+"title": "File:Alpine F1 steering wheel.jpg"
+},
+"news/factory-6.webp": {
+"origin": "Wikimedia Commons, Nic Redhead from Birmingham, UK",
+"page": "https://commons.wikimedia.org/wiki/File:Caterham_steering_wheel_at_Goodwood_2012.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Caterham steering wheel at Goodwood 2012.jpg"
+},
+"news/factory-7.webp": {
+"origin": "Wikimedia Commons, Tony Hisgett from Birmingham, UK",
+"page": "https://commons.wikimedia.org/wiki/File:McLaren_MP4-26_Steering_Wheel_(6708041241).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:McLaren MP4-26 Steering Wheel (6708041241).jpg"
+},
+"news/factory-8.webp": {
+"origin": "Wikimedia Commons, I would appreciate being notified if you use my work outside Wikimedia.\nDo not c",
+"page": "https://commons.wikimedia.org/wiki/File:Renault_F1_Team_garage,_2010_Brno_WSR_(10)-cropped.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Renault F1 Team garage, 2010 Brno WSR (10)-cropped.jpg"
+},
+"news/tyres-0.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:Pirelli_Tyre_Sets_at_Formula_1_Exhibition,_London_03.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Pirelli Tyre Sets at Formula 1 Exhibition, London 03.jpg"
+},
+"news/tyres-1.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:Pirelli_Tyre_Sets_at_Formula_1_Exhibition,_London_02.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Pirelli Tyre Sets at Formula 1 Exhibition, London 02.jpg"
+},
+"news/tyres-2.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:Pirelli_Tyre_Sets_at_Formula_1_Exhibition,_London_01.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Pirelli Tyre Sets at Formula 1 Exhibition, London 01.jpg"
+},
+"news/tyres-3.webp": {
+"origin": "Wikimedia Commons, Hullian111",
+"page": "https://commons.wikimedia.org/wiki/File:Pirelli_Tyre_Sets_at_Formula_1_Exhibition,_London_04.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Pirelli Tyre Sets at Formula 1 Exhibition, London 04.jpg"
+},
+"news/tyres-4.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Ferrari_150%C2%B0_Italia_Pirelli_tyre_2017_Museo_Fernando_Alonso.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Ferrari 150° Italia Pirelli tyre 2017 Museo Fernando Alonso.jpg"
+},
+"news/tyres-5.webp": {
+"origin": "Wikimedia Commons, Heimo Ruschitz",
+"page": "https://commons.wikimedia.org/wiki/File:Intermediate_tyres_Austrian_GP_2016.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Intermediate tyres Austrian GP 2016.jpg"
+},
+"news/tyres-6.webp": {
+"origin": "Wikimedia Commons, Mathew Bedworth",
+"page": "https://commons.wikimedia.org/wiki/File:Autosport_International_Show_-_2014_F1_Pirelli_Tyres.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Autosport International Show - 2014 F1 Pirelli Tyres.jpg"
+},
+"news/tyres-7.webp": {
+"origin": "Wikimedia Commons, Abhinavgarule",
+"page": "https://commons.wikimedia.org/wiki/File:Lotus_Renault_F1_E21_Tyre.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Lotus Renault F1 E21 Tyre.jpg"
+},
+"news/trophy-0.webp": {
+"origin": "Wikimedia Commons, Zytonits",
+"page": "https://commons.wikimedia.org/wiki/File:F1_Constructors_Championship_trophy_2_(21019366255).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:F1 Constructors Championship trophy 2 (21019366255).jpg"
+},
+"news/trophy-1.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Formula_Nippon_trophies_2011_Motorsport_Japan.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Formula Nippon trophies 2011 Motorsport Japan.jpg"
+},
+"news/trophy-2.webp": {
+"origin": "Wikimedia Commons, Sitomon",
+"page": "https://commons.wikimedia.org/wiki/File:Copa_de_Campe%C3%B3n_del_mundo(Firma_Fernando_Alonso).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Copa de Campeón del mundo(Firma Fernando Alonso).jpg"
+},
+"news/trophy-3.webp": {
+"origin": "Wikimedia Commons, Sitomon",
+"page": "https://commons.wikimedia.org/wiki/File:Copa_de_Campe%C3%B3n_del_mundo_(detalle).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Copa de Campeón del mundo (detalle).jpg"
+},
+"news/pitwall-0.webp": {
+"origin": "Wikimedia Commons, LG전자",
+"page": "https://commons.wikimedia.org/wiki/File:Red_Bull_team_on_the_pit_lane_wall_-_2010_Singapore_Grand_Prix.jpeg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Red Bull team on the pit lane wall - 2010 Singapore Grand Prix.jpeg"
+},
+"news/pitwall-1.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Renault_after_losing_the_title_sponsor_ING_2009_Japan.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Renault after losing the title sponsor ING 2009 Japan.jpg"
+},
+"news/pitwall-2.webp": {
+"origin": "Wikimedia Commons, Rafa Castillo (rafolas)",
+"page": "https://commons.wikimedia.org/wiki/File:Schumacher_wall_cheste_2006-02.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Schumacher wall cheste 2006-02.jpg"
+},
+"news/flag-0.webp": {
+"origin": "Wikimedia Commons, Lukas Raich",
+"page": "https://commons.wikimedia.org/wiki/File:24H_Le_Mans_2025_winning_car_with_the_chequered_flag.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:24H Le Mans 2025 winning car with the chequered flag.jpg"
+},
+"news/flag-1.webp": {
+"origin": "Wikimedia Commons, crash71100",
+"page": "https://commons.wikimedia.org/wiki/File:Ferrari_499P_No.50_-_24_Heures_du_Mans_2024_Winner_-_Chequered_Flag_(3).jpg",
+"license": "CC0",
+"date": "2026-11-08",
+"title": "File:Ferrari 499P No.50 - 24 Heures du Mans 2024 Winner - Chequered Flag (3).jpg"
+},
+"news/flag-2.webp": {
+"origin": "Wikimedia Commons, mattbuck (category)",
+"page": "https://commons.wikimedia.org/wiki/File:Castle_Combe_Circuit_MMB_A0_Castle_Combe_Formula_Ford_1600_Championship.jpg",
+"license": "CC BY-SA 3.0",
+"date": "2026-11-08",
+"title": "File:Castle Combe Circuit MMB A0 Castle Combe Formula Ford 1600 Championship.jpg"
+},
+"news/flag-3.webp": {
+"origin": "Wikimedia Commons, Nic Redhead from Birmingham, UK",
+"page": "https://commons.wikimedia.org/wiki/File:Daniel_Ricciardo_(7455594874).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Daniel Ricciardo (7455594874).jpg"
+},
+"news/battle-0.webp": {
+"origin": "Wikimedia Commons, emperornie",
+"page": "https://commons.wikimedia.org/wiki/File:Mark_Webber_and_his_lost_wheel_2013_China.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Mark Webber and his lost wheel 2013 China.jpg"
+},
+"news/battle-1.webp": {
+"origin": "Wikimedia Commons, Ben Sutherland",
+"page": "https://commons.wikimedia.org/wiki/File:First_lap_2016_British_Grand_Prix_(1).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:First lap 2016 British Grand Prix (1).jpg"
+},
+"news/battle-2.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Safety_Car_with_Lewis_Hamilton_2014_Singapore.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Safety Car with Lewis Hamilton 2014 Singapore.jpg"
+},
+"news/battle-3.webp": {
+"origin": "Wikimedia Commons, Jake Archibald from London, England",
+"page": "https://commons.wikimedia.org/wiki/File:Esteban_Ocon_-_Mercedes_(32296005463).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Esteban Ocon - Mercedes (32296005463).jpg"
+},
+"news/f2-0.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:2026_Super_Formula_Round_5_Suzuka_Post-Race_-_2.jpg",
+"license": "CC BY 4.0",
+"date": "2026-11-08",
+"title": "File:2026 Super Formula Round 5 Suzuka Post-Race - 2.jpg"
+},
+"news/f2-1.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:Guanyu_Zhou_2021_FIA_Formula_2_Silverstone_Winner.png",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Guanyu Zhou 2021 FIA Formula 2 Silverstone Winner.png"
+},
+"news/f2-2.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:Guanyu_Zhou_2021_FIA_Formula_2_Silverstone_Winner_(cropped).png",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Guanyu Zhou 2021 FIA Formula 2 Silverstone Winner (cropped).png"
+},
+"news/f2-3.webp": {
+"origin": "Wikimedia Commons, Lukas Raich",
+"page": "https://commons.wikimedia.org/wiki/File:FIA_Formula_2_Spielberg_2018_Race_1_Podium.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:FIA Formula 2 Spielberg 2018 Race 1 Podium.jpg"
+},
+"news/f2-4.webp": {
+"origin": "Wikimedia Commons, https://www.flickr.com/photos/69527563@N05/43741848941/",
+"page": "https://commons.wikimedia.org/wiki/File:2018_FIA_Formula_2_Championship,_Silverstone_Circuit_(43741848941).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2018 FIA Formula 2 Championship, Silverstone Circuit (43741848941).jpg"
+},
+"news/f3-0.webp": {
+"origin": "Wikimedia Commons, https://www.flickr.com/photos/facing-my-life/",
+"page": "https://commons.wikimedia.org/wiki/File:2018_FIA_Formula_3_European_Championship,_Norisring_(41146089120).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2018 FIA Formula 3 European Championship, Norisring (41146089120).jpg"
+},
+"news/f3-1.webp": {
+"origin": "Wikimedia Commons, https://www.flickr.com/photos/facing-my-life/",
+"page": "https://commons.wikimedia.org/wiki/File:2018_FIA_Formula_3_European_Championship,_Norisring_(41146090940).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2018 FIA Formula 3 European Championship, Norisring (41146090940).jpg"
+},
+"news/f3-2.webp": {
+"origin": "Wikimedia Commons, https://www.flickr.com/photos/facing-my-life/",
+"page": "https://commons.wikimedia.org/wiki/File:2018_FIA_Formula_3_European_Championship,_Norisring_(42237664304).jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:2018 FIA Formula 3 European Championship, Norisring (42237664304).jpg"
+},
+"news/indycar-0.webp": {
+"origin": "Wikimedia Commons, Airman 1st Class Amber Anderson",
+"page": "https://commons.wikimedia.org/wiki/File:Josef_Newgarden_2023_Indianapolis_500.jpg",
+"license": "Public domain",
+"date": "2026-11-08",
+"title": "File:Josef Newgarden 2023 Indianapolis 500.jpg"
+},
+"news/indycar-1.webp": {
+"origin": "Wikimedia Commons, Airman 1st Class Amber Anderson",
+"page": "https://commons.wikimedia.org/wiki/File:Josef_Newgarden_2023_Indianapolis_500_(cropped).jpg",
+"license": "Public domain",
+"date": "2026-11-08",
+"title": "File:Josef Newgarden 2023 Indianapolis 500 (cropped).jpg"
+},
+"news/indycar-2.webp": {
+"origin": "Wikimedia Commons, Jota Bemba Stratos (NaBUru38's father)",
+"page": "https://commons.wikimedia.org/wiki/File:2017_Indianapolis_500-Mile_Race_-_29.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2017 Indianapolis 500-Mile Race - 29.jpg"
+},
+"news/nascar-0.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:Martin_Doubek_NASCAR_Euro_Series_OPEN_Race_-_Brands_Hatch_2026.jpg",
+"license": "CC BY 4.0",
+"date": "2026-11-08",
+"title": "File:Martin Doubek NASCAR Euro Series OPEN Race - Brands Hatch 2026.jpg"
+},
+"news/nascar-1.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:Paul_Jouffreau_NASCAR_Euro_Series_V8GP_Race_-_Brands_Hatch_2026.jpg",
+"license": "CC BY 4.0",
+"date": "2026-11-08",
+"title": "File:Paul Jouffreau NASCAR Euro Series V8GP Race - Brands Hatch 2026.jpg"
+},
+"news/nascar-2.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:NASCAR_Euro_Series_OPEN_Race_Battle_15_-_Brands_Hatch_2026.jpg",
+"license": "CC BY 4.0",
+"date": "2026-11-08",
+"title": "File:NASCAR Euro Series OPEN Race Battle 15 - Brands Hatch 2026.jpg"
+},
+"news/nascar-3.webp": {
+"origin": "Wikimedia Commons, BWard 1997",
+"page": "https://commons.wikimedia.org/wiki/File:NASCAR_Euro_Series_OPEN_Race_Battle_23_-_Brands_Hatch_2026.jpg",
+"license": "CC BY 4.0",
+"date": "2026-11-08",
+"title": "File:NASCAR Euro Series OPEN Race Battle 23 - Brands Hatch 2026.jpg"
+},
+"news/wec-0.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Podium_Hypercar_2024_WEC_Fuji.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Podium Hypercar 2024 WEC Fuji.jpg"
+},
+"news/wec-1.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Podium_Hypercar_Alpine_2024_WEC_Fuji.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Podium Hypercar Alpine 2024 WEC Fuji.jpg"
+},
+"news/wec-2.webp": {
+"origin": "Wikimedia Commons, Andrew Basterfield",
+"page": "https://commons.wikimedia.org/wiki/File:Toyota_GR010_Hybrid_2023_Le_Mans_hypercar_(53048168926).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Toyota GR010 Hybrid 2023 Le Mans hypercar (53048168926).jpg"
+},
+"news/wec-3.webp": {
+"origin": "Wikimedia Commons, Martin Lee from London, UK",
+"page": "https://commons.wikimedia.org/wiki/File:Toyota_GR010_Hybrid_-_Mike_Conway,_Kamui_Kobayashi_%26_Jose_Maria_Lopez_exits_Dunlop_Chicane_at_the_2023_Le_Mans_(53366661736).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Toyota GR010 Hybrid - Mike Conway, Kamui Kobayashi & Jose Maria Lopez exits Dunlop Chicane at the 2023 Le Mans (53366661736).jpg"
+},
+"news/wec-4.webp": {
+"origin": "Wikimedia Commons, Tokumeigakarinoaoshima",
+"page": "https://commons.wikimedia.org/wiki/File:Osaka_Auto_Messe_2022_(125)_-_No.7_TOYOTA_GR010_HYBRID_ver_2021_FIA_World_Endurance_Championship.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Osaka Auto Messe 2022 (125) - No.7 TOYOTA GR010 HYBRID ver 2021 FIA World Endurance Championship.jpg"
+},
+"news/wec-5.webp": {
+"origin": "Wikimedia Commons, United Autosports",
+"page": "https://commons.wikimedia.org/wiki/File:2021_6_Hours_of_Spa-Francorchamps_-_Raidillon.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:2021 6 Hours of Spa-Francorchamps - Raidillon.jpg"
+},
+"news/formulae-0.webp": {
+"origin": "Wikimedia Commons, Steffen Prößdorf",
+"page": "https://commons.wikimedia.org/wiki/File:2023-04-23_Motorsport,_ABB_FIA_Formula_E_World_Championship,_Berlin_E-Prix_2023_1DX_1445_by_Stepro.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2023-04-23 Motorsport, ABB FIA Formula E World Championship, Berlin E-Prix 2023 1DX 1445 by Stepro.jpg"
+},
+"news/formulae-1.webp": {
+"origin": "Wikimedia Commons, Steffen Prößdorf",
+"page": "https://commons.wikimedia.org/wiki/File:2023-04-22_Motorsport,_ABB_FIA_Formula_E_World_Championship,_Berlin_E-Prix_2023_1DX_0990_by_Stepro.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2023-04-22 Motorsport, ABB FIA Formula E World Championship, Berlin E-Prix 2023 1DX 0990 by Stepro.jpg"
+},
+"news/formulae-2.webp": {
+"origin": "Wikimedia Commons, Steffen Prößdorf",
+"page": "https://commons.wikimedia.org/wiki/File:2023-04-22_Motorsport,_ABB_FIA_Formula_E_World_Championship,_Berlin_E-Prix_2023_1DX_0903_by_Stepro.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2023-04-22 Motorsport, ABB FIA Formula E World Championship, Berlin E-Prix 2023 1DX 0903 by Stepro.jpg"
+},
+"news/formulae-3.webp": {
+"origin": "Wikimedia Commons, Steffen Prößdorf",
+"page": "https://commons.wikimedia.org/wiki/File:2023-04-21_Motorsport,_ABB_FIA_Formula_E_World_Championship,_Berlin_E-Prix_2023_1DX_0749_by_Stepro.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2023-04-21 Motorsport, ABB FIA Formula E World Championship, Berlin E-Prix 2023 1DX 0749 by Stepro.jpg"
+},
+"news/formulae-4.webp": {
+"origin": "Wikimedia Commons, Steffen Prößdorf",
+"page": "https://commons.wikimedia.org/wiki/File:2023-04-21_Motorsport,_ABB_FIA_Formula_E_World_Championship,_Berlin_E-Prix_2023_1DX_0789_by_Stepro.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:2023-04-21 Motorsport, ABB FIA Formula E World Championship, Berlin E-Prix 2023 1DX 0789 by Stepro.jpg"
+},
+"news/formulae-5.webp": {
+"origin": "Wikimedia Commons, Velocidad Total",
+"page": "https://commons.wikimedia.org/wiki/File:2015_Punta_del_Este_ePrix_Podium_039.JPG",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:2015 Punta del Este ePrix Podium 039.JPG"
+},
+"news/formulae-6.webp": {
+"origin": "Wikimedia Commons, Velocidad Total",
+"page": "https://commons.wikimedia.org/wiki/File:2015_Punta_del_Este_ePrix_Podium_043.JPG",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:2015 Punta del Este ePrix Podium 043.JPG"
+},
+"news/fia-0.webp": {
+"origin": "Wikimedia Commons, Serrarmohamesomar",
+"page": "https://commons.wikimedia.org/wiki/File:FIA_headquarters.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:FIA headquarters.jpg"
+},
+"news/fia-1.webp": {
+"origin": "Wikimedia Commons, Phanuruch8555.",
+"page": "https://commons.wikimedia.org/wiki/File:F%C3%A9d%C3%A9ration_Internationale_de_l%27Automobile_headquarters,_Place_de_la_Concorde,_Paris,_France_-_20111023.jpg",
+"license": "CC BY 3.0",
+"date": "2026-11-08",
+"title": "File:Fédération Internationale de l'Automobile headquarters, Place de la Concorde, Paris, France - 20111023.jpg"
+},
+"news/helmet-0.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Kazuki_Nakajima_helmet_2017_Williams_Conference_Centre.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Kazuki Nakajima helmet 2017 Williams Conference Centre.jpg"
+},
+"news/helmet-1.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Alexander_Wurz_helmet_2017_Williams_Conference_Centre.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Alexander Wurz helmet 2017 Williams Conference Centre.jpg"
+},
+"news/helmet-2.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Esteban_Gutierrez_2016_helmet_2017_Museo_Fernando_Alonso.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Esteban Gutierrez 2016 helmet 2017 Museo Fernando Alonso.jpg"
+},
+"news/helmet-3.webp": {
+"origin": "Wikimedia Commons, Morio",
+"page": "https://commons.wikimedia.org/wiki/File:Takuma_Sato_2005_helmet_2014_Honda_Collection_Hall.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:Takuma Sato 2005 helmet 2014 Honda Collection Hall.jpg"
+},
+"news/helmet-4.webp": {
+"origin": "Wikimedia Commons, Nick Webb",
+"page": "https://commons.wikimedia.org/wiki/File:Jules_Bianchi%27s_helmet.jpg",
+"license": "CC BY 2.0",
+"date": "2026-11-08",
+"title": "File:Jules Bianchi's helmet.jpg"
+},
+"news/karting-0.webp": {
+"origin": "Wikimedia Commons, John Winder",
+"page": "https://commons.wikimedia.org/wiki/File:Junior_X30_karts_at_Rissington_-_geograph.org.uk_-_5028620.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Junior X30 karts at Rissington - geograph.org.uk - 5028620.jpg"
+},
+"news/karting-1.webp": {
+"origin": "Wikimedia Commons, John Winder",
+"page": "https://commons.wikimedia.org/wiki/File:Junior_TKM_class_karts_at_Rissington_-_geograph.org.uk_-_5028625.jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:Junior TKM class karts at Rissington - geograph.org.uk - 5028625.jpg"
+},
+"news/night-0.webp": {
+"origin": "Wikimedia Commons, William Cho",
+"page": "https://commons.wikimedia.org/wiki/File:The_Race_begins_26th_Sept_2008_(2841772751).jpg",
+"license": "CC BY-SA 2.0",
+"date": "2026-11-08",
+"title": "File:The Race begins 26th Sept 2008 (2841772751).jpg"
+},
+"news/night-1.webp": {
+"origin": "Wikimedia Commons, chensiyuan",
+"page": "https://commons.wikimedia.org/wiki/File:1_singapore_f1_night_race_2012_city_skyline.jpg",
+"license": "CC BY-SA 4.0",
+"date": "2026-11-08",
+"title": "File:1 singapore f1 night race 2012 city skyline.jpg"
 }
 }

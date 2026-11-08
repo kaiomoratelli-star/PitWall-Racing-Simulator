@@ -23,7 +23,7 @@ const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole',
     const p = await b.newPage({ viewport: { width, height: 900 } });
     const errs = [];
     p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-    await p.addInitScript(([l, th, nv]) => { try { localStorage.setItem('pw-lang', l); localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: th, nav: nv })); } catch (e) { /* sem armazenamento */ } }, [lang, theme, nav]);
+    await p.addInitScript(([l, th, nv]) => { try { localStorage.setItem('pw-lang', l); localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: th, nav: nv, motion: 'off' })); } catch (e) { /* sem armazenamento */ } }, [lang, theme, nav]);
     await p.goto('file://' + file); await p.waitForTimeout(300);
     const res = await p.evaluate(async ({ team, rounds, VIEWS }) => {
       const out = { bad: [], checks: [] };

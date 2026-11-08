@@ -81,13 +81,33 @@ SCREENS.teamPage = {
   SCREENS.council = {
     html() {
       let h = old.html.call(this);
-      h = h.replace(/<div class="page-head">[\s\S]*?<\/h1><\/div><\/div>/, K85.head({ t: byLang('Conselho da FIA', 'FIA Council'), s: `${byLang('Temporada', 'Season')} ${G.season.year} · ${byLang('capital político', 'political capital')} ${Math.round(Council.ensure(G).capital)}` }));
+      h = h.replace(/<div class="page-head">[\s\S]*?<\/h1><\/div><\/div>/, fiaHero85());
       h = h.replace(/<p class="small muted" style="max-width:980px;margin:-4px 0 14px">([\s\S]*?)<\/p>/, (m, txt) => `<div class="n-help">${txt}</div>`);
       return h;
     },
     after() { if (old.after) old.after.call(this); },
   };
 })();
+
+/* faixa do Conselho: logo da FIA e o plenário da Comissão (FIA, Fórmula 1 e as equipes, agrupadas pelo motor) */
+function fiaHero85() {
+  const fia = typeof Assets !== 'undefined' && Assets.logoByName('institutions', 'FIA');
+  const C = Council.ensure(G); const nx = Council.nextMeeting ? Council.nextMeeting(G) : null;
+  const eng = (t) => { try { return Engine.engineOf(G.db, t).name || ''; } catch (e) { return ''; } };
+  const teams = G.db.teams.slice().sort((a, b) => eng(a).localeCompare(eng(b)) || a.name.localeCompare(b.name));
+  const seats = [{ c: '#1B3E8C', l: 'FIA' }, { c: '#E10600', l: 'F1' }, ...teams.map(t => ({ c: t.color, l: t.short || teamAbbr(t.name), me: t.id === G.player.teamId, n: t.name + ' · ' + eng(t) }))];
+  const N = seats.length, W = 300, H = 160, cx = W / 2, cy = H - 14, R = 118;
+  const dots = seats.map((x, i) => { const a = Math.PI - (i + 0.5) / N * Math.PI; const px = cx + R * Math.cos(a), py = cy - R * Math.sin(a);
+    return `<g class="fh-seat" style="animation-delay:${i * 45}ms"><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${x.me ? 15 : 13}" fill="${x.c}" stroke="${x.me ? 'var(--fg)' : 'rgba(255,255,255,.25)'}" stroke-width="${x.me ? 3 : 1}"><title>${esc(x.n || x.l)}</title></circle><text x="${px.toFixed(1)}" y="${(py + 3.5).toFixed(1)}" text-anchor="middle">${esc(String(x.l).slice(0, 3))}</text></g>`; }).join('');
+  const need = Math.ceil(G.db.teams.length * 0.6), needNow = Math.ceil(G.db.teams.length * 0.8);
+  return `<section class="fia85">
+    <div class="fia85-logo">${fia ? `<img src="${fia}" alt="FIA">` : '<b>FIA</b>'}</div>
+    <div class="fia85-t"><span class="n-eyebrow">${byLang('Fédération Internationale de l’Automobile', 'Fédération Internationale de l’Automobile')}</span><h1>${byLang('Conselho da FIA', 'FIA Council')}</h1>
+      <p>${byLang('Comissão de Fórmula 1', 'Formula 1 Commission')} · ${byLang('temporada', 'season')} ${G.season.year}${nx ? ` · ${byLang('próxima reunião depois da etapa', 'next meeting after round')} ${nx}` : ''}</p>
+      <div class="fia85-k"><span><small>${byLang('Para aprovar', 'To pass')}</small><b>FIA + F1 + ${need}/${G.db.teams.length}</b></span><span><small>${byLang('Para valer já', 'To apply now')}</small><b>${needNow}/${G.db.teams.length}</b></span></div></div>
+    <svg class="fia85-hemi" viewBox="0 0 ${W} ${H}" aria-label="${byLang('Plenário da Comissão', 'Commission seats')}">${dots}<text class="fh-c" x="${cx}" y="${cy - 30}" text-anchor="middle">${N}</text><text class="fh-s" x="${cx}" y="${cy - 12}" text-anchor="middle">${byLang('votos', 'votes')}</text></svg>
+  </section>`;
+}
 
 /* ---------------- Notícias (jornal) ---------------- */
 (function () {

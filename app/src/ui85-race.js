@@ -118,15 +118,16 @@ ACT.pwSel85 = (el) => { UI.pwSel = el.dataset.d; updateRace(); };
           <div class="race-hud" id="hud"></div></header>
         ${race.lap === 0 && !race.finished ? preRaceHtml(wk, race, tr) : ''}
         <div class="r85-body">
-          <section class="n-card r85-tw"><div class="tower" id="tower"></div></section>
-          <section class="r85-mid"><div class="n-card r85-map"><div class="trackbox"><canvas id="raceMap"></canvas><div class="wx" id="wx"></div></div></div>
-            <div class="r85-low">${K85.card({ t: byLang('Direção de prova e rádio', 'Race control and radio'), flush: true, body: '<div class="feed" id="feed"></div>' })}${K85.card({ t: byLang('Liderança volta a volta', 'Lap leaders'), body: '<div id="leaderChart"></div>' })}</div></section>
-          <aside class="r85-pw" id="ctl"></aside>
+          <section class="r85-col"><div class="n-card r85-tw"><div class="tower" id="tower"></div></div>
+            <div class="r85-lead">${K85.card({ t: byLang('Liderança volta a volta', 'Lap leaders'), body: '<div id="leaderChart"></div>' })}</div></section>
+          <section class="r85-mid"><div class="n-card r85-map"><div class="trackbox"><canvas id="raceMap"></canvas><div class="wx" id="wx"></div></div></div></section>
+          <section class="r85-col"><aside class="r85-pw" id="ctl"></aside>
+            <div class="r85-low">${K85.card({ t: byLang('Direção de prova e rádio', 'Race control and radio'), flush: true, body: '<div class="feed" id="feed"></div>' })}</div></section>
         </div>
         <div id="raceEnd"></div>
         <div id="lights" class="lights" hidden><div class="lights-row">${[0, 1, 2, 3, 4].map(i => `<span class="lamp" id="lamp${i}"><i></i><i></i></span>`).join('')}</div></div></div>`;
     },
-    after() { old.after.call(this); },
+    after() { if (G && G.weekend && G.weekend.race) old.after.call(this); },
   };
 })();
 

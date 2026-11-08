@@ -42,6 +42,34 @@ Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da
 - Página da equipe com estatísticas completas e os maiores vencedores.
 - Redes sociais e todas as telas sem pedido específico no modelo A.
 
+**Ajustes pedidos depois da primeira versão**
+- Conselho: faixa com a logo da FIA e o plenário da Comissão (FIA, Fórmula 1 e as 11 equipes, agrupadas pelo motor).
+- Fabricantes e Patrocinadores: logos no tamanho certo (antes apareciam ampliadas e cortadas); margens vazias recortadas em 4 arquivos de logo.
+- Corrida ao vivo:
+  - classificação com a liderança volta a volta embaixo;
+  - pista maior no centro, fixa ao rolar;
+  - ordens dos pilotos com a direção de prova e o rádio embaixo.
+- Notícias:
+  - banco com cerca de 110 fotos do Wikimedia Commons (licenças livres, autor e licença em `assets/img/sources.json`), em 25 temas: largada, box, pódio, batida, Safety Car, chuva, garagem, paddock, coletiva, torcida, fábrica, pneus, troféu, muro dos boxes, bandeiras, F2, F3, IndyCar, NASCAR, WEC, Fórmula E, FIA, capacetes, kart, corrida noturna e história;
+  - o tema sai do título e da etiqueta da notícia, e a foto é sempre a mesma para a mesma notícia;
+  - montagens feitas pelo jogo: transferência (cores e logos das duas equipes), renovação, vitória (pista ao fundo e "P1"), duelo, marca histórica (número grande) e foto com o rosto do piloto;
+  - o jornal mostra imagem na manchete, nas duas notícias ao lado e em metade das colunas.
+- Tela de início: quatro propostas para escolher, trocadas no canto da própria tela ou em Opções → Interface:
+  - **Largada:** foto da pista com zoom lento, luzes de largada e faixa de dados;
+  - **Garagem:** carrossel com os carros do grid nas cores de cada equipe;
+  - **Telemetria:** traçado sendo desenhado, carros andando, gráfico de velocidade e torre com o grid;
+  - **Grid:** mosaico com os 22 pilotos e faixa vermelha no estilo capa de revista.
+- Animações:
+  - entrada das telas: da direita ao avançar, da esquerda ao voltar;
+  - cartões e linhas de tabela em cascata;
+  - barras, anéis e gráficos crescendo e números contando até o valor;
+  - indicador das abas deslizando;
+  - janelas e avisos com entrada suave;
+  - pódio e pole com entrada dramática;
+  - traçado da próxima pista sendo desenhado na Central.
+  - Animam só quando a tela muda e respeitam a opção "Animações: desligadas" e a preferência do sistema por menos movimento.
+- Retratos de 5 pilotos (Albon, Lindblad, Colapinto, Lawson e Gasly) estavam recortados sem a cabeça; foram refeitos a partir da foto de corpo inteiro.
+
 **Simulação**
 - Efeito das ordens de rádio no motor de corrida (ritmo, desgaste, combustível, erros, falhas, ultrapassagens e ar sujo).
 - Atacar, defender e evitar ar sujo valem por 5 voltas: mantidas a corrida toda, custavam posições.

@@ -90,5 +90,20 @@ As 11 verificações de coerência passaram em todas:
 - Central: dados do seu carro na próxima pista (posição esperada no grid, último vencedor e maior vencedor do circuito).
 - Gráfico gasto × pontos com escala a partir do menor gasto e rótulos sem sobreposição.
 
+## Segunda rodada (pedidos depois da primeira versão)
+- Conselho com a logo da FIA e o plenário da Comissão.
+- Logos de fabricantes e patrocinadores no tamanho certo.
+  - Causa: a imagem não respeitava a altura da caixa.
+- Corrida reorganizada, com a pista maior e fixa ao rolar.
+- Notícias com banco de fotos e montagens.
+  - Módulo `ui85-news.js`, fotos em `assets/img/news`.
+  - Créditos em `sources.json` e no registro de assets.
+- Quatro propostas de tela de início em `ui85-title.js` (Largada, Garagem, Telemetria e Grid).
+- Animações e transições em `ui85-fx.js` e `ui85-fx.css`, com opção para desligar.
+- Defeito de dados encontrado na revisão: 5 retratos sem a cabeça (Albon, Lindblad, Colapinto, Lawson e Gasly). Foram refeitos.
+- Verificação:
+  - `ui85-check.js` roda com as animações desligadas, para ler os números finais;
+  - outra checagem com as animações ligadas confirmou que os números terminam no valor certo e que nenhuma tela rola na horizontal durante a transição.
+
 ## Para depois da V1
 Saves e migrações da nova interface: a 0.8.5 não muda o formato do save, só lê dados que já existem.
