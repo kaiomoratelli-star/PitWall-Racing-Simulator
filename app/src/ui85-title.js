@@ -45,9 +45,10 @@ const grid85 = () => { const db = BASE; return db.teams.flatMap(t => db.drivers.
 function titleLargada85() {
   if (!UI.titleTrack) { const pool = BASE.tracks.filter(t => imgUrl(t.heroImg)); UI.titleTrack = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; }
   const tr = UI.titleTrack; const hero = tr && imgUrl(tr.heroImg);
-  return `<div class="t85 t85-largada">
+  const intro = !UI.titleIntro85;   // luzes e entrada só na primeira vez que a tela abre (não a cada clique)
+  return `<div class="t85 t85-largada ${intro ? '' : 'no-intro'}">
     <div class="t85-bg" ${hero ? `style="background-image:url('${hero}')"` : ''}></div><div class="t85-shade"></div>
-    <div class="t85-lights" aria-hidden="true">${[0, 1, 2, 3, 4].map(i => `<span style="--i:${i}"><i></i><i></i></span>`).join('')}</div>
+    ${intro ? `<div class="t85-lights" aria-hidden="true">${[0, 1, 2, 3, 4].map(i => `<span style="--i:${i}"><i></i><i></i></span>`).join('')}</div>` : ''}
     <div class="t85-l">
       <span class="t85-eye">${esc(BASE.rules.seriesName)}</span>
       ${titleWord85()}
@@ -137,6 +138,7 @@ function titleGrid85() {
       } catch (e) { if (UI.errors) UI.errors.push({ where: 'title85', msg: e.message }); return old.html.call(this); }
     },
     after() {
+      if (title85() === 'largada') setTimeout(() => { UI.titleIntro85 = true; }, 0);
       cancelAnimationFrame(UI.anim);
       clearInterval(UI.titleTimer85);
       if (title85() === 'garagem') UI.titleTimer85 = setInterval(() => { if (UI.view !== 'title' || title85() !== 'garagem' || document.querySelector('.modal-bg, .modal')) return; ACT.titleCar85({ dataset: { d: '1' } }); }, 7000);

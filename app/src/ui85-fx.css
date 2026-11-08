@@ -197,3 +197,6 @@ html[data-motion="off"] .t85 *, html[data-motion="off"] .x-app *, html[data-moti
 .x-cta.wait, .x-cta.live { animation: fxGlow 2.4s ease-in-out infinite; } @keyframes fxGlow { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--yellow, #FFC93C) 25%, transparent); } }
 /* busca e menu: entrada suave */
 .x-rail .x-area { transition: background-color .2s, color .2s, transform .15s; } .x-rail .x-area:hover { transform: translateY(-1px); }
+/* Largada: depois da primeira abertura, nada de luzes nem entrada em cascata a cada clique */
+.t85-largada.no-intro .t85-l > *, .t85-largada.no-intro .t85-place, .t85.no-intro .t85-new::after { animation: none !important; }
+.t85-largada.no-intro .t85-bg { animation-delay: 0s; }
