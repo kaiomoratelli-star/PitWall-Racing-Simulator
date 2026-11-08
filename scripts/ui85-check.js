@@ -80,14 +80,21 @@ const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole',
       Career.startWeekend(G); Career.finishPractice(G); Career.runQualifying(G); Career.startRace(G);
       go('race'); await sleep(30);
       const race = G.weekend.race;
+      const vis = (sel) => [...document.querySelectorAll(sel)].some(e => e.offsetParent !== null);
+      out.checks.push(['Antes da largada: sem +1 volta e sem simular até o fim', !vis('#hud [data-act="raceStep"]') && !vis('#hud [data-act="raceSkip"]')]);
       for (let i = 0; i < 3; i++) { Career.stepRace(G); updateRace(); }
       const mine = race.cars.filter(c => c.tid === G.player.teamId);
       for (const o of ['attack', 'kerbs', 'lift', 'hold', 'cleanAir', 'defend', 'extend', 'motivate', 'letBy']) ACT.radio85({ dataset: { d: mine[0].did, o } });
       for (let i = 0; i < 8; i++) { Career.stepRace(G); updateRace(); }
       out.checks.push(['Rádio: ordens registradas', race.events.filter(e => e.type === 'radio').length >= 8]);
       out.checks.push(['Rádio: defesa expira em 5 voltas', !(typeof mine[0].orders.defend === 'number' && mine[0].orders.defend >= race.lap)]);
-      Career.simRaceToEnd(G); updateRace(true); await ACT.finishWeekend(); await sleep(30);
+      Career.simRaceToEnd(G); updateRace(true); await sleep(20);
+      out.checks.push(['Depois da bandeirada: nada que avance a corrida', !document.querySelector('.r85 .race-intro') && !vis('#hud [data-act="racePlay"]') && !vis('#hud [data-act="raceStep"]') && !vis('#hud [data-act="raceSkip"]') && vis('#hud [data-act="finishWeekend"]')]);
+      await ACT.finishWeekend(); await sleep(30);
       out.checks.push(['Depois da corrida vai para o pódio', UI.view === 'podium']);
+      while (!Career.seasonOver(G)) simulateRound();
+      go('weekend'); await sleep(20);
+      out.checks.push(['Temporada encerrada: o fim de semana não oferece começar', !!document.querySelector('.ns85') && !document.querySelector('#app [data-act="toWeekend"]')]);
       out.uiErrors = (UI.errors || []).map(e => `${e.where}: ${e.msg}`);
       return out;
     }, { team, rounds, VIEWS });

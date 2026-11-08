@@ -19,7 +19,7 @@ function wkHead(sub) {
 SCREENS.weekend = {
   html() {
     if (Career.isObs(G)) { setTimeout(() => go(G.weekend && G.weekend.race ? 'race' : 'hub'), 0); return ''; }
-    if (!G.weekend) return `<div class="empty">Nenhum fim de semana em andamento. <button class="btn" data-act="toWeekend">Começar</button></div>`;
+    if (!G.weekend) return typeof noSession85 === 'function' ? noSession85(byLang('Nenhum fim de semana em andamento.', 'No race weekend in progress.')) : `<div class="empty">Nenhum fim de semana em andamento.</div>`;
     const ph = G.weekend.phase;
     if (ph === 'practice') return practiceHtml();
     if (ph === 'quali') return qualiHtml();
@@ -75,7 +75,7 @@ function strategyHtml() {
   ${wk.sprintResult ? sprintPanel(wk.sprintResult.cls) : ''}
   <div class="grid g2">${lineup.map(d => {
     const st = wk.strategy[d.id];
-    return `<div class="panel"><div class="panel-h">${dTag(d.id)}<span class="chip acc">Larga em ${ordinal(wk.grid.indexOf(d.id) + 1)}</span></div><div class="panel-b stack">
+    return `<div class="panel"><div class="panel-h">${dTag(d.id)}<span class="chip">Larga em ${ordinal(wk.grid.indexOf(d.id) + 1)}</span></div><div class="panel-b stack">
       <span class="label">Pneu de largada</span>
       <div class="row">${['S', 'M', 'H', 'I', 'W'].map(c => `<button class="btn sm ${st.startTyre === c ? 'primary' : ''}" data-act="stTyre" data-d="${d.id}" data-c="${c}">${tyreIcon(c)} ${TYRES[c].name}</button>`).join('')}</div>
       <div class="small muted">Vida útil estimada até 70% de desgaste: ${['S', 'M', 'H'].map(c => `${TYRES[c].name} ~${life(c, d)} voltas`).join(' · ')} (corrida de ${laps} voltas)</div>

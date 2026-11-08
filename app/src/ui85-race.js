@@ -109,6 +109,15 @@ pitWallHtml = function (race, wk, tr, cars) {
 
 ACT.pwSel85 = (el) => { UI.pwSel = el.dataset.d; updateRace(); };
 
+/* tela de fim de semana ou de corrida sem sessão: diz o que fazer agora (próximo GP ou fim de temporada) */
+function noSession85(msg) {
+  const over = Career.seasonOver(G);
+  const id = G.season.calendar[Math.min(G.season.round, G.season.calendar.length - 1)]; const tr = id && Career.track(G, id);
+  let date = ''; try { date = Time.fmt(Time.weekendDay(G)); } catch (e) { /* sem data */ }
+  if (over) return `<div class="ns85"><span class="n-eyebrow">${byLang('Temporada', 'Season')} ${G.season.year}</span><h2>${byLang('Temporada encerrada', 'Season finished')}</h2><p>${esc(msg)} ${byLang('Veja campeões, premiação e o que vem a seguir.', 'See champions, awards and what comes next.')}</p>${K85.btn(byLang('Fim de temporada', 'Season review'), { act: 'go', v: 'hub', kind: 'primary' })}</div>`;
+  return `<div class="ns85">${tr ? K85.track(tr, { w: 220, h: 130, cls: 'ns85-trk' }) : ''}<span class="n-eyebrow">${byLang('Próximo GP', 'Next GP')} · ${byLang('etapa', 'round')} ${G.season.round + 1}/${G.season.calendar.length}</span><h2>${esc(tr ? tr.gp : '')}</h2><p>${esc(msg)}${date ? ` ${byLang('O fim de semana começa em', 'The weekend starts on')} ${esc(date)}.` : ''}</p>${cta85().replace('class="x-cta', 'class="x-cta ns85-cta')}</div>`;
+}
+
 /* ---------- corrida ao vivo ---------- */
 (function () {
   const old = SCREENS.race;
@@ -116,7 +125,7 @@ ACT.pwSel85 = (el) => { UI.pwSel = el.dataset.d; updateRace(); };
     bare: true,
     html() {
       const wk = G.weekend;
-      if (!wk || !wk.race) return shellHtml(`<div class="n-empty"><i></i>${byLang('Nenhuma corrida em andamento.', 'No race in progress.')}</div>`);
+      if (!wk || !wk.race) return shellHtml(noSession85(byLang('Nenhuma corrida em andamento.', 'No race in progress.')));
       const race = wk.race; const tr = Career.track(G, wk.trackId); const team = Career.isObs(G) ? null : Career.team(G);
       if (team) { document.documentElement.style.setProperty('--team', team.color); }
       return `<div class="r85">
@@ -217,8 +226,8 @@ SCREENS.podium = {
       const sc = Career.standingsC(G); const pos = sc.findIndex(x => x.tid === G.player.teamId) + 1;
       const band = `<section class="pst"><div class="pst-pts"><b class="n-num">+${pts}</b><span>${byLang('pontos para a', 'points for')} ${esc(Career.team(G).name)}</span><small>${ordinal(pos)} ${byLang('no Mundial de Construtores', 'in the Constructors')}</small></div>
         ${mine.map(c => { const d = Career.driver(G, c.did); const ch = c.grid - c.pos; return `<div class="pst-d">${K85.av(d, 50)}<span><b>${esc(d.name)}</b><small>${byLang('largou', 'started')} ${c.grid}º · ${c.pits ?? 0} ${byLang('parada(s)', 'stop(s)')}${c.status !== 'fin' && c.status !== 'lapped' ? ' · ' + esc(c.reason || byLang('abandono', 'DNF')) : ''}</small></span><span class="pst-p"><b class="n-num">${c.status === 'fin' || c.status === 'lapped' ? 'P' + c.pos : 'AB'}</b>${c.status === 'fin' || c.status === 'lapped' ? `<em class="${ch > 0 ? 'n-gain' : ch < 0 ? 'n-loss' : 'n-mu'}">${ch > 0 ? '▲' + ch : ch < 0 ? '▼' + -ch : '='}</em>` : ''}</span></div>`; }).join('')}
-        <div class="pst-act">${K85.btn(byLang('Pódio', 'Podium'), { act: 'go', v: 'podium' })}${K85.btn(byLang('Grid e pole', 'Grid and pole'), { act: 'go', v: 'pole' })}${K85.btn(byLang('Análise de dados', 'Data analysis'), { act: 'go', v: 'analysis' })}</div></section>`;
-      return band + base;
+        </section>`;
+      return band + base.replace(/<button class="btn" data-act="go" data-v="analysis">Análise de dados<\/button>/, '');
     },
     after() { if (old.after) old.after.call(this); },
   };

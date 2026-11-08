@@ -109,6 +109,17 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && UI.wxOpe
           hud.append(info, ctl);
           const fl = [...info.querySelectorAll('.chip')].find(c => c.querySelector('.pur')); if (fl) fl.classList.add('fl85');
         }
+        // comandos coerentes com o momento da corrida
+        const race = G.weekend && G.weekend.race; const ctl = hud.querySelector('.r85-ctl');
+        if (race && (race.lap > 0 || race.finished)) document.querySelectorAll('.r85 .race-intro').forEach(e => e.remove());
+        if (race && ctl) {
+          const hide = (sel) => ctl.querySelectorAll(sel).forEach(e => { e.hidden = true; e.style.display = 'none'; });
+          const speed = () => ctl.querySelectorAll('.seg').forEach(sg => { if (sg.querySelector('[data-act="raceSpeed"]')) { sg.hidden = true; sg.style.display = 'none'; } });
+          if (race.finished) {
+            hide('[data-act="racePlay"],[data-act="raceStep"],[data-act="raceSkip"],[data-act="lightsOut"]'); speed();
+            if (!ctl.querySelector('.r85-fin')) ctl.insertAdjacentHTML('afterbegin', `<button class="btn primary r85-fin" data-act="finishWeekend">${byLang('Encerrar fim de semana', 'Finish the weekend')} →</button>`);
+          } else if (race.lap === 0) { hide('[data-act="raceStep"],[data-act="raceSkip"]'); speed(); }
+        }
       }
     } catch (e) { /* o topo nunca derruba a corrida */ }
     return r;

@@ -71,6 +71,7 @@ function cta85() {
   if (Career.isObs(G)) return `<button class="x-cta" data-act="simRound">${byLang('Simular etapa', 'Simulate round')}<small>${esc(nextRaceName85())}</small></button>`;
   if (Career.seasonOver(G)) return `<button class="x-cta" data-act="go" data-v="hub"><span>${byLang('Fim de temporada', 'Season review')}<small>${byLang('campeões e premiação', 'champions and awards')}</small></span>→</button>`;
   if (G.weekend) {
+    if (G.weekend.race && G.weekend.race.finished) return `<button class="x-cta live" data-act="finishWeekend"><span>${byLang('Encerrar fim de semana', 'Finish the weekend')}<small>${byLang('pódio e resultados', 'podium and results')}</small></span>→</button>`;
     const live = G.weekend.race && !G.weekend.race.finished;
     return `<button class="x-cta live" data-act="go" data-v="${G.weekend.race ? 'race' : 'weekend'}"><span>${live ? byLang('Corrida ao vivo', 'Live race') : byLang('Fim de semana', 'Race weekend')}<small>${esc(nextRaceName85())}</small></span>→</button>`;
   }
@@ -103,7 +104,7 @@ function shell85(inner) {
   const unread = obs ? 0 : G.inbox.filter(m => !m.read).length;
   const areas = AREAS85.filter(a => a[0] !== 'sistema' && tabsOf85(a[0]).length).map(a => `<button class="x-area ${a[0] === area ? 'on' : ''}" data-act="go" data-v="${tabsOf85(a[0])[0][0]}" ${tabsOf85(a[0])[0][2] ? `data-p='${JSON.stringify(tabsOf85(a[0])[0][2])}'` : ''} title="${esc(byLang(a[1], a[2]))}">${svg85(ICON85[a[0]])}<span>${esc(byLang(a[1], a[2]))}</span>${a[0] === 'inicio' && unread ? `<span class="badge">${unread > 99 ? '99+' : unread}</span>` : ''}${a[0] === 'corrida' && G.weekend ? '<span class="live"></span>' : ''}</button>`).join('');
   const tabs = tabsOf85(area);
-  const sub = tabs.length > 1 ? `<nav class="x-sub" aria-label="${byLang('Telas da área', 'Area screens')}">${tabs.map(t => `<button class="${tabOn85(t) ? 'on' : ''}" data-act="go" data-v="${t[0]}" ${t[2] ? `data-p='${JSON.stringify(t[2])}'` : ''}>${esc(byLang(t[1], T(t[1])))}${t[0] === 'inbox' && unread ? `<span class="badge">${unread > 99 ? '99+' : unread}</span>` : ''}</button>`).join('')}</nav>` : '';
+  const sub = tabs.length > 1 ? `<nav class="x-sub" aria-label="${byLang('Telas da área', 'Area screens')}">${tabs.map(t => `<button class="${tabOn85(t) ? 'on' : ''}" data-act="go" data-v="${t[0]}" ${t[2] ? `data-p='${JSON.stringify(t[2])}'` : ''}>${esc(tabLabel85(t))}${t[0] === 'inbox' && unread ? `<span class="badge">${unread > 99 ? '99+' : unread}</span>` : ''}</button>`).join('')}</nav>` : '';
   const curTab = tabs.find(tabOn85);
   const title = curTab ? byLang(curTab[1], T(curTab[1])) : (SCREEN_TITLE85[UI.view] || '');
   let kpis = '';
@@ -128,6 +129,13 @@ function shell85(inner) {
       ${sub}
       <main class="main"><div class="main-inner">${inner}</div></main>
     </div></div>`;
+}
+/* durante um fim de semana, Pódio e Pós-corrida ainda mostram o GP anterior: o rótulo diz isso */
+function tabLabel85(t) {
+  const l = byLang(t[1], T(t[1]));
+  const wk = G && G.weekend; const prevOnly = wk && !(wk.race && wk.race.finished) && G.lastRace;
+  if (prevOnly && (t[0] === 'podium' || t[0] === 'post')) return `${l} · ${byLang('GP anterior', 'last GP')}`;
+  return l;
 }
 const SCREEN_TITLE85 = { driverPage: 'Ficha do piloto', teamPage: 'Página da equipe', circuit: 'Circuito', seasonEnd: 'Fim de temporada' };
 function luma85(hex) { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return 0.3; const n = parseInt(m[1], 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
