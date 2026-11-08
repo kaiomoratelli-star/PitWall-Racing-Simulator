@@ -116,7 +116,7 @@
 .t85-tile > span { position: absolute; inset: 0; display: grid; place-items: center; font: 800 28px var(--f-cond); color: rgba(255,255,255,.7); }
 .t85-tile small { position: absolute; left: 6px; bottom: 5px; font: 800 11px var(--f-cond); letter-spacing: .06em; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
 @keyframes t85Tile { from { opacity: 0; transform: translateY(30px) scale(.96); } }
-.t85-band { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 460px); gap: 40px; align-items: center; padding: 26px 5vw; background: #E10600; margin-top: -60px; box-shadow: 0 -20px 50px rgba(0,0,0,.5); clip-path: polygon(0 26px, 100% 0, 100% 100%, 0 100%); padding-top: 50px; }
+.t85-band { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 460px); gap: 40px; align-items: center; padding: 26px 5vw; background: #E10600; margin-top: -26px; box-shadow: 0 -20px 50px rgba(0,0,0,.5); clip-path: polygon(0 26px, 100% 0, 100% 100%, 0 100%); padding-top: 50px; }
 .t85-band .t85-eye { color: rgba(255,255,255,.85); } .t85-band .t85-eye::before { background: #fff; } .t85-band .t85-word b { color: #111; } .t85-band .t85-lead { color: rgba(255,255,255,.9); margin-bottom: 0; }
 .t85-band .t85-new { background: #111; box-shadow: none; } .t85-band .t85-sec > *, .t85-band .t85-slot > button:first-child { background: rgba(0,0,0,.18); border-color: rgba(255,255,255,.3); }
 .t85-mosaic .t85-foot { padding: 14px 5vw 20px; margin: 0; max-width: 900px; }

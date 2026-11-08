@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.5 — Nova interface (em teste, ainda não lançada)
+## 0.8.5 — Nova interface (08/11/2026)
 Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da escolha tela a tela do dono do jogo. Relatório da verificação em `docs/RELATORIO-0.8.5.md`.
 
 **Sistema visual**
@@ -69,6 +69,16 @@ Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da
   - traçado da próxima pista sendo desenhado na Central.
   - Animam só quando a tela muda e respeitam a opção "Animações: desligadas" e a preferência do sistema por menos movimento.
 - Retratos de 5 pilotos (Albon, Lindblad, Colapinto, Lawson e Gasly) estavam recortados sem a cabeça; foram refeitos a partir da foto de corpo inteiro.
+
+**Últimos ajustes antes do lançamento**
+- Corrida:
+  - menu suspenso de clima no topo, no estilo dos jogos de gestão. Mostra a condição agora, a água na pista (com faixas seca/intermediário/chuva), ar, asfalto, umidade, vento e o pneu indicado;
+  - previsão em blocos de voltas com a chance de chuva, cuja precisão depende do estrategista;
+  - gráfico de água na pista e temperatura do asfalto na corrida inteira;
+  - combustível no cartão do piloto: % do tanque e sobra estimada em voltas até a bandeirada;
+  - dados centralizados: setores, colunas da classificação, métricas do piloto e botões de rádio;
+  - o topo fica em uma linha só, com as informações à esquerda e os comandos à direita.
+- Tela de início "Grid": a Haas mostra Bearman e Rafael Câmara (quem tem foto oficial entra primeiro), e os nomes da segunda fileira não ficam mais escondidos.
 
 **Simulação**
 - Efeito das ordens de rádio no motor de corrida (ritmo, desgaste, combustível, erros, falhas, ultrapassagens e ar sujo).

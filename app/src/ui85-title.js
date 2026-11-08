@@ -38,7 +38,8 @@ function titleFacts85() {
 const titleWord85 = (cls = '') => `<h1 class="t85-word ${cls}"><span>PIT</span><b>WALL</b></h1>`;
 const titleFoot85 = () => `<footer class="t85-foot"><div class="studio">${mgcLogo(26)}<span>${byLang('Uma produção', 'A production by')} ${COMPANY} · v${APP_VERSION} · © 2026</span></div>${disclaimerHtml()}</footer>`;
 const titlePick85 = () => `<div class="t85-pick" role="group" aria-label="${byLang('Estilo da tela de início', 'Title screen style')}"><span>${byLang('Estilo', 'Style')}</span>${TITLE85.map(([k, pt, en], i) => `<button class="${title85() === k ? 'on' : ''}" data-act="title85" data-val="${k}" title="${esc(byLang(pt, en))}"><b>${i + 1}</b>${esc(byLang(pt, en))}</button>`).join('')}</div>`;
-const grid85 = () => { const db = BASE; return db.teams.flatMap(t => db.drivers.filter(d => d.team === t.id).slice(0, 2).map(d => ({ d, t }))); };
+/* dois pilotos por equipe; quem tem foto oficial vem primeiro (a Haas tem Bearman, Hirakawa e Câmara na base: entram Bearman e Câmara) */
+const grid85 = () => { const db = BASE; return db.teams.flatMap(t => db.drivers.filter(d => d.team === t.id).map((d, i) => ({ d, i, f: d.img ? 0 : 1 })).sort((a, b) => a.f - b.f || a.i - b.i).slice(0, 2).map(({ d }) => ({ d, t }))); };
 
 /* 1 · Largada */
 function titleLargada85() {

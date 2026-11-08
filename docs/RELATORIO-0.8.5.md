@@ -1,6 +1,6 @@
 # Relatório da 0.8.5 — nova interface
 
-Situação: pronta no ramo `v0.8.5`, **sem lançamento**. A versão só vai para o `main` (que gera o instalador) quando o dono do jogo pedir.
+Situação: lançada em 08/11/2026, a pedido do dono do jogo, depois da última rodada de ajustes (clima, combustível e alinhamento da corrida, mosaico de pilotos).
 
 ## Onde está cada coisa
 
