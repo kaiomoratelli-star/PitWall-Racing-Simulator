@@ -78,3 +78,33 @@ Uma versão nova substituiu cada uma destas, e a antiga não é mais chamada.
 - **Funcionários:** as 14 funções, fora o chefe de equipe, têm efeito: P&D, engenharia, estratégia, pit stop, confiabilidade do motor, operação, comercial e marketing.
 - **Regulamento:** os 19 outros itens têm efeito. Entre eles: potência elétrica, combustível, peso mínimo, ATR, formato da classificação, parque fechado, Safety Car, VSC, bandeira vermelha, limites de pista, rigor dos comissários, unidades de potência e punição de motor.
 - **Rivalidades:** já mudam o comportamento na pista, via `race.rivals`; só falta a tela.
+
+## 6. Situação depois da limpeza (0.8.6-C, 08/11/2026)
+
+**Removido (cerca de 680 linhas):**
+- as 15 funções sem uso da seção 1: acerto e classificação antigos, superlicença e custo da academia antigos, ajudantes nunca usados, `K85.go`/`K85.pips`, `AI.whyRenew`/`AI.whyRelease`;
+- a ação `acAdd`;
+- todas as versões antigas da seção 3. As funções que outro arquivo reatribui viraram uma linha mínima, para o carregamento não quebrar.
+
+**Reaproveitado:**
+- `Media.isRival` e os dados de rivalidade: painel "Rivalidades" na página do piloto;
+- `Assets.licenseSummary` e o registro: tela "Créditos e licenças" (Sistema);
+- `Talent.census`: Diagnóstico;
+- `G.chaos`: tela "Casos e investigações" (Mundo);
+- `G.capBreaches`: quadro de estouros do teto de gastos nas Finanças;
+- o painel do dono, que a página nova da equipe tinha perdido, voltou.
+
+**Ganharam efeito:**
+- nota do chefe de equipe: 15% da estratégia e 10% da direção técnica;
+- aerodinâmica ativa: a asa abre mais nas retas, ganho de 15% sobre o DRS ou o modo de ultrapassagem.
+
+**Botão adicionado:** cancelar a observação de um olheiro.
+
+**Já estava resolvido:** a opção "Redação do paddock" já não aparece no aplicativo de computador.
+
+**Novo:** gerador de fabricantes candidatos. A fila de motores nunca se esgota (18 nomes possíveis, sorteio determinístico pela semente).
+
+**Ficam para a 0.8.6-B:**
+- "Câmbios por temporada" e "Dias de teste" ganham efeito com os componentes e os testes.
+
+**Pendente: tradução dos textos gerados:** as notícias e o registro ainda são gerados em português no modo inglês. Os textos fixos da interface encontrados na varredura foram traduzidos.

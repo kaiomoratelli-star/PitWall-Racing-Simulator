@@ -319,7 +319,7 @@ Engine.stepLap = (race, wk) => {
     // DRS / ar sujo
     c.drs = false;
     if (!scType && L >= 3 && (!race.restartLap || L - race.restartLap >= 2) && w < 0.3 && c.lastGapAhead < 1.0 && track.drs > 0) {
-      c.drs = true; t -= 0.16 * Math.sqrt(track.drs);
+      c.drs = true; t -= 0.16 * Math.sqrt(track.drs) * (race.R.activeAero ? 1.15 : 1);   // aerodinâmica ativa: asas abrem mais nas retas
     }
     if (!scType && c.lastGapAhead < 1.3) t += o.cleanAir ? (1.5 - c.lastGapAhead) * 0.6 : 0.1 + track.weights.aero * 0.45;   // ar sujo: com a ordem, o piloto recua e protege os pneus
     if (scType === 'SC') t = scPace + RNG.range(0, 0.4);

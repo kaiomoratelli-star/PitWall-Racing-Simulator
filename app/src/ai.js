@@ -172,5 +172,3 @@ AI.applyNextYear = (G) => {
 };
 
 /* explica a decisão de mercado da IA em texto */
-AI.whyRenew = (t, d) => `${t.name} renovou com ${d.name}: overall ${driverOverall(d)} e moral ${Math.round(d.morale)}.`;
-AI.whyRelease = (t, d, best) => `${t.name} não renovou com ${d.name} (overall ${driverOverall(d)}): havia opção melhor no mercado${best ? ` (${best.name}, ${driverOverall(best)})` : ''}.`;

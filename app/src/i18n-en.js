@@ -515,4 +515,12 @@ I18N_PATS.unshift(
   [/^pot\. (\d+)–(\d+)$/, 'pot. $1–$2'], [/^(.+)\/ano até (\d{4})$/, '$1/year until $2'], [/^Prestígio da academia: (\d+) \(pesa na decisão dos pilotos\)\.$/, 'Academy prestige: $1 (weighs on drivers’ decisions).'],
   [/^(\d+) membro\(s\) reais em séries fora do jogo\.$/, '$1 real member(s) in series outside the game.'], [/^Proposta: (.+)\/ano por (\d) ano\(s\)\. (.+) pede (.+)\/ano(.*)\.$/, (m, a, y, n, b, r) => `Offer: ${a}/year for ${y} year(s). ${n} asks ${b}/year${r.replace(/academia\(s\) rival\(is\) interessada\(s\)/, 'rival academies interested')}.`],
   [/^(.+) anos · (.+) · nota (\d+) · nível estimado (.+)$/, '$1 years · $2 · rating $3 · estimated level $4'],
+  // 0.8.6: textos que ainda apareciam em português no modo inglês
+  [/^(\d+) títulos · (\d+) vitórias$/, '$1 titles · $2 wins'], [/^(\d+) título · (\d+) vitórias$/, '$1 title · $2 wins'],
+  [/^(\d+) pts · (\d+) etapa\(s\)$/, '$1 pts · $2 round(s)'], [/^(\d+)\/(\d+) etapas · próxima: (.+) \((.+)\)$/, '$1/$2 rounds · next: $3 ($4)'],
+  [/^(.+) por GP com o diretor comercial$/, '$1 per GP with the commercial director'], [/^Parceiros reais da equipe:$/, 'Real team partners:'],
+  [/^Não consta na lista de (.+)\.$/, 'Not on the list of $1.'], [/^Switch to (.+)$/, 'Switch to $1'],
+  [/^Projeto e fabricação\. A pesquisa do carro de (\d{4}) abre a partir de (\d+)% da temporada\.$/, 'Design and manufacturing. Research on the $1 car opens from $2% of the season.'],
+  [/^Projeto e fabricação: a peça entra no carro assim que fica pronta\.$/, 'Design and manufacturing: the part goes on the car as soon as it is ready.'],
+  [/^Só projeto, sem fabricação: rende 35% a mais e entra no carro de (\d{4})\. Ocupa uma vaga como qualquer projeto\.$/, 'Design only, no manufacturing: 35% more gain, goes on the $1 car. Takes a slot like any project.'],
 );

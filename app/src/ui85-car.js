@@ -123,7 +123,7 @@ function mfrTyres85() {
         K85.card({ t: byLang('Histórico na F1', 'F1 history'), body: `<div class="ty-h">${T.hist.map(h => `<span><b class="n-num">${h.y}</b>${esc((Mfr.TYRES[h.id] || {}).name || h.id)}</span>`).join('')}</div>` })));
 }
 function mfrMoves85(S) {
-  const K = { contrato: byLang('Contrato', 'Deal'), anuncio: byLang('Anúncio', 'Announcement'), estreia: byLang('Estreia', 'Debut'), saida: byLang('Anuncia saída', 'Announces exit'), saiu: byLang('Saiu', 'Left'), heranca: byLang('Projeto herdado', 'Project taken over') };
+  const K = { contrato: byLang('Contrato', 'Deal'), anuncio: byLang('Anúncio', 'Announcement'), estudo: byLang('Novo projeto em estudo', 'New project under study'), estreia: byLang('Estreia', 'Debut'), saida: byLang('Anuncia saída', 'Announces exit'), saiu: byLang('Saiu', 'Left'), heranca: byLang('Projeto herdado', 'Project taken over') };
   const log = (S.log || []).slice(0, 40);
   return K85.card({ t: byLang('Movimentos dos fabricantes', 'Manufacturer moves'), flush: true, body: log.length ? K85.table([[byLang('Ano', 'Year'), 'c'], [byLang('Tipo', 'Type')], [byLang('Fabricante', 'Manufacturer')], [byLang('Equipe', 'Team')], [byLang('Detalhe', 'Detail')]], log.map(x => { const m = Mfr.get(G, x.mid); const t = x.tid && Career.team(G, x.tid); return [x.y, K85.tag(K[x.kind] || x.kind, x.kind === 'saiu' || x.kind === 'saida' ? 'r' : x.kind === 'estreia' || x.kind === 'anuncio' ? 'g' : 'b'), m ? `<span class="n-tm">${mfrLogo85(m)}<b>${esc(m.name)}</b></span>` : esc(x.mid || ''), t ? K85.tm(t.id) : '—', esc(x.txt || (x.until ? byLang('até', 'until') + ' ' + x.until : x.year || ''))]; })) : `<div style="padding:12px 16px">${K85.empty(byLang('Nada ainda.', 'Nothing yet.'))}</div>` });
 }

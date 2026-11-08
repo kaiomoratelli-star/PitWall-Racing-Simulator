@@ -72,7 +72,10 @@ Staff.derive = (t) => {
   t.staff.technical = Math.round(Staff.r(t, 'technical') * 0.7 + Staff.r(t, 'engineeringDir') * 0.3);
   t.staff.aero = Staff.r(t, 'aero');
   t.staff.engineering = Math.round(Staff.r(t, 'chiefEngineer') * 0.4 + Staff.r(t, 'performance') * 0.2 + (Staff.r(t, 'raceEng1') + Staff.r(t, 'raceEng2')) * 0.2);
-  t.staff.strategy = Math.round(Staff.r(t, 'strategy') * 0.75 + Staff.r(t, 'sporting') * 0.25);
+  // o chefe de equipe também pesa: estratégia (decisões no muro) e direção técnica (prioridades de P&D)
+  const boss = Staff.get(t, 'principal'); const br = boss && !boss.isPlayer ? boss.rating : 75;
+  t.staff.strategy = Math.round(Staff.r(t, 'strategy') * 0.65 + Staff.r(t, 'sporting') * 0.2 + br * 0.15);
+  t.staff.technical = Math.round(t.staff.technical * 0.9 + br * 0.1);
   t.staffNames = {}; ['technical', 'aero', 'strategy'].forEach(k => { const s = Staff.get(t, k); if (s) t.staffNames[k] = s.name; });
   const ce = Staff.get(t, 'chiefEngineer'); if (ce) t.staffNames.engineering = ce.name;
 };

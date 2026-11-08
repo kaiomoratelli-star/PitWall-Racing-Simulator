@@ -33,6 +33,8 @@ Mfr.CANDS = [
   { id: 'pu-bmw', name: 'BMW', country: 'GER', logo: 'logos/manufacturers/bmw.png', dev: 120, interest: 0.2, from: 2029, real: 'Fornecedora campeã com a Brabham (1983) e parceira da Williams (2000–05).' },
   { id: 'pu-cosworth', name: 'Cosworth', country: 'GBR', logo: null, dev: 60, interest: 0.15, from: 2030, real: 'Fornecedora independente mais vitoriosa da história (DFV); saiu da F1 em 2013.' },
 ];
+/* fabricantes que podem surgir como projetos novos ao longo das décadas (nome, país) */
+Mfr.GEN_POOL = [['Peugeot', 'FRA'], ['Lamborghini', 'ITA'], ['Nissan', 'JPN'], ['Ilmor', 'GBR'], ['Mahindra', 'IND'], ['Rimac', 'CRO'], ['BYD', 'CHN'], ['Geely', 'CHN'], ['Kia', 'KOR'], ['Lotus Powertrain', 'GBR'], ['Mugen', 'JPN'], ['Pankl', 'AUT'], ['AVL', 'AUT'], ['Mecachrome', 'FRA'], ['Judd', 'GBR'], ['Polestar', 'SWE'], ['Tata', 'IND'], ['Xpeng', 'CHN']];
 /* contratos reais de 2026 (estimados quando não divulgados) */
 Mfr.REAL_CONTRACTS = { mclaren: 2030, williams: 2030, alpine: 2030, haas: 2028, cadillac: 2028, 'racing-bulls': 2030 };
 Mfr.st = (G) => (G.mfr = G.mfr || { list: [], contracts: {}, log: [], tyres: null, seq: 0 });
@@ -146,6 +148,19 @@ Mfr.yearly = (G) => {
   const S = Mfr.st(G), y = G.season.year;
   const regEvery = G.db.rules.regulationChangeEvery || 5;
   const nextReg = y + ((regEvery - (G.history.length % regEvery)) % regEvery || regEvery);
+  // a lista de candidatas nunca se esgota: com menos de duas na fila, surge um projeto novo (determinístico pela semente)
+  const waiting = S.list.filter(m => m.cand && !m.active && !m.entering);
+  if (waiting.length < 2) {
+    const r = localRng(`mfrgen:${G.seed}:${y}`);
+    const used = new Set(S.list.map(m => m.name));
+    const pool = Mfr.GEN_POOL.filter(x => !used.has(x[0]));
+    if (pool.length) {
+      const [name, country] = pool[Math.floor(r() * pool.length)];
+      S.seq = (S.seq || 0) + 1;
+      S.list.push({ id: `pu-gen${S.seq}`, name, country, logo: null, dev: Math.round(60 + r() * 80), interest: +(0.15 + r() * 0.3).toFixed(2), from: y + 4 + Math.floor(r() * 3), active: false, raw: null, reliability: null, eff: null, fee: 16, rep: 45, cand: true, gen: true, real: byLang('Projeto de motor estudado para o próximo ciclo de regulamento.', 'Power unit project studied for the next rules cycle.') });
+      S.log.unshift({ y, kind: 'estudo', mid: `pu-gen${S.seq}` });
+    }
+  }
   // entradas: candidatas anunciam com antecedência e estreiam no ano marcado
   S.list.filter(m => m.cand && !m.active && !m.entering && y >= m.from - 3).forEach(m => {
     const r = localRng(`ment:${G.seed}:${m.id}:${y}`)();

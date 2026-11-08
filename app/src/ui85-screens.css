@@ -530,3 +530,17 @@ td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec
 .ns85 { max-width: 620px; margin: 6vh auto; padding: 28px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); display: grid; justify-items: center; text-align: center; gap: 10px; }
 .ns85 h2 { font: 800 34px var(--f-cond); text-transform: uppercase; margin: 0; } .ns85 p { color: var(--muted); margin: 0 0 8px; max-width: 46ch; }
 .ns85-trk { width: 220px; height: 130px; } .ns85 .x-cta { min-width: 260px; }
+/* 0.8.6: rivalidades, casos */
+.rv86s { display: grid; gap: 8px; }
+.rv86 { display: grid; grid-template-columns: minmax(0, 1.2fr) 160px minmax(0, 1.4fr); gap: 12px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--panel2); border-left: 3px solid var(--yellow); }
+.rv86.hot { border-left-color: var(--red); }
+.rv86-p { display: flex; align-items: center; gap: 10px; min-width: 0; } .rv86-p > span { display: grid; min-width: 0; } .rv86-p b { cursor: pointer; } .rv86-p small, .rv86-log small { color: var(--muted); font-size: 12px; }
+.rv86-m { display: grid; gap: 4px; } .rv86-m small { font: 700 10.5px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.rv86-log { display: grid; gap: 2px; min-width: 0; }
+.cs86 { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: var(--panel2); border-left: 3px solid var(--line2); margin-bottom: 8px; }
+.cs86.open { border-left-color: var(--yellow); } .cs86.guilty { border-left-color: var(--red); } .cs86.clear { border-left-color: var(--green); }
+.cs86-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .cs86-h small { color: var(--muted); }
+.cs86-tag { font: 700 10.5px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; background: var(--s3); }
+.cs86.open .cs86-tag { background: color-mix(in srgb, var(--yellow) 25%, transparent); } .cs86.guilty .cs86-tag { background: color-mix(in srgb, var(--red) 25%, transparent); } .cs86.clear .cs86-tag { background: color-mix(in srgb, var(--green) 25%, transparent); }
+.cs86 p { margin: 0; font-size: 13px; color: var(--fg2); }
+@media (max-width: 1100px) { .rv86 { grid-template-columns: minmax(0, 1fr); } }
