@@ -1,0 +1,57 @@
+<title>PitWall Interface 0.8.5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Titillium+Web:ital,wght@0,400;0,600;0,700;0,900;1,900&display=swap">
+<style>
+/* Página de revisão: barra de controle + palco onde o jogo (1440×900) é desenhado em escala. */
+:root {
+  --rv-bg: #EEF0F3; --rv-fg: #15171C; --rv-mu: #5E6573; --rv-line: #D5D9E0; --rv-card: #FFFFFF; --rv-acc: #E10600; --rv-sel: #15171C; --rv-selfg: #FFFFFF;
+  --rv-font: 'Barlow', system-ui, sans-serif; --rv-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --rv-bg: #0C0D11; --rv-fg: #ECEEF2; --rv-mu: #9198A6; --rv-line: #252934; --rv-card: #15171D; --rv-sel: #ECEEF2; --rv-selfg: #0C0D11; color-scheme: dark; } }
+:root[data-theme="dark"] { --rv-bg: #0C0D11; --rv-fg: #ECEEF2; --rv-mu: #9198A6; --rv-line: #252934; --rv-card: #15171D; --rv-sel: #ECEEF2; --rv-selfg: #0C0D11; color-scheme: dark; }
+html, body { background: var(--rv-bg); color: var(--rv-fg); }
+body { font: 14px/1.4 var(--rv-font); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px 12px; overflow-x: hidden; }
+.rv { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-bottom: 10px; }
+.rv-brand { display: flex; flex-direction: column; line-height: 1.1; margin-right: 6px; }
+.rv-brand b { font-size: 15px; } .rv-brand span { font-size: 12px; color: var(--rv-mu); }
+.rv-prop { display: inline-flex; border: 1px solid var(--rv-line); border-radius: 9px; padding: 3px; background: var(--rv-card); }
+.rv-prop button { font: 600 13px var(--rv-font); border: 0; background: transparent; color: var(--rv-mu); padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.rv-prop button[aria-pressed="true"] { background: var(--rv-sel); color: var(--rv-selfg); }
+.rv select, button.rv-b { font: 600 13px var(--rv-font); color: var(--rv-fg); background: var(--rv-card); border: 1px solid var(--rv-line); border-radius: 8px; padding: 7px 10px; cursor: pointer; }
+.rv select { max-width: 220px; }
+.rv-nav { display: inline-flex; gap: 4px; }
+.rv-info { flex: 1 1 260px; min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+.rv-info code { font: 600 13px var(--rv-mono); background: var(--rv-acc); color: #fff; padding: 2px 7px; border-radius: 5px; flex: none; }
+.rv-info span { color: var(--rv-mu); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv :focus-visible { outline: 2px solid #4DA3FF; outline-offset: 2px; }
+#stage { position: relative; width: 100%; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--rv-line); background: #000; }
+#frame { position: absolute; top: 0; left: 0; width: 1440px; height: 900px; transform-origin: 0 0; }
+#game { width: 1440px; height: 900px; overflow: hidden; position: relative; }
+#map { position: fixed; inset: 0; z-index: 50; background: var(--rv-bg); overflow: auto; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.mp-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; position: sticky; top: 0; background: var(--rv-bg); padding: 8px 0; }
+.mp-h h2 { margin: 0; font: 700 22px var(--rv-font); }
+.mp-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 24px; }
+.mp-cols h3 { font: 800 20px 'Barlow Condensed', var(--rv-font); text-transform: uppercase; letter-spacing: .02em; margin: 0 0 10px; }
+.mp-area h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--rv-mu); margin: 14px 0 6px; }
+.mp-area button { display: flex; gap: 10px; width: 100%; text-align: left; align-items: flex-start; background: var(--rv-card); border: 1px solid var(--rv-line); border-radius: 8px; padding: 8px 10px; margin-bottom: 4px; cursor: pointer; color: var(--rv-fg); font: inherit; }
+.mp-area button.on { border-color: var(--rv-acc); }
+.mp-area code { font: 600 12px var(--rv-mono); color: var(--rv-acc); flex: none; padding-top: 1px; }
+.mp-area b { display: block; font-size: 14px; } .mp-area small { display: block; color: var(--rv-mu); font-size: 12.5px; }
+@media (max-width: 640px) { .rv-brand span { display: none; } .rv select { max-width: 150px; } }
+@media (prefers-reduced-motion: reduce) { #game * { transition: none !important; animation: none !important; } }
+/*CSS*/
+</style>
+<div class="rv" role="toolbar" aria-label="Revisão das propostas">
+  <div class="rv-brand"><b>PitWall 0.8.5</b><span>Duas propostas de interface · dados de uma carreira real</span></div>
+  <div class="rv-prop"><button type="button" data-p="a" aria-pressed="true">A · Transmissão</button><button type="button" data-p="b" aria-pressed="false">B · Paddock</button></div>
+  <label class="sr" style="position:absolute;left:-9999px" for="rv-screen">Tela</label>
+  <select id="rv-screen"></select>
+  <span class="rv-nav"><button type="button" class="rv-b" id="rv-prev" aria-label="Tela anterior">←</button><button type="button" class="rv-b" id="rv-next" aria-label="Próxima tela">→</button></span>
+  <button type="button" class="rv-b" id="rv-map">Mapa de telas</button>
+  <div class="rv-info"><code id="rv-code">A-01</code><span id="rv-desc"></span></div>
+</div>
+<div id="stage"><div id="frame"><div id="game" class="game"></div></div></div>
+<div id="map" hidden><div class="mp-h"><h2>Todas as telas</h2><button type="button" class="rv-b" data-close-map>Fechar</button></div><div class="mp-body"></div></div>
+<!--JS-->
