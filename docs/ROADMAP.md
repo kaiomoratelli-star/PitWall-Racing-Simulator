@@ -12,10 +12,26 @@
 | 7 | Simulação de dezenas de temporadas, balanceamento, otimização | **Feito na v0.5.0** (20 temporadas sem erros); contínuo com `npm test` |
 | 8–11 | Regulamento por temporada, calendário com logística, gerador de circuitos, P&D com 15 áreas, finanças com projeção | **Feito na v0.5.0** |
 
-## Próximos passos (próximas versões)
-- Mais categorias (IndyCar, WEC, kart) usando o mesmo modelo genérico.
-- Disputar uma temporada de F2/F3 como chefe de equipe.
-- Pacotes de dados de temporadas futuras importáveis.
+## Próximas versões (decisão de 08/11/2026)
+| Versão | Tema |
+|---|---|
+| **0.8.6** | Expansão esportiva e administrativa, mais as pendências da 0.8.5. Plano em `docs/PLANO-0.8.6.md`. |
+| **0.9** | Somente a Carreira de Piloto |
+| **1.0** | Categorias e equipes jogáveis (F2, F3 e outras), Sandbox, modos especiais e preparação para o lançamento |
+
+Na 0.8.6:
+- **Pessoas:** moral com causas, química entre companheiros, relação piloto–chefe e funcionários com moral e pedidos.
+- **Corrida e regras:** comissários com pontos na superlicença, danos por peça, ordens de equipe completas, componentes do motor, dias de teste e congelamento.
+- **Pendências da 0.8.5:** rivalidades, casos e investigações, créditos e licenças, estouros do teto e limpeza do código.
+
+Na preparação para o lançamento da 1.0:
+- saves e "Recalibrar";
+- licenças;
+- atualização automática e assinatura.
+
+Ideias anteriores ainda sem versão:
+- mais categorias simuladas (IndyCar, WEC e kart já existem como séries simuladas);
+- pacotes de dados de temporadas futuras importáveis.
 
 ## Feito na v0.3.0 (fora da ordem, a pedido)
 - Dados reais da F1 2026 (equipes, pilotos, motores, patrocinadores, calendário, circuitos), imagens oficiais, traçados reais, Sprints, visual inspirado na F1, remoção dos textos com "IA".
