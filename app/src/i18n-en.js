@@ -524,3 +524,22 @@ I18N_PATS.unshift(
   [/^Projeto e fabricação: a peça entra no carro assim que fica pronta\.$/, 'Design and manufacturing: the part goes on the car as soon as it is ready.'],
   [/^Só projeto, sem fabricação: rende 35% a mais e entra no carro de (\d{4})\. Ocupa uma vaga como qualquer projeto\.$/, 'Design only, no manufacturing: 35% more gain, goes on the $1 car. Takes a slot like any project.'],
 );
+
+/* 0.8.6: modelos de notícia que ainda saíam em português no modo inglês (entram antes das regras gerais) */
+I18N_PATS.unshift(
+  [/^(.+) sob pressão: (.+) domina o duelo interno na (.+)$/, '$1 under pressure: $2 dominates the team-mate battle at $3'],
+  [/^(.+) vence o (GP .+) com a (.+)$/, (m, a, b, c) => `${a} wins the ${gpEn(b)} with ${c}`],
+  [/^Vitória de (.+) no (GP .+)$/, (m, a, b) => `${a} wins the ${gpEn(b)}`],
+  [/^(.+): (.+) vencem em (.+) \(etapa (\d+)\)$/, '$1: $2 win at $3 (round $4)'],
+  [/^(.+): (.+) vence em (.+) \(etapa (\d+)\)$/, '$1: $2 wins at $3 (round $4)'],
+  [/^(.+): (.+) vence a corrida principal em (.+) \(etapa (\d+)\)$/, '$1: $2 wins the feature race at $3 (round $4)'],
+  [/^Rumor: (.+) conversa com (.+) para (\d{4})$/, 'Rumour: $1 in talks with $2 for $3'],
+  [/^(.+) deve deixar a (.+) no fim do ano$/, '$1 expected to leave $2 at the end of the year'],
+  [/^(.+) troca a (.+) pela (.+) em (\d{4})$/, '$1 swaps $2 for $3 in $4'],
+  [/^(.+) diz que a (.+) "ainda não mostrou tudo"$/, '$1 says $2 "hasn\'t shown everything yet"'],
+  [/^(.+) tem contrato com a (.+) até (\d{4})\.?$/, '$1 is under contract with $2 until $3.'],
+  [/^(.+) contrata (.+) como (.+)$/, (m, a, b, c) => `${a} hires ${b} as ${(I18N.tx(c.charAt(0).toUpperCase() + c.slice(1)) || c).toLowerCase()}`],
+  [/^Briga pelo título de \d{4}( · Briga pelo título de \d{4})*$/, (m) => m.replace(/Briga pelo título de/g, 'Title fight of')],
+  [/^• [\s\S]+$/, (m) => m.split('\n').map(l => (l.startsWith('• ') ? '• ' + (I18N.tx(l.slice(2)) || l.slice(2)) : l)).join('\n')],
+  [/^Alpine vira (.+): a Gucci é a nova title partner da equipe$/, 'Alpine becomes $1: Gucci is the team\'s new title partner'],
+);
