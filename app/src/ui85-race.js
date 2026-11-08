@@ -185,7 +185,7 @@ SCREENS.podium = {
   html() {
     const R = G.lastRace; const res = G.season.results[G.season.results.length - 1];
     if (!R || !res) return shellHtml(K85.empty(byLang('Ainda não houve corrida.', 'No race yet.')));
-    const tr = Career.track(G, R.trackId); const hero = imgUrl(tr.heroImg);
+    const tr = Career.track(G, R.trackId); const hero = trackHero85(tr);
     const cls = res.cls; const top = cls.slice(0, 3); const win = Career.team(G, top[0].tid);
     const fl = res.fastest; const flD = fl && Career.driver(G, fl.did);
     const step = (r, i) => { const d = Career.driver(G, r.did); const t = Career.team(G, r.tid); const f = K85.face(d);

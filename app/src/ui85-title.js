@@ -43,8 +43,14 @@ const grid85 = () => { const db = BASE; return db.teams.flatMap(t => db.drivers.
 
 /* 1 · Largada */
 function titleLargada85() {
-  if (!UI.titleTrack) { const pool = BASE.tracks.filter(t => imgUrl(t.heroImg)); UI.titleTrack = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; }
-  const tr = UI.titleTrack; const hero = tr && imgUrl(tr.heroImg);
+  // fundo variado: fotos das pistas e fotos de corrida do banco (largada, disputa, chuva, noite, torcida, pódio...)
+  if (!UI.titleBg85) {
+    const tracks = BASE.tracks.map(t => ({ t, img: typeof trackHero85 === 'function' && (t.heroImg || (typeof Assets !== 'undefined' && Assets.has(`tracks/${t.id}-hero.webp`))) ? trackHero85(t) : null })).filter(x => x.img);
+    const bank = typeof NEWSBANK85 !== 'undefined' ? ['start', 'battle', 'rain', 'night', 'fans', 'podium', 'safetycar', 'pitstop', 'flag', 'tyres'].flatMap(k => (NEWSBANK85[k] || []).map(f => ({ img: imgUrl(f) }))) : [];
+    const pool = Math.random() < 0.55 && tracks.length ? tracks : (bank.length ? bank : tracks);
+    UI.titleBg85 = pool.length ? pool[Math.floor(Math.random() * pool.length)] : {};
+  }
+  const tr = UI.titleBg85.t || null; const hero = UI.titleBg85.img || null;
   const intro = !UI.titleIntro85;   // luzes e entrada só na primeira vez que a tela abre (não a cada clique)
   return `<div class="t85 t85-largada ${intro ? '' : 'no-intro'}">
     <div class="t85-bg" ${hero ? `style="background-image:url('${hero}')"` : ''}></div><div class="t85-shade"></div>

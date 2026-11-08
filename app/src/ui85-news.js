@@ -114,3 +114,16 @@ newsImg = function (n, big) { return newsPic85(n, big); };
   const o = ACT.newsOpen; if (!o) return;
   ACT.newsOpen = (el) => { o(el); const n = G.news.find(x => String(x.id) === el.dataset.id); const box = document.querySelector('.narticle'); if (!n || !box) return; const old = box.querySelector('.nimg'); const html = newsPic85(n, true); if (old) old.outerHTML = html; else box.insertAdjacentHTML('afterbegin', html); };
 })();
+
+/* foto de fundo de uma pista: a própria (heroImg ou tracks/<id>-hero.webp) ou, se não houver,
+   uma foto de corrida do banco (noturna para corridas à noite), sempre a mesma para a mesma pista */
+function trackHero85(tr) {
+  if (!tr) return null;
+  if (tr.heroImg && (typeof Assets === 'undefined' || Assets.has(tr.heroImg))) return imgUrl(tr.heroImg);
+  const own = `tracks/${tr.id}-hero.webp`; if (typeof Assets !== 'undefined' && Assets.has(own)) return imgUrl(own);
+  const night = /marina-bay|las-vegas|lusail|bahrain|jeddah|yas-marina/.test(tr.id);
+  const themes = night ? ['night'] : ['start', 'battle', 'fans', 'flag', 'safetycar'];
+  const avail = themes.filter(k => NEWSBANK85[k]); if (!avail.length) return null;
+  const k = avail[newsHash85(tr.id) % avail.length];
+  return newsPhoto85({ id: tr.id, title: tr.id }, k);
+}

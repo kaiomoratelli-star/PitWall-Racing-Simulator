@@ -342,3 +342,9 @@ a.n-li, .n-li[data-act] { cursor: pointer; } a.n-li:hover, .n-li[data-act]:hover
 .x-app .panel, .x-app .n-card { max-width: 100%; }
 .x-app .panel-b.tight, .x-app .tbl-wrap { overflow-x: auto; }
 @media (max-width: 1280px) { .x-app .g2 { grid-template-columns: minmax(0, 1fr); } .x-app .g3, .x-app .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* tabelas cabem na largura: texto quebra linha; números, etiquetas e botões não */
+.x-app .tbl td { white-space: normal; overflow-wrap: anywhere; }
+.x-app .tbl td.num, .x-app .tbl td .num, .x-app .tbl td .n-num, .x-app .tbl td .btn, .x-app .tbl td button, .x-app .tbl td .chip, .x-app .tbl td .tag, .x-app .tbl td .n-tag { white-space: nowrap; overflow-wrap: normal; }
+.x-app .tbl td:first-child, .x-app .tbl td .n-tm, .x-app .tbl td b { overflow-wrap: normal; }
+.x-app .tbl { width: 100%; }
+@media (max-width: 1280px) { .x-app .tbl td, .x-app .tbl th { padding-left: 6px; padding-right: 6px; } }

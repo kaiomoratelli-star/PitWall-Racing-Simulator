@@ -13,7 +13,7 @@ function hub85() {
   const team = Career.team(G); const tr = Career.currentTrack(G); const ri = G.season.round;
   Time.init(G);
   const days = Time.diff(G.today, Time.weekendDay(G));
-  const hero = imgUrl(tr.heroImg);
+  const hero = trackHero85(tr);
   const raceIso = Time.raceDate(G, ri);
   const sched = [[byLang('Sex', 'Fri'), byLang('Treinos livres 1 e 2', 'Practice 1 and 2')], [byLang('Sáb', 'Sat'), tr.sprint ? byLang('Sprint · Classificação', 'Sprint · Qualifying') : byLang('TL3 · Classificação', 'FP3 · Qualifying')], [byLang('Dom', 'Sun'), byLang(`Corrida · ${tr.laps} voltas`, `Race · ${tr.laps} laps`)]];
   const atWk = G.weekend || days <= 0;
@@ -130,7 +130,7 @@ function calRound85(sel) {
 }
 function calDetail85(i) {
   const id = G.season.calendar[i]; const tr = Career.track(G, id); if (!tr) return '';
-  const r = G.season.results[i]; const hero = imgUrl(tr.heroImg);
+  const r = G.season.results[i]; const hero = trackHero85(tr);
   const rec = typeof REAL_RECORDS !== 'undefined' && REAL_RECORDS.circuits[tr.id];
   const ch = typeof circuitHistory === 'function' ? circuitHistory(tr.id) : null;
   const mine = r ? r.cls.filter(c => c.tid === G.player.teamId) : [];
