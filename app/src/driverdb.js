@@ -15,7 +15,7 @@
 const DriverDB = {};
 /* faixa de nota (equivalente F1) por série: [mínimo, máximo] */
 DriverDB.RANGE = {
-  f1: [80, 94], indycar: [75, 85], fe: [75, 85], sf: [73, 83], wec: [70, 82], f2: [72, 81], imsa: [68, 80], dtm: [67, 79], f3: [66, 78], nxt: [65, 76],
+  f1: [80, 94], indycar: [70, 81], fe: [75, 85], sf: [73, 83], wec: [70, 82], f2: [72, 81], imsa: [68, 80], dtm: [67, 79], f3: [66, 78], nxt: [65, 76],
   elms: [64, 76], supercars: [65, 77], stockcar: [63, 76], nascup: [64, 77], nasxf: [61, 72], nastr: [57, 68], sfl: [62, 72], freca: [61, 74], efo: [60, 71], gb3: [59, 71],
   eurocup3: [58, 70], frme: [59, 72], fram: [57, 69], frj: [56, 68], froc: [56, 68], usfpro: [57, 69], alms: [57, 70], f1a: [50, 65], usf2000: [53, 65], fws: [52, 64],
   f4it: [52, 66], f4es: [52, 66], f4gb: [52, 66], e4: [52, 65], f4br: [50, 63], f4us: [49, 62], f4jp: [50, 63], f4uae: [51, 64], f4cez: [49, 62], f4au: [48, 61], f4de: [50, 64],

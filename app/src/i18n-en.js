@@ -30,7 +30,7 @@ const I18N_EN = Object.assign({}, I18N_GP, I18N_COUNTRY, {
   // navegação e cabeçalho
   'Temporada': 'Season', 'Equipe': 'Team', 'Dados': 'Data', 'Sistema': 'System', 'Central': 'Home', 'Fim de semana': 'Race weekend', 'Caixa de entrada': 'Inbox', 'Classificação': 'Standings',
   'Calendário': 'Calendar', 'Conselho da FIA': 'FIA Council', 'Pilotos e funcionários': 'Drivers & staff', 'Academia': 'Academy', 'Equipe irmã': 'Sister team', 'Carro e P&D': 'Car & R&D',
-  'Finanças': 'Finances', 'Mercado': 'Market', 'Análise de dados': 'Data analysis', 'Notícias': 'News', 'Equipes do grid': 'Grid teams', 'Registro do universo': 'Universe log',
+  'Finanças': 'Finances', 'Mercado': 'Market', 'Análise de dados': 'Data analysis', 'Notícias': 'News', 'Equipes do grid': 'Grid teams', 'Donos e equipes': 'Owners and teams', 'Montagem da equipe': 'Team build-up', 'Pedidos de entrada no grid': 'Grid entry applications', 'A favor': 'In favour', 'Contra': 'Against', 'Registro do universo': 'Universe log',
   'Minha carreira': 'My career', 'Temporadas desde 1950': 'Seasons since 1950', 'Hall da Fama': 'Hall of Fame', 'Outras categorias': 'Other series', 'Editor da base': 'Database editor',
   'Salvar e opções': 'Save & options', 'Diagnóstico': 'Diagnostics', 'Perfil e ativação': 'Profile & activation', 'Menu': 'Menu', 'Navegação': 'Navigation', 'Construtores': 'Constructors',
   'Caixa': 'Cash', 'Diretoria': 'Board', 'ao vivo': 'live', 'Modo Observador': 'Observer mode', 'Ver carreira': 'View career', 'Fechar': 'Close',
@@ -372,7 +372,7 @@ I18N_PATS.push(
   [/^(@\S+) · (\d{4}) · etapa (\d+)$/, '$1 · $2 · round $3'],
   [/^(.+) · (\d{4}) etapa (\d+)$/, (m, a, y, r) => `${a.split(' · ').map(txIn).join(' · ')} · ${y} round ${r}`],
   [/^Leve uma mudança de regra para a próxima reunião \((\d+) de capital\)\.$/, 'Take a rule change to the next meeting ($1 capital).'],
-  [/^Comissão de F1: FIA, Fórmula 1 e as (\d+) equipes\. Para aprovar: FIA, Fórmula 1 e (\d+) de (\d+) equipes; mudança que vale já nesta temporada precisa de (\d+)\. (.*)$/, (m, n, a, b, c) => `F1 Commission: the FIA, Formula 1 and the ${n} teams. To pass: the FIA, Formula 1 and ${a} of ${b} teams; a change that takes effect this season needs ${c}. Ferrari keeps its historic veto on technical matters, once per season. Customer teams tend to follow their engine supplier, and sister teams vote together.`],
+  [/^Comissão de F1: FIA, Fórmula 1 e as (\d+) equipes\. Para aprovar: FIA, Fórmula 1 e (\d+) de (\d+) equipes; mudança que vale já nesta temporada precisa de (\d+)\. (.*)$/, (m, n, a, b, c) => `F1 Commission: the FIA, Formula 1 and the ${n} teams. To pass: the FIA, Formula 1 and ${a} of ${b} teams; a change that takes effect this season needs ${c}. No team has a veto. Whoever proposes can offer concessions (money or wind tunnel hours) in exchange for votes. Customer teams tend to follow their engine supplier, and sister teams vote together.`],
   [/^(\d+) membro\(s\) reais correm em categorias que entram nas próximas etapas do jogo\.$/, '$1 real member(s) race in series that join in later rounds of the game.'],
   [/^Comande uma equipe da Fórmula 1 ou acompanhe o campeonato como observador\. Pilotos, equipes, circuitos e toda a história desde (\d+) com dados reais\.$/, 'Run a Formula 1 team or follow the championship as an observer. Drivers, teams, circuits and the whole history since $1, with real data.'],
   [/^Uma produção Moratelli Game Company · v(.+) · © (\d+)$/, 'A Moratelli Game Company production · v$1 · © $2'],

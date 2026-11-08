@@ -163,6 +163,7 @@ ACT.negSend = () => {
     closeModal(); toast(msg, 'good'); autosave(); render(); return;
   }
   if (r.status === 'counter') {
+    if (r.msg) n.log.push(`<span style="color:var(--yellow)">${esc(r.msg)}</span>`);
     n.log.push(`Proposta: ${fmtMoney(n.salary)}/ano até ${G.season.year + n.years}. <b>${esc(d.name)} pede ${fmtMoney(r.counter.salary)}/ano até ${G.season.year + r.counter.years}${r.counter.role !== n.role ? ' e vaga de titular' : ''}.</b>`);
     n.salary = r.counter.salary; n.years = r.counter.years; n.role = r.counter.role;
     negModal(); return;

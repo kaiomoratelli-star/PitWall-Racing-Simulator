@@ -128,7 +128,9 @@ Talent.assign = (G, d) => {
   if (d.tier && d.ceiling) return;
   const r = localRng('nivel:' + (d.pid || d.id));
   const table = typeof DRIVER_TIERS !== 'undefined' ? DRIVER_TIERS.f1 : {};
+  const ser = typeof DRIVER_TIERS !== 'undefined' && DRIVER_TIERS.series ? DRIVER_TIERS.series[d.id] : null;
   if (table[d.id]) { const t = Talent.byId(table[d.id]); Talent.setCeiling(d, t.min + r() * (t.max - t.min) + (t.id === 'geracional' ? 1 : 0), t.id); }
+  else if (ser) { const t = Talent.byId(ser[0]); Talent.setCeiling(d, Math.max(ser[1] + (d.age <= 25 ? 2 : d.age <= 28 ? 1 : 0), t.min + r() * (t.max - t.min) * 0.5), t.id); }
   else if (d.regen) { const x = Talent.roll(d, r); Talent.setCeiling(d, Math.max(x.ceiling, driverOverall(d)), x.id); }
   else Talent.setCeiling(d, Talent.autoCeiling(G, d, r));
   Talent.initPotential(d, r);
@@ -144,12 +146,16 @@ Talent.capOne = (d) => {
   const o2 = driverOverall(d);
   if (d.potential < o2) d.potential = o2;
 };
-Talent.F1_MIN = 80;   // nota mínima de um titular da F1
+Talent.F1_MIN = 75;   // nota mínima de um titular da F1 (decisão do dono em 08/11/2026; era 80)
 Talent.ensure = (G) => {
   G.db.drivers.forEach(d => {
     if (d.retired || d.dead) return;
     const first = !d.profiled;
-    Talent.profile(G, d); Talent.assign(G, d);
+    Talent.profile(G, d);
+    // notas revisadas de pilotos de outras séries (driver-tiers.js): aplicadas uma vez, antes do nível
+    const ser = first && typeof DRIVER_TIERS !== 'undefined' && DRIVER_TIERS.series ? DRIVER_TIERS.series[d.id] : null;
+    if (ser && !d.seriesFixed) { Talent.recenter(d, ser[1] + 0.2); d.seriesFixed = true; d.tier = null; d.ceiling = null; d.ceiling0 = null; }
+    Talent.assign(G, d);
     if (first && d.team && d.seat !== 'R' && driverOverall(d) < Talent.F1_MIN) Talent.recenter(d, Talent.F1_MIN - 0.4);
     Talent.capOne(d);
   });

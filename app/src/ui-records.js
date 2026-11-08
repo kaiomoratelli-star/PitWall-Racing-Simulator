@@ -79,7 +79,7 @@ SCREENS.circuit = {
     const hero = imgUrl(tr.heroImg);
     return `<div class="team-hero circ" style="--tc:#e10600;--tc2:#15151e${hero ? `;background-image:linear-gradient(90deg,rgba(21,21,30,.95) 30%,rgba(21,21,30,.35)),url('${hero}')` : ''}"><div class="th-txt"><div><div class="eyebrow">${esc(tr.place || '')} · ${natTag(tr.country)}</div><h1>${esc(tr.circuit)}</h1><div class="small">${esc(tr.gp)}${hc ? ` · ${hc[5]} GPs desde ${rr ? rr.first : ''}` : ''}</div></div></div><div class="trackbox th-map"><canvas id="circMap"></canvas></div></div>
     <div class="grid g4" style="margin-top:14px">
-      <div class="panel"><div class="panel-b"><div class="label">Extensão</div><div class="stat-big">${(+tr.length).toFixed(3).replace('.', ',')} km</div><div class="small muted">${tr.laps} voltas · ${tr.turns || '—'} curvas</div></div></div>
+      <div class="panel"><div class="panel-b"><div class="label">Extensão</div><div class="stat-big">${(+tr.length).toFixed(3).replace('.', ',')} km</div><div class="small muted">${trOsm(tr)}${tr.laps} voltas · ${tr.turns || '—'} curvas</div></div></div>
       <div class="panel"><div class="panel-b"><div class="label">Recorde da volta (corrida)</div><div class="stat-big">${rr && rr.lap ? fmtMs(rr.lap[0]) : '—'}</div><div class="small muted">${rr && rr.lap ? `${esc(hName(rr.lap[1]))} · ${rr.lap[3]}` : 'sem registro no traçado atual'}</div></div></div>
       <div class="panel"><div class="panel-b"><div class="label">Volta mais rápida em classificação</div><div class="stat-big">${rr && rr.quali ? fmtMs(rr.quali[0]) : '—'}</div><div class="small muted">${rr && rr.quali ? `${esc(hName(rr.quali[1]))} · ${rr.quali[3]}` : ''}</div></div></div>
       <div class="panel"><div class="panel-b"><div class="label">Recordes nesta carreira</div><div class="stat-big">${sr.lap ? fmtLap(sr.lap[0]) : '—'}</div><div class="small muted">${sr.lap ? `corrida: ${esc(hName(sr.lap[1]))} (${sr.lap[3]})` : 'ainda não corremos aqui'}${sr.quali ? `<br>classificação: ${fmtLap(sr.quali[0])} · ${esc(hName(sr.quali[1]))} (${sr.quali[3]})` : ''}</div></div></div>
@@ -133,3 +133,9 @@ SCREENS.hall.html = function () {
   const recs = seasonRecords();
   return _hallHtml.call(this) + `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Recordes de temporada</h3><span class="small muted">História real desde 1950 + temporadas desta carreira</span></div><div class="panel-b grid g3">${recs.map(([t, v, who, sim]) => `<div class="rec"><div class="label">${t}</div><div class="stat-big">${v}</div><div class="small muted">${esc(who)} ${sim ? simTag() : ''}</div></div>`).join('')}</div></div>`;
 };
+
+/* extensão medida no traçado do OpenStreetMap (quando o circuito tem), ao lado da oficial da FIA */
+function trOsm(tr) {
+  const osm = tr.osmKm || (typeof REAL_TRACKS !== 'undefined' && (REAL_TRACKS.list.find(r => r.id === tr.id) || {}).osmKm);
+  return osm ? byLang(`medida no traçado (OpenStreetMap): ${(+osm).toFixed(2).replace('.', ',')} km · `, `measured on the OpenStreetMap layout: ${(+osm).toFixed(2)} km · `) : '';
+}

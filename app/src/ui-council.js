@@ -40,12 +40,30 @@ function councilProp(pr, open) {
       </div>
       ${open && mine ? `<div class="cp-mine">
         <div class="row" style="gap:10px"><b>Voto da ${esc(Career.team(G, mine).name)}:</b><div class="seg">${['sim', 'nao', 'abst'].map(v => `<button class="${pr.vote === v ? 'on' : ''}" data-act="cVote" data-id="${pr.id}" data-v="${v}">${{ sim: 'A favor', nao: 'Contra', abst: 'Abster' }[v]}</button>`).join('')}</div>
-        ${mine === 'ferrari' && pr.cat === 'tec' && Council.ensure(G).vetoYear !== G.season.year ? `<label class="check small"><input type="checkbox" ${pr.vetoAsk ? 'checked' : ''} data-chg="cVeto" data-id="${pr.id}"> Usar o veto se for aprovada (${Council.COST.veto} de capital, uma vez por temporada)</label>` : ''}</div>
+        ${pr.offers && pr.offers[mine] ? `<p class="small" style="margin:6px 0 0;color:var(--yellow)">Oferta de concessão: ${esc(Council.proposerName(G, pr.offers[mine].by))} ${pr.offers[mine].money ? `paga ${fmtMoney(pr.offers[mine].money)}` : `cede ${pr.offers[mine].hours} horas de túnel de vento`} se você votar a favor e a proposta passar.</p>` : ''}
         <p class="small muted" style="margin:6px 0 0">Recomendação do diretor técnico: ${myS > 0.1 ? 'votar <b class="pos">a favor</b>' : myS < -0.1 ? 'votar <b class="neg">contra</b>' : 'pouco muda para nós'} (${Council.impWord(pr.imp[mine])} para a equipe). Sem voto escolhido, a equipe segue essa recomendação.</p>
         ${promised.length ? `<p class="small" style="margin:6px 0 0;color:var(--yellow)">Acordo: você prometeu apoio à ${promised.map(pm => esc(Career.team(G, pm.tid).name)).join(' e à ')}. Votar contra quebra o acordo (−15 de capital e a relação piora).</p>` : ''}
       </div>` : ''}
     </div></div>`;
 }
+
+/* inscrições de equipes novas: análise da FIA e voto da Comissão no meio da temporada */
+function councilEntries() {
+  if (typeof Owners === 'undefined') return '';
+  const S = Owners.state(G), C = Council.ensure(G);
+  const apps = S.apps.filter(a => a.stage === 'fia');
+  if (!apps.length) return '';
+  const mine = Career.isObs(G) ? null : G.player.teamId;
+  C.entryVote = C.entryVote || {};
+  const mid = Math.ceil(G.season.calendar.length / 2);
+  return `<div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Pedidos de entrada no grid</h3><span class="small muted">Voto da Comissão depois da ${mid}ª etapa de ${apps[0].decide}</span></div><div class="panel-b stack">${apps.map(a => {
+    const c = Owners.cand(a.cid); if (!c) return '';
+    const v = C.entryVote[c.id];
+    return `<div class="row between" style="gap:12px;flex-wrap:wrap"><div class="stack" style="gap:2px;max-width:70ch"><b>${esc(c.fullName)}</b><span class="small muted">${esc(c.owner.name)} · plano: ${Owners.GOAL[c.plan.goal][0]} em ${c.plan.years} anos · motor ${c.engine === 'propria' ? 'próprio' : 'de cliente'}. Uma equipe a mais divide a premiação entre 12.</span></div>
+      ${mine ? `<div class="seg">${[['sim', 'A favor'], ['nao', 'Contra']].map(([k, l]) => `<button class="${v === k ? 'on' : ''}" data-act="cEntry" data-id="${c.id}" data-v="${k}">${l}</button>`).join('')}</div>` : ''}</div>`;
+  }).join('')}</div></div>`;
+}
+ACT.cEntry = (el) => { const C = Council.ensure(G); C.entryVote = C.entryVote || {}; C.entryVote[el.dataset.id] = el.dataset.v; render(); };
 
 SCREENS.council = {
   html() {
@@ -56,7 +74,7 @@ SCREENS.council = {
     const nmTrack = nm != null ? Career.track(G, G.season.calendar[nm - 1]) : null;
     const sched = Object.entries(C.scheduled || {}).sort((a, b) => a[0] - b[0]);
     const hist = (C.history || []).flatMap(m => m.props.map(p => ({ ...p, my: m.year })));
-    const intro = `Comissão de F1: FIA, Fórmula 1 e as ${n} equipes. Para aprovar: FIA, Fórmula 1 e ${Math.ceil(n * 0.6)} de ${n} equipes; mudança que vale já nesta temporada precisa de ${Math.ceil(n * 0.8)}. A Ferrari mantém o veto histórico em temas técnicos, uma vez por temporada. Equipes clientes tendem a seguir a fornecedora do motor, e equipes irmãs votam juntas.`;
+    const intro = `Comissão de F1: FIA, Fórmula 1 e as ${n} equipes. Para aprovar: FIA, Fórmula 1 e ${Math.ceil(n * 0.6)} de ${n} equipes; mudança que vale já nesta temporada precisa de ${Math.ceil(n * 0.8)}. Nenhuma equipe tem poder de veto. Quem propõe pode oferecer concessões (dinheiro ou horas de túnel) em troca de votos. Equipes clientes tendem a seguir a fornecedora do motor, e equipes irmãs votam juntas.`;
     const stats = obs ? '' : `<div class="grid g3">
       <div class="panel"><div class="panel-b stack"><span class="label">Capital político</span><span class="stat-big">${Math.round(C.capital)}</span><div class="bar b"><i style="width:${C.capital}%"></i></div><span class="small muted">Cresce a cada reunião (mais para quem está no top 3). Gasto em negociações e propostas.</span></div></div>
       <div class="panel"><div class="panel-b stack"><span class="label">${C.open ? 'Votação aberta' : 'Próxima reunião'}</span><span class="stat-big" style="font-size:24px">${C.open ? `Até o ${esc(C.open.gp)}` : nmTrack ? `Depois do ${esc(nmTrack.gp)}` : 'Próxima temporada'}</span><span class="small muted">${C.open ? 'A votação fecha quando o próximo fim de semana começar.' : 'Três reuniões por temporada.'}</span></div></div>
@@ -66,6 +84,7 @@ SCREENS.council = {
     return `<div class="page-head"><div><div class="eyebrow">Temporada ${G.season.year}</div><h1>Conselho da FIA</h1></div></div>
       <p class="small muted" style="max-width:980px;margin:-4px 0 14px">${intro}</p>
       ${stats}
+      ${councilEntries()}
       ${C.open ? `<div class="stack" style="margin-top:14px">${C.open.props.map(p => councilProp(p, true)).join('')}</div>` : `<div class="panel" style="margin-top:14px"><div class="empty">Nenhuma votação aberta agora.${nmTrack ? ` A próxima reunião acontece depois do ${esc(nmTrack.gp)}.` : ''}</div></div>`}
       ${sched.length ? `<div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Aprovadas, à espera de entrar em vigor</h3></div><div class="panel-b stack">${sched.map(([y, list]) => `<div><b>${y}</b>${list.map(x => `<div class="small">• ${esc(x.title)}</div>`).join('')}</div>`).join('')}</div></div>` : ''}
       <div class="panel" style="margin-top:14px"><div class="panel-h"><h3>Histórico de votações</h3></div>${hist.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ano</th><th>Proposta</th><th>Tema</th><th>Proposta de</th><th class="r">Votos</th><th>Resultado</th>${obs ? '' : '<th>Seu voto</th>'}</tr></thead><tbody>${hist.slice(0, 60).map(p => `<tr><td class="num">${p.my}</td><td>${esc(p.title)}</td><td class="small muted">${Council.CATS[p.cat]}</td><td class="small">${esc(Council.proposerName(G, p.proposer))}</td><td class="r num">${p.yes}×${p.no}</td><td><span class="chip ${p.result === 'aprovada' ? 'good' : 'bad'}">${p.result}</span></td>${obs ? '' : `<td>${cvChip(p.votes[G.player.teamId])}</td>`}</tr>`).join('')}</tbody></table></div>` : '<div class="empty">Nenhuma votação ainda nesta carreira.</div>'}</div>`;
@@ -73,13 +92,6 @@ SCREENS.council = {
 };
 
 ACT.cVote = (el) => { Council.setVote(G, el.dataset.id, el.dataset.v); render(); };
-CHG.cVeto = (el) => {
-  const C = Council.ensure(G), pr = Council.find(G, el.dataset.id);
-  if (!pr) return;
-  if (el.checked) { if (C.capital < Council.COST.veto) { el.checked = false; return toast(`Capital político insuficiente (precisa de ${Council.COST.veto}).`, 'bad'); } C.capital -= Council.COST.veto; pr.vetoAsk = true; if (!pr.vote) pr.vote = 'nao'; }
-  else { C.capital += Council.COST.veto; pr.vetoAsk = false; }
-  render();
-};
 ACT.cNeg = (el) => {
   const pr = Council.find(G, el.dataset.id); if (!pr) return;
   const tid = el.dataset.t;

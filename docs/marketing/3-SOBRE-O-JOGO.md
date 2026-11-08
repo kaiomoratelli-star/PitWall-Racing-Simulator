@@ -148,10 +148,33 @@
 - Rede social com perfis reais de pilotos, equipes e imprensa.
 - Rivalidades que nascem de batidas e disputas; os rivais passam a brigar mais duro na pista.
 - Marcos e recordes comparados à história real desde 1950.
-- Escândalos raros, sempre com pessoas e empresas fictícias.
+- Escândalos com investigação, veredito e consequências em cadeia: manipulação de resultado, espionagem, vazamento de projeto, fraude financeira, apostas ilegais, sabotagem, peça irregular, tabloides. Podem envolver pessoas e equipes reais, sempre marcados como ficção do jogo.
+- Frequência de eventos Baixa, Normal ou Alta, e nível por tipo (Desligado, Raro, Normal, Novela, Caos): escândalos, conflitos internos, lesões e doenças, operação, negócios.
+- Lesões e doenças com afastamento e reserva no carro; acidentes graves raríssimos, com probabilidade realista por categoria e época, tratados com luto, homenagem e investigação.
+- Quando o caso atinge a sua equipe, você decide: cooperar com a FIA, defender a equipe ou afastar os envolvidos.
 - Páginas de equipe (linhagem histórica, títulos, chefes de equipe) e de circuito (recordes e vencedores).
 - Registro permanente de tudo o que acontece no universo.
 - Sons do motor, das luzes de largada e do pit stop.
+
+## Equipes como empresas (versão 0.8.4)
+- Cada equipe tem dono (montadora, empresa, fundo ou independente), valor de mercado, dívida e humor dos donos.
+- Donos insatisfeitos cortam o aporte ou colocam a equipe à venda. Compradores (Toyota, Porsche, BMW, Hyundai, Apple, Monster e outros) trocam nome, cores e logo; a linhagem fica guardada.
+- Sem comprador: compra pela gestão (como a Brawn em 2009) ou saída do grid.
+- Ferrari e McLaren nunca são vendidas; Mercedes e Red Bull só depois de 20 temporadas e numa crise muito forte.
+- Até 12 equipes: 20 candidatas (equipes reais, montadoras, empresas e 2 criadas para o jogo, a brasileira Vórtice Racing e a Meridian Grand Prix) se inscrevem na FIA e passam pelo voto da Comissão.
+- Comece a carreira com uma candidata ou crie a sua equipe como a 12ª do grid: nome, cores, país, tamanho do projeto, motor e logo (20 genéricos ou importado). Depois, monte a equipe: titulares, reserva e cargos-chave, negociando com cada um.
+- Equipe irmã (mesmo dono) e equipe parceira (acordo técnico com a fornecedora, com limites de transferência de tecnologia).
+
+## Mercado vivo (versão 0.8.4)
+- Silly season que abre nas férias de verão, com a lista de contratos que vencem.
+- Leilão: várias equipes disputam o mesmo piloto e ele escolhe o melhor projeto; você pode perder o alvo para um rival.
+- Empresários (os reais, para os pilotos da F1) cobram comissão, empurram o salário e vazam interesse para a imprensa.
+- Renovações antecipadas, opções de renovação, bônus por vitória, pódio e título, e direitos de imagem.
+
+## Política (versão 0.8.4)
+- Sem veto: o poder de veto da Ferrari foi extinto.
+- Concessões: quem propõe oferece dinheiro ou horas de túnel em troca de votos; você também recebe ofertas.
+- A Comissão vota a entrada de equipes novas.
 
 ## Personalização
 Quase tudo é editável:

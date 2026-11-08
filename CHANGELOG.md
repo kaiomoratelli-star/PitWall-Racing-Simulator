@@ -1,5 +1,110 @@
 # Changelog
 
+## 0.8.4 — Equipes como empresas, mercado vivo, política e eventos (08/11/2026)
+Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, relatório em `docs/RELATORIO-0.8.4.md`). A interface fica para a 0.8.5, depois de uma conversa de design.
+
+**Equipes como empresas**
+- Cada equipe tem dono, com riqueza, ambição e paciência:
+  - tipos: montadora, empresa, fundo de investimento, independente;
+  - donos reais das 11 equipes de 2026 (Mercedes-Benz, Exor, Red Bull, Dorilton, Lawrence Stroll e outros).
+- Valor de mercado estimado (receita, reputação, estrutura, patrimônio e dívida) e histórico do valor.
+- Dívida: caixa negativo vira dívida com juros.
+- Humor dos donos: sobe e desce com o resultado contra a expectativa e com o caixa. Dono feliz aumenta o aporte; infeliz corta.
+- Venda de equipes:
+  - montadora que sai, independente sem dinheiro, fundo que realiza o lucro;
+  - compradores do banco de candidatas trocam nome, cores e logo, e a linhagem fica guardada;
+  - investidores fictícios também compram.
+- Sem comprador: compra pela gestão (como a Brawn em 2009) ou saída do grid; pilotos e funcionários ficam livres.
+- Regras do dono do jogo:
+  - Ferrari e McLaren nunca são vendidas;
+  - Mercedes e Red Bull só depois de 20 temporadas e numa crise muito forte;
+  - as demais podem ser vendidas;
+  - equipe nova tem o prazo do plano de negócios antes de ser vendida.
+- Entrada de equipes (até 12):
+  - inscrição na FIA, análise técnica e financeira;
+  - voto da Comissão no meio da temporada (as equipes temem dividir a premiação);
+  - taxa de entrada e estreia no ano seguinte, com carro atrás do grid;
+  - montadoras com motor próprio estreiam o motor depois de 3 ou 4 anos.
+- 20 candidatas (aguardando a aprovação do dono do jogo):
+  - 7 equipes reais: Hitech, Prema, Penske, Ganassi, ART, Rodin, Campos;
+  - 8 montadoras: Toyota, Porsche, Hyundai, BMW, Lamborghini, Jaguar, Lotus, Mahindra;
+  - 3 empresas: Monster Energy, Apple, TAG Heuer/LVMH;
+  - 2 criadas para o jogo, com logos feitos no Canva: a brasileira Vórtice Racing e a Meridian Grand Prix, de Abu Dhabi.
+- Nova carreira:
+  - comandar uma equipe do grid, uma candidata (como 12ª equipe) ou criar a sua (12ª equipe);
+  - a equipe criada tem nome, sigla, país, cores, tamanho do projeto (modesto, médio, ambicioso), motor e logo (20 genéricos ou importado).
+- Tela nova "Donos e equipes": dono, valor, dívida, humor, situação de venda, candidatas e histórico. A página de cada equipe ganhou o painel "Dono e valor".
+- Montagem da equipe nova (candidata ou criada pelo jogador), obrigatória antes da primeira corrida:
+  - dois titulares e um reserva, com negociação de cada um; a lista mostra nota, pedido, empresário e o interesse de cada piloto num projeto novo;
+  - cargos-chave da fábrica e dos boxes: candidatos livres (com luvas) ou tentativa de tirar os melhores dos rivais, com período de afastamento;
+  - o diretor esportivo pode completar as vagas, e cargos não contratados seguem com interinos.
+- Equipe parceira × equipe irmã:
+  - irmã é o mesmo dono (academia e voto em comum);
+  - parceira é acordo técnico com a fornecedora: Haas e Cadillac com a Ferrari, Williams e Alpine com a Mercedes;
+  - a transferência de tecnologia é limitada (chassi e confiabilidade, nunca aerodinâmica);
+  - carro parecido demais leva a protesto e investigação, como a "Mercedes rosa" de 2020;
+  - troca de dono ou motor próprio encerra o acordo, e equipes novas fecham parceria com a fornecedora.
+
+**Mercado vivo**
+- Empresários:
+  - os pilotos da F1 têm o empresário real; os demais, agências fictícias;
+  - estilo agressivo, equilibrado ou leal;
+  - comissão paga na assinatura, salário pedido mais alto, interesse vazado para a imprensa.
+- Leilão: equipes com vaga entram na disputa por pilotos já em conversa, e o piloto escolhe pelo projeto, salário, papel e empresário.
+- A proposta do jogador concorre com as da mesa: o empresário avisa quanto o rival ofereceu.
+- Silly season: abre nas férias de verão, com a lista de contratos que vencem.
+- Renovações antecipadas da IA para os pilotos-chave e opção de renovação da equipe decidida no meio do ano.
+- Contratos com bônus por vitória, pódio e título (pagos de verdade) e direitos de imagem.
+
+**Política**
+- O veto da Ferrari foi extinto.
+- Bastidores: os blocos de motor que fecham posição antes da votação viram notícia, assim como as compensações oferecidas por quem propõe.
+- Concessões: quem propõe (FIA, Fórmula 1 ou equipe) oferece dinheiro ou horas de túnel aos indecisos. O jogador recebe a oferta e decide.
+- A Comissão vota a entrada de equipes novas, e o jogador vota na tela do Conselho.
+
+**Eventos, escândalos e consequências**
+- Frequência geral Baixa, Normal ou Alta, e nível por tipo (Desligado, Raro, Normal, Novela, Caos):
+  - escândalos;
+  - conflitos internos;
+  - lesões e doenças;
+  - operação;
+  - negócios.
+- Catálogo novo:
+  - escândalos: manipulação de resultado, espionagem, vazamento de projeto, fraude financeira, apostas ilegais, sabotagem, peça irregular, extremismo, tabloides;
+  - conflitos: briga entre companheiros, piloto contra a equipe, engenheiro que vai para o rival, ordens de equipe, cansaço dos mecânicos;
+  - operação: túnel parado, logística, incêndio, ataque hacker, lote defeituoso;
+  - negócios: patrocinador que quebra, donos com problemas.
+- Escândalos são descobertos semanas depois (ou acobertados e revelados anos mais tarde).
+- Investigação e veredito: multa, perda de pontos, exclusão do Mundial de Construtores, suspensão de piloto, banimento de funcionário.
+- Consequências em cadeia:
+  - patrocinadores que rompem;
+  - donos irritados, que podem pôr a equipe à venda;
+  - chefe de equipe demitido;
+  - outra equipe investigada.
+- Quando o caso é com a sua equipe, você decide: cooperar com a FIA, defender a equipe ou afastar os envolvidos.
+- Pessoas, equipes e empresas reais podem aparecer (opção ligada por padrão), sempre marcadas como ficção do jogo. O extremismo usa sempre personagens fictícios.
+- Lesões e doenças: afastamento por GPs e reserva no carro, na F1 e nas outras categorias.
+- Acidentes fatais: sempre ligados, raríssimos (cerca de 1 a cada 80–100 anos na F1 moderna; mais frequentes nas categorias de base e nos ovais). A segurança melhora com o tempo. São tratados com luto, homenagem e investigação.
+
+**Pilotos**
+- Nota mínima do titular da F1: 75 (antes 80, decisão do dono). Equipe da IA com titular abaixo do mínimo promove alguém acima dele na virada do ano; o jogador recebe um aviso.
+- Revisão completa da IndyCar, que estava muito inflada:
+  - antes: Kirkwood 86, Palou 84, mediana 80;
+  - agora: faixa de 70 a 80, com notas e níveis curados para os 33 pilotos, ancorados nos ex-F1 do grid;
+  - Palou 81, O'Ward 79, Kirkwood/Newgarden/McLaughlin 78; Ericsson, Rossi, Mick Schumacher e Armstrong 75; fundo do grid 69–71.
+
+**Dados e imagens**
+- Logos novos: Mobil 1, Bitpanda, MSC Cruises e Hugo Boss.
+- Continuam sem logo confiável (a busca trouxe imagens erradas, descartadas): Hantec Markets, Castore, Allwyn, Formula Winter Series, F4 CEZ, FR Américas e ACO.
+- Siglas oficiais dos pilotos no mapa da corrida.
+- Extensão medida no traçado do OpenStreetMap na página do circuito, ao lado da oficial da FIA.
+- Textos de cláusulas e contratos traduzidos para o inglês.
+
+**Técnico**
+- Módulos novos: `owners.js`, `silly.js`, `chaos.js`, `ui-owners.js`; dados em `app/data/team-candidates.js`; logos genéricos por `scripts/make-generic-logos.js`.
+- O teste de consistência considera as punições de pontos (`season.penC`) e a exclusão do Mundial de Construtores.
+- Saves antigos ganham donos, opções de eventos e empresários sob demanda (migração completa só depois da V1, ver `docs/PENDENCIAS-V1.md`).
+
 ## 0.8.3 — Talento, carros, academia, olheiros e patrocínio (07/11/2026)
 Segunda etapa do plano de ultrarrealismo (plano em `docs/PLANO-0.8.3.md`, relatório em `docs/RELATORIO-0.8.3.md`).
 

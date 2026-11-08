@@ -7,9 +7,11 @@ O material de marketing fica em `docs/marketing/` e `docs/brand/`.
 ## Regras do dono
 - Tudo em português do Brasil (interface, textos, commits, documentação). O jogo também tem inglês: todo texto novo da interface precisa de uma linha em `app/src/i18n-en.js`, e frases montadas no núcleo usam `byLang(pt, en)` (ver `docs/ARQUITETURA.md`, seção Idiomas).
 - Dados reais são permitidos e desejados: pilotos, equipes, patrocinadores, imprensa, imagens. O jogo ainda não é vendido; no futuro será pago (não escrever que é gratuito). Antes de vender, imagens e marcas de terceiros precisarão de licença ou substituição.
-- Versão atual: 0.8.2 (estabilização: 0.8.2 database e economia, 0.8.3 economia completa e equilíbrio, 0.8.4 equipes, mercado e política; auditoria em `docs/AUDITORIA-0.8.2.md`).
+- Versão atual: 0.8.4 (0.8.2 database e economia, 0.8.3 talento, carros e equilíbrio, 0.8.4 equipes como empresas, mercado vivo, política e eventos; 0.8.5 será a interface, com conversa de design antes de começar).
 - Não usar a palavra "IA" na interface do jogo.
-- Escândalos sempre com pessoas e organizações fictícias.
+- Nota mínima de um titular da F1: 75 (`Talent.F1_MIN`, decisão do dono em 08/11/2026). Notas de pilotos de outras séries revisadas à mão ficam em `app/data/driver-tiers.js` (`series`).
+- Escândalos e acontecimentos podem citar pessoas, equipes, circuitos e empresas reais (decisão do dono em 08/11/2026: a versão comercial será toda fictícia). Todo caso com pessoa real leva a marca "ficção do jogo". Exceção: o escândalo de extremismo usa sempre personagens fictícios. A opção "Pessoas reais" pode ser desligada em Salvar e opções.
+- Morte em acidente fica sempre ligada, com probabilidade realista por categoria e época; tratar sempre com seriedade (luto, homenagem, investigação), nunca como punição ou piada.
 - Identidade visual: vermelho `#E10600`, carbono `#15151E`, Titillium Web 900 itálico e IBM Plex Mono (ver `docs/marketing/2-GUIA-DA-MARCA.md`). Títulos em caixa alta no padrão F1; se os arquivos da Formula1 Display estiverem em `app/assets/fonts`, o build usa.
 - Quando um recurso novo do jogo for criado, atualize `docs/marketing/3-SOBRE-O-JOGO.md` e o `CHANGELOG.md`.
 

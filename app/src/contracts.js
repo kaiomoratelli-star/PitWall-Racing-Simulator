@@ -14,7 +14,7 @@
 'use strict';
 
 const Contracts = {};
-Contracts.LABEL = { performance: 'cláusula de desempenho', release: 'cláusula de saída' };
+Contracts.LABEL = { get performance() { return byLang('cláusula de desempenho', 'performance clause'); }, get release() { return byLang('cláusula de saída', 'release clause'); } };
 Contracts.has = (d, k) => !!(d && d.contract && (d.contract.clauses || []).includes(k));
 
 /* cláusulas que uma equipe da IA coloca no contrato */
@@ -82,7 +82,7 @@ Contracts.rank = (G, tid) => {
     const M = Market.state(G);
     const tk = M.talks[M.talks.length - 1];
     tk.awaitPlayer = false; tk.buyout = 0; tk.resolve = G.season.round + 1;
-    Career.mail(G, { from: t.name, tag: 'market', title: `${t.name} aciona a cláusula de saída de ${d.name}`, body: `${d.name} tem cláusula de saída para equipes à frente no campeonato. A ${t.name} (${Contracts.rank(G, t.id)}ª nos construtores) fez proposta para ${G.season.year + 1}; a decisão é do piloto e não há multa.` });
+    Career.mail(G, { from: t.name, tag: 'market', title: byLang(`${t.name} aciona a cláusula de saída de ${d.name}`, `${t.name} triggers ${d.name}'s release clause`), body: byLang(`${d.name} tem cláusula de saída para equipes à frente no campeonato. A ${t.name} (${Contracts.rank(G, t.id)}ª nos construtores) fez proposta para ${G.season.year + 1}; a decisão é do piloto e não há multa.`, `${d.name} has a release clause for teams ahead in the championship. ${t.name} (P${Contracts.rank(G, t.id)} in the constructors') has made an offer for ${G.season.year + 1}; the decision is the driver's and there is no fee.`) });
   };
   // o piloto da equipe do jogador só pode ser levado por quem está à frente
   const cand = Market.candidateScore;
@@ -102,7 +102,7 @@ Contracts.rank = (G, tid) => {
   const fx = Events.applyEffects;
   Events.applyEffects = (G, e) => {
     const out = fx(G, e);
-    if (e && e.clauseExit) { const d = Career.driver(G, e.clauseExit); if (d && d.team === G.player.teamId) { d.contractYears = 0; d.contract.until = G.season.year; Career.record(G, 'contrato', `${Career.team(G).name} acionou a cláusula de desempenho de ${d.name}: o contrato termina em ${G.season.year}.`, { teams: [d.team], drivers: [d.id] }); out.push(`Contrato de ${d.name} termina no fim do ano`); } }
+    if (e && e.clauseExit) { const d = Career.driver(G, e.clauseExit); if (d && d.team === G.player.teamId) { d.contractYears = 0; d.contract.until = G.season.year; Career.record(G, 'contrato', byLang(`${Career.team(G).name} acionou a cláusula de desempenho de ${d.name}: o contrato termina em ${G.season.year}.`, `${Career.team(G).name} triggered ${d.name}'s performance clause: the contract ends in ${G.season.year}.`), { teams: [d.team], drivers: [d.id] }); out.push(byLang(`Contrato de ${d.name} termina no fim do ano`, `${d.name}'s contract ends at the end of the year`)); } }
     return out;
   };
 })();
@@ -118,18 +118,18 @@ Contracts.tick = (G) => {
     const t = Career.team(G, d.team);
     const mine = d.team === G.player.teamId && !Career.isObs(G);
     if (mine) {
-      Career.mail(G, { from: 'Diretor esportivo', tag: 'team', title: `Cláusula de desempenho: ${d.name}`, body: `${d.name} está abaixo do combinado no contrato (resultado contra o carro e o companheiro). A cláusula permite encerrar o contrato no fim de ${G.season.year}, sem multa.`,
+      Career.mail(G, { from: byLang('Diretor esportivo', 'Sporting director'), tag: 'team', title: byLang(`Cláusula de desempenho: ${d.name}`, `Performance clause: ${d.name}`), body: byLang(`${d.name} está abaixo do combinado no contrato (resultado contra o carro e o companheiro). A cláusula permite encerrar o contrato no fim de ${G.season.year}, sem multa.`, `${d.name} is below the level agreed in the contract (results against the car and the team-mate). The clause allows the contract to end at the close of ${G.season.year}, with no fee.`),
         choices: [
-          { label: 'Acionar a cláusula', outcome: `O contrato de ${d.name} termina no fim do ano. A vaga entra no mercado.`, effects: { clauseExit: d.id, morale: { [d.id]: -10 } } },
-          { label: 'Manter o piloto', outcome: `${d.name} segue com o contrato atual.`, effects: { morale: { [d.id]: 4 } } },
+          { label: byLang('Acionar a cláusula', 'Trigger the clause'), outcome: byLang(`O contrato de ${d.name} termina no fim do ano. A vaga entra no mercado.`, `${d.name}'s contract ends at the end of the year. The seat goes on the market.`), effects: { clauseExit: d.id, morale: { [d.id]: -10 } } },
+          { label: byLang('Manter o piloto', 'Keep the driver'), outcome: byLang(`${d.name} segue com o contrato atual.`, `${d.name} stays on the current contract.`), effects: { morale: { [d.id]: 4 } } },
         ] });
       return;
     }
     const r = localRng(`clx:${G.seed}:${d.id}:${G.season.year}`)();
     if (r < 0.7) {
       d.contractYears = 0; if (d.contract) d.contract.until = G.season.year;
-      Career.news(G, `${t.name} aciona a cláusula de desempenho e ${d.name} sai no fim do ano`, 'mercado');
-      Career.record(G, 'contrato', `${t.name} acionou a cláusula de desempenho de ${d.name}: contrato encerrado ao fim de ${G.season.year}, sem multa.`, { teams: [t.id], drivers: [d.id] });
+      Career.news(G, byLang(`${t.name} aciona a cláusula de desempenho e ${d.name} sai no fim do ano`, `${t.name} triggers the performance clause and ${d.name} leaves at the end of the year`), 'mercado');
+      Career.record(G, 'contrato', byLang(`${t.name} acionou a cláusula de desempenho de ${d.name}: contrato encerrado ao fim de ${G.season.year}, sem multa.`, `${t.name} triggered ${d.name}'s performance clause: contract ended at the close of ${G.season.year}, no fee.`), { teams: [t.id], drivers: [d.id] });
     }
   });
 };

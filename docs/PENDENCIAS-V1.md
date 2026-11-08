@@ -8,6 +8,7 @@ Coisas adiadas de propósito. Revisar quando a V1.0 estiver fechada.
 - Durante a fase de testes (0.8.3 até a 1.0), as mudanças grandes de simulação valem para **carreiras novas**. Os saves antigos continuam abrindo (as migrações v1→v7 da 0.8.2 seguem no jogo), mas **não** recebem as recalibrações novas.
 - Recalibrações que ficaram de fora dos saves antigos:
   - **0.8.3:** níveis ocultos de talento, perfil de atributos, curva de idade, eficiência das organizações, nova academia (contratos e planos), departamento de olheiros e patrocínio por segmento. Saves antigos ganham só o que é criado sob demanda: nível dos pilotos sem nível na virada do ano, olheiros iniciais e contratos estimados da academia.
+  - **0.8.4:** donos, valor de mercado, opções de eventos, empresários e contratos com bônus são criados sob demanda nos saves antigos. O grid desses saves continua com as 11 equipes até alguém sair ou ser vendido.
 - Ao fechar a V1.0:
   1. Escrever a migração completa para a versão final do save.
   2. Criar a opção "Recalibrar pilotos e equipes" em Salvar e opções, para quem quiser aplicar as regras novas num save antigo.

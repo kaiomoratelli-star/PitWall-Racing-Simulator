@@ -60,6 +60,8 @@ const NAV = [
   ['diag', 'Diagnóstico', 'M12 3l9 16H3zM12 10v4m0 3v.5'],
 ];
 // telas que só existem para quem comanda uma equipe
+/* itens que só aparecem em certas situações */
+function navVisible(n) { return n[0] !== 'teamSetup' || !!(typeof G !== 'undefined' && G && G.teamSetup && G.teamSetup.pending); }
 const MANAGER_ONLY = new Set(['team', 'dev', 'finance', 'market', 'inbox', 'academy']);
 NAV.splice(NAV.findIndex(n => n[0] === 'news') + 1, 0,
   ['paddock', 'Equipes do grid', 'M4 20V9l8-5 8 5v11M9 20v-6h6v6'],
@@ -102,7 +104,7 @@ function shellHtml(inner) {
   const pending = G.inbox.filter(m => m.choices && m.resolved == null).length;
   const sc = Career.standingsC(G);
   const pos = sc.findIndex(x => x.tid === team.id) + 1;
-  const navItems = NAV.map(n => {
+  const navItems = NAV.filter(navVisible).map(n => {
     if (n[0] === 'g') return `<div class="nav-group label">${n[1]}</div>`;
     const badge = n[0] === 'inbox' && (pending || unread) ? `<span class="badge">${pending || unread}</span>` : n[0] === 'weekend' && G.weekend ? '<span class="chip acc">ao vivo</span>' : '';
     const on = UI.view === n[0] || (n[0] === 'weekend' && ['race', 'weekend'].includes(UI.view));
@@ -128,7 +130,7 @@ function shellHtml(inner) {
   </div>`;
 }
 function navHtml(items) {
-  return items.map(n => {
+  return items.filter(navVisible).map(n => {
     if (n[0] === 'g') return `<div class="nav-group label">${n[1]}</div>`;
     const on = UI.view === n[0] || (n[0] === 'weekend' && ['race', 'weekend'].includes(UI.view));
     return `<button class="navitem ${on ? 'on' : ''}" data-act="go" data-v="${n[0]}"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${n[2]}"/></svg>${n[1]}</button>`;
@@ -168,7 +170,7 @@ function headshot(d, cls = '') {
   return `<span class="hs noimg ${cls}" style="--tc:${tc}"><b>${esc(initials(d && d.name))}</b></span>`;
 }
 function teamLogo(t, cls = '') {
-  const u = t && (imgUrl(t.logo) || (typeof Assets !== 'undefined' ? Assets.logoByName('teams', t.fullName || t.name) : null));
+  const u = t && ((t.logo && String(t.logo).startsWith('data:image/') ? t.logo : imgUrl(t.logo)) || (typeof Assets !== 'undefined' ? Assets.logoByName('teams', t.fullName || t.name) : null));
   if (u) return `<span class="tlogo ${cls}" style="--tc:${t.color}"><img src="${u}" alt="" loading="lazy" onerror="this.remove()"></span>`;
   return `<span class="tlogo txt ${cls}" style="--tc:${t ? t.color : '#555'}">${esc(t ? t.short || teamAbbr(t.name) : '')}</span>`;
 }
@@ -192,6 +194,8 @@ function dName(did, full = false) {
   return esc(full ? d.name : shortName(d));
 }
 function shortName(d) { return d.lastName || d.name.replace(/\s+(Jr\.?|Sr\.?|II|III)$/i, '').split(' ').slice(-1)[0]; }
+/* sigla oficial do piloto (dado real quando existe) */
+function dCode(d) { return d ? (d.abbr || shortName(d).normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase()) : '???'; }
 function rawName(did) { const d = Career.driver(G, did); return d ? shortName(d) : String(did); }
 function dTag(did, full = true) {
   const d = Career.driver(G, did);

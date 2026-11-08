@@ -16,13 +16,13 @@ const Market = {};
 /* ---------- contrato ---------- */
 Market.until = (G, d) => G.season.year + Math.max(-1, d.contractYears ?? 0);
 Market.contractText = (G, d) => {
-  if (!d.team) return 'Sem contrato';
+  if (!d.team) return byLang('Sem contrato', 'No contract');
   const c = d.contract || {};
-  const parts = [`até ${Market.until(G, d)}`];
-  if (c.option) parts.push(`opção ${c.option.year} (${c.option.holder === 'team' ? 'da equipe' : c.option.holder === 'driver' ? 'do piloto' : 'mútua'})`);
-  if (c.clauses && c.clauses.includes('performance')) parts.push('cláusula de desempenho');
-  if (c.loanFrom) parts.push(`emprestado pela ${(Career.team(G, c.loanFrom) || {}).name || c.loanFrom}`);
-  if (c.estimated) parts.push('prazo estimado');
+  const parts = [byLang(`até ${Market.until(G, d)}`, `until ${Market.until(G, d)}`)];
+  if (c.option) parts.push(byLang(`opção ${c.option.year} (${c.option.holder === 'team' ? 'da equipe' : c.option.holder === 'driver' ? 'do piloto' : 'mútua'})`, `${c.option.year} option (${c.option.holder === 'team' ? 'team' : c.option.holder === 'driver' ? 'driver' : 'mutual'})`));
+  if (c.clauses && c.clauses.includes('performance')) parts.push(byLang('cláusula de desempenho', 'performance clause'));
+  if (c.loanFrom) parts.push(byLang(`emprestado pela ${(Career.team(G, c.loanFrom) || {}).name || c.loanFrom}`, `on loan from ${(Career.team(G, c.loanFrom) || {}).name || c.loanFrom}`));
+  if (c.estimated) parts.push(byLang('prazo estimado', 'estimated term'));
   return parts.join(' · ');
 };
 
@@ -170,7 +170,7 @@ Market.tick = (G) => {
       if (occ && !occ.retiring && !M.decided[key + ':' + occ.id] && occ.contractYears <= 0) {
         M.decided[key + ':' + occ.id] = true;
         const alt = Market.bestCandidates(G, t, seat, [occ.id])[0];
-        const occS = Market.candidateScore(G, t, occ) + 1.5 + (occ.personality ? occ.personality.loyalty / 50 : 1);
+        const occS = Market.candidateScore(G, t, occ) + 2.4 + (occ.personality ? occ.personality.loyalty / 50 : 1);   // continuidade: a F1 real troca menos do que a nota sugere
         const ask = Market.ask(occ);
         const budgetOk = ask <= Market.driverBudget(G, t) * 1.6;
         if ((!alt || occS >= alt.s - 0.5) && budgetOk) {

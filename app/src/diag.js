@@ -61,7 +61,8 @@ Diag.run = (G) => {
   if (G.weekend && G.weekend.bonus) G.weekend.bonus.forEach(c => { fromRes[c.did] = (fromRes[c.did] || 0) + c.pts; fromResC[c.tid] = (fromResC[c.tid] || 0) + c.pts; });
   if (G.weekend && G.weekend.sprintResult) G.weekend.sprintResult.cls.forEach(c => { fromRes[c.did] = (fromRes[c.did] || 0) + c.pts; fromResC[c.tid] = (fromResC[c.tid] || 0) + c.pts; });
   Object.entries(fromRes).forEach(([did, p]) => { if ((G.season.standD[did] || 0) !== p) errors.push(`Pontos de ${(Career.driver(G, did) || {}).name || did} não batem (${G.season.standD[did]} vs ${p})`); });
-  Object.entries(fromResC).forEach(([tid, p]) => { if ((G.season.standC[tid] || 0) !== p) errors.push(`Pontos da equipe ${tid} não batem`); });
+  // punições da FIA (perda de pontos, exclusão do Mundial de Construtores) ficam registradas em season.penC
+  Object.entries(fromResC).forEach(([tid, p]) => { const t = Career.team(G, tid); const pen = (G.season.penC || {})[tid] || 0; const ok = t && t.excludedC === G.season.year ? (G.season.standC[tid] || 0) === 0 : (G.season.standC[tid] || 0) === Math.max(0, p - pen); if (!ok) errors.push(`Pontos da equipe ${tid} não batem`); });
   // finanças do jogador
   if (G.mode !== 'observer' && !isFinite(G.finances.balance)) errors.push('Caixa do jogador inválido');
   // a mesma pessoa real em dois registros (id único ou nome + nascimento)

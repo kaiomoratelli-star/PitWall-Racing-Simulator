@@ -88,7 +88,7 @@ newsImg = function (n, big) {
     if (!G || !G.options) return html;
     const o = G.options;
     const extra = `<label class="check"><input type="checkbox" ${o.realMortality ? 'checked' : ''} data-chg="opt" data-k="realMortality"> ${byLang('Ciclo da vida também para pessoas reais', 'Life cycle also for real people')}</label>
-      <p class="small muted" style="margin-top:-6px">${byLang('Desligado por padrão. Com frequência baixíssima, o jogo pode registrar o falecimento por causas naturais de personagens idosos. Ligado, inclui ex-pilotos e funcionários reais (sempre como ficção do jogo, sem relação com a realidade).', 'Off by default. Very rarely, the game may record the death by natural causes of elderly characters. When on, it includes real former drivers and staff (always as game fiction, unrelated to reality).')}</p>`;
+      <p class="small muted" style="margin-top:-6px">${byLang('Ligado por padrão nas carreiras novas (acompanha a opção de pessoas reais). Com frequência baixíssima, o jogo pode registrar o falecimento por causas naturais de personagens idosos; ligado, inclui ex-pilotos e funcionários reais (sempre como ficção do jogo, sem relação com a realidade).', 'On by default in new careers (follows the real-people option). Very rarely, the game may record the death by natural causes of elderly characters; when on, it includes real former drivers and staff (always as game fiction, unrelated to reality).')}</p>`;
     return html.replace('<label class="field"><span>Treinos livres por fim de semana</span>', extra + '<label class="field"><span>Treinos livres por fim de semana</span>');
   };
 })();

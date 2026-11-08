@@ -3,8 +3,10 @@
    Três reuniões por temporada. FIA, Fórmula 1 e cada equipe votam
    mudanças técnicas, esportivas, de custos e de calendário.
    Para aprovar: FIA, Fórmula 1 e 60% das equipes (mudança que vale já
-   na temporada atual: 80%). A Ferrari mantém o veto histórico em
-   temas técnicos, uma vez por temporada.
+   na temporada atual: 80%). Ninguém tem veto (extinto na V0.8.4).
+   Concessões: quando a proposta fica perto de passar, quem propõe (FIA,
+   Fórmula 1 ou a equipe autora) oferece dinheiro ou horas de túnel às
+   equipes indecisas ou contrárias em troca do voto.
    Cada equipe vota pelo próprio interesse (motor, orçamento, aerodinâmica,
    posição no campeonato, GP em casa), segue a fornecedora de motor em
    temas técnicos e a equipe principal quando é equipe irmã.
@@ -20,7 +22,7 @@ Council.CATS = { tec: 'Técnico', dev: 'Custos e desenvolvimento', esp: 'Esporti
 Council.CLASSICS = new Set(['monaco', 'silverstone', 'monza', 'spa-francorchamps', 'suzuka', 'interlagos', 'montreal', 'melbourne']);
 Council.GP = { 'paul-ricard': 'GP da França', 'magny-cours': 'GP da França', hockenheimring: 'GP da Alemanha', nurburgring: 'GP da Alemanha', portimao: 'GP de Portugal', estoril: 'GP de Portugal', mugello: 'GP da Toscana', istanbul: 'GP da Turquia', jacarepagua: 'GP do Rio de Janeiro', indianapolis: 'GP de Indianápolis', 'buenos-aires': 'GP da Argentina', kyalami: 'GP da África do Sul', 'watkins-glen': 'GP de Watkins Glen' };
 Council.gpName = (t) => (/^GP /.test(t.gp) ? t.gp : (Council.GP[t.id] || `GP de ${t.gp}`));
-Council.COST = { talk: 8, deal: 4, engine: 10, body: 20, propose: 20, veto: 30 };
+Council.COST = { talk: 8, deal: 4, engine: 10, body: 20, propose: 20 };
 
 Council.ensure = (G) => {
   if (G.council) return G.council;
@@ -257,7 +259,7 @@ Council.make = (G, t, p, M, r, proposerTid) => {
   // regra nova vale na temporada seguinte; imediato só para segurança urgente (t.safety)
   const eff = t.when === 'now' && t.safety ? 'now' : G.season.year + (typeof t.when === 'number' ? t.when : 1);
   return { id: 'cp' + (++C.seq), k: t.k, cat: t.cat, p, title: t.title(p, G), desc: t.desc(p, G), basis: t.basis, eff, proposer, imp, noise,
-    fia: +(t.fia + (r() - 0.5) * 0.5).toFixed(2), fom: +(t.fom + (r() - 0.5) * 0.5).toFixed(2), lobby: {}, acts: {}, vote: null, vetoAsk: false };
+    fia: +(t.fia + (r() - 0.5) * 0.5).toFixed(2), fom: +(t.fom + (r() - 0.5) * 0.5).toFixed(2), lobby: {}, acts: {}, vote: null, offers: {} };
 };
 
 /* ---------- posição de cada equipe ---------- */
@@ -340,6 +342,7 @@ Council.openMeeting = (G) => {
     if (p) props.unshift(Council.make(G, t, p, M, r, G.player.teamId));
   }
   C.queued = null;
+  props.forEach(pr => Council.concessions(G, pr, r));
   props.forEach(pr => { if (pr.k === 'v8') C.v8Year = s.year; });
   C.recent = [...C.recent, ...props.map(p => p.k)].slice(-10);
   const next = Career.currentTrack(G);
@@ -355,6 +358,46 @@ Council.openMeeting = (G) => {
   Career.news(G, `Comissão de F1 se reúne com ${props.length} propostas na pauta`, 'regulamento', props.map(pr => '• ' + pr.title).join('\n'));
 };
 
+/* ---------- concessões em troca de voto ---------- */
+/* proposta perto de passar: quem propõe compra os votos que faltam (dinheiro da Fórmula 1 ou da FIA,
+   horas de túnel cedidas pela equipe autora). Equipes da IA aceitam quando o ganho cobre a perda;
+   o jogador recebe a oferta na tela do Conselho e decide pelo próprio voto. */
+Council.concessions = (G, pr, r) => {
+  pr.offers = pr.offers || {};
+  const T = Council.tally(G, pr, true);
+  const gap = T.need - T.yes;
+  if (T.pass || gap > 2 || gap <= 0 || !T.fia || !T.fom) return;
+  const byTeam = G.db.teams.some(t => t.id === pr.proposer);
+  const targets = G.db.teams.filter(t => T.votes[t.id] !== 'sim' && t.id !== pr.proposer && !Council.isPlayer(G, t.id) && !pr.offers[t.id])
+    .map(t => ({ t, s: Council.stance(G, pr, t.id) })).sort((a, b) => b.s - a.s).slice(0, gap + 1);
+  targets.forEach(({ t, s }) => {
+    const money = byTeam ? 0 : Math.round(3 + r() * 7 + Math.max(0, -s) * 10);
+    const hours = byTeam ? Math.round(4 + r() * 6) : 0;
+    const accept = s > -0.45 && r() < 0.7;
+    pr.offers[t.id] = { by: pr.proposer, money, hours, accepted: accept };
+    if (accept) pr.lobby[t.id] = (pr.lobby[t.id] || 0) + 0.35;
+  });
+  // o jogador também recebe a oferta quando o voto dele pode decidir
+  const mine = Career.isObs(G) ? null : G.player.teamId;
+  if (mine && mine !== pr.proposer && T.votes[mine] !== 'sim' && !pr.offers[mine]) pr.offers[mine] = { by: pr.proposer, money: byTeam ? 0 : Math.round(4 + r() * 8), hours: byTeam ? Math.round(4 + r() * 6) : 0, player: true };
+};
+Council.payOffers = (G, pr, T) => {
+  if (!T.pass) return;
+  Object.entries(pr.offers || {}).forEach(([tid, o]) => {
+    if (T.votes[tid] !== 'sim' || (!o.accepted && !o.player)) return;
+    const t = Career.team(G, tid); if (!t) return;
+    const who = Council.proposerName(G, o.by);
+    if (Council.isPlayer(G, tid)) {
+      if (o.money) Career.ledger(G, byLang(`Concessão da ${who} pelo voto no Conselho`, `${who} concession for the Council vote`), o.money, 'receita');
+      if (o.hours && G.atrPool) G.atrPool.wt = Math.round((G.atrPool.wt || 0) + o.hours);
+    } else if (o.money) t.cash = +((t.cash || 0) + o.money).toFixed(2);
+    const giver = Career.team(G, o.by);
+    if (giver && o.hours && !Council.isPlayer(G, giver.id)) giver.car.aero = +(giver.car.aero - o.hours * 0.01).toFixed(2);
+    o.paid = true;
+    Career.record(G, 'regulamento', byLang(`${t.name} votou a favor de "${pr.title}" em troca de ${o.money ? fmtMoney(o.money) : o.hours + ' horas de túnel'} (concessão da ${who}).`, `${t.name} voted for "${pr.title}" in exchange for ${o.money ? fmtMoney(o.money) : o.hours + ' wind tunnel hours'} (${who} concession).`), { teams: [t.id] });
+  });
+};
+
 Council.impWord = (x) => (x >= 0.45 ? 'ganha muito' : x >= 0.15 ? 'ganha' : x <= -0.45 ? 'perde muito' : x <= -0.15 ? 'perde' : 'neutro');
 
 Council.resolve = (G) => {
@@ -364,14 +407,11 @@ Council.resolve = (G) => {
   const mine = Career.isObs(G) ? null : G.player.teamId;
   const lines = [];
   m.props.forEach(pr => {
+    Council.concessions(G, pr, r);
     const T = Council.tally(G, pr, true);
+    Council.payOffers(G, pr, T);
     Object.assign(pr, { votes: T.votes, yes: T.yes, no: T.no, abst: T.und, need: T.need, fiaV: T.fia, fomV: T.fom });
     let res = T.pass ? 'aprovada' : 'rejeitada';
-    const fer = G.db.teams.find(t => t.id === 'ferrari');
-    if (T.pass && pr.cat === 'tec' && fer && T.votes.ferrari === 'nao' && C.vetoYear !== m.year) {
-      const use = Council.isPlayer(G, 'ferrari') ? pr.vetoAsk : pr.imp.ferrari <= -0.35 && r() < 0.6;
-      if (use) { res = 'vetada'; C.vetoYear = m.year; }
-    }
     pr.result = res;
     // o mesmo tema só volta à pauta depois de um intervalo (dois anos se foi barrado, um ano se passou)
     C.cool = C.cool || {};
@@ -381,8 +421,7 @@ Council.resolve = (G) => {
     const prop = Council.proposerName(G, pr.proposer);
     const why = !T.fia ? ' A FIA votou contra.' : !T.fom ? ' A Fórmula 1 votou contra.' : '';
     lines.push(`• ${pr.title}: ${res.toUpperCase()} (${T.yes} a favor, ${T.no} contra${T.und ? `, ${T.und} abstenções` : ''}; precisava de ${T.need}).${why}`);
-    if (res === 'vetada') Career.news(G, `Ferrari usa o veto histórico e barra: ${pr.title}`, 'regulamento', 'A Ferrari mantém no Pacto de Concórdia o direito de vetar mudanças técnicas que considere prejudiciais. A proposta tinha sido aprovada pela Comissão.', { teams: ['ferrari'] });
-    else Career.news(G, `Conselho ${res === 'aprovada' ? 'aprova' : 'rejeita'}: ${pr.title}`, 'regulamento', `Proposta de ${prop}. ${T.yes} equipes a favor e ${T.no} contra.${why}${res === 'aprovada' ? ` ${pr.eff === 'now' ? 'Vale já a partir da próxima etapa.' : `Vale a partir de ${pr.eff}.`}` : ''}`);
+    Career.news(G, `Conselho ${res === 'aprovada' ? 'aprova' : 'rejeita'}: ${pr.title}`, 'regulamento', `Proposta de ${prop}. ${T.yes} equipes a favor e ${T.no} contra.${why}${res === 'aprovada' ? ` ${pr.eff === 'now' ? 'Vale já a partir da próxima etapa.' : `Vale a partir de ${pr.eff}.`}` : ''}`);
     Career.record(G, 'regulamento', `Conselho da FIA (${m.year}): ${pr.title} — ${res} (${T.yes}×${T.no}). Proposta de ${prop}.`, { year: m.year });
     // acordos do jogador: quem tinha a promessa de apoio cobra
     if (mine) C.promises.slice().forEach(pm => {

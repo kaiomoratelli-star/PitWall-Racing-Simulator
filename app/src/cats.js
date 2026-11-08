@@ -15,6 +15,8 @@ Cats.FEEDERS = {
   fe: ['f2', 'sf'], sf: ['f2', 'frj', 'f3'],
   dtm: ['wec', 'f2', 'f3', 'freca', 'f4it', 'f4de', 'f4es', 'f4gb'], stockcar: ['f4br', 'fram', 'freca', 'f3', 'f2'], nascup: ['f4us', 'fram', 'indycar'],
 };
+/* faixas de nota revisadas (IndyCar estava inflada: 75–85 → 70–80) */
+Cats.RANGE_FIX = { indycar: [70, 80] };
 Cats.defs = () => (typeof REAL_CATS !== 'undefined' ? REAL_CATS.cats : []);
 Cats.on = (G) => !!(G && G.cats && G.cats.order.length);
 Cats.get = (G, id) => G.cats && G.cats.byId[id];
@@ -99,7 +101,7 @@ Cats.init = (G, only, opts) => {
     const tst = C.teamStandings || [];
     const spread = Cats.PRO[C.id] ? 22 : 10;
     const cat = {
-      id: C.id, name: C.name, short: C.short, tier: C.tier, sl: C.sl, color: C.color, races: C.races, range: C.range, ageRef: C.age, seasonLabel: C.season,
+      id: C.id, name: C.name, short: C.short, tier: C.tier, sl: C.sl, color: C.color, races: C.races, range: Cats.RANGE_FIX[C.id] || C.range, ageRef: C.age, seasonLabel: C.season,
       secondary: !!Cats.SECONDARY[C.id], pro: !!Cats.PRO[C.id], crew: !!C.crew, enabled: true, source: C.page,
       disc: C.disc || (C.crew ? 'end' : 'mono'), brief: C.brief || null, women: !!C.women, playoffs: !!C.playoffs, revived: C.revived || null,
       teams: C.teams.map((t, i) => {
@@ -115,7 +117,7 @@ Cats.init = (G, only, opts) => {
       const st = C.standings.find(x => Cats.norm(x[1]) === Cats.norm(spec.name));
       const pos = spec.pos || (st && st[0]) || null;
       const q = pos ? 1 - (pos - 1) / (n - 1) : 0.25;
-      const [lo, hi] = C.range;
+      const [lo, hi] = Cats.RANGE_FIX[C.id] || C.range;
       const ovr = Math.round(clamp(lo + (hi - lo) * Math.pow(clamp(q, 0, 1), 1.15) + ((hashStr(spec.name) % 25) - 12) / 10, lo - 3, hi + 1));
       const age = spec.dob ? 2027 - Number(spec.dob.slice(0, 4)) : C.age + ((hashStr(spec.name) % 3) - 1);
       let d = byName.get(Cats.norm(spec.name)) || people.find(spec.name, { nat: spec.nat, dob: spec.dob });

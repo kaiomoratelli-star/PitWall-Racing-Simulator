@@ -264,7 +264,7 @@ function startRaceAnim() {
     const cars = run.map(c => {
       const gap = L ? (c.T - lead.T) : (c.grid - 1) * 0.22;
       const frac = (L === 0 ? -gap / ref * 4 : phase - gap / ref);
-      return { color: teamColor(c.tid), frac: race.finished ? -gap / ref : frac, me: c.tid === G.player.teamId, label: c.tid === G.player.teamId ? `${rawName(c.did).slice(0, 3).toUpperCase()} P${c.pos}` : (c.pos <= 3 ? `P${c.pos}` : '') };
+      return { color: teamColor(c.tid), frac: race.finished ? -gap / ref : frac, me: c.tid === G.player.teamId, label: c.tid === G.player.teamId ? `${dCode(Career.driver(G, c.did))} P${c.pos}` : (c.pos <= 3 ? `${dCode(Career.driver(G, c.did))} P${c.pos}` : '') };
     }).reverse();
     drawTrack(cv, tr, cars, { pad: 30, wet: (race.wet[Math.max(1, L)] || 0) > 0.2 });
     UI.anim = requestAnimationFrame(loop);

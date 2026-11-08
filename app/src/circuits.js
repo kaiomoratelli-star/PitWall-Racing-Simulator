@@ -152,7 +152,7 @@ Circuits.addReal = (db) => {
     if (db.tracks.some(t => t.id === r.id)) return;
     const p = { type: r.street ? 'street' : 'permanent', length: r.km, turns: r.turns, fast: r.street ? 15 : 35, slow: r.street ? 45 : 30, straights: r.longest > 900 ? 2 : 1, longest: r.longest, elevation: 20, abrasion: 50 };
     const d = CircuitGen.derive(p);
-    db.tracks.push({ id: r.id, gp: `GP de ${r.circuit}`, circuit: r.circuit, place: '', country: r.country, length: r.km, turns: r.turns, ...d, rain: 0.2, shape: r.shape, lat: r.lat, lon: r.lon, type: r.street ? 'STREET' : 'RACE', real: true, osm: true, fia: r.fia });
+    db.tracks.push({ id: r.id, gp: `GP de ${r.circuit}`, circuit: r.circuit, place: '', country: r.country, length: r.km, turns: r.turns, ...d, rain: 0.2, shape: r.shape, lat: r.lat, lon: r.lon, type: r.street ? 'STREET' : 'RACE', real: true, osm: true, fia: r.fia, osmKm: r.osmKm || null });
     n++;
   });
   return n;
