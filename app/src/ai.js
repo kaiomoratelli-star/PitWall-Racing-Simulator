@@ -69,7 +69,7 @@ AI.raceTick = (G) => {
     const salaries = sum(Career.teamDrivers(G, t.id).map(d => d.salary)) / races;
     const staffCost = (t.staffList ? Staff.payroll(t) : sum(Object.values(t.staff)) * 0.1) / races;
     const ops = (1.25 + t.facilities * 0.006 + CircuitGen.freight(CircuitGen.legKm(G))) * (t.staffList ? Staff.opsMul(t) : 1);
-    const engine = t.works ? 0 : Engine.engineOf(G.db, t).cost / races;
+    const engine = t.works ? 0 : (typeof Mfr !== 'undefined' ? Mfr.fee(G, t) : Engine.engineOf(G.db, t).cost) / races;
     t.cash = +(t.cash + income - salaries - staffCost - ops - engine - factory - mkt).toFixed(3);
     t.spent += ops + factory;
     // investimento: nunca gasta o que não tem, respeita o teto
@@ -144,13 +144,15 @@ AI.seasonEnd = (G, sc) => {
     if (t.cash > keep) {
       const P = AI.persona(t);
       const excess = t.cash - keep;
-      const infra = Math.min(excess * (0.3 + P.ambition * 0.3), 25);
-      const gain = infra * 0.25 * clamp(1 - (t.facilities - 70) / 40, 0.2, 1.2);
-      t.facilities = +clamp(t.facilities + gain, 30, 100).toFixed(1);
+      let infra = Math.min(excess * (0.3 + P.ambition * 0.3), 25);
+      // instalações: obras na sede e na fábrica (facilities.js); sem o módulo, o número geral sobe direto
+      let gain = 0, fx = null;
+      if (typeof Fac !== 'undefined') { fx = Fac.aiSpend(G, t, infra); t.cash = +(t.cash + fx.spent).toFixed(2); infra = fx.spent; }   // Fac.pay já descontou; o desconto único é feito abaixo, só do que foi gasto
+      else { gain = infra * 0.25 * clamp(1 - (t.facilities - 70) / 40, 0.2, 1.2); t.facilities = +clamp(t.facilities + gain, 30, 100).toFixed(1); }
       const dividend = (excess - infra) * (0.55 + P.thrift * 0.35);
       t.cash = +(t.cash - infra - dividend).toFixed(2);
       t.corporate = +((t.corporate || 0) + dividend).toFixed(2);
-      Career.record(G, 'financas', `${t.name} fechou ${G.season.year} com sobra de caixa: investiu ${fmtMoney(infra)} em instalações (+${gain.toFixed(1)}) e distribuiu ${fmtMoney(dividend)} aos proprietários.`, { teams: [t.id] });
+      Career.record(G, 'financas', byLang(`${t.name} fechou ${G.season.year} com sobra de caixa: ${fx ? (fx.done.length ? `obras em ${fx.done.join(', ')} (${fmtMoney(fx.spent)})` : 'nenhuma obra') : `investiu ${fmtMoney(infra)} em instalações (+${gain.toFixed(1)})`} e distribuiu ${fmtMoney(dividend)} aos proprietários.`, `${t.name} closed ${G.season.year} with surplus cash: ${fx ? (fx.done.length ? `building work on ${fx.done.join(', ')} (${fmtMoney(fx.spent)})` : 'no building work') : `invested ${fmtMoney(infra)} in facilities`} and paid ${fmtMoney(dividend)} to the owners.`), { teams: [t.id] });
     }
   });
 };

@@ -45,6 +45,52 @@ Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, r
   - carro parecido demais leva a protesto e investigação, como a "Mercedes rosa" de 2020;
   - troca de dono ou motor próprio encerra o acordo, e equipes novas fecham parceria com a fornecedora.
 
+**Sede e fábrica (sistema novo)**
+- 12 instalações por equipe, com nível de 1 a 5 e estado de conservação: sede, fábrica, escritório de projeto, túnel de vento, CFD, simulador, banco de testes, departamento de motores, logística, pit stop, performance humana, hospitalidade e marketing.
+- Obras com custo e prazo (no máximo duas ao mesmo tempo), desgaste a cada GP e manutenção.
+- Investimento anual fora do teto: US$ 30 mi, ou US$ 40 mi para as três últimas. O excedente conta no teto.
+- Efeitos reais:
+  - vagas de projeto do P&D (a vaga "bloqueada" agora abre aqui);
+  - qualidade das peças (túnel e CFD na aerodinâmica, banco de testes no chassi);
+  - prazo de projeto e de fabricação;
+  - custo de logística, pit stop, recuperação de lesões, patrocínio, atração de funcionários e voltas extras no simulador.
+- Equipes pequenas começam menores; a parceira técnica usa o túnel da equipe principal (Haas com o da Ferrari).
+- A IA investe onde está mais atrasada em relação ao grid, conforme o caixa e o dono.
+- Tela nova "Sede e fábrica", com comparação com o grid.
+
+**Fabricantes de motor e de pneus (sistema novo)**
+- Fabricante não precisa ter equipe:
+  - fornece a até 4 equipes, com contrato (prazo e valor);
+  - tem potência, confiabilidade, eficiência, orçamento de desenvolvimento e reputação.
+- Desenvolvimento anual com retorno decrescente (acabou a subida infinita da potência) e reembaralhamento no regulamento novo.
+- Entradas e saídas:
+  - a GM estreia em 2029 com a Cadillac como equipe de fábrica (anúncio real);
+  - Toyota, Porsche, Hyundai, BMW e Cosworth podem entrar só como fornecedoras e depois comprar equipes;
+  - fabricante que vai mal pode sair com aviso de 2 anos, e a equipe de fábrica pode herdar o projeto.
+- Contratos:
+  - a IA escolhe o fornecedor no vencimento;
+  - o jogador renova, troca, rescinde (com multa) ou pede parceria de fábrica a quem não tem equipe própria.
+- Pneus:
+  - licitação da FIA a cada 4 anos (Pirelli, Michelin, Bridgestone, Hankook, Goodyear, Yokohama), cada uma com desgaste e aquecimento próprios;
+  - fornecedores reais de 18 categorias, com os logos que estavam sem uso.
+- Aba nova "Fabricantes".
+
+**Eventos: 136 no catálogo (+20 decisões entre corridas)**
+- Grupos novos: "Imprensa e redes sociais" e "Bastidores e curiosidades".
+- Cerca de 22 acontecimentos por temporada, quase todos pequenos: fãs, capacetes especiais, memes, rumores, alfândega, hotel lotado, patrocínios, roupas, gripe, entre outros. Alguns pedem decisão do jogador.
+- Escândalos agora são raros, cerca de 0,4 por temporada (antes 1,6).
+
+**Revisão e blindagem (dossiê em `docs/DOSSIE-0.8.4.md`)**
+- Corrigidos 18 problemas, entre eles:
+  - deriva com o tempo: motores, confiabilidade, patrimônio, aporte e instalações;
+  - crescimento sem fim do registro, do mercado e dos casos;
+  - nome histórico das equipes vendidas;
+  - parceiras da academia desatualizadas;
+  - opções de contrato do piloto e mútuas nunca processadas;
+  - save do navegador que falhava calado;
+  - feed de notícias curto.
+- Botão para apagar jogo salvo na tela inicial.
+
 **Mercado vivo**
 - Empresários:
   - os pilotos da F1 têm o empresário real; os demais, agências fictícias;

@@ -17,9 +17,9 @@ function hNat(id) {
   if (d) return d.nat;
   return HIST && HIST.drivers[id] ? HIST.drivers[id][1] : '';
 }
-function hTeam(id) {
+function hTeam(id, year) {
   const t = G && Career.team(G, id);
-  if (t) return t.name;
+  if (t) return year && typeof Identity !== 'undefined' && Identity.nameIn ? Identity.nameIn(t, year) : t.name;   // nome da época (equipes vendidas mudam de nome)
   return HIST && HIST.constructors[id] ? HIST.constructors[id][0] : (id || '—');
 }
 function realYears() { return HIST ? HIST.seasons.map(s => s.y) : []; }
@@ -132,11 +132,11 @@ SCREENS.seasons = {
       body = `<div class="row" style="margin-bottom:12px"><span class="simtag">Simulada</span>${simSel.current ? '<span class="chip acc">Temporada em andamento</span>' : ''}</div>
       <div class="grid g3" style="margin-bottom:14px">
         <div><div class="label">${simSel.current ? 'Líder' : 'Campeão de pilotos'}</div><div class="stat-big" style="font-size:26px">${champ ? esc(hName(champ[0])) : '—'}</div><div class="small muted">${champ ? champ[1] + ' pts' : ''}</div></div>
-        <div><div class="label">${simSel.current ? 'Líder de construtores' : 'Campeã de construtores'}</div><div class="stat-big" style="font-size:26px">${cchamp ? esc(hTeam(cchamp[0])) : '—'}</div><div class="small muted">${cchamp ? cchamp[1] + ' pts' : ''}</div></div>
+        <div><div class="label">${simSel.current ? 'Líder de construtores' : 'Campeã de construtores'}</div><div class="stat-big" style="font-size:26px">${cchamp ? esc(hTeam(cchamp[0], simSel.y)) : '—'}</div><div class="small muted">${cchamp ? cchamp[1] + ' pts' : ''}</div></div>
         <div><div class="label">Corridas</div><div class="stat-big" style="font-size:26px">${simSel.races.length}</div></div>
       </div>
       <div class="grid g2">
-        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Etapa</th><th>Grande Prêmio</th><th>Vencedor</th><th>Equipe</th><th>Pole</th></tr></thead><tbody>${simSel.races.map((r, i) => { const w = r.c.find(c => c[0] === r.w); return `<tr><td class="num">${i + 1}</td><td>${esc(r.gp || (G && Career.track(G, r.t) ? Career.track(G, r.t).gp : r.t))}</td><td><span class="lnk" data-act="driverPage" data-id="${esc(r.w)}">${esc(hName(r.w))}</span></td><td class="small">${w ? esc(hTeam(w[1])) : ''}</td><td class="small">${r.p ? esc(hName(r.p)) : ''}</td></tr>`; }).join('')}</tbody></table></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Etapa</th><th>Grande Prêmio</th><th>Vencedor</th><th>Equipe</th><th>Pole</th></tr></thead><tbody>${simSel.races.map((r, i) => { const w = r.c.find(c => c[0] === r.w); return `<tr><td class="num">${i + 1}</td><td>${esc(r.gp || (G && Career.track(G, r.t) ? Career.track(G, r.t).gp : r.t))}</td><td><span class="lnk" data-act="driverPage" data-id="${esc(r.w)}">${esc(hName(r.w))}</span></td><td class="small">${w ? esc(hTeam(w[1], simSel.y)) : ''}</td><td class="small">${r.p ? esc(hName(r.p)) : ''}</td></tr>`; }).join('')}</tbody></table></div>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pos</th><th>Piloto</th><th class="r">Pts</th></tr></thead><tbody>${simSel.d.slice(0, 25).map((x, i) => `<tr><td class="num">${i + 1}</td><td><span class="lnk" data-act="driverPage" data-id="${esc(x[0])}">${esc(hName(x[0]))}</span></td><td class="r num">${x[1]}</td></tr>`).join('')}</tbody></table></div>
       </div>`;
     }
@@ -182,8 +182,8 @@ ACT.driverPage = (el) => {
     ${d ? `<div class="grid g2"><div class="stack" style="gap:6px">${DRIVER_ATTRS.slice(0, 13).map(([k, l]) => attrRow(l, d[k] ?? 0)).join('')}</div><div>${d.personality ? persBars(d) : ''}</div></div>` : ''}
     <h4>Temporadas</h4>
     ${real.length || sim.length ? `<div class="tbl-wrap" style="max-height:280px;overflow:auto"><table class="tbl"><thead><tr><th>Ano</th><th></th><th>Equipe</th><th class="r">Pos</th><th class="r">Pts</th><th class="r">V</th><th class="r">Pód</th><th class="r">Poles</th></tr></thead><tbody>
-      ${sim.slice().sort((a, b) => b.y - a.y || (a.cat ? 1 : 0) - (b.cat ? 1 : 0)).map(x => `<tr><td class="num">${x.y}</td><td><span class="${x.real ? 'realtag' : 'simtag'}">${x.real ? 'Real' : 'Sim'}</span></td><td class="small">${x.cat ? `<span class="chip">${esc(x.series)}</span>` : (x.teams || []).map(t => esc(hTeam(t))).join(', ')}</td><td class="r num">${x.pos}</td><td class="r num">${x.pts}</td><td class="r num">${x.w ?? ''}</td><td class="r num">${x.pod ?? ''}</td><td class="r num">${x.pole ?? ''}</td></tr>`).join('')}
-      ${real.slice().reverse().map(x => `<tr><td class="num">${x.y}</td><td><span class="realtag">Real</span></td><td class="small">${esc(hTeam(x.team))}</td><td class="r num">${x.pos || '—'}${x.complete ? '' : '*'}</td><td class="r num">${x.pts}</td><td class="r num">${x.wins}</td><td class="r num">${x.pod}</td><td class="r num">${x.poles}</td></tr>`).join('')}
+      ${sim.slice().sort((a, b) => b.y - a.y || (a.cat ? 1 : 0) - (b.cat ? 1 : 0)).map(x => `<tr><td class="num">${x.y}</td><td><span class="${x.real ? 'realtag' : 'simtag'}">${x.real ? 'Real' : 'Sim'}</span></td><td class="small">${x.cat ? `<span class="chip">${esc(x.series)}</span>` : (x.teams || []).map(t => esc(hTeam(t, x.y))).join(', ')}</td><td class="r num">${x.pos}</td><td class="r num">${x.pts}</td><td class="r num">${x.w ?? ''}</td><td class="r num">${x.pod ?? ''}</td><td class="r num">${x.pole ?? ''}</td></tr>`).join('')}
+      ${real.slice().reverse().map(x => `<tr><td class="num">${x.y}</td><td><span class="realtag">Real</span></td><td class="small">${esc(hTeam(x.team, x.y))}</td><td class="r num">${x.pos || '—'}${x.complete ? '' : '*'}</td><td class="r num">${x.pts}</td><td class="r num">${x.wins}</td><td class="r num">${x.pod}</td><td class="r num">${x.poles}</td></tr>`).join('')}
     </tbody></table></div>${real.some(x => !x.complete) ? '<p class="small muted">* temporada real ainda em andamento nos dados</p>' : ''}` : '<p class="muted small">Sem temporadas registradas.</p>'}
-    ${tr.length ? `<h4>Transferências no jogo</h4>${tr.map(x => `<div class="small">${x.y}: ${x.from ? esc(hTeam(x.from)) + ' → ' : ''}<b>${esc(hTeam(x.to))}</b> até ${x.until} · ${fmtMoney(x.salary)}/ano</div>`).join('')}` : ''}`);
+    ${tr.length ? `<h4>Transferências no jogo</h4>${tr.map(x => `<div class="small">${x.y}: ${x.from ? esc(hTeam(x.from, x.y)) + ' → ' : ''}<b>${esc(hTeam(x.to, x.y))}</b> até ${x.until} · ${fmtMoney(x.salary)}/ano</div>`).join('')}` : ''}`);
 };

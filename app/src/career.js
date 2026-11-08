@@ -125,10 +125,10 @@ Career.news = (G, title, tag = 'geral', body = '', refs) => {
   if (refs && refs.main) n.main = true;
   if (typeof Media !== 'undefined') Media.decorate(G, n, refs || {});
   G.news.unshift(n);
-  if (G.news.length > 150) G.news.length = 150;
+  if (G.news.length > 400) G.news.length = 400;   // com o catálogo ampliado de eventos, 150 cobria pouco mais de uma temporada
 };
 
-Career.CAP_OUT = new Set(['salário', 'motor', 'mercado', 'marketing', 'multa', 'academia', 'patrimônio', 'receita']);
+Career.CAP_OUT = new Set(['salário', 'motor', 'mercado', 'marketing', 'multa', 'academia', 'patrimônio', 'receita', 'infraestrutura']);
 Career.ledger = (G, desc, amount, cat = 'geral') => {
   G.finances.balance = +(G.finances.balance + amount).toFixed(3);
   // teto: todo gasto elegível conta (fábrica, operação, P&D, reparos, staff contratado...)
@@ -520,7 +520,7 @@ Career.postRaceEffects = (G, summary, race) => {
   Career.ledger(G, `Logística e operação — ${track.gp}`, -(1.25 + team.facilities * 0.006 + (track.street ? 0.2 : 0)) * Staff.opsMul(team), 'operação');
   const legKm = CircuitGen.legKm(G);
   if (legKm) Career.ledger(G, `Frete e viagem (${legKm.toLocaleString('pt-BR')} km)`, -CircuitGen.freight(legKm) * Staff.opsMul(team), 'operação');
-  if (!team.works) Career.ledger(G, 'Arrendamento de motor', -(Engine.engineOf(G.db, team).cost / races), 'motor');
+  if (!team.works) Career.ledger(G, byLang('Arrendamento de motor', 'Engine lease'), -((typeof Mfr !== 'undefined' ? Mfr.fee(G, team) : Engine.engineOf(G.db, team).cost) / races), 'motor');
   my.forEach(r => {
     if (r.status === 'dnf' && /Acidente|Colisão/.test(r.reason || '')) {
       const cost = RNG.range(0.9, 2.6);
@@ -924,12 +924,14 @@ Career.endSeason = (G) => {
   if (typeof CarDev !== 'undefined') CarDev.newCars(G, reg);
   G.db.teams.forEach(t => {
     if (typeof CarDev === 'undefined') { const k = reg ? 0.62 : 0.84; const pull = (v) => +(82 + (v - 82) * k + RNG.normal(0, reg ? 1.4 : 1.0)).toFixed(2); t.car.aero = pull(t.car.aero); t.car.chassis = pull(t.car.chassis); }
-    t.car.reliability = +clamp(t.car.reliability * 0.9 + 9 + RNG.normal(0, 1.5), 60, 97).toFixed(1);
+    // equilíbrio ~87 sem desenvolvimento (antes 90: a confiabilidade subia década após década); regulamento novo derruba 3 pontos
+    t.car.reliability = +clamp(t.car.reliability * 0.9 + 8.7 - (reg ? 3 : 0) + RNG.normal(0, 1.5), 60, 97).toFixed(1);
   });
   AI.applyNextYear(G);
   if (team && G.nextYearBank > 0) { team.car.aero += G.nextYearBank * 0.55; team.car.chassis += G.nextYearBank * 0.45; summary.bankUsed = +G.nextYearBank.toFixed(2); G.nextYearBank = 0; }
   if (team && typeof RnD !== 'undefined') { const used = RnD.applyNextYear(G, team); if (used) summary.bankUsed = +((summary.bankUsed || 0) + used).toFixed(2); }
-  if (!(G.db.rules.regs && G.db.rules.regs.engineFreeze)) G.db.engines.forEach(e => { e.power = +clamp(e.power + RNG.normal(0.3, reg ? 2.5 : 1), 75, 100).toFixed(1); e.reliability = +clamp(e.reliability + RNG.normal(0.5, 1.4), 70, 98).toFixed(1); });
+  // motores: com o módulo de fabricantes, a evolução é feita lá (retorno decrescente, sem subir sem parar)
+  if (typeof Mfr === 'undefined' && !(G.db.rules.regs && G.db.rules.regs.engineFreeze)) G.db.engines.forEach(e => { e.power = +clamp(e.power + RNG.normal(0.3, reg ? 2.5 : 1), 75, 100).toFixed(1); e.reliability = +clamp(e.reliability + RNG.normal(0.5, 1.4), 70, 98).toFixed(1); });
   // pilotos: idade, contratos, aposentadoria
   const retired = [];
   G.db.drivers.forEach(d => {

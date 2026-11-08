@@ -10,9 +10,10 @@ SCREENS.title = {
     const db = BASE;
     const slots = UI.slotMetas || {};
     const slotHtml = Store.SLOTS.map((s, i) => {
+      /* cada jogo salvo tem o botão de apagar ao lado (com confirmação) */
       const m = slots[s];
       if (!m) return '';
-      return `<button class="slot-card" data-act="loadSlot" data-slot="${s}"><span class="livery" style="background:${esc(m.color || '#888')}"></span><span style="min-width:0"><b>${esc(m.team)}</b><br><span class="small muted">${esc(m.player)} · ${m.year} · etapa ${Math.min(m.round + 1, m.total)}/${m.total}</span></span><span class="spacer"></span><span class="label">Jogo ${i + 1}</span></button>`;
+      return `<div class="row" style="gap:6px;flex-wrap:nowrap"><button class="slot-card" style="flex:1" data-act="loadSlot" data-slot="${s}"><span class="livery" style="background:${esc(m.color || '#888')}"></span><span style="min-width:0"><b>${esc(m.team)}</b><br><span class="small muted">${esc(m.player)} · ${m.year} · etapa ${Math.min(m.round + 1, m.total)}/${m.total}</span></span><span class="spacer"></span><span class="label">Jogo ${i + 1}</span></button><button class="btn sm ghost" style="align-self:center" data-act="delSlot" data-slot="${s}" title="${byLang('Apagar este jogo', 'Delete this game')}" aria-label="${byLang('Apagar este jogo', 'Delete this game')}">✕</button></div>`;
     }).join('');
     if (!UI.titleTrack) { const pool = db.tracks.filter(t => imgUrl(t.heroImg)); UI.titleTrack = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; }
     if (!UI.titleTeam) UI.titleTeam = db.teams[Math.floor(Math.random() * db.teams.length)];
@@ -808,3 +809,12 @@ function gpDate(tr) {
   const [, m, d] = tr.date.split('-').map(Number);
   return new Date(G.season.year, m - 1, d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
+
+/* apagar um jogo salvo (a função existia sem botão) */
+ACT.delSlot = async (el) => {
+  const s = el.dataset.slot;
+  if (!window.confirm(byLang('Apagar este jogo salvo? As cópias de segurança também serão removidas e não dá para desfazer.', 'Delete this saved game? Backups are removed too and this cannot be undone.'))) return;
+  try { await Store.deleteGame(s); } catch (e) { return toast(byLang('Não foi possível apagar.', 'Could not delete.'), 'bad'); }
+  if (typeof refreshSlots === 'function') await refreshSlots();
+  toast(byLang('Jogo apagado.', 'Game deleted.'), 'good'); render();
+};

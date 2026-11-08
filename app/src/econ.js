@@ -28,7 +28,7 @@ Econ.OWNER = { mercedes: 55, ferrari: 85, 'red-bull': 100, mclaren: 30, 'racing-
 /* bônus histórico de longo prazo (acordos comerciais da categoria) */
 Econ.HERITAGE = { ferrari: 45, mercedes: 15, 'red-bull': 15, mclaren: 10, williams: 10 };
 /* gastos que ficam fora do teto */
-Econ.CAP_OUT = new Set(['salário', 'motor', 'mercado', 'marketing', 'multa', 'academia', 'patrimônio', 'receita']);
+Econ.CAP_OUT = new Set(['salário', 'motor', 'mercado', 'marketing', 'multa', 'academia', 'patrimônio', 'receita', 'infraestrutura']);
 
 Econ.races = (G) => Math.max(1, (G.season && G.season.calendar.length) || 24);
 Econ.cap = (G) => G.db.rules.budgetCap || 215;

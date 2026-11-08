@@ -76,9 +76,10 @@ Store.saveGame = (slot, G) => {
   const str = JSON.stringify(G);
   const meta = Store.metaOf(G);
   if (Store.native) return Store.native.saveSlot(slot, str, { ...meta, at: G.savedAt, version: G.version }).then(() => 'disk');
-  Store.lsSet('save:' + slot, str);
-  Store.lsSet('meta:' + slot, JSON.stringify({ ...meta, at: G.savedAt }));
-  if (!Store.cloud()) return Promise.resolve('local');
+  // navegador: o armazenamento local tem limite (~5 MB); carreira longa pode não caber — avisa em vez de falhar calado
+  const okLocal = Store.lsSet('save:' + slot, str);
+  if (okLocal) Store.lsSet('meta:' + slot, JSON.stringify({ ...meta, at: G.savedAt }));
+  if (!Store.cloud()) return Promise.resolve(okLocal ? 'local' : 'full');
   saveChain = saveChain.then(() => Store.cloudWrite('save_' + slot, str, meta)).then(() => 'cloud').catch(e => { console.warn('save', e); return 'local'; });
   return saveChain;
 };

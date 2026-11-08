@@ -59,6 +59,8 @@ Silly.tick = (G) => {
   if (rd === Math.round(n * 0.5)) Silly.options(G, r);
   // leilão pelos pilotos disputados
   Silly.auction(G, r);
+  // o histórico de abordagens só serve para o ano corrente: limpa o que tem mais de 2 anos
+  if (rd === 1 && M.history && M.history.length) M.history = M.history.filter(h => S.year - h.y <= 2);
 };
 Silly.earlyRenewals = (G, r) => {
   const pt = G.player.teamId;
@@ -81,16 +83,23 @@ Silly.options = (G, r) => {
   const pt = G.player.teamId;
   G.db.drivers.forEach(d => {
     const o = d.contract && d.contract.option;
-    if (!d.team || d.contractYears > 0 || !o || o.holder !== 'team' || d.retiring) return;
+    // opções da equipe, do piloto e mútuas (os contratos reais trazem as três)
+    if (!d.team || d.contractYears > 0 || !o || !['team', 'driver', 'mutual'].includes(o.holder) || d.retiring) return;
     const t = Career.team(G, d.team);
-    if (!t || (t.id === pt && !Career.isObs(G))) return;
+    if (!t) return;
+    const mineT = t.id === pt && !Career.isObs(G);
     const st = G.season.stats[d.id] || {};
     const mate = Career.lineup(G, t.id).find(x => x.id !== d.id);
-    const ok = (st.points || 0) >= ((mate && (G.season.stats[mate.id] || {}).points) || 0) * 0.6 || r() < 0.35;
+    const teamOk = (st.points || 0) >= ((mate && (G.season.stats[mate.id] || {}).points) || 0) * 0.6 || r() < 0.35;
+    const rank = (Career.expectedRanks(G)[t.id] || 6), driverOk = (d.morale ?? 70) >= 55 && (rank <= Math.ceil(G.db.teams.length / 2) || r() < 0.5);
+    // a equipe do jogador decide a própria opção na negociação; a do piloto e a mútua seguem a vontade do piloto
+    if (mineT && o.holder === 'team') return;
+    const ok = o.holder === 'team' ? teamOk : o.holder === 'driver' ? driverOk : (mineT ? driverOk : teamOk && driverOk);
     d.contract.option = null;
     if (ok) {
       d.contractYears = o.years || 1; d.contract.until = G.season.year + d.contractYears;
-      Career.news(G, byLang(`${t.name} exerce a opção e segura ${d.name} para ${G.season.year + 1}`, `${t.name} takes up its option on ${d.name} for ${G.season.year + 1}`), 'mercado');
+      Career.news(G, o.holder === 'team' ? byLang(`${t.name} exerce a opção e segura ${d.name} para ${G.season.year + 1}`, `${t.name} takes up its option on ${d.name} for ${G.season.year + 1}`) : byLang(`${d.name} exerce a opção e fica na ${t.name} em ${G.season.year + 1}`, `${d.name} takes up the option and stays at ${t.name} in ${G.season.year + 1}`), 'mercado');
+      if (mineT) Career.mail(G, { from: byLang('Diretor esportivo', 'Sporting director'), tag: 'team', title: byLang(`${d.name} exerceu a opção do contrato`, `${d.name} took up his contract option`), body: byLang(`O contrato vai até ${G.season.year + d.contractYears}.`, `The contract now runs until ${G.season.year + d.contractYears}.`) });
       Career.record(G, 'contrato', byLang(`${t.name} exerceu a opção de renovação de ${d.name} (+${d.contractYears} ano).`, `${t.name} took up its option on ${d.name} (+${d.contractYears} year).`), { teams: [t.id], drivers: [d.id] });
     } else Career.record(G, 'decisao', byLang(`${t.name} não exerceu a opção de renovação de ${d.name}: o piloto fica livre no fim do ano.`, `${t.name} did not take up its option on ${d.name}: the driver becomes free at the end of the year.`), { teams: [t.id], drivers: [d.id] });
   });

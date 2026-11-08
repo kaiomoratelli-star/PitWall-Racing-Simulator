@@ -30,7 +30,7 @@ const I18N_EN = Object.assign({}, I18N_GP, I18N_COUNTRY, {
   // navegação e cabeçalho
   'Temporada': 'Season', 'Equipe': 'Team', 'Dados': 'Data', 'Sistema': 'System', 'Central': 'Home', 'Fim de semana': 'Race weekend', 'Caixa de entrada': 'Inbox', 'Classificação': 'Standings',
   'Calendário': 'Calendar', 'Conselho da FIA': 'FIA Council', 'Pilotos e funcionários': 'Drivers & staff', 'Academia': 'Academy', 'Equipe irmã': 'Sister team', 'Carro e P&D': 'Car & R&D',
-  'Finanças': 'Finances', 'Mercado': 'Market', 'Análise de dados': 'Data analysis', 'Notícias': 'News', 'Equipes do grid': 'Grid teams', 'Donos e equipes': 'Owners and teams', 'Montagem da equipe': 'Team build-up', 'Pedidos de entrada no grid': 'Grid entry applications', 'A favor': 'In favour', 'Contra': 'Against', 'Registro do universo': 'Universe log',
+  'Finanças': 'Finances', 'Mercado': 'Market', 'Análise de dados': 'Data analysis', 'Notícias': 'News', 'Equipes do grid': 'Grid teams', 'Donos e equipes': 'Owners and teams', 'Montagem da equipe': 'Team build-up', 'Sede e fábrica': 'HQ & factory', 'Fabricantes': 'Manufacturers', 'Pedidos de entrada no grid': 'Grid entry applications', 'A favor': 'In favour', 'Contra': 'Against', 'Registro do universo': 'Universe log',
   'Minha carreira': 'My career', 'Temporadas desde 1950': 'Seasons since 1950', 'Hall da Fama': 'Hall of Fame', 'Outras categorias': 'Other series', 'Editor da base': 'Database editor',
   'Salvar e opções': 'Save & options', 'Diagnóstico': 'Diagnostics', 'Perfil e ativação': 'Profile & activation', 'Menu': 'Menu', 'Navegação': 'Navigation', 'Construtores': 'Constructors',
   'Caixa': 'Cash', 'Diretoria': 'Board', 'ao vivo': 'live', 'Modo Observador': 'Observer mode', 'Ver carreira': 'View career', 'Fechar': 'Close',

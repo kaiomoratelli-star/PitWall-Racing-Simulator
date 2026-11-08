@@ -20,14 +20,17 @@
 
 const Chaos = {};
 Chaos.GROUPS = {
-  escandalos: ['Escândalos', 'Scandals'], conflitos: ['Conflitos internos', 'Internal conflicts'], lesoes: ['Lesões e doenças', 'Injuries and illness'],
+  escandalos: ['Escândalos', 'Scandals'], conflitos: ['Conflitos internos', 'Internal conflicts'], lesoes: ['Lesões e saúde', 'Injuries and health'],
   operacao: ['Operação e logística', 'Operations and logistics'], negocios: ['Negócios e patrocínio', 'Business and sponsorship'],
+  midia: ['Imprensa e redes sociais', 'Press and social media'], leves: ['Bastidores e curiosidades', 'Behind the scenes and trivia'],
 };
 Chaos.LEVELS = [['Desligado', 'Off', 0], ['Raro', 'Rare', 0.4], ['Normal', 'Normal', 1], ['Novela', 'Soap opera', 1.9], ['Caos', 'Chaos', 3.2]];
 Chaos.FREQ = { baixa: ['Baixa', 'Low', 0.55], normal: ['Normal', 'Normal', 1], alta: ['Alta', 'High', 1.7] };
 /* chance por etapa de algo acontecer em cada grupo (frequência e nível normais) */
-Chaos.BASE = { escandalos: 0.035, conflitos: 0.05, operacao: 0.04, negocios: 0.022 };
-Chaos.defaults = () => ({ freq: 'normal', levels: { escandalos: 2, conflitos: 2, lesoes: 2, operacao: 2, negocios: 2 }, realPeople: true });
+/* calibrado em 08/11/2026: escândalo virou raro (~0,4 por temporada); o dia a dia do paddock (bastidores, imprensa,
+   operação, negócios) acontece quase toda semana, com efeitos pequenos */
+Chaos.BASE = { escandalos: 0.018, conflitos: 0.045, operacao: 0.07, negocios: 0.06, midia: 0.25, leves: 0.32, lesoes: 0.05 };
+Chaos.defaults = () => ({ freq: 'normal', levels: { escandalos: 2, conflitos: 2, lesoes: 2, operacao: 2, negocios: 2, midia: 2, leves: 2 }, realPeople: true });
 Chaos.opts = (G) => {
   G.options = G.options || {};
   if (!G.options.chaos) {
@@ -199,7 +202,7 @@ CE({ k: 'extremismo', g: 'escandalos', w: 0.12, sev: 5, cool: 15, hidden: false,
     title: byLang(`${t.name} demite funcionário por publicações extremistas`, `${t.name} sacks employee over extremist posts`),
     body: byLang(`${who} (personagem fictício), funcionário da área de logística, publicou mensagens de ódio nas redes. A equipe o demitiu no mesmo dia e a FIA condenou o caso.`, `${who} (fictional character), a logistics employee, posted hate messages online. The team fired him the same day and the FIA condemned the case.`) };
 }, verdict: (G, c, t, r) => { const slow = r() < 0.3; Chaos.hitTeam(G, t, { rep: slow ? 3 : 1, sponsor: slow ? 2 : 1 }); return slow ? byLang('A demora em responder irritou os patrocinadores, que exigiram programa de conduta.', 'The slow response angered sponsors, who demanded a conduct programme.') : byLang('A resposta rápida da equipe foi elogiada; o caso foi encerrado.', 'The team’s swift response was praised; the case is closed.'); } });
-CE({ k: 'tabloide', g: 'escandalos', w: 1, sev: 2, cool: 1, hidden: false, make: (G, r) => {
+CE({ k: 'tabloide', g: 'midia', w: 0.6, sev: 2, cool: 1, hidden: false, make: (G, r) => {
   const d = Chaos.pickDriver(G, r); if (!d) return null; const t = Career.team(G, d.team);
   const v = r() < 0.5;
   return { tid: t.id, did: d.id, real: !d.regen,
@@ -312,6 +315,8 @@ Chaos.tick = (G) => {
     let x = r() * pool.reduce((a, e) => a + e.w, 0); const e = pool.find(ev => (x -= ev.w) <= 0) || pool[0];
     Chaos.occur(G, e, r);
   });
+  // limpeza: casos encerrados há mais de 3 anos e ocultos já revelados há mais de 5 anos saem da memória ativa
+  if (rd === 1) { S.cases = S.cases.filter(c => c.stage !== 'fechado' || y - c.y <= 3); S.hidden = S.hidden.filter(h => !h.out || y - h.y <= 5); Object.keys(S.last).forEach(k => { if (y - S.last[k] > 20) delete S.last[k]; }); }
   // equipe excluída do Mundial de Construtores segue com zero
   G.db.teams.forEach(t => { if (t.excludedC === y) G.season.standC[t.id] = 0; });
 };
@@ -383,7 +388,7 @@ Chaos.verdict = (G, c, immediate) => {
     const p = (t.staffList || []).find(s => s.role === 'principal' && !s.isPlayer);
     if (p) { Chaos.removeStaff(G, t, p); t.principal = (t.staffList.find(s => s.role === 'principal') || {}).name || t.principal; Career.news(G, byLang(`${t.name} troca o chefe de equipe depois do escândalo`, `${t.name} changes team principal after the scandal`), 'mercado', '', { tm: [t.id] }); }
   }
-  if (guilty && e.sev >= 4 && r() < 0.35) {
+  if (guilty && e.sev >= 4 && r() < 0.15) {
     // denúncia gera desconfiança: outra equipe passa a ser investigada (cadeia)
     const other = Chaos.teamPick(G, r, x => x !== t);
     if (other && Chaos.mult(G, 'escandalos') > 0) S.hidden.push({ id: 'ch' + (++S.seq), k: 'fraudeRegulamentar', g: 'escandalos', sev: 4, y: G.season.year, at: G.season.round, tid: other.id, real: false, part: byLang('o assoalho', 'the floor'),

@@ -149,6 +149,7 @@
 - Rivalidades que nascem de batidas e disputas; os rivais passam a brigar mais duro na pista.
 - Marcos e recordes comparados à história real desde 1950.
 - Escândalos com investigação, veredito e consequências em cadeia: manipulação de resultado, espionagem, vazamento de projeto, fraude financeira, apostas ilegais, sabotagem, peça irregular, tabloides. Podem envolver pessoas e equipes reais, sempre marcados como ficção do jogo.
+- Mais de 150 tipos de acontecimento, a maioria pequenos: fãs, imprensa, bastidores, operação, negócios.
 - Frequência de eventos Baixa, Normal ou Alta, e nível por tipo (Desligado, Raro, Normal, Novela, Caos): escândalos, conflitos internos, lesões e doenças, operação, negócios.
 - Lesões e doenças com afastamento e reserva no carro; acidentes graves raríssimos, com probabilidade realista por categoria e época, tratados com luto, homenagem e investigação.
 - Quando o caso atinge a sua equipe, você decide: cooperar com a FIA, defender a equipe ou afastar os envolvidos.
@@ -164,6 +165,15 @@
 - Até 12 equipes: 20 candidatas (equipes reais, montadoras, empresas e 2 criadas para o jogo, a brasileira Vórtice Racing e a Meridian Grand Prix) se inscrevem na FIA e passam pelo voto da Comissão.
 - Comece a carreira com uma candidata ou crie a sua equipe como a 12ª do grid: nome, cores, país, tamanho do projeto, motor e logo (20 genéricos ou importado). Depois, monte a equipe: titulares, reserva e cargos-chave, negociando com cada um.
 - Equipe irmã (mesmo dono) e equipe parceira (acordo técnico com a fornecedora, com limites de transferência de tecnologia).
+
+## Sede e fábrica (versão 0.8.4)
+- 12 instalações por equipe, do túnel de vento ao centro de pit stop, com nível, desgaste, obras e manutenção.
+- Elas decidem quantos projetos a equipe toca ao mesmo tempo, a qualidade das peças, o custo da operação e até a recuperação dos pilotos.
+- Equipes pequenas começam pequenas: crescer custa anos e dinheiro.
+
+## Fabricantes (versão 0.8.4)
+- Fabricantes de motor com ou sem equipe própria, contratos de fornecimento, parceria de fábrica, entradas e saídas (a GM chega em 2029).
+- Licitação dos pneus da F1 a cada 4 anos: trocar de fornecedor muda a corrida.
 
 ## Mercado vivo (versão 0.8.4)
 - Silly season que abre nas férias de verão, com a lista de contratos que vencem.
