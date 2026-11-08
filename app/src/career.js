@@ -170,6 +170,8 @@ Career.ctx = (G) => {
   return {
     db, track, weather: wk ? wk.weather : null,
     effOf: (did) => effCache[did] || (effCache[did] = Engine.eff(map[did])),
+    driverOf: (did) => map[did],
+    standOf: (did) => ((G.season && G.season.standD) || {})[did] || 0,
     nameOf: (did) => (map[did] ? (map[did].lastName || map[did].name.replace(/\s+(Jr\.?|Sr\.?)$/i, '').split(' ').slice(-1)[0]) : did),
   };
 };

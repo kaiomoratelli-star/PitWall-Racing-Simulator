@@ -98,8 +98,9 @@ RaceLog.afterLap = (race, wk) => {
         const msg = swap ? Narr.fill(RaceLog.RADIO.teamOrderAsk, { m: name(c.did) }) : RaceLog.RADIO.teamOrderHold;
         RaceLog.radio(race, ahead.did, `${byLang('Rádio para', 'Radio to')} ${name(ahead.did)}: "${msg}"`);
         const [, rep] = RaceLog.RADIO.teamOrderReply[Math.floor(r() * 3)];
+        if (swap && !ahead.isPlayer && Engine.obeyP && r() > Engine.obeyP(wk, ahead, c)) { Engine.orderLog(race, { type: 'letBy', did: ahead.did, mate: c.did, tid: c.tid, obeyed: false, lap: L, pos: ahead.pos, ai: true }); RaceLog.radio(race, ahead.did, `${name(ahead.did)}: "${Engine.orderLine('refuse', name(c.did))}"`); c.stuck = 0; return; }
         RaceLog.radio(race, ahead.did, `${name(ahead.did)}: "${rep}"`);
-        if (swap && !ahead.isPlayer) { ahead.T = c.T + 0.4; Engine.event(race, 'teamorder', byLang(`Ordem de equipe na ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} abre passagem para ${name(c.did)}.`, `Team order at ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} lets ${name(c.did)} through.`), c.did, { imp: true }); }
+        if (swap && !ahead.isPlayer) { Engine.orderLog(race, { type: 'letBy', did: ahead.did, mate: c.did, tid: c.tid, obeyed: true, lap: L, pos: ahead.pos, ai: true }); ahead.T = c.T + 0.4; Engine.event(race, 'teamorder', byLang(`Ordem de equipe na ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} abre passagem para ${name(c.did)}.`, `Team order at ${wk.db.teams.find(t => t.id === c.tid).name}: ${name(ahead.did)} lets ${name(c.did)} through.`), c.did, { imp: true }); }
       } else {
         const [, txt] = RaceLog.RADIO.faster[Math.floor(r() * RaceLog.RADIO.faster.length)];
         RaceLog.radio(race, c.did, `${name(c.did)}: "${Narr.fill(txt, { b: name(ahead.did) })}"`);

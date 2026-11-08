@@ -109,6 +109,12 @@ CT.push({ k: 'freeze', cat: 'tec', basis: 'força do motor', proposer: 'team',
   desc: () => 'Corta o gasto dos fabricantes e o preço do motor para as clientes durante três temporadas, mas trava a ordem atual: quem tem o melhor motor fica com a vantagem.',
   ops: (p) => [{ op: 'regs', k: 'engineFreeze', v: true }, { op: 'later', year: p.y + 3, title: 'Fim do congelamento dos motores', ops: [{ op: 'regs', k: 'engineFreeze', v: false }] }],
   imp: (tid, M) => M[tid].power * 0.8 + (M[tid].works ? -0.05 : 0.2), fia: 0.3, fom: 0.15 });
+CT.push({ k: 'chassisFreeze', cat: 'dev', basis: 'aerodinâmica e orçamento', proposer: 'team',
+  gen: (G, R) => (!R.chassisFreeze && G.season.year >= (G.db.rules.startYear || 2027) + 1 ? { y: G.season.year + 1 } : null),
+  title: (p) => `Chassi congelado em ${p.y}`,
+  desc: () => 'Para cortar custos, os carros de um ano ficam homologados: só valem correções de confiabilidade, e o desenvolvimento vai para o carro do ano seguinte. Quem acertou o carro mantém a vantagem.',
+  ops: (p) => [{ op: 'regs', k: 'chassisFreeze', v: true }, { op: 'later', year: p.y + 1, title: 'Fim do congelamento do chassi', ops: [{ op: 'regs', k: 'chassisFreeze', v: false }] }],
+  imp: (tid, M) => M[tid].aero * 0.6 - M[tid].budget * 0.4, fia: 0.2, fom: 0.1 });
 CT.push({ k: 'unfreeze', cat: 'tec', basis: 'força do motor', proposer: 'team',
   gen: (G, R) => (R.engineFreeze ? { y: G.season.year + 1 } : null),
   title: (p) => `Fim do congelamento dos motores em ${p.y}`,
@@ -237,7 +243,7 @@ CT.push({ k: 'dropTrack', cat: 'cir', basis: 'GP em casa e custo de viagem', pro
   imp: (tid, M, p) => (M[tid].country === p.country ? -0.55 : 0) - 0.05 - M[tid].budget * 0.1, fia: 0.4, fom: 0.2 });
 Council.T = CT;
 /* temas ligados: depois de votar um, os outros do grupo também esperam */
-Council.GROUPS = [['elecDown', 'elecUp', 'v8'], ['aeroUp', 'aeroDown'], ['capDown', 'capUp'], ['freeze', 'unfreeze', 'aduo'], ['trackLimits', 'strict'], ['addTrack', 'dropTrack']];
+Council.GROUPS = [['elecDown', 'elecUp', 'v8'], ['aeroUp', 'aeroDown'], ['capDown', 'capUp'], ['freeze', 'unfreeze', 'aduo'], ['chassisFreeze'], ['trackLimits', 'strict'], ['addTrack', 'dropTrack']];
 Council.byK = Object.fromEntries(CT.map(t => [t.k, t]));
 
 /* propostas que o jogador pode levar (as mesmas do catálogo, com os valores de hoje) */

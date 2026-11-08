@@ -15,6 +15,7 @@ Regs.DEFAULTS = {
   overtakeMode: true,       // modo de ultrapassagem por energia (2026) em vez de DRS
   aeroFreedom: 60,          // 0–100: quanto o desenvolvimento aerodinâmico rende
   engineFreeze: false,      // motores congelados (sem evolução entre temporadas)
+  chassisFreeze: false,     // chassi homologado e congelado na temporada (só confiabilidade e carro do ano seguinte)
   puLimit: 4,               // unidades de potência por piloto por temporada
   gearboxLimit: 4,
   atr: true,                // restrição de túnel de vento/CFD por posição
@@ -35,7 +36,7 @@ Regs.DEFAULTS = {
 Regs.LABELS = {
   electricShare: ['Potência elétrica (%)', 'tec'], fuelLimit: ['Limite de combustível (kg)', 'tec'], minWeight: ['Peso mínimo (kg)', 'tec'],
   activeAero: ['Aerodinâmica ativa', 'tec'], overtakeMode: ['Modo de ultrapassagem por energia (em vez de DRS)', 'tec'], aeroFreedom: ['Liberdade aerodinâmica (0–100)', 'tec'],
-  engineFreeze: ['Motores congelados', 'tec'], puLimit: ['Unidades de potência por temporada', 'tec'], gearboxLimit: ['Câmbios por temporada', 'tec'],
+  engineFreeze: ['Motores congelados', 'tec'], chassisFreeze: ['Chassi congelado na temporada', 'tec'], puLimit: ['Unidades de potência por temporada', 'tec'], gearboxLimit: ['Câmbios por temporada', 'tec'],
   atr: ['Restrição de túnel de vento (ATR)', 'dev'], atrMin: ['ATR do campeão (%)', 'dev'], atrMax: ['ATR do último (%)', 'dev'], testingDays: ['Dias de teste de pré-temporada', 'dev'],
   qualiFormat: ['Formato da classificação', 'esp'], polePoints: ['Pontos pela pole', 'esp'], reverseGrid: ['Grid invertido na sprint (N primeiros)', 'esp'],
   parcFerme: ['Parque fechado', 'esp'], scMultiplier: ['Frequência de Safety Car (×)', 'esp'], vsc: ['Safety Car Virtual', 'esp'], redFlags: ['Bandeira vermelha', 'esp'],
