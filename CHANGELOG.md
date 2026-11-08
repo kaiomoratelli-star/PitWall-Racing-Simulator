@@ -70,6 +70,24 @@ Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da
   - Animam só quando a tela muda e respeitam a opção "Animações: desligadas" e a preferência do sistema por menos movimento.
 - Retratos de 5 pilotos (Albon, Lindblad, Colapinto, Lawson e Gasly) estavam recortados sem a cabeça; foram refeitos a partir da foto de corpo inteiro.
 
+**Varredura de coerência da interface**
+- Testes feitos:
+  - 17 estados do jogo revisados um a um: treino, classificação, estratégia, antes da largada, corrida, bandeirada, pódio, pós-corrida, temporada encerrada;
+  - teste automático clicou nos 1.674 botões de 46 telas, sem erro.
+- **Corrida:**
+  - depois da bandeirada, somem Continuar, +1 volta, velocidades e "Simular até o fim", e entra "Encerrar fim de semana" (também no botão do topo);
+  - antes da largada só aparece "Largar";
+  - o painel de pré-largada ("Luzes vermelhas") não fica mais na tela depois que a corrida anda.
+- **Fim de semana e corrida sem sessão:** mostram o próximo GP com o botão de avançar ou, com a temporada encerrada, o caminho para o fim de temporada. Antes oferecia "Começar" mesmo com a temporada encerrada.
+- **Pós-corrida:** sem botões repetidos; Pódio, Grid e Análise já estão nas abas.
+- **Abas Pódio e Pós-corrida:** durante um fim de semana, mostram "· GP anterior".
+- **Central:**
+  - a programação do fim de semana com Sprint mostra "TL1 · Classificação Sprint" na sexta, e não dois treinos;
+  - saiu o botão "Preparar estratégia", que só abria a ficha do circuito.
+- **Treino:** a confiança antes das primeiras voltas aparece como traço neutro, e não vermelho.
+- **Estratégia:** a posição de largada usa etiqueta neutra.
+- **`scripts/ui85-check.js`:** passou de 11 para 14 verificações de coerência (estado da corrida e temporada encerrada).
+
 **Correções do relançamento da 0.8.5 (mesmo número de versão, instalador substituído)**
 - **Outras categorias:** só avançavam quando terminava um GP de F1. Por isso, no começo do jogo, as etapas já passadas da Fórmula E, da F4 dos Emirados, da FR Oriente Médio e da NASCAR apareciam como não disputadas, e os dias entre os GPs não contavam.
   - Agora elas andam dia a dia, junto com o calendário do jogo.
