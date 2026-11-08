@@ -150,11 +150,11 @@ Career.lineup = (G, tid) => {
   const ds = Career.teamDrivers(G, tid);
   const seats = [1, 2].map(s => ds.find(d => d.seat === s));
   return seats.map((d, i) => {
-    if (d && !d.injured) return d;
-    const res = ds.find(x => x.seat === 'R' && !x.injured);
+    if (d && !d.injured && !d.banned) return d;
+    const res = ds.find(x => x.seat === 'R' && !x.injured && !x.banned);
     if (res) return res;
     // sem reserva: pega o melhor piloto livre temporariamente
-    const free = G.db.drivers.filter(x => !x.team && !x.retired && !x.injured && !seats.includes(x)).sort((a, b) => driverOverall(b) - driverOverall(a));
+    const free = G.db.drivers.filter(x => !x.team && !x.retired && !x.injured && !x.banned && !seats.includes(x)).sort((a, b) => driverOverall(b) - driverOverall(a));
     return free[i] || free[0] || d;
   }).filter(Boolean);
 };

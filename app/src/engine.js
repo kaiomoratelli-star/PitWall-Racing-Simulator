@@ -391,7 +391,7 @@ Engine.stepLap = (race, wk) => {
       c.tl++;
       const tlw = race.R.trackLimitWarnings;
       if (c.tl === tlw) Engine.event(race, 'flag', byLang(`Bandeira preta e branca para ${wk.nameOf(c.did)}: ${tlw}ª advertência por limite de pista.`, `Black and white flag for ${wk.nameOf(c.did)}: track limits warning number ${tlw}.`), c.did);
-      if (c.tl === tlw + 1) { c.pendingPen += 5; c.penalty += 5; Engine.event(race, 'penalty', byLang(`5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, `5s penalty for ${wk.nameOf(c.did)} for exceeding track limits.`), c.did); }
+      if (c.tl === tlw + 1) { c.pendingPen += 5; c.penalty += 5; (race.pp = race.pp || []).push({ did: c.did, pts: 1, why: 'limites' }); Engine.event(race, 'penalty', byLang(`5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, `5s penalty for ${wk.nameOf(c.did)} for exceeding track limits.`), c.did); }
     }
     c.lapTime = t;
     if (!scType) { c.lastS = Engine.sectorSplit(track, t - (pitted.has(c) ? (t - pc.total) * 0.8 : 0), sd); c.secs[L] = c.lastS; } else c.lastS = null;
@@ -518,6 +518,7 @@ Engine.collision = (race, wk, a, b) => {
   if (RNG.chance(clamp(0.45 * (race.R ? race.R.penaltyStrictness : 1), 0, 0.95))) {
     const pen = RNG.chance(0.7) ? 5 : 10;
     culprit.pendingPen += pen; culprit.penalty += pen;
+    (race.pp = race.pp || []).push({ did: culprit.did, pts: pen >= 10 ? 3 : 2, why: 'colisao' });   // pontos na superlicença (diretrizes da FIA: 2 a 3 por colisão)
     Engine.event(race, 'penalty', byLang(`Comissários: ${pen}s de punição para ${wk.nameOf(culprit.did)} por causar a colisão.`, `Stewards: ${pen}s penalty for ${wk.nameOf(culprit.did)} for causing a collision.`), culprit.did);
   }
 };

@@ -544,3 +544,19 @@ td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec
 .cs86.open .cs86-tag { background: color-mix(in srgb, var(--yellow) 25%, transparent); } .cs86.guilty .cs86-tag { background: color-mix(in srgb, var(--red) 25%, transparent); } .cs86.clear .cs86-tag { background: color-mix(in srgb, var(--green) 25%, transparent); }
 .cs86 p { margin: 0; font-size: 13px; color: var(--fg2); }
 @media (max-width: 1100px) { .rv86 { grid-template-columns: minmax(0, 1fr); } }
+/* 0.8.6: novato no TL1 e superlicença */
+.fp86 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fp86-car { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--panel2); }
+.fp86-n { font: 700 11px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.fp86-car select { flex: 1; min-width: 0; }
+.fp86-q { display: flex; align-items: center; gap: 4px; } .fp86-q i { width: 12px; height: 12px; border-radius: 3px; background: var(--s3); } .fp86-q i.on { background: var(--green); } .fp86-q small { font: 600 11px var(--f-mono); color: var(--muted); margin-left: 4px; }
+.fp86-note { margin: 10px 0 0; font-size: 13px; }
+.sl86 { display: grid; gap: 12px; }
+.sl86-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; } .sl86-top b { font-size: 28px; } .sl86-top small { color: var(--muted); }
+.sl86-st { font: 700 11px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; background: var(--s3); }
+.sl86-st.full { background: color-mix(in srgb, var(--green) 25%, transparent); } .sl86-st.fp { background: color-mix(in srgb, var(--yellow) 25%, transparent); } .sl86-st.none { background: color-mix(in srgb, var(--red) 22%, transparent); }
+.sl86-bar { position: relative; height: 12px; border-radius: 6px; background: var(--s3); margin: 6px 0 14px; } .sl86-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: var(--team); }
+.sl86-bar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fg); } .sl86-bar em small { position: absolute; top: 16px; left: -6px; font: 600 10px var(--f-mono); color: var(--muted); font-style: normal; }
+.sl86-y { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; } .sl86-y span { display: grid; justify-items: center; padding: 6px; border-radius: 8px; background: var(--panel2); } .sl86-y small { color: var(--muted); font-size: 11px; } .sl86-y em { font-style: normal; font-size: 10.5px; color: var(--green); }
+.sl86-pp > span { display: grid; gap: 4px; } .sl86-pp small { color: var(--muted); } .sl86-ppl { display: grid; gap: 2px; margin-top: 6px; }
+@media (max-width: 1100px) { .fp86 { grid-template-columns: minmax(0, 1fr); } }
