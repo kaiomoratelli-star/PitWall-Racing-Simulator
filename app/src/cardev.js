@@ -30,6 +30,7 @@ CarDev.org = (t) => {
     const r = localRng('org:' + t.id)();
     t.org = +clamp(0.35 + ((t.reputation ?? 60) - 55) / 60 + (t.works ? 0.06 : 0) + (r - 0.5) * 0.16, 0.15, 0.95).toFixed(3);
   }
+  if (t.org0 == null) t.org0 = t.org;
   return t.org;
 };
 CarDev.orgMul = (t) => 0.75 + 0.5 * CarDev.org(t);
@@ -38,8 +39,9 @@ CarDev.orgYear = (G, sc) => {
   G.db.teams.forEach(t => {
     const pos = sc ? sc.findIndex(x => x.tid === t.id) + 1 : 0;
     const r = localRng(`orgy:${G.seed}:${t.id}:${G.season.year}`)();
-    let d = (r - 0.5) * 0.05 + (CarDev.capacity(t) - CarDev.org(t)) * 0.02;
-    if (pos && pos <= 2) d += 0.015; else if (pos && pos <= 4) d += 0.005; else if (pos && pos > n - 3) d -= 0.012;
+    // volta devagar ao patamar histórico da organização (as grandes não ficam todas iguais no máximo)
+    let d = (r - 0.5) * 0.05 + (CarDev.capacity(t) - CarDev.org(t)) * 0.02 + ((t.org0 ?? t.org) - CarDev.org(t)) * 0.05;
+    if (pos === 1) d += 0.015; else if (pos && pos > n - 3) d -= 0.012;
     if ((t.costCut || 1) < 1) d -= 0.025;
     t.org = +clamp(CarDev.org(t) + d, 0.1, 0.97).toFixed(3);
   });
@@ -55,9 +57,10 @@ CarDev.newCars = (G, reg) => {
     ts.forEach((t, i) => {
       const r = localRng(`carro:${G.seed}:${t.id}:${k}:${G.season.year}`);
       const gap = t.car[k] - m;
-      const keep = reg ? 0.62 : 0.95;
+      const keep = reg ? 0.45 : 0.88;      // anos estáveis: vantagem grande resiste; regulamento novo: zera boa parte
       const learn = (caps[i] - capAvg) * (reg ? 2.6 : 1.7);
-      const noise = (r() + r() + r() - 1.5) * (reg ? 1.4 : 0.7);
+      // o meio do pelotão se mexe todo ano; organização de ponta é mais constante (processos), a média oscila mais
+      const noise = (r() + r() + r() - 1.5) * 6.0 * (1.4 - CarDev.org(t));
       t.car[k] = +(G.carRef[k] + gap * keep + learn + noise).toFixed(2);
     });
   });

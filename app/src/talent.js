@@ -44,6 +44,7 @@ Talent.setCeiling = (d, ceiling, tierId) => {
   const t = tierId ? Talent.byId(tierId) : Talent.of(ceiling);
   d.tier = t.id;
   d.ceiling = Math.round(clamp(ceiling, Math.min(t.min, ceiling), t.max));
+  if (d.ceiling0 == null) d.ceiling0 = d.ceiling;               // teto de nascença (referência da oscilação de ±3)
   const ovr = driverOverall(d);
   if (d.ceiling < ovr) d.ceiling = Math.min(t.max, ovr);
 };
@@ -234,6 +235,42 @@ Talent.replenish = (G) => {
   return added;
 };
 
+/* teto dinâmico até os 23 anos (inclusive): os resultados revelam o talento.
+   - Medido contra a expectativa (carro e companheiro na F1; nota dos rivais nas categorias), não por vitória
+     pura: ganhar com o melhor carro conta pouco. Título na categoria dá um bônus extra.
+   - Sobe ou desce no máximo 1,5 por ano e ±3 no total em relação ao teto de nascença.
+   - Pode passar do limite do nível de nascença (decisão do dono): um Bom com 88 pode chegar a 91. Subir é mais
+     difícil que cair (chance por temporada e passos de no máximo 0,8); o máximo absoluto é 96. */
+Talent.DYN = { maxYear: 1.5, maxTotal: 3, untilAge: 23 };
+Talent.dynamicCeiling = (G) => {
+  if (typeof Potential === 'undefined') return;
+  const champs = new Set();
+  if (typeof Cats !== 'undefined' && Cats.on(G)) Cats.list(G, true).forEach(c => { if (c.season && c.season.res && c.season.res.length >= Math.max(2, (c.season.cal || []).length - 1)) { const top = Cats.standings(c)[0]; if (top) champs.add(top.did); } });
+  const sd = Object.entries(G.season.standD || {}).sort((a, b) => b[1] - a[1])[0];
+  if (sd) champs.add(sd[0]);
+  G.db.drivers.forEach(d => {
+    if (d.retired || d.dead || !d.ceiling || (d.age ?? 99) > Talent.DYN.untilAge) return;
+    if (d.ceiling0 == null) d.ceiling0 = d.ceiling;
+    const perf = Potential.performance(G, d);
+    const st = G.season.stats[d.id] || {};
+    const raced = (d.team && st.starts >= 5) || (d.cat && perf !== 0);
+    if (!raced && !champs.has(d.id)) return;
+    // subir o teto é mais difícil que subir o potencial: só com rendimento bem acima do esperado (ou título), em passos
+    // pequenos e com chance; cair segue o ritmo normal
+    const champ = champs.has(d.id);
+    let delta;
+    if (perf > 0.35 || champ) {
+      const r = localRng(`teto:${G.seed}:${d.id}:${G.season.year}`)();
+      delta = r < (champ ? 0.5 : 0.3) ? clamp((perf - 0.2) * 0.8 + (champ ? 0.5 : 0), 0, 0.8) : 0;
+    } else delta = clamp(perf * 1.2, -Talent.DYN.maxYear, 0);
+    let c = clamp(d.ceiling + delta, d.ceiling0 - Talent.DYN.maxTotal, Math.min(96, d.ceiling0 + Talent.DYN.maxTotal));
+    c = +Math.max(c, Math.min(driverOverall(d), 96)).toFixed(2);
+    if (Math.abs(c - d.ceiling) < 0.01) return;
+    d.ceiling = c; d.tier = Talent.of(c).id;
+    (d.ceilHist = d.ceilHist || []).push([G.season.year, +c.toFixed(1)]);
+  });
+};
+
 (function () {
   // carreira nova: nível, potencial e perfil de todos os pilotos (depois da base, das categorias e do kart)
   const ip = Career.initPeople;
@@ -247,7 +284,7 @@ Talent.replenish = (G) => {
   // potencial anual: anda entre a nota e o teto
   if (typeof Potential !== 'undefined') {
     const ev = Potential.evolve;
-    Potential.evolve = (G) => { const r = ev(G); Talent.capAll(G); return r; };
+    Potential.evolve = (G) => { Talent.dynamicCeiling(G); const r = ev(G); Talent.capAll(G); return r; };
   }
   // fim de temporada: novos pilotos recebem nível e perfil; teto garantido
   const es = Career.endSeason;

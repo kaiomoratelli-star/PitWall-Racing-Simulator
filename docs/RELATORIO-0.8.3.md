@@ -63,6 +63,11 @@ Os demais 1.200 pilotos recebem o nível automaticamente pela nota, idade e posi
 - Teto rígido por nível. Corrigido o vazamento: a evolução passava do potencial, e o potencial "seguia" a nota.
 - Evolução fecha uma fração da distância até o pico esperado: mais rápida quanto mais jovem e quanto mais alto o nível de competição.
 - Idade: queda a partir dos 34 anos (37 com longevidade), com os reflexos caindo antes da experiência.
+- **Teto dinâmico até os 23 anos (atualização de 08/11):**
+  - os resultados contra a expectativa (carro e companheiro, ou rivais na categoria) mexem no teto em até ±3 do teto de nascença, até 96;
+  - pode passar do limite do nível (um Bom com 88 pode chegar a 91);
+  - subir é mais difícil que cair: precisa de rendimento claramente acima do esperado ou de título, tem chance por temporada e anda no máximo 0,8 por ano.
+  - Em 10 anos simulados, cerca de 120 juniores subiram de teto, cerca de 85 desceram, e algumas dezenas mudaram de nível nos dois sentidos.
 - Talento de elite não some por temporadas ruins: o pico esperado cai no máximo alguns pontos. A carreira, porém, ainda pode decepcionar por falta de vaga ou de carro.
 - Séries fora do jogo recebem pilotos novos, e o kart não encolhe mais (nomes únicos).
 
@@ -76,20 +81,39 @@ Os demais 1.200 pilotos recebem o nível automaticamente pela nota, idade e posi
 - A IA tem fila de projetos com vagas, prazos, falhas, problemas de correlação e peças que ganham desempenho perdendo confiabilidade.
 - Menos sorte por fim de semana (antes cerca de 1,8 ponto de carro), e nem toda batida neutraliza a corrida.
 
-**Simulações (modo Observador; média por temporada)**
+**Calibração com a F1 real (atualização de 08/11/2026)**
+A meta foi definida pelos dados reais de 2000 a 2025 (`node scripts/audit.js real`), ficando levemente abaixo da média real.
 
-| Teste | Equipes vencedoras | Equipes no pódio | Pilotos com 90+ na F1 | Desvio entre carros | Campeões de construtores |
-|---|---|---|---|---|---|
-| 5 anos (semente 1) | 3,4 | 4,6 | 1,8 (1–2) | 3,2 | Ferrari 3, Mercedes 2 |
-| 10 anos (semente 11) | 4,1 | 5,2 | 2,0 (1–3) | 3,4 | Mercedes 5, Red Bull 5 |
-| 10 anos, Manager | 3,6 | 5,7 | 2,5 (2–3) | 3,3 | Ferrari 5, Red Bull 3, Mercedes 2 |
-| 20 anos (semente 11) | 4,2 | 6,1 | 2,0 (1–3) | 4,1 | Mercedes 9, Red Bull 6, Ferrari 3, McLaren 2 |
-| 30 anos (semente 7) | 4,0 | 5,9 | 2,5 (2–4) | 4,5 | Mercedes 16, Ferrari 10, McLaren 3, Red Bull 1 |
-| 50 anos (semente 3) | 4,5 | 6,7 | 2,8 (1–5) | 4,5 | Ferrari 22, McLaren 14, Mercedes 10, Red Bull 4 |
+O que mudou:
+- dentro da temporada, menos sorte (o melhor carro vence mais);
+- entre temporadas, mais embaralhamento:
+  - o carro novo mantém menos da posição anterior;
+  - equipe de organização fraca oscila mais;
+  - regulamento novo tem muita sorte no acerto do conceito, e quem acerta em cheio abre vantagem (Mercedes 2014, Red Bull 2022, Brawn 2009);
+- o carro pesa mais que o piloto no tempo de volta: diferença real de cerca de 1,5 a 2 s entre o mais rápido e o mais lento.
 
-Na 0.8.2, os mesmos testes davam 5 a 9 equipes vencedoras e 8 a 10 no pódio. Há ciclos de domínio: uma equipe fica na frente vários anos e perde a posição numa troca de regulamento ou numa crise.
+| Métrica | F1 real 2000–2025 | Jogo antes (0.8.3 de 07/11) | Jogo agora (média de 4 sementes, 26 anos) |
+|---|---|---|---|
+| Equipes vencedoras por temporada | 3,27 (2–6) | 4,0–4,5 | 3,7 |
+| Equipes no pódio por temporada | 5,81 (4–9) | 5,9–6,7 | 5,6 |
+| Semelhança da ordem do Mundial de um ano para o outro | 0,76 | 0,93 | 0,84 |
+| Equipes novas no top 4 por ano | 0,81 | 0,28 | 0,73 |
+| Trocas de campeã de construtores (25 viradas) | 8 | 13 | 10 |
+| Campeãs distintas em 26 anos | 6 | 3 | 4 |
+| Semelhança da ordem depois de regulamento novo | — | 0,95 | 0,67–0,84 (embaralha mais que um ano comum) |
 
-**Ainda acima da meta:** as equipes vencedoras (média de 4, meta de 2 a 4) e o pódio no teste de 50 anos (6,7). Na F1 real o pódio vai de 4 a 7 equipes (2020 e 2021 tiveram 7).
+**Simulações oficiais (modo Observador; média por temporada)**
+
+| Teste | Equipes vencedoras | Equipes no pódio | Pilotos com 90+ na F1 | Campeões de construtores |
+|---|---|---|---|---|
+| 5 anos (semente 1) | 2,8 | 4,4 | 2,0 (2–2) | Ferrari 3, Mercedes 2 |
+| 10 anos (semente 11) | 2,7 | 4,8 | 2,0 (1–3) | Mercedes 5, Ferrari 5 |
+| 10 anos, Manager | 3,3 | 5,1 | 2,6 (2–4) | Ferrari 6, Mercedes 4 |
+| 20 anos (semente 11) | 3,5 | 5,8 | 2,3 (1–3) | Red Bull 6, Mercedes 5, Ferrari 5, Audi 4 |
+| 30 anos (semente 7) | 4,0 | 5,6 | 3,3 (2–5) | McLaren 12, Mercedes 9, Ferrari 7, Racing Bulls 1, Williams 1 |
+| 50 anos (semente 3) | 4,1 | 6,1 | 3,2 (2–7) | McLaren 16, Ferrari 13, Mercedes 12, Alpine 4, Audi 2, Haas 2, Red Bull 1 |
+
+Equipes de fora do grupo de sempre (Audi, Alpine, Haas, Racing Bulls, Williams) chegam ao título em ciclos.
 
 ## 4. Academia e olheiros
 

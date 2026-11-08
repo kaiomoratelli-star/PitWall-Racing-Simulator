@@ -2,6 +2,7 @@
 // Uso:
 //   node scripts/audit.js db                       → docs/DUPLICATAS.md e docs/VERIFICACAO-DATABASE.md
 //   node scripts/audit.js sim <temporadas> [semente] [modo]  → docs/RELATORIO-SIMULACAO.md (acrescenta uma seção)
+//   node scripts/audit.js real                     → métricas reais da F1 2000–2026 (referência da calibração)
 'use strict';
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const { core, data } = require('./modules');
@@ -88,4 +89,23 @@ if (mode === 'sim') {
   const head = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : `# Relatório de simulações longas\n\nGerado por \`scripts/audit.js sim\`. Cada seção é uma carreira simulada do início ao fim, sem interface, com a mesma semente reproduzível. Os números servem para comparar versões: carros que convergem, talentos inflando, dinheiro sem controle, duplicatas e erros de integridade.\n`;
   fs.writeFileSync(f, head + `\n## ${seasons} temporadas · semente ${seed} · modo ${gm} · ${today} (${((Date.now() - t0) / 1000).toFixed(0)} s)\n\n${tab}\n`);
   rows.forEach(r => console.log(JSON.stringify(r)));
+}
+
+if (mode === 'real') {
+  console.log(run(`(()=>{
+// mesma equipe ao longo dos nomes (para comparar a ordem ano a ano)
+const LIN={'brawn':'mercedes','bar':'mercedes','honda':'mercedes','jaguar':'red-bull','stewart':'red-bull','minardi':'racing-bulls','toro-rosso':'racing-bulls','alphatauri':'racing-bulls','rb':'racing-bulls','jordan':'aston-martin','midland':'aston-martin','spyker':'aston-martin','force-india':'aston-martin','racing-point':'aston-martin','benetton':'alpine','renault':'alpine','lotus-f1':'alpine','sauber':'audi','bmw-sauber':'audi','alfa-romeo':'audi','kick-sauber':'audi','virgin':'marussia','manor':'marussia'};
+const L=(id)=>LIN[id]||id;
+const S=REAL_HISTORY.seasons.filter(s=>s.y>=2000&&s.y<=2026).sort((a,b)=>a.y-b.y);
+const rows=S.map(s=>{const win=new Set(s.r.map(r=>r[5][0])), pod=new Set(s.r.flatMap(r=>r[5])), dw=new Set(s.r.map(r=>r[4][0])); const c=(s.c||[]).slice().sort((a,b)=>b[1]-a[1]); return {y:s.y,complete:s.complete,races:s.r.length,win:win.size,pod:pod.size,dwin:dw.size,champ:c[0]&&c[0][0],order:c.map(x=>L(x[0]))};});
+const rho=(a,b)=>{const ids=a.filter(x=>b.includes(x)); const n=ids.length; if(n<4) return null; const ra={},rb={}; ids.forEach(id=>{ra[id]=a.indexOf(id);rb[id]=b.indexOf(id);}); const ar=ids.slice().sort((x,y)=>ra[x]-ra[y]), br=ids.slice().sort((x,y)=>rb[x]-rb[y]); const RA={},RB={}; ar.forEach((id,i)=>RA[id]=i); br.forEach((id,i)=>RB[id]=i); const d2=ids.reduce((s,id)=>s+(RA[id]-RB[id])**2,0); return 1-6*d2/(n*(n*n-1));};
+const rhos=[],t4=[]; let chg=0;
+for(let i=1;i<rows.length;i++){const r=rho(rows[i-1].order,rows[i].order); if(r!=null) rhos.push(r); if(L(rows[i].champ)!==L(rows[i-1].champ)) chg++; const a=new Set(rows[i-1].order.slice(0,4)), b=rows[i].order.slice(0,4); t4.push(b.filter(x=>!a.has(x)).length);}
+const avg=a=>(a.reduce((x,y)=>x+y,0)/a.length);
+const full=rows.filter(r=>r.complete);
+let streak=1,best=1; for(let i=1;i<full.length;i++){ if(L(full[i].champ)===L(full[i-1].champ)) {streak++; best=Math.max(best,streak);} else streak=1; }
+const champs={}; full.forEach(r=>champs[r.champ]=(champs[r.champ]||0)+1);
+const out=rows.map(r=>r.y+(r.complete?'':'*')+': vit '+r.win+' pódio '+r.pod+' pilotos vencedores '+r.dwin+' campeã '+r.champ).join('\\n');
+return out+'\\n\\nMÉDIAS (temporadas completas 2000–2025, n='+full.length+'): equipes vencedoras '+avg(full.map(r=>r.win)).toFixed(2)+' | equipes no pódio '+avg(full.map(r=>r.pod)).toFixed(2)+' | pilotos vencedores '+avg(full.map(r=>r.dwin)).toFixed(2)+'\\nfaixas: vit '+Math.min(...full.map(r=>r.win))+'-'+Math.max(...full.map(r=>r.win))+' | pódio '+Math.min(...full.map(r=>r.pod))+'-'+Math.max(...full.map(r=>r.pod))+'\\ntroca de campeã de construtores: '+chg+' em '+(rows.length-1)+' anos | maior sequência '+best+' | campeãs distintas '+Object.keys(champs).length+' '+JSON.stringify(champs)+'\\ncorrelação de ordem ano a ano (mesma equipe em nomes diferentes): '+avg(rhos).toFixed(2)+' | entradas novas no top 4 por ano '+avg(t4).toFixed(2);
+})()`));
 }

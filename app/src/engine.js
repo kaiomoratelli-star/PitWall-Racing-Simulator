@@ -198,8 +198,9 @@ Engine.paceComponents = (ctx) => {
   const wetBlend = clamp(ctx.w * 1.4, 0, 1);
   const effPace = lerp(drvPace, (drvPace + ctx.drv.wet) / 2 + ((ctx.drv.b && ctx.drv.b.wetGain) || 0) * 2, wetBlend) + (ctx.quali && ctx.drv.b && ctx.drv.b.quali ? -ctx.drv.b.quali * 10 : 0);
   // o carro pesa mais que o piloto (como na F1 real); a constante mantém os tempos absolutos calibrados
-  const car = ((100 - ctx.carPerf) * 0.09 - 0.3) * sc;
-  const driver = (100 - effPace) * 0.028 * sc;
+  // 0.8.3: o carro pesa mais (diferença real entre o mais rápido e o mais lento ~1,5–2 s); a constante mantém os tempos absolutos
+  const car = ((100 - ctx.carPerf) * 0.15 - 1.02) * sc;
+  const driver = ((100 - effPace) * 0.023 + 0.06) * sc;   // 0.8.3: o carro decide mais que o piloto (constante mantém os tempos)
   const setup = (0.62 - ctx.setupQ) * 0.9;
   const dry = 'SMH'.includes(ctx.compound);
   const props = Engine.CPROPS ? Engine.tprops(ctx.track, ctx.compound) : null;

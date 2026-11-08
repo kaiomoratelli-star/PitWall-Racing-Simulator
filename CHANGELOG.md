@@ -28,6 +28,20 @@ Segunda etapa do plano de ultrarrealismo (plano em `docs/PLANO-0.8.3.md`, relat�
   - longevidade rara (Alonso, Hamilton).
 - Universo estável em décadas: séries fora do jogo recebem pilotos novos e o kart não encolhe mais.
 
+**Atualização de 08/11/2026 (mesma versão)**
+- **Teto dinâmico até os 23 anos:**
+  - os resultados contra a expectativa podem mover o teto em até ±3 (máximo absoluto de 96), passando do limite do nível;
+  - subir é mais difícil que cair.
+- **Equilíbrio calibrado com a F1 real 2000–2025** (`node scripts/audit.js real`), levemente abaixo da média real:
+  - menos sorte por corrida;
+  - mais mudança de forças entre temporadas;
+  - regulamento novo pode premiar uma equipe de fora do topo que acerta o conceito;
+  - o carro pesa mais que o piloto no tempo de volta.
+- **Resultado:**
+  - cerca de 3,7 equipes vencedoras por temporada (real 3,3) e 5,6 no pódio (real 5,8);
+  - top 4 renovado em 0,73 equipe por ano (real 0,81);
+  - em 50 anos, 7 equipes diferentes campeãs, incluindo Alpine, Audi e Haas.
+
 **Carros sem equalização artificial**
 - Saíram o puxão anual para uma média fixa, o piso de diferença entre carros e a compressão extra na troca de regulamento.
 - O carro novo mantém a distância para a média do grid.
@@ -39,7 +53,7 @@ Segunda etapa do plano de ultrarrealismo (plano em `docs/PLANO-0.8.3.md`, relat�
   - problema de correlação entre túnel e pista;
   - peça que ganha desempenho e perde confiabilidade.
 - Menos sorte por fim de semana, e nem toda batida neutraliza a corrida.
-- Em 20 a 50 anos simulados, a média fica em 6 a 7 equipes no pódio e 4 a 5 vencedoras por ano (antes 8 a 9 e 6 a 9), com ciclos de domínio de equipe.
+- Ciclos de domínio de equipe, com troca de forças entre temporadas (calibração da atualização de 08/11).
 
 **Academia (reformulada)**
 - Contratar um júnior é uma negociação: salário de júnior, duração e multa, com contraproposta. As academias rivais também disputam os melhores.

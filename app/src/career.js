@@ -187,7 +187,7 @@ Career.expectedRanks = (G) => {
 /* ---------- temporada ---------- */
 Career.startSeason = (G, first = false) => {
   const year = G.season ? G.season.year + 1 : G.db.rules.startYear;
-  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (typeof Council !== 'undefined') Council.applySeason(G, year); if (v && v.reset) { const ts = G.db.teams; ['aero', 'chassis'].forEach(k => { const m = ts.reduce((a, t) => a + t.car[k], 0) / ts.length; ts.forEach(t => { t.car[k] = +(m + (t.car[k] - m) * 0.75 + RNG.normal(0, 1.6)).toFixed(2); }); }); } }
+  if (typeof Regs !== 'undefined') { Regs.ensure(G.db.rules); const v = Regs.applyVersion(G, year); if (typeof Council !== 'undefined') Council.applySeason(G, year); if (v && v.reset) { const ts = G.db.teams; ['aero', 'chassis'].forEach(k => { const m = ts.reduce((a, t) => a + t.car[k], 0) / ts.length; ts.forEach(t => { t.car[k] = +(m + (t.car[k] - m) * 0.88 + RNG.normal(0, 1.0)).toFixed(2); }); }); } }
   const calendar = (G.db.calendar && G.db.calendar.length ? G.db.calendar : G.db.tracks.map(t => t.id)).filter(id => Career.track(G, id));
   G.season = {
     year, round: 0, calendar, results: [],
@@ -234,8 +234,8 @@ Career.startWeekend = (G) => {
   // forma do fim de semana: alguns carros se dão melhor em certas pistas, pilotos têm dias bons e ruins
   wk.form = {}; wk.dform = {};
   // (0.8.3: menos sorte por fim de semana — antes um carro variava ~1,8 ponto, quase metade da diferença entre equipes)
-  G.db.teams.forEach(t => (wk.form[t.id] = +(localRngNormal(G.seed + ':' + G.season.year + ':' + t.id + ':' + track.id) * 0.85 + RNG.normal(0, 0.3)).toFixed(2)));
-  G.db.drivers.forEach(d => (wk.dform[d.id] = +(RNG.normal(0, 1.1) * (1.25 - d.consistency / 130)).toFixed(2)));
+  G.db.teams.forEach(t => (wk.form[t.id] = +(localRngNormal(G.seed + ':' + G.season.year + ':' + t.id + ':' + track.id) * 0.3 + RNG.normal(0, 0.12)).toFixed(2)));
+  G.db.drivers.forEach(d => (wk.dform[d.id] = +(RNG.normal(0, 0.55) * (1.25 - d.consistency / 130)).toFixed(2)));
   G.db.teams.forEach(t => (wk.optimum[t.id] = Setup.genOptimum(track, t, localRng(G.seed + ':' + G.season.year + ':' + track.id + ':' + t.id))));
   // acerto das equipes da IA: definido pelo trabalho dos engenheiros durante os treinos
   wk.aiSetups = {};

@@ -19,12 +19,20 @@ RegCal.tech = (t) => {
 RegCal.concept = (G, year) => {
   const out = G.db.teams.map(t => {
     const r = localRng(`concept:${G.seed}:${t.id}:${year}`);
-    const delta = clamp(RegCal.tech(t) * 0.8 + RegCal.normal(r) * 1.3, -3.5, 3.5);
+    // acerto do conceito: pesa mais a força técnica; a sorte existe, mas raramente vira o grid de cabeça para baixo
+    // a força técnica pesa, mas o acerto do conceito tem muita sorte: uma equipe de fora do topo pode acertar em cheio (Brawn 2009)
+    const delta = clamp(RegCal.tech(t) * 0.6 + RegCal.normal(r) * 2.4, -5, 5);
     t.car.aero = +(t.car.aero + delta * 0.6).toFixed(2);
     t.car.chassis = +(t.car.chassis + delta * 0.4).toFixed(2);
     t.concept = { y: year, delta: +delta.toFixed(2) };
     return { t, delta };
   }).sort((a, b) => b.delta - a.delta);
+  // o melhor conceito costuma abrir vantagem real sobre o segundo (Mercedes 2014, Red Bull 2022)
+  if (out[0] && out[1] && out[0].delta > 0) {
+    const extra = +(Math.max(0, out[0].delta - out[1].delta) * 1.0 + 2.0).toFixed(2);
+    out[0].t.car.aero = +(out[0].t.car.aero + extra * 0.6).toFixed(2); out[0].t.car.chassis = +(out[0].t.car.chassis + extra * 0.4).toFixed(2);
+    out[0].delta = +(out[0].delta + extra).toFixed(2); out[0].t.concept.delta = out[0].delta;
+  }
   const best = out[0], worst = out[out.length - 1];
   if (best && best.delta > 1.5) Career.news(G, byLang(`${best.t.name} acerta em cheio o regulamento de ${year}`, `${best.t.name} nails the ${year} regulations`), 'tecnica', byLang('Os primeiros dados de túnel e simulador apontam o carro novo entre os melhores conceitos do grid.', 'Early wind tunnel and simulator data put the new car among the best concepts on the grid.'), { tm: [best.t.id] });
   if (worst && worst.delta < -1.5) Career.news(G, byLang(`${worst.t.name} erra o conceito do carro de ${year}`, `${worst.t.name} gets the ${year} car concept wrong`), 'tecnica', byLang('A equipe admite que o projeto não respondeu como o esperado e promete reação ao longo do ano.', 'The team admits the design did not respond as expected and promises a reaction during the year.'), { tm: [worst.t.id] });
