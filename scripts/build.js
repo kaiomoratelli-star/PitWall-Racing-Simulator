@@ -10,7 +10,7 @@ const pkg = require('../package.json');
 
 const dataJs = data.map(m => src(m + '.js')).join('\n');
 const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${src(m + '.js')}`).join('\n');
-const css = src('styles.css');
+const css = ['styles.css', 'ui85.css', 'ui85-screens.css'].filter(f => fs.existsSync(path.join(root, 'app', 'src', f))).map(src).join('\n');
 
 // Fonte oficial da F1 (Formula1 Display): não vem com o jogo (é da Formula One Management).
 // Se os arquivos estiverem em app/assets/fonts (ex.: Formula1-Display-Bold.woff2), o build gera os

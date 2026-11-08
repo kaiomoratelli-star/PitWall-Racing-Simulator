@@ -400,11 +400,12 @@ Engine.stepLap = (race, wk) => {
   for (const c of order) {
     const team = byId(db.teams, c.tid);
     const drv = wk.effOf(c.did);
+    const o = Engine.ord(c, L);   // ordens de rádio do jogador (zebras, ar sujo, defesa, ataque, economia)
     const lapsLeft = race.laps - L + 1;
     // decisão de pit (a parada acontece no fim desta volta)
     let doPit = false, newC = null;
     if (c.pitReq) { doPit = true; newC = c.pitReq; c.pitReq = null; }
-    else if (c.auto && L > 1 && L < race.laps && Engine.aiWantsPit(race, c, wk, team.staff.strategy)) {
+    else if (c.auto && L > 1 && L < race.laps && !(c.noPitUntil && L < c.noPitUntil && c.tyre.wear < 90) && Engine.aiWantsPit(race, c, wk, team.staff.strategy)) {
       doPit = true; newC = Engine.chooseCompound(race, c, wk, race.laps - L);
     }
     // tempo de volta
@@ -414,6 +415,7 @@ Engine.stepLap = (race, wk) => {
     c.pure = t; // ritmo limpo, sem tráfego (usado no rádio e no relatório)
     const sd = (0.14 + (100 - drv.consistency) * 0.009 + w * 0.3) * ((drv.b && drv.b.sd) || 1);
     t += RNG.normal(0, sd);
+    if (!scType) t += (o.kerbs ? 0.07 : 0) + (o.lift ? 0.22 : 0) + (o.defend ? 0.06 : 0) - (o.attack ? 0.06 : 0) - (o.motivated ? 0.03 : 0);
 
     if (L === 1) t += 2.6 + RNG.normal(0, 0.6) - (drv.start - 80) * 0.03 - (drv.racecraft - 80) * 0.01 - ((drv.b && drv.b.lap1) || 0);
     // DRS / ar sujo
@@ -421,7 +423,7 @@ Engine.stepLap = (race, wk) => {
     if (!scType && L >= 3 && (!race.restartLap || L - race.restartLap >= 2) && w < 0.3 && c.lastGapAhead < 1.0 && track.drs > 0) {
       c.drs = true; t -= 0.16 * Math.sqrt(track.drs);
     }
-    if (!scType && c.lastGapAhead < 1.3) t += 0.1 + track.weights.aero * 0.45;
+    if (!scType && c.lastGapAhead < 1.3) t += o.cleanAir ? (1.5 - c.lastGapAhead) * 0.6 : 0.1 + track.weights.aero * 0.45;   // ar sujo: com a ordem, o piloto recua e protege os pneus
     if (scType === 'SC') t = scPace + RNG.range(0, 0.4);
     if (scType === 'VSC') t = Math.max(t, track.baseLap * 1.3) + RNG.range(0, 0.3);
 
@@ -429,7 +431,7 @@ Engine.stepLap = (race, wk) => {
     const rel = Engine.reliability(db, team);
     const air = wk.weather && wk.weather.air ? wk.weather.air[L] : 22;
     const heat = air > 28 ? 1 + (air - 28) * 0.05 * clamp(1 - ((team.car.cooling ?? 80) - 80) / 40, 0.3, 1.5) : 1;
-    const pFail = 0.000042 * Math.max(4, 106 - rel) * (c.tyreMode === 'push' ? 1.12 : 1) * (c.ersMode === 'overtake' ? 1.1 : 1) * heat;
+    const pFail = 0.000042 * Math.max(4, 106 - rel) * (c.tyreMode === 'push' ? 1.12 : 1) * (c.ersMode === 'overtake' ? 1.1 : 1) * heat * (o.lift ? 0.85 : 1) * (o.kerbs ? 0.9 : 1);
     if (RNG.chance(pFail)) {
       if (RNG.chance(0.72)) {
         c.status = 'dnf'; c.dnfReason = RNG.pick(FAILURES); c.T += t;
@@ -442,7 +444,7 @@ Engine.stepLap = (race, wk) => {
       }
     }
     if (!scType) {
-      const errP = (0.00035 + (100 - drv.consistency) * 0.00006) * ((drv.b && drv.b.err) || 1) * (1.35 - drv.concentration / 100 * 0.45) * (c.tyreMode === 'push' ? 1.6 : c.tyreMode === 'save' ? 0.7 : 1) * (1 + w * 4 + Engine.weatherPenalty(c.tyre.c, w) * 0.6) * (L === 1 ? 3 : 1);
+      const errP = (0.00035 + (100 - drv.consistency) * 0.00006) * ((drv.b && drv.b.err) || 1) * (1.35 - drv.concentration / 100 * 0.45) * (c.tyreMode === 'push' ? 1.6 : c.tyreMode === 'save' ? 0.7 : 1) * (1 + w * 4 + Engine.weatherPenalty(c.tyre.c, w) * 0.6) * (L === 1 ? 3 : 1) * (o.kerbs ? 0.6 : 1) * (o.attack ? 1.25 : 1) * (o.lift ? 0.85 : 1);
       if (RNG.chance(errP)) {
         incidentCars.add(c);
         const crash = RNG.chance(0.32 + w * 0.25 + (track.street ? 0.18 : 0));
@@ -502,10 +504,10 @@ Engine.stepLap = (race, wk) => {
     c.laps = L;
     // pneus e combustível
     const wr = Engine.wearRate(c.tyre.c, track, drv, team, scType ? 'save' : c.tyreMode, w, c.tyre.temp) * (scType ? 0.45 : 1);
-    c.tyre.wear = clamp(c.tyre.wear + wr, 0, 100);
+    c.tyre.wear = clamp(c.tyre.wear + wr * (o.lift ? 0.94 : 1) * (o.attack ? 1.08 : 1) * (o.defend ? 1.04 : 1) * (o.cleanAir && c.lastGapAhead < 1.3 ? 0.93 : 1), 0, 100);
     if (!scType) c.wearPerLap = +(wr / Engine.tyreWearMul(c.tyreMode)).toFixed(2); // ritmo de desgaste no modo equilibrado (base da estratégia)
     c.tyre.age++;
-    c.fuel = Math.max(0, c.fuel - 100 / race.laps);
+    c.fuel = Math.max(0, c.fuel - 100 / race.laps * (o.lift ? 0.9 : 1));
   }
 
   // ultrapassagens — percorre do líder para trás
@@ -531,9 +533,12 @@ Engine.stepLap = (race, wk) => {
           if (cur.T > ahead.T - 0.05) cur.T = ahead.T - 0.05;
           live[j] = ahead; live[j - 1] = cur; j--; continue;
         }
+        const oc = Engine.ord(cur, L), oa = Engine.ord(ahead, L);
+        // ordens: não briga com o companheiro / não ataca para fugir do ar sujo
+        if ((oc.hold && cur.tid === ahead.tid) || oc.cleanAir) { cur.T = Math.max(cur.T, ahead.T + (oc.cleanAir ? 0.9 : 0.45)); break; }
         const dc = wk.effOf(cur.did), da = wk.effOf(ahead.did);
         const adv = (ahead.T + 0.25 - cur.T);
-        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.ersMode === 'overtake' ? 0.35 : 0) + (cur.tyreMode === 'push' ? 0.12 : 0);
+        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.ersMode === 'overtake' ? 0.35 : 0) + (cur.tyreMode === 'push' ? 0.12 : 0) + (oc.attack ? 0.3 : 0) - (oa.defend ? 0.55 : 0);
         const p = 1 / (1 + Math.exp(-x));
         if (RNG.chance(p)) {
           cur.overtakes++;
@@ -566,6 +571,7 @@ Engine.stepLap = (race, wk) => {
     }
   }
 
+  Engine.applyOrders(race, wk, L, scType);
   // classificação provisória
   const runSorted = race.cars.filter(c => c.status === 'run').sort((a, b) => a.T - b.T);
   const out = race.cars.filter(c => c.status !== 'run').sort((a, b) => b.laps - a.laps || a.T - b.T);
@@ -666,4 +672,34 @@ Engine.finishRace = (race, wk) => {
   }
   const w = classified[0];
   if (w) Engine.event(race, 'finish', race.sprint ? `${wk.nameOf(w.did)} vence a corrida Sprint!` : `BANDEIRADA! ${wk.nameOf(w.did)} vence o ${wk.track.gp}!`, w.did);
+};
+
+/* ---------- ordens de rádio do jogador ----------
+   c.orders: { kerbs, cleanAir, defend, attack, lift, hold, letBy, motivatedUntil }
+   Só os carros do jogador recebem ordens; os da IA seguem os estrategistas. */
+const NO_ORD = Object.freeze({});
+Engine.ord = (c, L) => {
+  const o = c && c.orders; if (!o) return NO_ORD;
+  const r = {};   // valor true = até cancelar; número = vale até aquela volta
+  for (const k in o) { const v = o[k]; if (v === true || (typeof v === 'number' && L != null && L <= v)) r[k] = true; }
+  if (o.motivatedUntil && L != null && L <= o.motivatedUntil) r.motivated = true;
+  return r;
+};
+Engine.ORDER_LAPS = { attack: 5, defend: 5, cleanAir: 5 };
+Engine.ORDERS = ['kerbs', 'cleanAir', 'defend', 'attack', 'lift', 'hold'];
+/* deixar o companheiro passar: executa quando ele está logo atrás (até 2,5 s) */
+Engine.applyOrders = (race, wk, L, scType) => {
+  if (scType === 'SC' || scType === 'RED') return;
+  race.cars.forEach(c => {
+    const o = c.orders; if (!o || !o.letBy || c.status !== 'run') return;   // vale até acontecer
+    const mate = race.cars.find(x => x !== c && x.tid === c.tid && x.status === 'run');
+    if (!mate) { o.letBy = false; return; }
+    const run = race.cars.filter(x => x.status === 'run').sort((a, b) => a.T - b.T);
+    const ic = run.indexOf(c), im = run.indexOf(mate);
+    if (im === ic + 1 && mate.T - c.T < 2.5) {
+      const tc = c.T; c.T = mate.T + 0.35; mate.T = tc;
+      o.letBy = false;
+      Engine.event(race, 'order', byLang(`Ordem de equipe: ${wk.nameOf(c.did)} abre passagem para ${wk.nameOf(mate.did)}.`, `Team order: ${wk.nameOf(c.did)} lets ${wk.nameOf(mate.did)} through.`), c.did, { b: mate.did, imp: true });
+    } else if (im < ic) o.letBy = false;   // o companheiro já está à frente
+  });
 };

@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.8.5 — Nova interface (em teste, ainda não lançada)
+Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da escolha tela a tela do dono do jogo. Relatório da verificação em `docs/RELATORIO-0.8.5.md`.
+
+**Sistema visual**
+- Temas escuro (padrão) e claro, trocados no topo ou em Opções → Interface.
+- Cor da equipe do jogador aplicada a destaques, barras e gráficos.
+- Formas misturadas com regra fixa:
+  - redondo para pessoas, pneus, estado ao vivo e porcentagens (anéis);
+  - quadrado arredondado para dados, notas, posições, etiquetas, botões e cartões.
+- Fonte Barlow Condensed (títulos e números) junto com Titillium Web e IBM Plex Mono, incluída no instalador.
+- Mais gráficos em todo o jogo: anéis, barras, linhas, radar, rosca, dispersão, mini-gráficos e mapas de pista.
+
+**Casca e navegação**
+- Áreas (Início, Corrida, Equipe, Carro, Fábrica, Mercado, Finanças, Mundo, Arquivo) com abas no topo de cada área.
+- Menu na lateral (padrão), no topo ou embaixo, escolhido em Opções → Interface.
+- Barra superior com construtores, caixa, diretoria e data, e um botão "Avançar" que mostra as pendências.
+- Busca rápida (Ctrl+K) de telas, pilotos, equipes e circuitos.
+
+**Telas**
+- Central: faixa de notícias do Paddock girando, próxima etapa com mapa da pista e dados do seu carro naquele traçado (posição esperada no grid, último vencedor, maior vencedor).
+- Calendário: visão por mês (principal) e por etapa; clique na pista abre a ficha.
+- Treino e acerto: indicador quadrado nas barras de acerto.
+- Corrida ao vivo:
+  - pista maior;
+  - Pit Wall com abas por piloto;
+  - rádio com ordens novas: deixar o companheiro mais rápido passar, evitar zebras, ficar fora da janela de box, evitar ar sujo, além de atacar, defender, poupar e motivar.
+- Pole (depois da classificação): pôster com o pódio do grid e a posição de cada piloto.
+- Pódio novo no estilo da cerimônia, aberto ao fim de cada corrida.
+- Pilotos:
+  - lista no modelo A;
+  - "Mano a Mano" para comparar dois pilotos;
+  - página do piloto com radar de atributos.
+- Carro no modelo B. Fornecedores foram para a aba Fabricantes, agora muito mais detalhada (motores, pneus e movimentações).
+- P&D: as duas propostas juntas (quadro de projetos + painel do carro).
+- Finanças:
+  - visão geral com rosca de despesas;
+  - aba Análise: gasto por ponto, gasto × pontos, receitas e gastos por etapa, orçamentos do grid;
+  - extrato com filtro por categoria.
+- Patrocinadores, Conselho, Notícias (jornal) e Fim de temporada no modelo B.
+- Página da equipe com estatísticas completas e os maiores vencedores.
+- Redes sociais e todas as telas sem pedido específico no modelo A.
+
+**Simulação**
+- Efeito das ordens de rádio no motor de corrida (ritmo, desgaste, combustível, erros, falhas, ultrapassagens e ar sujo).
+- Atacar, defender e evitar ar sujo valem por 5 voltas: mantidas a corrida toda, custavam posições.
+- "Deixar passar" espera o companheiro estar logo atrás (até 2,5 s). O piloto que cede perde moral.
+
+**Verificação**
+- Script novo `scripts/ui85-check.js`:
+  - 47 telas e abas;
+  - português e inglês, tema escuro e claro, menu na lateral, no topo e embaixo;
+  - larguras de 1100 a 1920 px;
+  - coerência dos números com os dados do jogo (11 verificações).
+
 ## 0.8.4 — Equipes como empresas, mercado vivo, política e eventos (08/11/2026)
 Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, relatório em `docs/RELATORIO-0.8.4.md`). A interface fica para a 0.8.5, depois de uma conversa de design.
 
