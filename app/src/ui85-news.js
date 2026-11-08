@@ -62,7 +62,7 @@ function newsMontage85(n) {
   }
   // vitória: pista ao fundo e o vencedor
   if (n.tag === 'corrida' && d && has(d) && /venc|vitória|wins|victory|festa/i.test(T)) {
-    const tr = n.tr && Career.track(G, n.tr); const bg = (tr && imgUrl(tr.heroImg)) || newsPhoto85(n, 'podium');
+    const tr = n.tr && Career.track(G, n.tr); const bg = (tr && trackHero85(tr)) || newsPhoto85(n, 'podium');
     return `<div class="nimg nm85 nm-win" style="--a:${t ? t.color : '#E10600'};${bg ? `--bg:url('${bg}')` : ''}">${person(d)}<span class="nm-p1">P1</span><span class="nm-tag">${tr ? esc(tr.gp) : byLang('Vitória', 'Win')}</span>${t ? `<span class="nm-tl">${logo(t)}</span>` : ''}</div>`;
   }
   // marca histórica: número grande
