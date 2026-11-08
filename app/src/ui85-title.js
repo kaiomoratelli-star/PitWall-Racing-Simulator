@@ -14,7 +14,8 @@ const TITLE85 = [
   ['telemetria', 'Telemetria', 'Telemetry'],
   ['grid', 'Grid', 'Grid'],
 ];
-const title85 = () => { const v = UIPREF.get('title'); return TITLE85.some(t => t[0] === v) ? v : 'largada'; };
+/* decisão do dono (08/11/2026): fica só a Largada; as outras propostas continuam no código para referência, sem botão */
+const title85 = () => 'largada';
 ACT.title85 = (el) => { UIPREF.set('title', el.dataset.val); UI.titleCar85 = 0; render(); };
 
 /* menu comum às quatro propostas */
@@ -64,7 +65,6 @@ function titleLargada85() {
     </div>
     ${tr ? `<div class="t85-place"><small>${byLang('Hoje no paddock', 'Today at the paddock')}</small><b>${esc(tr.circuit)}</b><span>${esc(tr.place || '')}</span></div>` : ''}
     <div class="t85-tick"><div>${[...titleFacts85(), ...titleFacts85()].map(([k, v]) => `<span>${esc(k)} <b>${esc(String(v))}</b></span>`).join('')}</div></div>
-    ${titlePick85()}
   </div>`;
 }
 

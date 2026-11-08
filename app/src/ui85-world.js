@@ -167,3 +167,45 @@ SCREENS.seasonEnd = {
           K85.card({ t: byLang('O que acontece agora', 'What happens next'), body: K85.list([{ title: byLang('Pilotos envelhecem e evoluem', 'Drivers age and develop') }, { title: byLang('Contratos vencem e o mercado se mexe', 'Contracts end and the market moves') }, { title: byLang('Patrocinadores renovam ou saem', 'Sponsors renew or leave') }, regNext ? { title: byLang('Regulamento novo: os carros são reembaralhados', 'New regulations: the order is reshuffled'), tail: K85.tag(byLang('novo', 'new'), 'y') } : { title: byLang('O carro novo é montado', 'The new car is built') }].concat(G.nextYearBank > 0 ? [{ title: byLang(`Desenvolvimento guardado: +${G.nextYearBank.toFixed(2)}`, `Banked development: +${G.nextYearBank.toFixed(2)}`), tail: K85.tag('P&D', 'g') }] : [])) })) : '');
   },
 };
+
+/* ---------------- Classificação: pontos por etapa, logos e total sempre visível no fim ---------------- */
+(function () {
+  const old = SCREENS.standings;
+  // pontos de um piloto (ou equipe) em cada etapa: corrida + Sprint
+  const roundPts = (r, key, id) => {
+    const rc = r.cls.filter(c => c[key] === id); const sp = (r.sprint || []).filter(c => c[key] === id);
+    const pts = rc.reduce((a, c) => a + (c.pts || 0), 0) + sp.reduce((a, c) => a + (c.pts || 0), 0);
+    return { pts, pos: key === 'did' && rc[0] ? rc[0] : null, sp: sp.reduce((a, c) => a + (c.pts || 0), 0) };
+  };
+  const cell = (r, x) => {
+    if (!r) return '<td class="st-r fut">·</td>';
+    const c = x.pos;
+    if (c && (c.status === 'dnf' || c.status === 'dsq')) return `<td class="st-r ab" title="${esc(r.gp)}: ${c.status === 'dsq' ? byLang('desclassificado', 'disqualified') : byLang('abandono', 'retired')}${x.sp ? ` · Sprint ${x.sp} pts` : ''}">${x.sp ? x.sp : c.status === 'dsq' ? 'DQ' : 'AB'}</td>`;
+    const cls = c && c.pos <= 3 ? `p${c.pos}` : x.pts ? 'pts' : 'zero';
+    return `<td class="st-r ${cls}" title="${esc(r.gp)}${c ? ` · ${c.pos}º` : ''}${x.sp ? ` · Sprint ${x.sp} pts` : ''}">${x.pts || (c ? '0' : '–')}</td>`;
+  };
+  const head = (res) => G.season.calendar.map((id, i) => { const tr = Career.track(G, id); const r = res[i]; return `<th class="st-r ${r ? 'done' : ''}" title="${esc(tr.gp)}">${typeof Assets !== 'undefined' ? Assets.flag(tr.country, 'sm') : ''}<small>${esc(tr.country || '')}</small></th>`; }).join('');
+  const logo = (t) => (t && imgUrl(t.logo) ? `<span class="st-lg" style="background:${t.color}"><img src="${imgUrl(t.logo)}" alt=""></span>` : `<span class="st-lg txt" style="background:${t ? t.color : '#555'}">${esc(t ? (t.short || teamAbbr(t.name)) : '—')}</span>`);
+  SCREENS.standings = {
+    html() {
+      const tab = UI.params.tab || 'drivers';
+      if (tab === 'chart') return old.html.call(this);
+      const res = G.season.results; const myT = G.player.teamId;
+      const tabs = [['drivers', byLang('Pilotos', 'Drivers')], ['teams', byLang('Construtores', 'Constructors')], ['chart', byLang('Evolução dos pontos', 'Points progression')]];
+      let table;
+      if (tab === 'drivers') {
+        const sd = Career.standingsD(G);
+        table = `<table class="st85"><thead><tr><th class="st-p">#</th><th class="st-n">${byLang('Piloto', 'Driver')}</th><th class="st-t">${byLang('Equipe', 'Team')}</th><th class="st-s" title="${byLang('Vitórias', 'Wins')}">V</th><th class="st-s" title="${byLang('Pódios', 'Podiums')}">${byLang('Pód', 'Pod')}</th><th class="st-s">Poles</th><th class="st-s" title="${byLang('Voltas mais rápidas', 'Fastest laps')}">VMR</th><th class="st-s" title="${byLang('Abandonos', 'Retirements')}">AB</th>${head(res)}<th class="st-pts">${byLang('Pts', 'Pts')}</th></tr></thead><tbody>
+          ${sd.map((x, i) => { const d = Career.driver(G, x.did); const t = d.team && Career.team(G, d.team); return `<tr class="${d.team === myT ? 'me' : ''}"><td class="st-p">${i + 1}</td><td class="st-n">${K85.av(d, 28)}${flagOnly(d.nat)}<b data-act="driverPage" data-id="${d.id}">${esc(d.name)}</b></td><td class="st-t">${logo(t)}<span>${esc(t ? t.name : '—')}</span></td><td class="st-s">${x.st.wins || 0}</td><td class="st-s">${x.st.podiums || 0}</td><td class="st-s">${x.st.poles || 0}</td><td class="st-s">${x.st.fl || 0}</td><td class="st-s">${x.st.dnfs || 0}</td>${G.season.calendar.map((_, k) => cell(res[k], res[k] ? roundPts(res[k], 'did', x.did) : null)).join('')}<td class="st-pts">${x.pts}</td></tr>`; }).join('')}</tbody></table>`;
+      } else {
+        const sc = Career.standingsC(G);
+        table = `<table class="st85"><thead><tr><th class="st-p">#</th><th class="st-n">${byLang('Equipe', 'Team')}</th><th class="st-t">${byLang('Motor', 'Power unit')}</th><th class="st-s" title="${byLang('Vitórias', 'Wins')}">V</th><th class="st-s" title="${byLang('Pódios', 'Podiums')}">${byLang('Pód', 'Pod')}</th>${head(res)}<th class="st-pts">${byLang('Pts', 'Pts')}</th></tr></thead><tbody>
+          ${sc.map((x, i) => { const t = Career.team(G, x.tid); const w = sum(res.map(r => r.cls.filter(c => c.tid === t.id && c.pos === 1 && c.status === 'fin').length)); const p = sum(res.map(r => r.cls.filter(c => c.tid === t.id && c.pos <= 3 && c.status === 'fin').length)); let eng = ''; try { eng = Engine.engineOf(G.db, t).name || ''; } catch (e) { /* sem motor */ }
+            return `<tr class="${t.id === myT ? 'me' : ''}"><td class="st-p">${i + 1}</td><td class="st-n">${logo(t)}<b data-act="teamPage85" data-id="${t.id}">${esc(t.name)}</b></td><td class="st-t"><span>${esc(eng)}</span></td><td class="st-s">${w}</td><td class="st-s">${p}</td>${G.season.calendar.map((_, k) => { const r = res[k]; if (!r) return '<td class="st-r fut">·</td>'; const v = roundPts(r, 'tid', t.id); const best = Math.min(...r.cls.filter(c => c.tid === t.id && c.status === 'fin').map(c => c.pos), 99); return `<td class="st-r ${best <= 1 ? 'p1' : best <= 3 ? 'p3' : v.pts ? 'pts' : 'zero'}" title="${esc(r.gp)}">${v.pts}</td>`; }).join('')}<td class="st-pts">${x.pts}</td></tr>`; }).join('')}</tbody></table>`;
+      }
+      return K85.head({ t: byLang('Classificação', 'Standings'), s: `${byLang('Temporada', 'Season')} ${G.season.year} · ${res.length}/${G.season.calendar.length} ${byLang('etapas', 'rounds')}`, tabs, tab }) +
+        `<div class="n-card st85-card"><div class="st85-wrap">${table}</div><div class="st85-leg"><span><i class="p1"></i>${byLang('vitória', 'win')}</span><span><i class="p2"></i>2º</span><span><i class="p3"></i>3º</span><span><i class="pts"></i>${byLang('pontuou', 'scored')}</span><span><b>AB</b> ${byLang('abandono', 'retired')}</span><span>${byLang('Pontos da etapa somam corrida e Sprint. Passe o mouse para ver a posição.', 'Round points add race and Sprint. Hover for the finishing position.')}</span></div></div>`;
+    },
+    after() { if (old.after) old.after.call(this); },
+  };
+})();

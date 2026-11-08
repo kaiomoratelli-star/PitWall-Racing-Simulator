@@ -497,3 +497,32 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 .rp-h { align-items: center; } .rp-mini { align-items: center; }
 /* a classe .secs vale para a caixa de setores; na célula da tabela ela precisa continuar célula (senão as barras sobem) */
 td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec { margin: 0 1.5px; }
+/* ---------- Classificação: tabela com pontos por etapa ---------- */
+.st85-card { padding: 0; overflow: hidden; }
+.st85-wrap { overflow-x: auto; scrollbar-width: thin; }
+.st85 { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.st85 th { font: 700 10.5px var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: var(--mu2); padding: 9px 6px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; background: var(--panel); }
+.st85 td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; background: var(--panel); }
+.st85 tr.me td { background: color-mix(in srgb, var(--team) 14%, var(--panel)); }
+.st85 tbody tr:hover td { background: color-mix(in srgb, var(--fg) 5%, var(--panel)); }
+.st85 .st-p { width: 34px; font: 700 14px var(--f-mono); position: sticky; left: 0; z-index: 2; }
+.st85 .st-n { text-align: left; position: sticky; left: 34px; z-index: 2; min-width: 210px; box-shadow: 6px 0 8px -6px rgba(0,0,0,.35); }
+.st85 td.st-n { display: flex; align-items: center; gap: 8px; } .st85 td.st-n b { font-weight: 600; cursor: pointer; } .st85 td.st-n b:hover { color: var(--team); }
+.st85 .st-t { text-align: left; min-width: 150px; } .st85 td.st-t { color: var(--muted); } .st85 td.st-t > span:last-child { vertical-align: middle; margin-left: 6px; }
+.st85 td.st-n .st-lg { margin-right: 2px; }
+.st-lg { display: inline-grid; place-items: center; width: 34px; height: 22px; border-radius: 5px; position: relative; overflow: hidden; vertical-align: middle; flex: none; }
+.st-lg img { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); object-fit: contain; filter: brightness(0) invert(1); }
+.st-lg.txt { font: 800 10px var(--f-cond); color: #fff; }
+.st85 .st-s { width: 38px; font: 600 12.5px var(--f-mono); color: var(--muted); }
+.st85 th.st-r { min-width: 34px; padding: 6px 2px; } .st85 th.st-r small { display: block; font-size: 9px; margin-top: 2px; } .st85 th.st-r.done { color: var(--fg); } .st85 th.st-r .flag, .st85 th.st-r img { display: block; margin: 0 auto; }
+.st85 td.st-r { min-width: 34px; padding: 4px 2px; font: 600 12px var(--f-mono); }
+.st85 td.st-r.p1 { background: color-mix(in srgb, #FFC93C 30%, var(--panel)); color: var(--fg); }
+.st85 td.st-r.p2 { background: color-mix(in srgb, #C9CED6 26%, var(--panel)); }
+.st85 td.st-r.p3 { background: color-mix(in srgb, #D08A4E 28%, var(--panel)); }
+.st85 td.st-r.pts { color: var(--green); } .st85 td.st-r.zero { color: var(--mu2); } .st85 td.st-r.ab { color: var(--red); font-size: 10.5px; } .st85 td.st-r.fut { color: var(--mu2); opacity: .5; }
+.st85 .st-pts { position: sticky; right: 0; z-index: 2; min-width: 64px; font: 800 17px var(--f-mono); box-shadow: -6px 0 8px -6px rgba(0,0,0,.35); }
+.st85 th.st-pts { font: 800 11px var(--f-cond); color: var(--fg); }
+.st85 thead th.st-p, .st85 thead th.st-n, .st85 thead th.st-pts { z-index: 3; }
+.st85-leg { display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 14px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+.st85-leg i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; } .st85-leg i.p1 { background: #FFC93C; } .st85-leg i.p2 { background: #C9CED6; } .st85-leg i.p3 { background: #D08A4E; } .st85-leg i.pts { background: var(--green); }
+.st85-leg b { color: var(--red); font-family: var(--f-mono); }

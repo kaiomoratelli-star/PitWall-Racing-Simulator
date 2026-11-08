@@ -85,8 +85,7 @@ FX85.ink = () => {
   sv.html = function () {
     let out = h.call(this);
     const opt = (act, cur, list) => `<div class="seg">${list.map(([v, l]) => `<button class="${cur === v ? 'on' : ''}" data-act="${act}" data-val="${v}">${esc(l)}</button>`).join('')}</div>`;
-    const rows = `<div class="ui85-row"><div><b>${byLang('Tela de início', 'Title screen')}</b><span>${byLang('Quatro estilos. Também dá para trocar no canto da própria tela de início.', 'Four styles. You can also switch in the corner of the title screen.')}</span></div>${opt('title85', title85(), TITLE85.map(([k, pt, en]) => [k, byLang(pt, en)]))}</div>
-      <div class="ui85-row"><div><b>${byLang('Animações', 'Animations')}</b><span>${byLang('Transições entre telas e abas, gráficos que crescem e números que contam.', 'Screen and tab transitions, growing charts and counting numbers.')}</span></div>${opt('motion85', UIPREF.get('motion') === 'off' ? 'off' : 'on', [['on', byLang('Ligadas', 'On')], ['off', byLang('Desligadas', 'Off')]])}</div>`;
+    const rows = `<div class="ui85-row"><div><b>${byLang('Animações', 'Animations')}</b><span>${byLang('Transições entre telas e abas, gráficos que crescem e números que contam.', 'Screen and tab transitions, growing charts and counting numbers.')}</span></div>${opt('motion85', UIPREF.get('motion') === 'off' ? 'off' : 'on', [['on', byLang('Ligadas', 'On')], ['off', byLang('Desligadas', 'Off')]])}</div>`;
     const i = out.indexOf('<div class="ui85-row">');
     return i >= 0 ? out.slice(0, i) + rows + out.slice(i) : out;
   };

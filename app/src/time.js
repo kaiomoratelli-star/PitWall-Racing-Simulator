@@ -62,6 +62,8 @@ Time.init = (G) => {
 Time.day = (G) => {
   Time.init(G);
   G.today = Time.addDays(G.today, 1);
+  // outras categorias andam junto com o calendário do jogo, dia a dia (não só nos GPs de F1)
+  if (typeof Cats !== 'undefined' && Cats.on(G)) Cats.advanceTo(G, G.today);
   const ev = [];
   if (typeof RnD !== 'undefined' && !Career.isObs(G)) RnD.dayTick(G, ev);
   return ev;
@@ -133,5 +135,16 @@ Time.catchUp = (G) => {
   Career.mail = (G, m) => {
     const prio = m.prio || (m.choices ? 'decision' : (m.important || m.tag === 'dev') ? 'important' : 'normal');
     mail(G, { ...m, prio, date: G.today || null });
+  };
+})();
+
+/* carreira nova: as categorias que já começaram antes da data inicial do jogo
+   (Fórmula E desde dezembro, F4 Emirados, FR Oriente Médio, NASCAR, IndyCar...) chegam com as etapas já disputadas */
+(function () {
+  const cr = Career.create;
+  Career.create = (...a) => {
+    const G = cr(...a);
+    try { Time.init(G); if (typeof Cats !== 'undefined' && Cats.on(G)) Cats.advanceTo(G, G.today); } catch (e) { /* sem categorias */ }
+    return G;
   };
 })();

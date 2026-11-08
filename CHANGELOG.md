@@ -70,6 +70,21 @@ Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da
   - Animam só quando a tela muda e respeitam a opção "Animações: desligadas" e a preferência do sistema por menos movimento.
 - Retratos de 5 pilotos (Albon, Lindblad, Colapinto, Lawson e Gasly) estavam recortados sem a cabeça; foram refeitos a partir da foto de corpo inteiro.
 
+**Correções do relançamento da 0.8.5 (mesmo número de versão, instalador substituído)**
+- **Outras categorias:** só avançavam quando terminava um GP de F1. Por isso, no começo do jogo, as etapas já passadas da Fórmula E, da F4 dos Emirados, da FR Oriente Médio e da NASCAR apareciam como não disputadas, e os dias entre os GPs não contavam.
+  - Agora elas andam dia a dia, junto com o calendário do jogo.
+  - Na carreira nova, as etapas anteriores à data inicial (26/02) já chegam disputadas.
+  - Script novo `scripts/cats-check.js` (também no `npm test`). Ele confere que as 23 categorias não ficam com etapa atrasada e que todas terminam o ano com campeão, nos modos chefe de equipe e observador.
+- **Classificação:**
+  - pontos de cada etapa (corrida + Sprint) para pilotos e construtores, com cores de vitória, 2º, 3º, pontos e abandono;
+  - logos das equipes;
+  - total de pontos na última coluna, sempre visível, com piloto e posição fixos ao rolar.
+- **Tabelas cabem na largura da tela** (Mercado de pilotos e as demais): o texto longo quebra linha, sem barra para os lados.
+- **Central:** foto de fundo também no Bahrein, em Portimão e em Istambul (Wikimedia Commons, com créditos). Pistas sem foto usam uma foto genérica de corrida.
+- **Tela de início:**
+  - fica só a Largada, com fundo sorteado entre fotos de pistas e de corrida;
+  - as luzes de largada aparecem só ao abrir o jogo, não a cada clique.
+
 **Últimos ajustes antes do lançamento**
 - Corrida:
   - menu suspenso de clima no topo, no estilo dos jogos de gestão. Mostra a condição agora, a água na pista (com faixas seca/intermediário/chuva), ar, asfalto, umidade, vento e o pneu indicado;
