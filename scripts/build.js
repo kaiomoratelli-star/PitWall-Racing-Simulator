@@ -23,7 +23,7 @@ const f1Css = f1Files.map(f => {
   const fmt = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' }[f.split('.').pop().toLowerCase()];
   return `@font-face{font-family:'${wide ? 'Formula1 Display Wide' : 'Formula1 Display'}';font-weight:${weight};font-style:${/italic/i.test(f) ? 'italic' : 'normal'};font-display:swap;src:url('assets/fonts/${f}') format('${fmt}');}`;
 }).join('\n');
-const body = (withImg) => `<div id="app"></div><div id="toasts" aria-live="polite"></div>\n<script>\nconst APP_VERSION = ${JSON.stringify(pkg.version)};\nconst HAS_IMG = ${withImg};\n${dataJs}\n${js}\n</script>`;
+const body = (withImg) => `<div id="app"></div><div id="toasts" aria-live="polite"></div>\n<script>\nconst APP_VERSION = ${JSON.stringify(pkg.version.replace(/-(\d+)$/, '.$1'))};\nconst HAS_IMG = ${withImg};\n${dataJs}\n${js}\n</script>`;
 
 // desktop
 const dist = path.join(root, 'app', 'dist');
@@ -46,4 +46,4 @@ ${body(true)}
 const web = path.join(root, 'dist-web');
 fs.mkdirSync(web, { recursive: true });
 fs.writeFileSync(path.join(web, 'pitwall.html'), `${src('head.html')}\n<style>${css}</style>\n${body(false)}`);
-console.log(`build ok: v${pkg.version} · ${(js.length / 1024).toFixed(0)} KB de JS${f1Files.length ? ` · fonte Formula1 Display (${f1Files.length} arquivos)` : ''}`);
+console.log(`build ok: v${pkg.version.replace(/-(\d+)$/, '.$1')} · ${(js.length / 1024).toFixed(0)} KB de JS${f1Files.length ? ` · fonte Formula1 Display (${f1Files.length} arquivos)` : ''}`);

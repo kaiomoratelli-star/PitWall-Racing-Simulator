@@ -42,5 +42,9 @@ npx electron-builder --win nsis --x64 --publish never   # instalador local (func
 - Ao mudar o formato do save, incremente `SAVE_VERSION` em `app/src/migrate.js` e adicione um passo de migração.
 - Cada push na `main` dispara o CI no Windows (`.github/workflows/windows.yml`): build, instalação silenciosa, teste do executável, atualização e desinstalação. Se tudo passar, o CI publica a release `v<versão do package.json>`.
 - Para lançar uma versão nova, suba `version` em `package.json` e em `package-lock.json` e escreva a entrada no `CHANGELOG.md`.
+- **Correções de uma versão já publicada ganham número novo** (decisão do dono, 08/11/2026). Nunca se substitui o instalador nem se move a etiqueta de uma versão publicada.
+  - No `package.json`, a correção é escrita `0.8.5-1`, `0.8.5-2`… porque o número precisa seguir o padrão semver.
+  - O jogo, a release e a etiqueta mostram `0.8.5.1`, `0.8.5.2`…, pela conversão em `scripts/build.js` e no passo `v` do CI.
+  - O CI cria a etiqueta e a release sozinho no push para a `main`.
 - A simulação é determinística (RNG com semente). Não use `Math.random` no núcleo.
 - Ultrarrealismo (plano em `docs/AUDITORIA-0.8.2.md`): não equilibrar o grid artificialmente, não inventar pilotos, contratos ou transferências (vaga sem fonte = "a confirmar" ou "projeção do jogo"), não duplicar pessoas (use `Persons.index` antes de criar um piloto), e jogador e IA seguem as mesmas regras financeiras (`econ.js`).

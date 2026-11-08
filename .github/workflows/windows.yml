@@ -109,7 +109,7 @@ jobs:
       - name: Versão
         id: v
         shell: bash
-        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(node -p "require('./package.json').version.replace(/-(\\d+)$/, '.\$1')")" >> "$GITHUB_OUTPUT"
 
       # Cada versão aprovada nos testes acima vira uma release com o Setup.exe para download
       - name: Publicar release
