@@ -11,7 +11,7 @@ function newsImg(n, big) {
   const d = n.dr && Career.driver(G, n.dr[0]);
   const t = (n.tm && Career.team(G, n.tm[0])) || (d && d.team && Career.team(G, d.team));
   const col = t ? t.color : '#3a3a44';
-  if (d && imgUrl(d.img)) return `<div class="nimg person" style="--tc:${col}"><img src="${imgUrl(d.img)}" alt="" loading="lazy" onerror="this.remove()">${big && t && imgUrl(t.carImg) ? `<img class="ncar" src="${imgUrl(t.carImg)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div>`;
+  if (d && imgUrl(d.img)) return `<div class="nimg person" style="--tc:${col}"><img src="${(typeof Assets !== 'undefined' && Assets.body(d)) || imgUrl(d.img)}" alt="" loading="lazy" onerror="this.remove()">${big && t && imgUrl(t.carImg) ? `<img class="ncar" src="${imgUrl(t.carImg)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div>`;
   if (t && imgUrl(t.carImg)) return `<div class="nimg car" style="--tc:${col}"><img src="${imgUrl(t.carImg)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
   return `<div class="nimg plain" style="--tc:${col}"><span>${esc(d ? initials(d.name) : t ? t.short : (Media.TAGS[n.tag] || 'F1'))}</span></div>`;
 }

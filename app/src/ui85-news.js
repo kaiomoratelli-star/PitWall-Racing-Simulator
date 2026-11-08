@@ -37,7 +37,7 @@ function newsHash85(s) { let h = 2166136261; for (const c of String(s)) { h ^= c
 function newsPhoto85(n, theme) { const l = NEWSBANK85[theme || newsTheme85(n)]; return l && l.length ? imgUrl(l[newsHash85(n.id + '|' + n.title) % l.length]) : null; }
 
 /* recorte do piloto (foto de corpo inteiro com fundo transparente) ou retrato */
-const cut85 = (d) => (d && d.img && /^drivers\//.test(d.img) ? imgUrl(d.img) : null);
+const cut85 = (d) => (typeof Assets !== 'undefined' && Assets.body ? Assets.body(d) : null);
 const prevTeam85 = (d) => { const h = d && d.history; if (!Array.isArray(h)) return null; for (const x of h.slice().reverse()) { const id = (x.teams || [x.team]).filter(Boolean).find(t => t !== d.team); if (id && Career.team(G, id)) return Career.team(G, id); } return null; };
 
 function newsMontage85(n) {

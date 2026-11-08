@@ -28,8 +28,15 @@ Assets.licenseSummary = () => {
 /* retrato centralizado: faces/<id do jogo>.webp (fotos oficiais) ou faces/<uid>.webp (base de pilotos) */
 Assets.slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 Assets.has = (rel) => { if (typeof ASSET_REGISTRY === 'undefined') return false; Assets.info('x'); return !!Assets._idx['assets/img/' + rel]; };
+/* foto com o macacão da equipe atual: se existir <pasta>/<nome>@<id da equipe>.webp, o jogo usa essa
+   (ex.: faces/max-verstappen@mercedes.webp e drivers/max-verstappen@mercedes.webp quando ele for para a Mercedes) */
+Assets.key = (d) => (d.img ? String(d.img).replace(/^.*\//, '').replace(/\.(webp|png|jpe?g)$/, '') : (d.uid || Assets.slug(d.name)));
+Assets.suit = (d, dir) => { const t = d && d.team; if (!t) return null; const rel = `${dir}/${Assets.key(d)}@${t}.webp`; return Assets.has(rel) ? imgUrl(rel) : null; };
+/* corpo inteiro (fundo transparente): a versão com o macacão da equipe atual ou a foto padrão */
+Assets.body = (d) => (d ? Assets.suit(d, 'drivers') || (d.img && /^drivers\//.test(d.img) ? imgUrl(d.img) : null) : null);
 Assets.face = (d) => {
   if (!d) return null;
+  const suit = Assets.suit(d, 'faces'); if (suit) return suit;
   const a = d.img ? `faces/${String(d.img).replace(/^drivers\//, '').replace(/\.webp$/, '')}.webp` : null;
   if (a && Assets.has(a)) return imgUrl(a);
   if (d.uid && Assets.has(`faces/${d.uid}.webp`)) return imgUrl(`faces/${d.uid}.webp`);
