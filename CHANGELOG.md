@@ -90,6 +90,9 @@ Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, r
   - save do navegador que falhava calado;
   - feed de notícias curto.
 - Botão para apagar jogo salvo na tela inicial.
+- Equilíbrio de forças recalibrado depois da chegada dos fabricantes:
+  - o carro guarda 90% da vantagem de um ano para o outro (50% num regulamento novo), com menos ruído no desenvolvimento;
+  - a campeã de construtores muda de mão em média 10,7 vezes em 25 anos (F1 real: 8).
 
 **Mercado vivo**
 - Empresários:

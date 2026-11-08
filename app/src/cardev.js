@@ -57,10 +57,10 @@ CarDev.newCars = (G, reg) => {
     ts.forEach((t, i) => {
       const r = localRng(`carro:${G.seed}:${t.id}:${k}:${G.season.year}`);
       const gap = t.car[k] - m;
-      const keep = reg ? 0.45 : 0.88;      // anos estáveis: vantagem grande resiste; regulamento novo: zera boa parte
+      const keep = reg ? 0.5 : 0.9;        // anos estáveis: vantagem grande resiste; regulamento novo: zera boa parte (0.8.4: +fábrica e donos embaralham, então o carro mantém um pouco mais)
       const learn = (caps[i] - capAvg) * (reg ? 2.6 : 1.7);
       // o meio do pelotão se mexe todo ano; organização de ponta é mais constante (processos), a média oscila mais
-      const noise = (r() + r() + r() - 1.5) * 6.0 * (1.4 - CarDev.org(t));
+      const noise = (r() + r() + r() - 1.5) * 5.2 * (1.4 - CarDev.org(t));
       t.car[k] = +(G.carRef[k] + gap * keep + learn + noise).toFixed(2);
     });
   });

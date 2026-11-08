@@ -113,7 +113,7 @@ Nenhuma delas causa erro; só ocupam espaço. Removo na limpeza da 0.8.5, se voc
    - na versão de navegador há aviso, mas o ideal, se ela existir comercialmente, é salvar em IndexedDB.
 2. **Tempo por temporada:** cresce de 3,3 s para cerca de 5 s em 50 anos, por causa do banco de pilotos aposentados guardado para o histórico. Aceitável. Se incomodar, dá para arquivar os aposentados sem F1 há mais de 30 anos.
 3. **Candidatas, fabricantes e pneus esgotáveis:** cobertos pelos projetos gerados. Para fabricantes, a lista fixa de 6 candidatos pode se esgotar em 100+ anos. Recomendo o mesmo gerador na 0.8.5.
-4. **Equilíbrio de forças:** a troca de campeã varia muito entre sementes (de 8 a 16 em 25 anos). Os eventos agora têm peso pequeno, então a variação vem do próprio desenvolvimento dos carros.
+4. **Equilíbrio de forças:** após o ajuste final do desenvolvimento dos carros, a campeã muda de mão 8, 16 e 8 vezes em 25 anos (média de 10,7; F1 real: 8). A variação entre sementes continua grande e vem do próprio desenvolvimento, porque os eventos agora pesam pouco.
 5. **Saves antigos:** os sistemas novos (donos, fábrica, fabricantes, pneus, eventos) são criados sob demanda ao abrir um save antigo. A migração completa continua para depois da V1 (`docs/PENDENCIAS-V1.md`).
 6. **Erros em tempo de jogo:** os ganchos novos de fim de semana (eventos, parcerias) registram erro no log em vez de travar o jogo.
 

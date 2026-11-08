@@ -101,18 +101,22 @@ Data: 08/11/2026. Roteiro e avaliação: `docs/ROADMAP-0.8.4.md`. Decisões do d
 - exclusão do Mundial ficou em 25% das espionagens comprovadas;
 - golpes no carro menores.
 
-| Medida (26 anos) | 0.8.4 (3 sementes) | 0.8.3 | F1 real |
+| Medida (26 anos) | 0.8.4 final (3 sementes) | 0.8.3 | F1 real |
 |---|---|---|---|
-| Equipes vencedoras por ano | 3,6–3,85 | 3,4–3,7 | 3,3 |
-| Equipes no pódio por ano | 5,8–5,9 | — | 5,8 |
-| Ordem de um ano para o outro (correlação) | 0,83–0,90 | — | 0,76 |
-| Campeã de construtores mudou de mão (em 25 transições) | 8, 13 e 16 (média 12) | 9 e 13 | 8 |
-| Pilotos com nota 90+ na F1 | média 2,3 a 3,1; mínimo 1 | — | — |
+| Equipes vencedoras por ano | 3,96–4,15 | 3,4–3,7 | 3,3 |
+| Equipes no pódio por ano | 5,65–6,08 | — | 5,8 |
+| Ordem de um ano para o outro (correlação) | 0,84–0,90 | — | 0,76 |
+| Campeã de construtores mudou de mão (em 25 transições) | 8, 16 e 8 (média 10,7) | 9 e 13 | 8 |
+| Pilotos com nota 90+ na F1 | média 2,4 a 3,1; mínimo 1 | — | — |
 
-A diferença na troca de campeã está dentro da variação entre sementes, que é grande.
+Na revisão final, o motor passou a vir dos fabricantes, com retorno decrescente. Isso aumentou a troca de campeã para uma média de 14. Ajuste final no desenvolvimento dos carros (`cardev.js`):
+- o carro guarda 90% da vantagem de um ano para o outro, ou 50% num regulamento novo;
+- o ruído de desenvolvimento ficou menor.
 
-**Medido em 30 anos:**
-- **Escândalos:** cerca de 1,6 por temporada. 29 investigações, com 21 culpados; 6 casos acobertados; 1 exclusão do Mundial de Construtores.
+Assim a média voltou a 10,7. Uma das três sementes ainda dá 16 trocas; a variação entre sementes continua grande.
+
+**Medido em 30 anos (primeira rodada; recalibrado depois, ver `DOSSIE-0.8.4.md`):**
+- **Escândalos:** cerca de 1,6 por temporada na primeira rodada; após a revisão, cerca de 0,4 por temporada, dentro de cerca de 22 eventos por ano (136 tipos). 29 investigações, com 21 culpados; 6 casos acobertados; 1 exclusão do Mundial de Construtores.
 - **Lesões e doenças:** cerca de 3 por ano, somando todas as categorias.
 - **Acidentes fatais:** raros. Em 30 anos, 1 caso (FRECA). Na F1 moderna, a probabilidade é de cerca de 1 a cada 80–100 anos, e a segurança melhora com o tempo.
 - **Teste forçado:** os 23 eventos, cada um várias vezes, inclusive contra a equipe do jogador, sem erros (84 eventos, 42 casos, 18 com decisão do jogador).
