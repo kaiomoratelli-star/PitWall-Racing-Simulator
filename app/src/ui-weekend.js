@@ -73,10 +73,10 @@ function strategyHtml() {
     return `<div class="panel"><div class="panel-h">${dTag(d.id)}<span class="chip">Larga em ${ordinal(wk.grid.indexOf(d.id) + 1)}</span></div><div class="panel-b stack">
       <span class="label">Pneu de largada</span>
       <div class="row">${['S', 'M', 'H', 'I', 'W'].map(c => `<button class="btn sm ${st.startTyre === c ? 'primary' : ''}" data-act="stTyre" data-d="${d.id}" data-c="${c}">${tyreIcon(c)} ${TYRES[c].name}</button>`).join('')}</div>
-      <div class="small muted">Vida útil estimada até 70% de desgaste: ${['S', 'M', 'H'].map(c => `${TYRES[c].name} ~${life(c, d)} voltas`).join(' · ')} (corrida de ${laps} voltas)</div>
+      <div class="small muted">Voltas até a vida do pneu cair para 30%: ${['S', 'M', 'H'].map(c => `${TYRES[c].name} ~${life(c, d)} voltas`).join(' · ')} (corrida de ${laps} voltas)</div>
       <span class="label">Plano de paradas</span>
       ${segBtns('stStops', st.stops, [[1, '1 parada'], [2, '2 paradas'], [3, '3 paradas']], `data-d="${d.id}"`)}
-      <label class="field"><span>Parar quando o desgaste chegar a ${st.pitWear}%</span><input type="range" min="45" max="90" step="1" value="${st.pitWear}" data-inp="stWear" data-d="${d.id}" id="sw-${d.id}"></label>
+      <label class="field"><span>Parar quando a vida do pneu cair para ${100 - st.pitWear}%</span><input type="range" min="45" max="90" step="1" value="${st.pitWear}" data-inp="stWear" data-d="${d.id}" id="sw-${d.id}"></label>
       <label class="check"><input type="checkbox" ${st.auto ? 'checked' : ''} data-chg="stAuto" data-d="${d.id}"> Engenheiro decide as paradas automaticamente (você ainda pode chamar o piloto quando quiser)</label>
     </div></div>`;
   }).join('')}</div>
@@ -91,7 +91,7 @@ function strategyHtml() {
 }
 ACT.stTyre = (el) => { G.weekend.strategy[el.dataset.d].startTyre = el.dataset.c; render(); };
 ACT.stStops = (el) => { G.weekend.strategy[el.dataset.d].stops = +el.dataset.val; render(); };
-CHG.stWear = (el) => { G.weekend.strategy[el.dataset.d].pitWear = +el.value; const lab = el.closest('label').querySelector('span'); if (lab) lab.textContent = `Parar quando o desgaste chegar a ${el.value}%`; };
+CHG.stWear = (el) => { G.weekend.strategy[el.dataset.d].pitWear = +el.value; const lab = el.closest('label').querySelector('span'); if (lab) lab.textContent = byLang(`Parar quando a vida do pneu cair para ${100 - el.value}%`, `Pit when tyre life drops to ${100 - el.value}%`); };
 CHG.stAuto = (el) => { G.weekend.strategy[el.dataset.d].auto = el.checked; };
 ACT.startRace = () => { Career.startRace(G); autosave(); UI.racePaused = true; UI.raceError = null; go('race'); };
 

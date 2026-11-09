@@ -193,3 +193,67 @@ Sisters.afterRound = (G) => {
   if (G.season.round === Math.round(G.season.calendar.length * 0.4)) Sisters.review(G, 'mid');
 };
 Sisters.seasonStart = (G) => { Sisters.ensure(G); Sisters.techTransfer(G); Sisters.review(G, 'pre'); };
+
+/* ---------- indicação de pilotos para a equipe irmã (0.8.6) ----------
+   Como a Red Bull faz com a Racing Bulls: a dona escolhe quem corre na irmã. Pode indicar um piloto
+   da academia, o reserva da principal ou um piloto livre, desde que tenha superlicença. Quem sai
+   vira reserva da irmã (ou fica livre, se ela já tiver reserva). A rescisão sai do caixa da irmã. */
+Sisters.nomCandidates = (G, child) => {
+  const me = G.player.teamId; if (Sisters.parentOf(G, child) !== me) return [];
+  const ac = (G.academies || []).find(a => a.team === me);
+  const ok = (d) => d && !d.retired && !d.injured && !d.banned && !d.futureTeam && (d.age || 18) >= 18 && (typeof SL === 'undefined' || SL.status(G, d) === 'full');
+  const out = [];
+  (ac ? ac.members : []).map(id => Career.driver(G, id)).filter(d => ok(d) && d.team !== child && !(d.team && d.seat !== 'R')).forEach(d => out.push({ d, src: 'academy' }));
+  G.db.drivers.filter(d => d.team === me && d.seat === 'R' && ok(d)).forEach(d => { if (!out.some(x => x.d === d)) out.push({ d, src: 'reserve' }); });
+  G.db.drivers.filter(d => !d.team && ok(d) && !out.some(x => x.d === d)).sort((a, b) => driverOverall(b) - driverOverall(a)).slice(0, 10).forEach(d => out.push({ d, src: 'free' }));
+  return out;
+};
+Sisters.nominate = (G, child, outId, inId) => {
+  const me = G.player.teamId;
+  if (Sisters.parentOf(G, child) !== me) return byLang('Só a equipe principal indica os pilotos da irmã.', 'Only the parent team nominates the sister team drivers.');
+  if (G.weekend) return byLang('Termine o fim de semana de corrida antes.', 'Finish the race weekend first.');
+  const out = Career.driver(G, outId), inn = Career.driver(G, inId);
+  if (!out || out.team !== child || out.seat === 'R') return byLang('Escolha um titular da equipe irmã.', 'Pick a race driver of the sister team.');
+  if (!inn || !Sisters.nomCandidates(G, child).some(x => x.d === inn)) return byLang('Este piloto não pode ser indicado (precisa de superlicença e estar disponível).', 'This driver cannot be nominated (needs a super licence and to be available).');
+  const c = Career.team(G, child); const seat = out.seat;
+  const cost = +((out.salary || 0) * Math.max(0, out.contractYears || 0) * 0.5).toFixed(2);
+  const salary = +Math.max(inn.salary || 0, 0.4 + Math.max(0, driverOverall(inn) - 78) * 0.22).toFixed(2);
+  Career.placeDriver(G, inn, child, seat, salary, Math.max(1, inn.contractYears || 1));
+  if (!out.team && cost) c.cash = +((c.cash || 0) - cost).toFixed(2);   // dispensado: a irmã paga a rescisão
+  inn.nominatedBy = me;
+  if (typeof People !== 'undefined') { People.mood(G, inn, 10, 'contract'); People.mood(G, out, -14, 'contract'); }
+  const P = Career.team(G, me).name;
+  Career.news(G, byLang(`${P} coloca ${inn.name} na ${c.name}; ${out.name} ${out.team === child ? 'vira reserva' : 'deixa a equipe'}`, `${P} place ${inn.name} at ${c.name}; ${out.name} ${out.team === child ? 'becomes reserve' : 'leaves the team'}`), 'mercado', byLang(`Indicação da equipe principal, como a Red Bull faz com a irmã. ${inn.name} assume o carro #${seat} a partir da próxima etapa.`, `Nomination by the parent team, as Red Bull does with its sister team. ${inn.name} takes car #${seat} from the next round.`), { dr: [inn.id, out.id], tm: [me, child], main: true });
+  Career.record(G, 'contrato', `${P} indicou ${inn.name} para a ${c.name} no lugar de ${out.name}.`, { teams: [me, child], drivers: [inn.id, out.id] });
+  return null;
+};
+
+/* ---------- nova identidade da equipe irmã (0.8.6) ----------
+   Quem compra a equipe pode redesenhar tudo: nome, nome completo, sigla, cores, logo e nome do chassi.
+   A identidade original fica guardada e pode voltar. As trocas de identidade reais da temporada
+   (title sponsors) deixam de valer para uma equipe reestilizada. */
+Sisters.rebrand = (G, child, cfg) => {
+  const me = G.player.teamId;
+  if (Sisters.parentOf(G, child) !== me) return byLang('Só a dona da equipe pode mudar a identidade.', 'Only the owner can change the identity.');
+  const t = Career.team(G, child); if (!t) return 'Equipe não encontrada.';
+  const name = String(cfg.name || '').trim(); if (!name) return byLang('Dê um nome à equipe.', 'Give the team a name.');
+  if (G.db.teams.some(x => x.id !== child && x.name.toLowerCase() === name.toLowerCase())) return byLang('Já existe uma equipe com esse nome.', 'A team with that name already exists.');
+  if (!t.rebranded) t.rebranded = { y: G.season.year, from: { name: t.name, fullName: t.fullName, short: t.short, color: t.color, color2: t.color2, logo: t.logo, carImg: t.carImg, chassisName: t.chassisName } };
+  const old = t.name;
+  t.name = name; t.fullName = String(cfg.fullName || '').trim() || name;
+  t.short = (String(cfg.short || '').trim() || (typeof teamAbbr === 'function' ? teamAbbr(name) : name.slice(0, 3))).toUpperCase().slice(0, 3);
+  if (cfg.color) t.color = cfg.color; if (cfg.color2) t.color2 = cfg.color2;
+  if (cfg.logo && cfg.logo !== 'keep') t.logo = cfg.logo;
+  if (cfg.chassisName != null) t.chassisName = String(cfg.chassisName).trim() || t.chassisName;
+  if (!cfg.keepCar) t.carImg = null;   // a foto do carro real não combina com a pintura nova
+  t.rebranded.y = G.season.year;
+  Career.news(G, byLang(`${old} passa a se chamar ${t.name}`, `${old} is renamed ${t.name}`), 'mercado', byLang(`A ${Career.team(G, me).name}, dona da equipe, apresentou a nova identidade: ${t.fullName}.`, `${Career.team(G, me).name}, the team's owner, unveiled the new identity: ${t.fullName}.`), { tm: [child, me], main: true });
+  Career.record(G, 'decisao', `${old} virou ${t.fullName} (nova identidade dada pela ${Career.team(G, me).name}).`, { teams: [child, me] });
+  return null;
+};
+Sisters.restoreBrand = (G, child) => {
+  const t = Career.team(G, child); if (!t || !t.rebranded || Sisters.parentOf(G, child) !== G.player.teamId) return 'Nada para restaurar.';
+  Object.assign(t, t.rebranded.from); delete t.rebranded; t.identityYear = null;
+  if (typeof Identity !== 'undefined') Identity.apply(G, G.season.year);
+  return null;
+};

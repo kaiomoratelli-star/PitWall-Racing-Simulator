@@ -163,7 +163,7 @@ function updateRace(full) {
       <td class="small ${ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'muted'} num">${L ? (ch > 0 ? '▲' + ch : ch < 0 ? '▼' + -ch : '–') : ''}</td>
       <td class="gp">${gap}</td><td class="gp muted">${intv}</td>
       <td>${c.status === 'dnf' ? '' : tyreIcon(c.tyre.c)}</td>
-      <td class="num small ${c.status === 'dnf' ? 'muted' : tempClass(tr, c.tyre.c, c.tyre.temp)}" title="Desgaste ${Math.round(c.tyre.wear)}% · ${Math.round(c.tyre.temp)}°C">${c.status === 'dnf' ? esc((c.dnfReason || '').split(' ')[0]) : Math.round(c.tyre.wear) + '%'}</td>
+      <td class="num small ${c.status === 'dnf' ? 'muted' : tempClass(tr, c.tyre.c, c.tyre.temp)}" title="Vida do pneu ${Math.max(0, Math.round(100 - c.tyre.wear))}% · ${Math.round(c.tyre.temp)}°C">${c.status === 'dnf' ? esc((c.dnfReason || '').split(' ')[0]) : Math.max(0, Math.round(100 - c.tyre.wear)) + '%'}</td>
       <td class="secs">${c.status === 'dnf' ? '' : [0, 1, 2].map(k => secCell(c, k, race)).join('')}</td>
       <td class="num small ${c.best && race.fastest && c.best === race.fastest.time ? 'pur' : 'muted'}">${c.lastLap && c.status !== 'dnf' ? fmtLap(c.lastLap) : ''}</td>
       <td class="num small muted">${c.pits ? 'P' + c.pits : ''}</td>

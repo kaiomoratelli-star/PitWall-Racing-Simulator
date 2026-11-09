@@ -60,7 +60,7 @@ const I18N_EN = Object.assign({}, I18N_GP, I18N_COUNTRY, {
   'Estratégico': 'Strategist', 'Especialista em ultrapassagens': 'Overtaking specialist', 'Tudo': 'All', 'Posição': 'Position', 'a disputar': 'to race', 'Pneus': 'Tyres', 'Resultado': 'Result', 'Acerto': 'Setup',
   'Asa dianteira': 'Front wing', 'Menos ângulo': 'Less angle', 'Mais ângulo': 'More angle', 'Asa traseira': 'Rear wing', 'Suspensão e barras': 'Suspension & bars', 'Altura do carro': 'Ride height',
   'Balanço de freio': 'Brake balance', 'Toque': 'Contact', 'decidir': 'to decide', 'Simulada': 'Simulated', 'Sua equipe não tem academia.': 'Your team has no academy.', 'Perda no pit': 'Pit loss',
-  'Comissários e casos': 'Stewards and cases', 'Conversas': 'Talks', 'Mensagens e decisões': 'Messages & decisions', 'Marcar tudo como lido': 'Mark all as read', 'Evolução dos pontos': 'Points progression', 'Pód.': 'Pod.', 'Aband.': 'DNF', 'Circuito': 'Circuit',
+  'Comissários e casos': 'Stewards and cases', 'Nova identidade': 'New identity', 'Vida do pneu': 'Tyre life', 'Conversas': 'Talks', 'Mensagens e decisões': 'Messages & decisions', 'Marcar tudo como lido': 'Mark all as read', 'Evolução dos pontos': 'Points progression', 'Pód.': 'Pod.', 'Aband.': 'DNF', 'Circuito': 'Circuit',
   'Sua melhor posição': 'Your best position', 'próxima': 'next', 'Nenhuma votação ainda nesta carreira.': 'No votes yet in this career.', 'Destaques': 'Highlights', 'Mercado de pilotos': 'Driver market',
   'Negociações no paddock': 'Paddock negotiations', 'Rumores e conversas em andamento': 'Rumours and ongoing talks', 'Nada em andamento.': 'Nothing ongoing.', 'Nenhum pré-contrato anunciado.': 'No pre-contracts announced.',
   'Todos': 'All', 'Sem equipe': 'No team', 'Contrato acabando': 'Contract expiring', 'Com superlicença': 'With Super Licence', 'De academias': 'From academies', 'Todas as séries': 'All series',
@@ -692,4 +692,9 @@ I18N_PATS.unshift(
   [/^(.+) confirma novo diretor técnico para o próximo ano$/, '$1 confirms a new technical director for next year'],
   [/^Rumor: (.+) avalia trocar de fornecedor de motor$/, 'Rumour: $1 considering a change of engine supplier'],
   [/^Federação esclarece regra de limites de pista após polêmica$/, 'Federation clarifies track limits rule after controversy'],
+);
+I18N_PATS.unshift(
+  [/^Parar quando a vida do pneu cair para (\d+)%$/, 'Pit when tyre life drops to $1%'],
+  [/^Voltas até a vida do pneu cair para 30%: ([\s\S]+)$/, (m, a) => 'Laps until tyre life drops to 30%: ' + a.replace(/voltas/g, 'laps').replace(/corrida de/g, 'race of')],
+  [/^Vida do pneu (\d+)% · ([\d.]+)°C$/, 'Tyre life $1% · $2°C'],
 );

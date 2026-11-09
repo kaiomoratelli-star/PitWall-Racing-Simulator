@@ -30,6 +30,11 @@ Ainda não publicada. O plano está em `docs/PLANO-0.8.6.md` e a auditoria do c�
 - Confiança no chefe pesa na renovação, nas ordens e no pedido de saída.
 - Funcionários com moral, pedidos de aumento, verba e promoção, conflitos entre chefes de área e demissão do diretor técnico depois de um ano ruim.
 
+**Pedidos do dono (09/11)**
+- Pneus e peças mostram a vida que resta (de 100% a 0%), não o desgaste: torre de tempos, cartão do piloto, abas da corrida, estratégia e motor.
+- Equipe irmã: a dona indica quem corre nela (piloto da academia, o seu reserva ou um piloto livre com superlicença).
+- Equipe irmã comprada pode ganhar identidade nova: nome, nome completo, sigla, cores, logo (da lista ou importado) e nome do chassi, com prévia e opção de voltar à original.
+
 **Limpeza**
 - Cerca de 680 linhas de código sem uso removidas; funções esquecidas reaproveitadas (rivalidades, créditos e licenças, censo de talentos, estouros do teto).
 - Nota do chefe de equipe e aerodinâmica ativa passaram a ter efeito.

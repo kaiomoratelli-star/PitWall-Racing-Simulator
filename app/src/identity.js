@@ -30,6 +30,7 @@ Identity.SEASON = {
 /* aplica a identidade vigente no ano; guarda a anterior no histórico da equipe */
 Identity.apply = (G, year) => {
   G.db.teams.forEach(t => {
+    if (t.rebranded) return;   // identidade escolhida pela dona da equipe
     const byYear = Identity.SEASON[t.id];
     if (!byYear) return;
     const ys = Object.keys(byYear).map(Number).filter(y => y <= year).sort((a, b) => a - b);
