@@ -134,6 +134,7 @@ function noSession85(msg) {
         <header class="r85-top"><button class="x-ibtn" data-act="go" data-v="hub" aria-label="${byLang('Sair da corrida', 'Leave the race')}" title="${byLang('Sair (a corrida fica pausada)', 'Leave (the race stays paused)')}">${svg85(ICON85.back)}</button>
           <div class="r85-t"><span class="n-eyebrow">${natTag(tr.country)} ${esc(tr.circuit)} · ${byLang('Etapa', 'Round')} ${wk.round + 1}</span><b>${esc(tr.gp)}</b></div>
           <div class="race-hud" id="hud"></div></header>
+        <div class="rc85" id="rcStrip" hidden></div>
         ${race.lap === 0 && !race.finished ? preRaceHtml(wk, race, tr) : ''}
         <div class="r85-body">
           <section class="r85-col"><div class="n-card r85-tw"><div class="tower" id="tower"></div></div>
