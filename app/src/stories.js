@@ -96,8 +96,7 @@ Stories.react = (G, kind, vars) => {
   }
 };
 (function () {
-  const post = Social.post;
-  Social.post = (G, p) => {
+  Hooks.around('Social', Social, 'post', 'stories', (post, G, p) => {
     post(G, p);
     const map = { win: 'win', title: 'title', signing: 'signing', dnf: 'dnf', scandal: 'scandal', record: 'record' };
     const k = map[p.kind];
@@ -107,14 +106,13 @@ Stories.react = (G, kind, vars) => {
     if (['win', 'title', 'dnf', 'record'].includes(k) && !(d && d.team)) return;   // só a F1
     if (k === 'dnf' && localRng(`dnfr:${G.seed}:${G.seq}`)() > 0.35) return;
     Stories.react(G, k, { d: d ? d.name : '', t: t ? t.name : '', about: p.driver || p.team || null });
-  };
+  });
 })();
 
 /* ---------- 2) anúncio em etapas (conversa → vazamento → oficial) ---------- */
 Stories.state = (G) => (G.stories = G.stories || { queue: [], hidden: [], log: [] });
 (function () {
-  const sf = Market.signFuture;
-  Market.signFuture = (G, d, t, offer, buyout) => {
+  Hooks.around('Market', Market, 'signFuture', 'stories', (sf, G, d, t, offer, buyout) => {
     const mine = !Career.isObs(G) && (t.id === G.player.teamId || d.team === G.player.teamId);
     if (mine) return sf(G, d, t, offer, buyout);
     const q = [];
@@ -129,7 +127,7 @@ Stories.state = (G) => (G.stories = G.stories || { queue: [], hidden: [], log: [
     Career.news(G, byLang(`Vazamento: ${d.name} tem acordo com a ${t.name} para ${G.season.year + 1}`, `Leak: ${d.name} has a deal with ${t.name} for ${G.season.year + 1}`), 'rumor', byLang('Fontes do paddock dão o acordo como fechado. O anúncio oficial deve sair nas próximas semanas.', 'Paddock sources say the deal is done. The official announcement is expected in the coming weeks.'), { dr: [d.id], tm: [t.id], outlet: o });
     P(G, { by: o, kind: 'rumor', driver: d.id, text: byLang(`EXCLUSIVO: ${d.name} e ${t.name} têm acordo para ${G.season.year + 1}. Anúncio oficial em breve.`, `EXCLUSIVE: ${d.name} and ${t.name} have agreed terms for ${G.season.year + 1}. Official announcement soon.`), hype: 1.6 });
     if (G.social && G.social[0]) G.social[0].aboutTeam = t.id;
-  };
+  });
 })();
 Stories.release = (G, all) => {
   const S = Stories.state(G);
@@ -171,8 +169,7 @@ function S_log(G, tier, kind, tid) { const S = Stories.state(G); S.log.unshift({
 
 /* muito raro: escândalo (personagens fictícios) — ocorre agora, é descoberto depois ou acobertado */
 (function () {
-  const st = Media.scandalTick;
-  Media.scandalTick = (G, force) => {
+  Hooks.around('Media', Media, 'scandalTick', 'stories', (st, G, force) => {
     const q = [];
     const N = Career.news, P = Social.post, M = Career.mail, R = Career.record;
     Career.news = (G2, ...a) => q.push(['n', a]); Social.post = (G2, p) => q.push(['p', p]); Career.mail = (G2, m) => q.push(['m', m]); Career.record = (G2, ...a) => q.push(['r', a]);
@@ -188,7 +185,7 @@ function S_log(G, tier, kind, tid) { const S = Stories.state(G); S.log.unshift({
     S.hidden.push({ y: G.season.year, at: G.season.round, discover: G.season.round + (force ? 0 : 1 + Math.floor(r() * 6)), covered, q, tid });
     S_log(G, 'muitoRaro', covered ? 'escandalo acobertado' : 'escandalo', tid);
     if (force) Stories.discover(G, S.hidden[S.hidden.length - 1]);
-  };
+  });
 })();
 Stories.discover = (G, h) => {
   h.out = true;
@@ -237,10 +234,8 @@ Stories.passAway = (G, c) => {
 
 /* ---------- ganchos ---------- */
 (function () {
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const r = fw(G, ...a); Stories.release(G); Stories.tick(G); return r; };
-  const es = Career.endSeason;
-  Career.endSeason = (G) => { Stories.release(G, true); Stories.yearly(G); return es(G); };
+  Hooks.around('Career', Career, 'finishWeekend', 'stories', (fw, G, ...a) => { const r = fw(G, ...a); Stories.release(G); Stories.tick(G); return r; });
+  Hooks.around('Career', Career, 'endSeason', 'stories', (es, G) => { Stories.release(G, true); Stories.yearly(G); return es(G); });
 })();
 
 /* ---------- 5) depuração: forçar eventos ---------- */

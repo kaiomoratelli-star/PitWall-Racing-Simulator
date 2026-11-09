@@ -380,30 +380,7 @@ async function generateAIEvent(summary, btn) {
 }
 
 /* ================= CLASSIFICAÇÃO ================= */
-SCREENS.standings = {
-  html() {
-    const tab = UI.params.tab || 'drivers';
-    const sd = Career.standingsD(G), sc = Career.standingsC(G);
-    const res = G.season.results;
-    const myT = G.player.teamId;
-    let body;
-    if (tab === 'drivers') {
-      body = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Piloto</th><th>Equipe</th><th class="r">Pts</th><th class="r">V</th><th class="r">Pód.</th><th class="r">Poles</th><th class="r">VMR</th><th class="r">Aband.</th>${res.map(r => `<th class="c" title="${esc(r.gp)}">${esc(Career.track(G, r.trackId).country)}</th>`).join('')}</tr></thead><tbody>
-      ${sd.map((x, i) => { const d = Career.driver(G, x.did); return `<tr class="${d.team === myT ? 'me' : ''}"><td class="num">${i + 1}</td><td>${dTag(x.did)}</td><td class="small muted">${d.team ? esc(Career.team(G, d.team).short) : '—'}</td><td class="r num"><b>${x.pts}</b></td><td class="r num">${x.st.wins || 0}</td><td class="r num">${x.st.podiums || 0}</td><td class="r num">${x.st.poles || 0}</td><td class="r num">${x.st.fl || 0}</td><td class="r num">${x.st.dnfs || 0}</td>${res.map(r => { const c = r.cls.find(y => y.did === x.did); if (!c) return '<td class="c muted">·</td>'; const p = c.status === 'dnf' ? 'Ab' : c.pos; return `<td class="c num ${c.pos === 1 && c.status !== 'dnf' ? 'acc' : c.pos <= 3 && c.status !== 'dnf' ? 'pos' : c.pts > 0 ? '' : 'muted'}">${p}</td>`; }).join('')}</tr>`; }).join('')}
-      </tbody></table></div>`;
-    } else if (tab === 'teams') {
-      body = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Equipe</th><th>Motor</th><th class="r">Pts</th><th class="r">Vitórias</th><th class="r">Pódios</th></tr></thead><tbody>
-      ${sc.map((x, i) => { const t = Career.team(G, x.tid); const w = sum(res.map(r => r.cls.filter(c => c.tid === t.id && c.pos === 1 && c.status === 'fin').length)); const p = sum(res.map(r => r.cls.filter(c => c.tid === t.id && c.pos <= 3 && c.status === 'fin').length)); return `<tr class="${t.id === myT ? 'me' : ''}"><td class="num">${i + 1}</td><td>${tTag(t.id)}</td><td class="small muted">${esc(Engine.engineOf(G.db, t).name)}</td><td class="r num"><b>${x.pts}</b></td><td class="r num">${w}</td><td class="r num">${p}</td></tr>`; }).join('')}
-      </tbody></table></div>`;
-    } else {
-      body = `<div class="panel-b">${pointsChart()}</div>`;
-    }
-    return `
-    <div class="page-head"><div><div class="eyebrow">Temporada ${G.season.year}</div><h1>Classificação</h1></div></div>
-    <div class="panel"><div class="tabs">${[['drivers', 'Pilotos'], ['teams', 'Construtores'], ['chart', 'Evolução dos pontos']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="go" data-v="standings" data-p='{"tab":"${k}"}'>${l}</button>`).join('')}</div>${body}</div>`;
-  },
-  after() { bindCharts(); },
-};
+/* (0.8.7) a classificação antiga foi removida: a versão de ui85-world.js mostra tudo o que ela mostrava (pilotos, equipes e gráfico) e mais os pontos por etapa. */
 function pointsChart() {
   const res = G.season.results;
   if (!res.length) return '<div class="empty">A evolução aparece depois da primeira corrida.</div>';

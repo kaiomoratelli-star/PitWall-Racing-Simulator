@@ -83,21 +83,18 @@ Orders.afterRace = (G, race, gp) => {
 };
 
 (() => {
-  const ae = Events.applyEffects;
-  Events.applyEffects = (G, fx) => {
+  Hooks.around('Events', Events, 'applyEffects', 'orders', (ae, G, fx) => {
     const out = ae(G, fx);
     try { if (fx && fx.tension) { const v = Orders.addTension(G, fx.tension.a, fx.tension.b, fx.tension.v); out.push(`${byLang('Tensão', 'Tension')} ${fx.tension.v >= 0 ? '+' : ''}${fx.tension.v} (${v}/100)`); } } catch (e) { /* sem efeito */ }
     return out;
-  };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  });
+  Hooks.around('Career', Career, 'finishWeekend', 'orders', (fw, G, ...a) => {
     const wk = G.weekend; const race = wk && wk.race; const tr = wk && Career.track(G, wk.trackId);
     if (race && !race.ordDone) { try { Orders.afterRace(G, race, tr ? tr.gp : ''); } catch (e) { /* sem consequências */ } race.ordDone = true; }
     return fw(G, ...a);
-  };
+  });
   // a tensão esfria com o tempo (fim de temporada)
-  const es = Career.endSeason;
-  Career.endSeason = (G, ...a) => { try { Object.keys(G.mates || {}).forEach(k => { G.mates[k] = Math.round(G.mates[k] * 0.4); if (!G.mates[k]) delete G.mates[k]; }); G.db.drivers.forEach(d => { if (d.disobey) d.disobey = Math.max(0, d.disobey - 1); }); } catch (e) { /* nada */ } return es(G, ...a); };
+  Hooks.around('Career', Career, 'endSeason', 'orders', (es, G, ...a) => { try { Object.keys(G.mates || {}).forEach(k => { G.mates[k] = Math.round(G.mates[k] * 0.4); if (!G.mates[k]) delete G.mates[k]; }); G.db.drivers.forEach(d => { if (d.disobey) d.disobey = Math.max(0, d.disobey - 1); }); } catch (e) { /* nada */ } return es(G, ...a); });
 })();
 
 /* =============================================================
@@ -119,17 +116,14 @@ Orders.setNo1 = (G, did) => {
   if (typeof Social !== 'undefined' && Social.post && ds.length === 2 && did) { const o = ds.find(x => x.id !== did); try { Social.post(G, { driver: o.id, text: byLang('Vou continuar fazendo o meu trabalho. Os números falam por si.', 'I will keep doing my job. The numbers speak for themselves.') }); } catch (e) { /* sem post */ } }
 };
 (() => {
-  const sr = Career.startRace;
-  Career.startRace = (G, ...a) => {
+  Hooks.around('Career', Career, 'startRace', 'orders', (sr, G, ...a) => {
     const r = sr(G, ...a);
     try { const race = G.weekend && G.weekend.race; const n1 = Orders.no1(G); if (race && n1 && !Career.isObs(G)) { race.no1 = n1; race.cars.forEach(c => { if (c.tid === G.player.teamId && c.did !== n1) c.isNo2 = true; }); } } catch (e) { /* nada */ }
     return r;
-  };
-  const ob = Engine.obeyP;
-  Engine.obeyP = (wk, c, mate) => clamp(ob(wk, c, mate) + (c.isNo2 ? 0.1 : 0), 0.3, 0.99);
+  });
+  Hooks.around('Engine', Engine, 'obeyP', 'orders', (ob, wk, c, mate) => clamp(ob(wk, c, mate) + (c.isNo2 ? 0.1 : 0), 0.3, 0.99));
   // pedido automático: o nº 1 está logo atrás do companheiro
-  const ao = Engine.applyOrders;
-  Engine.applyOrders = (race, wk, L, scType) => {
+  Hooks.around('Engine', Engine, 'applyOrders', 'orders', (ao, race, wk, L, scType) => {
     if (race.no1 && L > 3 && !scType) {
       const n1 = race.cars.find(c => c.did === race.no1 && c.status === 'run'); const n2 = n1 && race.cars.find(c => c.isNo2 && c.status === 'run');
       if (n1 && n2 && n2.T < n1.T && n1.T - n2.T < 1.2 && !(n2.orders && n2.orders.letBy) && (n2.no1Asked || 0) < 2 && L - (n2.no1At || -99) > 8) {
@@ -138,8 +132,7 @@ Orders.setNo1 = (G, did) => {
       }
     }
     return ao(race, wk, L, scType);
-  };
+  });
   // o nº 2 perde um pouco de moral a cada corrida
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const r = fw(G, ...a); try { const n1 = Orders.no1(G); if (n1 && !Career.isObs(G)) Career.teamDrivers(G, G.player.teamId).filter(d => d.seat !== 'R' && d.id !== n1).forEach(d => Orders.mood(G, d, -1, 'policy')); } catch (e) { /* nada */ } return r; };
+  Hooks.around('Career', Career, 'finishWeekend', 'orders#2', (fw, G, ...a) => { const r = fw(G, ...a); try { const n1 = Orders.no1(G); if (n1 && !Career.isObs(G)) Career.teamDrivers(G, G.player.teamId).filter(d => d.seat !== 'R' && d.id !== n1).forEach(d => Orders.mood(G, d, -1, 'policy')); } catch (e) { /* nada */ } return r; });
 })();

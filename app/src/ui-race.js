@@ -199,13 +199,12 @@ function pitWallHtml() { /* substituída em ui85-race.js */ }
 CHG.followTeam = (el) => { UI.followTeam = el.value; updateRace(); };
 
 /* detecta ultrapassagens para o efeito visual na torre */
-const _stepRace = Career.stepRace;
-Career.stepRace = (G2) => {
+Hooks.around('Career', Career, 'stepRace', 'ui-race', (_stepRace, G2) => {
   const before = {}; (G2.weekend.race.cars || []).forEach(c => (before[c.did] = c.pos));
   const r = _stepRace(G2);
   r.cars.forEach(c => { if (before[c.did] && c.pos < before[c.did] && c.status === 'run') c._flash = true; });
   return r;
-};
+});
 
 /* modos de pneu e de energia (o mesmo controle que os estrategistas das outras equipes usam) */
 ACT.carTyreMode = (el) => { const c = G.weekend.race.cars.find(x => x.did === el.dataset.d); if (c) { c.tyreMode = el.dataset.val; c.mode = c.tyreMode; c.autoModes = false; } updateRace(); };

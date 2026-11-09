@@ -479,21 +479,18 @@ Chaos.force = (G, k) => {
 (function () {
   // os eventos raros antigos (túnel, logística e escândalo genérico) passam a viver aqui
   if (typeof Stories !== 'undefined') Stories.TIERS.raro = 0;
-  if (typeof Media !== 'undefined') { const st = Media.scandalTick; Media.scandalTick = (G, force) => (force ? Chaos.force(G, 'vazamento') : null); }
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const res = fw(G, ...a); try { Chaos.afterRace(G); Chaos.tick(G); } catch (err) { if (typeof Store !== 'undefined' && Store.log) Store.log('error', 'chaos: ' + err.message); else throw err; } return res; };
-  const ae = Events.applyEffects;
-  Events.applyEffects = (G, fx) => {
+  if (typeof Media !== 'undefined') Hooks.replace('Media', Media, 'scandalTick', 'chaos', (G, force) => (force ? Chaos.force(G, 'vazamento') : null), 'o escândalo genérico antigo (e a camada de histórias sobre ele) foi substituído pelo catálogo de casos');
+  Hooks.around('Career', Career, 'finishWeekend', 'chaos', (fw, G, ...a) => { const res = fw(G, ...a); try { Chaos.afterRace(G); Chaos.tick(G); } catch (err) { if (typeof Store !== 'undefined' && Store.log) Store.log('error', 'chaos: ' + err.message); else throw err; } return res; });
+  Hooks.around('Events', Events, 'applyEffects', 'chaos', (ae, G, fx) => {
     if (fx && fx.chaos) { const c = Chaos.state(G).cases.find(x => x.id === fx.chaos.id); if (c) c.stance = fx.chaos.stance; if (fx.chaos.stance === 'afasta' && c && c.sid) { const t = Career.team(G, c.tid); const s = t && (t.staffList || []).find(x => x.id === c.sid); if (s && !s.isPlayer) Chaos.removeStaff(G, t, s); } }
     return ae(G, fx);
-  };
-  const cc = Career.create;
-  Career.create = (db, opts) => {
+  });
+  Hooks.around('Career', Career, 'create', 'chaos', (cc, db, opts) => {
     const G = cc(db, opts);
     G.options.chaos = { ...Chaos.defaults(), ...(opts && opts.chaos || {}) };
     if (opts && opts.chaosFreq) G.options.chaos.freq = opts.chaosFreq;
     G.options.realMortality = G.options.chaos.realPeople;
     Chaos.opts(G);
     return G;
-  };
+  });
 })();

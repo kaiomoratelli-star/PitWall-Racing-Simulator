@@ -67,6 +67,8 @@ async function boot(hotData) {
   render(); // primeira tela imediata, sem esperar a nuvem
   if (typeof I18N !== 'undefined') I18N.firstRun();
   await Store.init();
+  // ganchos: nenhum código pode ter reescrito uma função do jogo por fora do registro
+  try { const bad = Hooks.verify(); if (bad.length) Store.log('error', 'ganchos reescritos por fora do registro: ' + bad.join(', ')); } catch (e) { /* sem ganchos */ }
   const saved = await Store.loadBaseDb();
   if (saved && saved.teams && saved.drivers && saved.tracks) { try { BASE = normalizeDb(saved); } catch (e) { BASE = buildDefaultDB(); } }
   await refreshSlots();

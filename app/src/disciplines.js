@@ -112,19 +112,16 @@ Disc.init = (G) => {
 
 (function () {
   // desempenho nas categorias simuladas: perda de adaptação na disciplina da categoria
-  const skill = Cats.skill;
-  Cats.skill = (d, wet) => skill(d, wet) - (Disc.cur ? Disc.penalty(d, Disc.cur) : 0);
-  const run = Cats.runEvent;
-  Cats.runEvent = (G, cat, ev) => {
+  Hooks.around('Cats', Cats, 'skill', 'disciplines', (skill, d, wet) => skill(d, wet) - (Disc.cur ? Disc.penalty(d, Disc.cur) : 0));
+  Hooks.around('Cats', Cats, 'runEvent', 'disciplines', (run, G, cat, ev) => {
     Disc.cur = cat.disc || 'mono';
     // NASCAR: os 4 melhores antes da última etapa disputam o título nela (formato próprio)
     const s = cat.season;
     const last = cat.playoffs && s && s.cal && ev === s.cal[s.cal.length - 1];
     if (last) s.final4 = Cats.standings(cat).slice(0, 4).map(x => x.did);
     try { return run(G, cat, ev); } finally { Disc.cur = null; }
-  };
-  const st = Cats.standings;
-  Cats.standings = (cat) => {
+  });
+  Hooks.around('Cats', Cats, 'standings', 'disciplines', (st, cat) => {
     const tab = st(cat);
     const s = cat.season;
     if (!cat.playoffs || !s || !s.final4 || !s.res.length) return tab;
@@ -132,17 +129,15 @@ Disc.init = (G) => {
     const order = (lastRes.races && lastRes.races[0] && lastRes.races[0].top) || [];
     const f4 = s.final4.slice().sort((a, b) => ((order.indexOf(a) + 1) || 99) - ((order.indexOf(b) + 1) || 99));
     return f4.map(did => ({ ...(tab.find(x => x.did === did) || { did, pts: 0 }), final4: true })).concat(tab.filter(x => !f4.includes(x.did)));
-  };
+  });
   // F1: piloto sem experiência em monoposto rende menos até se adaptar
-  const sw = Career.startWeekend;
-  Career.startWeekend = (G) => {
+  Hooks.around('Career', Career, 'startWeekend', 'disciplines', (sw, G) => {
     const r = sw(G);
     if (G.weekend) G.db.drivers.forEach(d => { if (d.team && d.seat !== 'R') { const p = Disc.penalty(d, 'mono'); if (p) G.weekend.dform[d.id] = +((G.weekend.dform[d.id] || 0) - p * 0.25).toFixed(3); } });
     return r;
-  };
+  });
   // categorias só de mulheres: piloto novo gerado é mulher
-  const regen = Cats.newRegen;
-  Cats.newRegen = (G, C) => {
+  Hooks.around('Cats', Cats, 'newRegen', 'disciplines', (regen, G, C) => {
     const d = regen(G, C);
     if (C.women && d) {
       d.gender = 'F';
@@ -159,5 +154,5 @@ Disc.init = (G) => {
       d.id = id;
     }
     return d;
-  };
+  });
 })();

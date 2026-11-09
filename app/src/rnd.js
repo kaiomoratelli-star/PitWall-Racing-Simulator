@@ -276,21 +276,19 @@ RnD.milestones = (G) => {
 
 (function () {
   // projetos em dias não andam por GP
-  const adv = Career.advanceProjects;
-  Career.advanceProjects = (G, report) => {
+  Hooks.around('Career', Career, 'advanceProjects', 'rnd', (adv, G, report) => {
     const dayP = G.projects.filter(p => p.dayMode);
     G.projects = G.projects.filter(p => !p.dayMode);
     adv(G, report);
     G.projects = G.projects.concat(dayP);
-  };
+  });
   // carro novo: diferenças entre os carros somem (os dois saem iguais)
-  const end = Career.endSeason;
-  Career.endSeason = (G) => {
+  Hooks.around('Career', Career, 'endSeason', 'rnd', (end, G) => {
     const r = end(G);
     G.seatDelta = { 1: {}, 2: {} }; G.parts = [];
     G.projects = (G.projects || []).filter(p => !p.buildOnly);
     return r;
-  };
+  });
 })();
 
 /* aplica um projeto concluído (chamado por Career.advanceProjects) */
@@ -335,6 +333,5 @@ RnD.applyNextYear = (G, team) => {
 };
 
 (function () {
-  const sp = Career.startProject;
-  Career.startProject = (G, area, size, cfg) => (cfg ? RnD.start(G, cfg) : sp(G, area, size));
+  Hooks.around('Career', Career, 'startProject', 'rnd', (sp, G, area, size, cfg) => (cfg ? RnD.start(G, cfg) : sp(G, area, size)));
 })();

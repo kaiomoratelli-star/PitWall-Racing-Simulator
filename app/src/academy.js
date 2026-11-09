@@ -164,15 +164,11 @@ Academy.initContracts = (G) => {
   (G.academies || []).forEach(a => a.members.forEach(id => { const d = Career.driver(G, id); if (d && !d.acContract) d.acContract = { team: a.team, salary: Academy.ask(G, d), until: y + 1, signed: y, buyout: 0.3, estimated: true }; }));
 };
 (function () {
-  const ip = Career.initPeople;
-  Career.initPeople = (G) => { const r = ip(G); Academy.initContracts(G); return r; };
+  Hooks.around('Career', Career, 'initPeople', 'academy', (ip, G) => { const r = ip(G); Academy.initContracts(G); return r; });
   // virada de ano: custos, contratos, IA contratando, planos (depois da progressão das categorias)
-  const es = Career.endSeason;
-  Career.endSeason = (G) => { Academy.charge(G); Academy.contracts(G); const r = es(G); Academy.aiSign(G); return r; };
+  Hooks.around('Career', Career, 'endSeason', 'academy', (es, G) => { Academy.charge(G); Academy.contracts(G); const r = es(G); Academy.aiSign(G); return r; });
   if (typeof Cats !== 'undefined') {
-    const pg = Cats.progression;
-    Cats.progression = (G, initial) => { const r = pg(G, initial); if (!initial) Academy.applyPlans(G); return r; };
+    Hooks.around('Cats', Cats, 'progression', 'academy', (pg, G, initial) => { const r = pg(G, initial); if (!initial) Academy.applyPlans(G); return r; });
   }
   // contratar pela academia agora passa pela negociação (a função antiga continua para a IA e migrações)
-  Market.addToAcademy = ((add) => (G, did) => add(G, did))(Market.addToAcademy);
 })();

@@ -230,8 +230,7 @@ People.seasonEnd = (G) => {
 /* ---------- efeitos e ganchos ---------- */
 (() => {
   // registro de causas: tudo o que mudou desde o último registro e não foi marcado vira "paddock e imprensa"
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  Hooks.around('Career', Career, 'finishWeekend', 'people', (fw, G, ...a) => {
     const wk = G.weekend; const race = wk && wk.race;
     try { People.drift(G); } catch (e) { /* nada */ }
     const before = {}, snap = {}; G.db.drivers.forEach(d => { if (d.team) { before[d.id] = d.morale; snap[d.id] = d._logSum || 0; } });
@@ -253,28 +252,24 @@ People.seasonEnd = (G) => {
       G.db.drivers.forEach(d => { if (d.team) d._m = d.morale; });
     } catch (e) { /* sem registro */ }
     return r;
-  };
+  });
   // decisões nas cartas: a moral que mudou vira "decisões da equipe" (ou "conversa"/"contrato" quando marcado)
-  const rs = Events.resolve;
-  Events.resolve = (G, mid, idx) => {
+  Hooks.around('Events', Events, 'resolve', 'people', (rs, G, mid, idx) => {
     const before = {}, snap = {}; G.db.drivers.forEach(d => { if (d.team) { before[d.id] = d.morale; snap[d.id] = d._logSum || 0; } });
     const m = rs(G, mid, idx);
     try { G.db.drivers.forEach(d => { if (before[d.id] == null) return; const v = d.morale - before[d.id] - ((d._logSum || 0) - snap[d.id]); if (Math.abs(v) >= 0.05) People.log(G, d, v, 'decision'); }); } catch (e) { /* nada */ }
     return m;
-  };
+  });
   // renovação: a confiança no chefe pesa na resposta
-  const oe = Career.offerEval;
-  Career.offerEval = (G, d, ...a) => {
+  Hooks.around('Career', Career, 'offerEval', 'people', (oe, G, d, ...a) => {
     const ev = oe(G, d, ...a);
     try { if (ev && d && d.team === G.player.teamId && typeof ev.p === 'number') { ev.p = clamp(ev.p + (People.trust(d) - 55) / 220, 0, 1); ev.trust = Math.round(People.trust(d)); } } catch (e) { /* nada */ }
     return ev;
-  };
+  });
   // renovação feita: motivo "contrato" e confiança
-  const rn = Career.renew;
-  Career.renew = (G, did, ...a) => { const d = Career.driver(G, did); const b = d ? d.morale : null; const r = rn(G, did, ...a); try { if (d && r && r.ok) { People.log(G, d, d.morale - b, 'contract'); People.addTrust(G, d, 4, 'renovação'); } } catch (e) { /* nada */ } return r; };
+  Hooks.around('Career', Career, 'renew', 'people', (rn, G, did, ...a) => { const d = Career.driver(G, did); const b = d ? d.morale : null; const r = rn(G, did, ...a); try { if (d && r && r.ok) { People.log(G, d, d.morale - b, 'contract'); People.addTrust(G, d, 4, 'renovação'); } } catch (e) { /* nada */ } return r; });
   // corrida: confiança e química mexem na obediência às ordens
-  const sr = Career.startRace;
-  Career.startRace = (G, ...a) => {
+  Hooks.around('Career', Career, 'startRace', 'people', (sr, G, ...a) => {
     const r = sr(G, ...a);
     try {
       const race = G.weekend && G.weekend.race;
@@ -285,12 +280,10 @@ People.seasonEnd = (G) => {
       });
     } catch (e) { /* nada */ }
     return r;
-  };
-  const ob = Engine.obeyP;
-  Engine.obeyP = (wk, c, mate) => clamp(ob(wk, c, mate) + (c.trustAdj || 0) + (c.chemAdj || 0), 0.25, 0.99);
+  });
+  Hooks.around('Engine', Engine, 'obeyP', 'people', (ob, wk, c, mate) => clamp(ob(wk, c, mate) + (c.trustAdj || 0) + (c.chemAdj || 0), 0.25, 0.99));
   // química alta: troca de dados no treino = mais confiança no carro
-  const fp = Career.finishPractice;
-  Career.finishPractice = (G, ...a) => {
+  Hooks.around('Career', Career, 'finishPractice', 'people', (fp, G, ...a) => {
     const r = fp(G, ...a);
     try {
       const wk = G.weekend; if (wk && wk.conf && !wk.chemApplied) {
@@ -299,11 +292,10 @@ People.seasonEnd = (G) => {
       }
     } catch (e) { /* nada */ }
     return r;
-  };
+  });
   // P&D: conflito entre chefes de área reduz o rendimento; verba extra aumenta
   if (typeof RnD !== 'undefined' && RnD.quote) {
-    const q0 = RnD.quote;
-    RnD.quote = (G, cfg) => {
+    Hooks.around('RnD', RnD, 'quote', 'people', (q0, G, cfg) => {
       const q = q0(G, cfg);
       try {
         const s = G.season; let mul = 1;
@@ -312,11 +304,10 @@ People.seasonEnd = (G) => {
         if (mul !== 1 && q && q.min != null) { q.min = +(q.min * mul).toFixed(2); q.max = +(q.max * mul).toFixed(2); q.staffMul = mul; }
       } catch (e) { /* nada */ }
       return q;
-    };
+    });
   }
   // efeitos novos das cartas
-  const ae = Events.applyEffects;
-  Events.applyEffects = (G, fx) => {
+  Hooks.around('Events', Events, 'applyEffects', 'people', (ae, G, fx) => {
     const out = ae(G, fx);
     try {
       if (fx && fx.trust) { const d = Career.driver(G, fx.trust.did); if (d) { People.addTrust(G, d, fx.trust.v, 'carta'); out.push(`${byLang('Confiança', 'Trust')} ${fx.trust.v >= 0 ? '+' : ''}${fx.trust.v}`); } }
@@ -337,12 +328,11 @@ People.seasonEnd = (G) => {
       }
     } catch (e) { /* sem efeito */ }
     return out;
-  };
+  });
   // fim de temporada: demissão do diretor técnico, pilotos liberados
-  const es = Career.endSeason;
-  Career.endSeason = (G, ...a) => {
+  Hooks.around('Career', Career, 'endSeason', 'people', (es, G, ...a) => {
     try { People.seasonEnd(G); } catch (e) { /* nada */ }
     try { G.db.drivers.filter(d => d.releaseAtEnd).forEach(d => { d.contractYears = 0; d.releaseAtEnd = false; }); } catch (e) { /* nada */ }
     return es(G, ...a);
-  };
+  });
 })();

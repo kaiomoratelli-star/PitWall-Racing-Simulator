@@ -79,6 +79,7 @@ const path = require('path');
     // telas de todas as áreas no fim
     for (const a of AREAS85) for (const t of a[3]) { if (t[3] && !t[3]()) continue; await view(t[0], t[2] || {}); }
     check('fim');
+    if (typeof Hooks !== 'undefined') { const bad = Hooks.verify(); if (bad.length) fail('ganchos reescritos por fora do registro: ' + bad.join(', ')); }
     return { fails, steps, cnt };
   }, { seasons, team });
   res.steps.forEach(s => console.log('  •', s));

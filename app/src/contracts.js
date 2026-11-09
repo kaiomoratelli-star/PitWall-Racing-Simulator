@@ -37,18 +37,16 @@ Contracts.rank = (G, tid) => {
 
 (function () {
   // proposta com cláusulas: o piloto pesa cada uma
-  const accepts = Market.driverAccepts;
-  Market.driverAccepts = (G, d, t, offer) => {
+  Hooks.around('Market', Market, 'driverAccepts', 'contracts', (accepts, G, d, t, offer) => {
     const res = accepts(G, d, t, offer);
     const cl = (offer && offer.clauses) || [];
     let adj = 0;
     if (cl.includes('performance')) adj -= 0.05 + (driverOverall(d) >= 84 ? 0.08 : 0);
     if (cl.includes('release')) adj += 0.07;
     return adj ? { ...res, p: clamp(res.p + adj, 0.02, 0.98) } : res;
-  };
+  });
   // contrato assinado guarda as cláusulas (pré-contrato inclusive)
-  const place = Career.placeDriver;
-  Career.placeDriver = (G, d, tid, role, salary, years) => {
+  Hooks.around('Career', Career, 'placeDriver', 'contracts', (place, G, d, tid, role, salary, years) => {
     const pend = d.pendingClauses && d.pendingClauses.team === tid ? d.pendingClauses.clauses : null;
     const r = place(G, d, tid, role, salary, years);
     if (d.contract && d.team === tid) {
@@ -56,9 +54,8 @@ Contracts.rank = (G, tid) => {
       delete d.pendingClauses;
     }
     return r;
-  };
-  const sign = Market.playerSign;
-  Market.playerSign = (G, did, offer, immediate) => {
+  });
+  Hooks.around('Market', Market, 'playerSign', 'contracts', (sign, G, did, offer, immediate) => {
     const d = Career.driver(G, did);
     const cl = (offer.clauses || []).slice();
     if (!offer.renew && !immediate && d.team) d.pendingClauses = { team: G.player.teamId, clauses: cl };
@@ -66,45 +63,39 @@ Contracts.rank = (G, tid) => {
     const msg = sign(G, did, offer, immediate);
     if (d.team === G.player.teamId && d.contract) d.contract.clauses = cl;
     return msg;
-  };
+  });
   // pré-contrato da IA (efeito dominó): cláusulas definidas na assinatura
-  const fut = Market.signFuture;
-  Market.signFuture = (G, d, t, offer, buyout) => {
+  Hooks.around('Market', Market, 'signFuture', 'contracts', (fut, G, d, t, offer, buyout) => {
     if (!d.pendingClauses) d.pendingClauses = { team: t.id, clauses: t.id === G.player.teamId ? (offer.clauses || []) : Contracts.aiClauses(G, d, t.id) };
     return fut(G, d, t, offer, buyout);
-  };
+  });
   // cláusula de saída: equipe melhor colocada pode levar o piloto sem multa
-  const avail = Market.availableNextYear;
-  Market.availableNextYear = (G, d) => avail(G, d) || (Contracts.has(d, 'release') && !d.retired && !d.retiring && !d.futureTeam && !!d.team);
-  const appr = Market.approachPlayer;
-  Market.approachPlayer = (G, t, d, offer) => {
+  Hooks.around('Market', Market, 'availableNextYear', 'contracts', (avail, G, d) => avail(G, d) || (Contracts.has(d, 'release') && !d.retired && !d.retiring && !d.futureTeam && !!d.team));
+  Hooks.around('Market', Market, 'approachPlayer', 'contracts', (appr, G, t, d, offer) => {
     if (!Contracts.has(d, 'release') || Contracts.rank(G, t.id) >= Contracts.rank(G, d.team)) return appr(G, t, d, offer);
     const M = Market.state(G);
     const tk = M.talks[M.talks.length - 1];
     tk.awaitPlayer = false; tk.buyout = 0; tk.resolve = G.season.round + 1;
     Career.mail(G, { from: t.name, tag: 'market', title: byLang(`${t.name} aciona a cláusula de saída de ${d.name}`, `${t.name} triggers ${d.name}'s release clause`), body: byLang(`${d.name} tem cláusula de saída para equipes à frente no campeonato. A ${t.name} (${Contracts.rank(G, t.id)}ª nos construtores) fez proposta para ${G.season.year + 1}; a decisão é do piloto e não há multa.`, `${d.name} has a release clause for teams ahead in the championship. ${t.name} (P${Contracts.rank(G, t.id)} in the constructors') has made an offer for ${G.season.year + 1}; the decision is the driver's and there is no fee.`) });
-  };
+  });
   // o piloto da equipe do jogador só pode ser levado por quem está à frente
-  const cand = Market.candidateScore;
-  Market.candidateScore = (G, t, d) => {
+  Hooks.around('Market', Market, 'candidateScore', 'contracts', (cand, G, t, d) => {
     const s = cand(G, t, d);
     if (d.team && d.team !== t.id && d.contractYears > 0 && Contracts.has(d, 'release') && Contracts.rank(G, t.id) >= Contracts.rank(G, d.team)) return s - 99;
     return s;
-  };
+  });
   // texto do contrato
-  const txt = Market.contractText;
-  Market.contractText = (G, d) => {
+  Hooks.around('Market', Market, 'contractText', 'contracts', (txt, G, d) => {
     let s = txt(G, d);
     if (Contracts.has(d, 'release')) s += ' · ' + Contracts.LABEL.release;
     return s;
-  };
+  });
   // efeito da escolha na caixa de entrada
-  const fx = Events.applyEffects;
-  Events.applyEffects = (G, e) => {
+  Hooks.around('Events', Events, 'applyEffects', 'contracts', (fx, G, e) => {
     const out = fx(G, e);
     if (e && e.clauseExit) { const d = Career.driver(G, e.clauseExit); if (d && d.team === G.player.teamId) { d.contractYears = 0; d.contract.until = G.season.year; Career.record(G, 'contrato', byLang(`${Career.team(G).name} acionou a cláusula de desempenho de ${d.name}: o contrato termina em ${G.season.year}.`, `${Career.team(G).name} triggered ${d.name}'s performance clause: the contract ends in ${G.season.year}.`), { teams: [d.team], drivers: [d.id] }); out.push(byLang(`Contrato de ${d.name} termina no fim do ano`, `${d.name}'s contract ends at the end of the year`)); } }
     return out;
-  };
+  });
 })();
 
 /* metade da temporada: avaliação das cláusulas de desempenho */
@@ -134,6 +125,5 @@ Contracts.tick = (G) => {
   });
 };
 (function () {
-  const fin = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const r = fin(G, ...a); Contracts.tick(G); return r; };
+  Hooks.around('Career', Career, 'finishWeekend', 'contracts', (fin, G, ...a) => { const r = fin(G, ...a); Contracts.tick(G); return r; });
 })();

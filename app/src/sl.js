@@ -15,7 +15,7 @@ SL.FULL = 40; SL.FP = 25; SL.FP_MAX = 10; SL.ROOKIE_GP = 2; SL.FP1_PER_CAR = 2; 
 SL.seriesPts = (G, d) => { const y = G.season.year; return sum((d.sl || []).filter(x => !x.fp && x.y >= y - 3 && x.y <= y).map(x => x.pts || 0)); };
 SL.fpPts = (G, d) => { const y = G.season.year; return Math.min(SL.FP_MAX, (d.sl || []).filter(x => x.fp && x.y >= y - 3).length); };
 SL.points = (G, d) => SL.seriesPts(G, d) + SL.fpPts(G, d);
-Market.slPoints = (G, d) => SL.points(G, d);          // o mercado passa a contar os pontos de treino livre
+Hooks.base('Market', Market, 'slPoints', 'sl', (G, d) => SL.points(G, d), 'o mercado passa a contar os pontos de treino livre (janela de 3 anos)');
 SL.f1Starts = (d) => (d.career && d.career.starts) || 0;
 SL.isRookie = (d) => SL.f1Starts(d) <= SL.ROOKIE_GP;
 SL.status = (G, d) => {
@@ -103,8 +103,7 @@ SL.seasonCheck = (G) => {
 
 /* ---------- ganchos no ciclo do fim de semana e da temporada ---------- */
 (function () {
-  const sw = Career.startWeekend;
-  Career.startWeekend = (G, ...a) => {
+  Hooks.around('Career', Career, 'startWeekend', 'sl', (sw, G, ...a) => {
     // suspensão por pontos: o piloto fica fora deste GP (o reserva entra pela escalação)
     G.db.drivers.forEach(d => { if (d.banNext) { d.banned = true; d.banNext = false; } });
     const r = sw(G, ...a);
@@ -118,20 +117,17 @@ SL.seasonCheck = (G) => {
       }
     }
     return r;
-  };
-  const fp = Career.finishPractice;
-  Career.finishPractice = (G, ...a) => { const r = fp(G, ...a); try { if (G.weekend && !G.weekend.fp1Applied) { SL.applyFP1(G, G.weekend); G.weekend.fp1Applied = true; } } catch (e) { /* sem efeito */ } return r; };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  });
+  Hooks.around('Career', Career, 'finishPractice', 'sl', (fp, G, ...a) => { const r = fp(G, ...a); try { if (G.weekend && !G.weekend.fp1Applied) { SL.applyFP1(G, G.weekend); G.weekend.fp1Applied = true; } } catch (e) { /* sem efeito */ } return r; });
+  Hooks.around('Career', Career, 'finishWeekend', 'sl', (fw, G, ...a) => {
     const wk = G.weekend; const race = wk && wk.race; const tr = wk && Career.track(G, wk.trackId);
     if (race && !race.ppDone) { try { SL.afterRace(G, race, tr ? tr.gp : ''); } catch (e) { /* sem pontos */ } race.ppDone = true; }
     const r = fw(G, ...a);
     // quem cumpriu a suspensão volta, com a contagem zerada (regra da FIA)
     G.db.drivers.forEach(d => { if (d.banned) { d.banned = false; d.pp = []; Career.news(G, byLang(`${d.name} cumpre a suspensão e volta para o próximo GP`, `${d.name} serves the ban and returns for the next GP`), 'regulamento', '', { dr: [d.id] }); } });
     return r;
-  };
-  const es = Career.endSeason;
-  Career.endSeason = (G, ...a) => { try { SL.seasonCheck(G); } catch (e) { /* sem multa */ } return es(G, ...a); };
+  });
+  Hooks.around('Career', Career, 'endSeason', 'sl', (es, G, ...a) => { try { SL.seasonCheck(G); } catch (e) { /* sem multa */ } return es(G, ...a); });
 })();
 
 /* ---------- comissários: direito de revisão e apelação (Código Esportivo Internacional, art. 14 e 15) ----------
@@ -266,8 +262,7 @@ SL.aiReviews = (G, race, idx, gp) => {
 };
 
 (() => {
-  const ae = Events.applyEffects;
-  Events.applyEffects = (G, fx) => {
+  Hooks.around('Events', Events, 'applyEffects', 'sl', (ae, G, fx) => {
     const out = ae(G, fx);
     try {
       if (fx && fx.review) { const ch = SL.applyReview(G, fx.review); out.push(byLang('Punição retirada', 'Penalty withdrawn') + (ch && ch.length ? ` · ${SL.changesTxt(G, ch)}` : '')); }
@@ -276,9 +271,8 @@ SL.aiReviews = (G, race, idx, gp) => {
       if (fx && fx.appeal) { const ch = SL.applyAppeal(G, fx.appeal); out.push(byLang('Resultado devolvido', 'Result reinstated') + (ch && ch.length ? ` · ${SL.changesTxt(G, ch)}` : '')); }
     } catch (e) { /* sem efeito */ }
     return out;
-  };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  });
+  Hooks.around('Career', Career, 'finishWeekend', 'sl#2', (fw, G, ...a) => {
     const wk = G.weekend; const race = wk && wk.race; const tr = wk && Career.track(G, wk.trackId);
     const r = fw(G, ...a);
     try {
@@ -294,7 +288,7 @@ SL.aiReviews = (G, race, idx, gp) => {
       }
     } catch (e) { /* sem comissários */ }
     return r;
-  };
+  });
 })();
 
 /* texto da punição por tipo */
@@ -324,7 +318,7 @@ SL.reopen = (G, race, idx, gp) => {
    piloto da academia da equipe, piloto livre. Nunca o mesmo piloto nos dois carros. */
 (() => {
   const ok = (G, d) => d && !d.retired && !d.injured && !d.banned && (d.age || 18) >= 18 && (!SL.status || SL.status(G, d) === 'full');
-  Career.lineup = (G, tid) => {
+  Hooks.base('Career', Career, 'lineup', 'sl', (G, tid) => {
     const ds = Career.teamDrivers(G, tid);
     const seats = [1, 2].map(s => ds.find(d => d.seat === s));
     const used = new Set(seats.filter(d => d && !d.injured && !d.banned).map(d => d.id));
@@ -341,5 +335,6 @@ SL.reopen = (G, race, idx, gp) => {
       const any = G.db.drivers.filter(x => !x.team && !x.retired && !x.injured && !x.banned && !used.has(x.id)).sort((a, b) => driverOverall(b) - driverOverall(a))[0];
       return any ? take(any) : d;
     }).filter(Boolean);
-  };
+  }, 'reserva que assume o carro precisa de superlicença; nunca o mesmo piloto nos dois carros');
+
 })();

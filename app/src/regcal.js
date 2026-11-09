@@ -50,12 +50,11 @@ RegCal.spread = (G) => {
   return RegCal.TARGET_SD;
 };
 (function () {
-  const es = Career.endSeason;
-  Career.endSeason = (G) => {
+  Hooks.around('Career', Career, 'endSeason', 'regcal', (es, G) => {
     const r = es(G);
     const sum = (G.history || [])[G.history.length - 1];
     if (sum && sum.regChange && !sum.conceptDone) { RegCal.concept(G, sum.year + 1); sum.conceptDone = true; }
     RegCal.spread(G);
     return r;
-  };
+  });
 })();

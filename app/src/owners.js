@@ -458,11 +458,9 @@ Owners.minRating = (G) => {
 
 /* ---------- ganchos ---------- */
 (function () {
-  const ct = Career.team;
   // equipes que saíram continuam consultáveis (histórico, recordes, notícias antigas)
-  Career.team = (G, id) => ct(G, id) || (G && G.owners && id ? (G.owners.gone || []).find(t => t.id === id) : undefined);
-  const es = Career.endSeason;
-  Career.endSeason = (G) => {
+  Hooks.around('Career', Career, 'team', 'owners', (ct, G, id) => ct(G, id) || (G && G.owners && id ? (G.owners.gone || []).find(t => t.id === id) : undefined));
+  Hooks.around('Career', Career, 'endSeason', 'owners', (es, G) => {
     Owners.ensure(G);
     const sc = Career.standingsC(G);
     const r = es(G);
@@ -470,15 +468,13 @@ Owners.minRating = (G) => {
     Owners.minRating(G);
     Owners.pruneLog(G);
     return r;
-  };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  });
+  Hooks.around('Career', Career, 'finishWeekend', 'owners', (fw, G, ...a) => {
     const r = fw(G, ...a);
     if (G.season && G.season.round === Math.ceil(G.season.calendar.length / 2)) Owners.decide(G);
     return r;
-  };
-  const ip = Career.initPeople;
-  Career.initPeople = (G) => { const r = ip(G); Owners.ensure(G); return r; };
+  });
+  Hooks.around('Career', Career, 'initPeople', 'owners', (ip, G) => { const r = ip(G); Owners.ensure(G); return r; });
 })();
 
 /* ---------- carreira com equipe criada pelo jogador ou candidata do banco (12ª equipe) ---------- */
@@ -500,8 +496,7 @@ Owners.playerSpec = (o) => {
   };
 };
 (function () {
-  const cc = Career.create;
-  Career.create = (baseDb, opts) => {
+  Hooks.around('Career', Career, 'create', 'owners', (cc, baseDb, opts) => {
     if (!opts || !opts.newTeam || opts.mode === 'observer') return cc(baseDb, opts);
     const db = deepClone(baseDb);
     const y = db.rules.startYear;
@@ -524,7 +519,7 @@ Owners.playerSpec = (o) => {
     if (c && c.engine === 'propria') Owners.state(G).engines.push({ tid: team.id, cid: c.id, ready: y + (c.engineYears || 3) });
     G.rngState = RNG.state;
     return G;
-  };
+  });
 })();
 
 /* ---------- montagem da equipe nova pelo jogador ---------- */
@@ -572,11 +567,9 @@ Owners.finishSetup = (G) => {
 };
 (function () {
   // rede de segurança: nenhuma corrida começa com carro vazio
-  const sw = Career.startWeekend;
-  Career.startWeekend = (G, ...a) => { if (G.teamSetup && G.teamSetup.pending && !Owners.setupState(G).ready) Owners.autoSetup(G); else if (G.teamSetup && G.teamSetup.pending) Owners.finishSetup(G); return sw(G, ...a); };
+  Hooks.around('Career', Career, 'startWeekend', 'owners', (sw, G, ...a) => { if (G.teamSetup && G.teamSetup.pending && !Owners.setupState(G).ready) Owners.autoSetup(G); else if (G.teamSetup && G.teamSetup.pending) Owners.finishSetup(G); return sw(G, ...a); });
   // titular vindo de outra categoria sai dela
-  const pd = Career.placeDriver;
-  Career.placeDriver = (G, d, tid, role, ...a) => { const out = pd(G, d, tid, role, ...a); if (G.teamSetup && G.teamSetup.pending && tid === G.player.teamId && role !== 'R' && (d.cat || d.series)) Owners.leaveSeries(G, d); return out; };
+  Hooks.around('Career', Career, 'placeDriver', 'owners', (pd, G, d, tid, role, ...a) => { const out = pd(G, d, tid, role, ...a); if (G.teamSetup && G.teamSetup.pending && tid === G.player.teamId && role !== 'R' && (d.cat || d.series)) Owners.leaveSeries(G, d); return out; });
 })();
 
 /* ---------- equipe parceira (acordo técnico) × equipe irmã (mesmo dono) ----------
@@ -620,26 +613,21 @@ Owners.partnerYear = (G) => {
   });
 };
 (function () {
-  const es = Career.endSeason;
-  Career.endSeason = (G) => { const r = es(G); try { Owners.partnerYear(G); } catch (e) { if (typeof Store !== 'undefined' && Store.log) Store.log('error', 'parceria: ' + e.message); else throw e; } return r; };
+  Hooks.around('Career', Career, 'endSeason', 'owners#2', (es, G) => { const r = es(G); try { Owners.partnerYear(G); } catch (e) { if (typeof Store !== 'undefined' && Store.log) Store.log('error', 'parceria: ' + e.message); else throw e; } return r; });
   // troca de dono encerra a parceria
-  const bs = Owners.breakSister;
-  Owners.breakSister = (G, t) => { bs(G, t); if (Owners.partners(G)[t.id]) Owners.endPartner(G, t.id, byLang('Os novos donos querem um projeto técnico próprio.', 'The new owners want their own technical project.')); Object.keys(Owners.partners(G)).forEach(c => { if (Owners.partners(G)[c].parent === t.id && !Career.team(G, t.id)) delete Owners.partners(G)[c]; }); };
+  Hooks.around('Owners', Owners, 'breakSister', 'owners', (bs, G, t) => { bs(G, t); if (Owners.partners(G)[t.id]) Owners.endPartner(G, t.id, byLang('Os novos donos querem um projeto técnico próprio.', 'The new owners want their own technical project.')); Object.keys(Owners.partners(G)).forEach(c => { if (Owners.partners(G)[c].parent === t.id && !Career.team(G, t.id)) delete Owners.partners(G)[c]; }); });
   // motor próprio encerra o acordo de motor
-  const ep = Owners.engineProjects;
-  Owners.engineProjects = (G) => { ep(G); G.db.teams.forEach(t => { if (t.works && Owners.partners(G)[t.id] && String(t.engine).startsWith('pu-')) Owners.endPartner(G, t.id, byLang('A equipe passa a usar motor próprio.', 'The team switches to its own power unit.')); }); };
+  Hooks.around('Owners', Owners, 'engineProjects', 'owners', (ep, G) => { ep(G); G.db.teams.forEach(t => { if (t.works && Owners.partners(G)[t.id] && String(t.engine).startsWith('pu-')) Owners.endPartner(G, t.id, byLang('A equipe passa a usar motor próprio.', 'The team switches to its own power unit.')); }); });
   // no Conselho, a parceira acompanha a equipe principal nos temas técnicos
   if (typeof Council !== 'undefined') {
-    const stc = Council.stance;
-    Council.stance = (G, pr, tid) => {
+    Hooks.around('Council', Council, 'stance', 'owners', (stc, G, pr, tid) => {
       let s = stc(G, pr, tid);
       const p = Owners.partnerOf(G, tid);
       if (p && pr.cat === 'tec' && pr.imp[p.parent] != null) s = s * 0.8 + pr.imp[p.parent] * 0.2;
       return s;
-    };
+    });
     // bastidores: blocos de motor fecham posição antes da votação
-    const om = Council.openMeeting;
-    Council.openMeeting = (G) => {
+    Hooks.around('Council', Council, 'openMeeting', 'owners', (om, G) => {
       const r0 = om(G);
       const C = Council.ensure(G); const m = C.open; if (!m) return r0;
       const r = localRng(`bast:${G.seed}:${G.season.year}:${G.season.round}`);
@@ -658,7 +646,7 @@ Owners.partnerYear = (G) => {
         if (offers >= 2) Career.news(G, byLang(`Bastidores: ${Council.proposerName(G, pr.proposer)} oferece compensações para aprovar "${pr.title}"`, `Behind the scenes: ${Council.proposerName(G, pr.proposer)} offers concessions to pass "${pr.title}"`), 'regulamento', byLang(`${offers} equipes teriam aceitado dinheiro ou horas de túnel em troca do voto.`, `${offers} teams reportedly accepted money or wind tunnel hours in exchange for their vote.`));
       });
       return r0;
-    };
+    });
   }
 })();
 
@@ -738,16 +726,14 @@ Owners.endPartnerPlayer = (G, childId) => {
 };
 /* transferência anual com o fator do pacote, e taxa anual do jogador */
 (() => {
-  const py = Owners.partnerYear;
-  Owners.partnerYear = (G) => {
+  Hooks.around('Owners', Owners, 'partnerYear', 'owners', (py, G) => {
     const P = Owners.partners(G);
     // guarda o carro das parceiras de pacote básico para devolver metade do ganho
     const snap = {}; Object.entries(P).forEach(([tid, p]) => { if (p.pkg === 'basic') { const t = Career.team(G, tid); if (t) snap[tid] = { c: t.car.chassis, r: t.car.reliability }; } });
     py(G);
     Object.entries(snap).forEach(([tid, s]) => { const t = Career.team(G, tid); if (!t) return; t.car.chassis = +(s.c + (t.car.chassis - s.c) * 0.5).toFixed(2); t.car.reliability = +(s.r + (t.car.reliability - s.r) * 0.5).toFixed(2); });
-  };
-  const ss = Career.startSeason;
-  Career.startSeason = (G, first, ...a) => {
+  });
+  Hooks.around('Career', Career, 'startSeason', 'owners', (ss, G, first, ...a) => {
     const r = ss(G, first, ...a);
     try {
       if (!first && !Career.isObs(G)) {
@@ -760,5 +746,5 @@ Owners.endPartnerPlayer = (G, childId) => {
       }
     } catch (e) { /* sem taxa */ }
     return r;
-  };
+  });
 })();

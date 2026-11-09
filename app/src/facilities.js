@@ -187,12 +187,10 @@ Fac.rank = (G, t, id) => 1 + G.db.teams.filter(x => x.fac && Fac.eff(x, id) > Fa
 /* ---------- ganchos ---------- */
 (function () {
   // vagas de projeto: escritório de projeto e fábrica
-  const sl = Career.slots;
-  Career.slots = (team) => (team && team.fac ? Fac.slots(team) : sl(team));
+  Hooks.around('Career', Career, 'slots', 'facilities', (sl, team) => (team && team.fac ? Fac.slots(team) : sl(team)));
   // P&D do jogador: qualidade e prazo dependem das instalações
   if (typeof RnD !== 'undefined') {
-    const qt = RnD.quote;
-    RnD.quote = (G, cfg) => {
+    Hooks.around('RnD', RnD, 'quote', 'facilities', (qt, G, cfg) => {
       const q = qt(G, cfg); const team = Career.team(G); if (!q || !team || !team.fac) return q;
       const S = RnD.SPEC[q.area] || {};
       const m = S.kind === 'aero' ? (Fac.mul(G, team, 'tunel', 0.05) + Fac.mul(G, team, 'cfd', 0.035)) / 2 : S.kind === 'pu' ? Fac.mul(G, team, 'motor', 0.06) : S.kind === 'team' ? 1 : (Fac.mul(G, team, 'banco', 0.045) + Fac.mul(G, team, 'cfd', 0.025)) / 2;
@@ -202,51 +200,39 @@ Fac.rank = (G, t, id) => 1 + G.db.teams.filter(x => x.fac && Fac.eff(x, id) > Fa
       if (q.area === 'facilities') q.blocked = byLang('As instalações agora são administradas na tela Sede e fábrica.', 'Facilities are now managed on the HQ & factory screen.');
       q.facMul = +m.toFixed(3);
       return q;
-    };
+    });
   }
   // equipes do jogo: o mesmo efeito na conversão dinheiro → desempenho
   if (typeof AI !== 'undefined' && AI.areaGain) {
-    const dg = AI.areaGain;
-    AI.areaGain = (t, area, money, ...a) => dg(t, area, money, ...a) * (t.fac && AI.G ? (area === 'aero' ? (Fac.mul(AI.G, t, 'tunel', 0.05) + Fac.mul(AI.G, t, 'cfd', 0.035)) / 2 : area === 'chassis' ? Fac.mul(AI.G, t, 'banco', 0.045) : 1) : 1);
+    Hooks.around('AI', AI, 'areaGain', 'facilities', (dg, t, area, money, ...a) => dg(t, area, money, ...a) * (t.fac && AI.G ? (area === 'aero' ? (Fac.mul(AI.G, t, 'tunel', 0.05) + Fac.mul(AI.G, t, 'cfd', 0.035)) / 2 : area === 'chassis' ? Fac.mul(AI.G, t, 'banco', 0.045) : 1) : 1));
   }
   // logística e operação
-  const om = Staff.opsMul;
-  Staff.opsMul = (t) => om(t) * (t.fac ? 1.1 - Fac.eff(t, 'logistica') * 0.035 : 1);
+  Hooks.around('Staff', Staff, 'opsMul', 'facilities', (om, t) => om(t) * (t.fac ? 1.1 - Fac.eff(t, 'logistica') * 0.035 : 1));
   // pit stop
-  const pd = Staff.pitDrift;
   // o centro de pit stop move o ponto de equilíbrio (até ~3 pontos), não soma a cada GP (somar levava todos a 99)
-  Staff.pitDrift = (t) => pd(t) + (t.fac ? (Fac.eff(t, 'pitstop') - 2.8) * 0.028 : 0);
+  Hooks.around('Staff', Staff, 'pitDrift', 'facilities', (pd, t) => pd(t) + (t.fac ? (Fac.eff(t, 'pitstop') - 2.8) * 0.028 : 0));
   // patrocínio
-  const cm = Staff.commercialMul;
-  Staff.commercialMul = (t) => cm(t) * (t.fac ? 0.95 + Fac.eff(t, 'marketing') * 0.012 + Fac.eff(t, 'sede') * 0.006 : 1);
+  Hooks.around('Staff', Staff, 'commercialMul', 'facilities', (cm, t) => cm(t) * (t.fac ? 0.95 + Fac.eff(t, 'marketing') * 0.012 + Fac.eff(t, 'sede') * 0.006 : 1));
   // contratar funcionário de outra equipe: sede melhor atrai mais
   if (Staff.poachChance) {
-    const pc = Staff.poachChance;
-    Staff.poachChance = (G, s, fromTeam) => { const me = Career.team(G); return clamp(pc(G, s, fromTeam) * (me && me.fac ? 0.85 + Fac.eff(me, 'sede') * 0.05 : 1), 0.02, 0.95); };
+    Hooks.around('Staff', Staff, 'poachChance', 'facilities', (pc, G, s, fromTeam) => { const me = Career.team(G); return clamp(pc(G, s, fromTeam) * (me && me.fac ? 0.85 + Fac.eff(me, 'sede') * 0.05 : 1), 0.02, 0.95); });
   }
   // lesões: centro de performance humana encurta a recuperação
   if (typeof Chaos !== 'undefined') {
-    const inj = Chaos.injure;
-    Chaos.injure = (G, d, r, how, gp) => { inj(G, d, r, how, gp); const t = d.team && Career.team(G, d.team); if (t && t.fac && d.injured > 1) d.injured = Math.max(1, Math.round(d.injured * (1.15 - Fac.eff(t, 'medico') * 0.06))); };
+    Hooks.around('Chaos', Chaos, 'injure', 'facilities', (inj, G, d, r, how, gp) => { inj(G, d, r, how, gp); const t = d.team && Career.team(G, d.team); if (t && t.fac && d.injured > 1) d.injured = Math.max(1, Math.round(d.injured * (1.15 - Fac.eff(t, 'medico') * 0.06))); });
   }
   // simulador: voltas extras de acerto para o jogador
-  const sw = Career.startWeekend;
-  Career.startWeekend = (G, ...a) => {
+  Hooks.around('Career', Career, 'startWeekend', 'facilities', (sw, G, ...a) => {
     const t = !Career.isObs(G) ? Career.team(G) : null;
     if (t && t.fac) { const b = Math.round((Fac.eff(t, 'simulador') - 2.5) * 0.6); if (b > 0) G.pendingPracticeBonus = (G.pendingPracticeBonus || 0) + b; }
     return sw(G, ...a);
-  };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const r = fw(G, ...a); Fac.tick(G); return r; };
-  const ip = Career.initPeople;
-  Career.initPeople = (G) => { const r = ip(G); Fac.ensureAll(G); return r; };
-  const es = Career.endSeason;
-  Career.endSeason = (G) => { Fac.ensureAll(G); const r = es(G); G.db.teams.forEach(t => { Fac.ensure(G, t); Fac.sync(t); }); return r; };
+  });
+  Hooks.around('Career', Career, 'finishWeekend', 'facilities', (fw, G, ...a) => { const r = fw(G, ...a); Fac.tick(G); return r; });
+  Hooks.around('Career', Career, 'initPeople', 'facilities', (ip, G) => { const r = ip(G); Fac.ensureAll(G); return r; });
+  Hooks.around('Career', Career, 'endSeason', 'facilities', (es, G) => { Fac.ensureAll(G); const r = es(G); G.db.teams.forEach(t => { Fac.ensure(G, t); Fac.sync(t); }); return r; });
   // equipes novas e compradas
   if (typeof Owners !== 'undefined') {
-    const at = Owners.addTeam;
-    Owners.addTeam = (G, spec) => { const t = at(G, spec); t.fac = null; Fac.ensure(G, t); return t; };
-    const ep = Owners.engineProjects;
-    Owners.engineProjects = (G) => { ep(G); G.db.teams.forEach(t => { if (t.works && t.fac && !t.fac.motor.lvl) Fac.openEngineDept(G, t); }); };
+    Hooks.around('Owners', Owners, 'addTeam', 'facilities', (at, G, spec) => { const t = at(G, spec); t.fac = null; Fac.ensure(G, t); return t; });
+    Hooks.around('Owners', Owners, 'engineProjects', 'facilities', (ep, G) => { ep(G); G.db.teams.forEach(t => { if (t.works && t.fac && !t.fac.motor.lvl) Fac.openEngineDept(G, t); }); });
   }
 })();

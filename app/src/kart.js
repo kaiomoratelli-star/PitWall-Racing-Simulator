@@ -88,12 +88,8 @@ Kart.pick = (G, C) => {
 };
 
 (function () {
-  const regen = Cats.newRegen;
-  Cats.newRegen = (G, C) => (Kart.on(G) && C.tier >= 5 && Kart.pick(G, C)) || regen(G, C);
-  const perf = Potential.performance;
-  Potential.performance = (G, d) => (d.series === 'kart' && d.kart && d.kart.perf != null ? d.kart.perf : perf(G, d));
-  const name = DriverDB.seriesName;
-  DriverDB.seriesName = (sid) => (sid === 'kart' ? 'Kart' : name(sid));
-  const end = Career.endSeason;
-  Career.endSeason = (G) => { Kart.season(G); const r = end(G); Kart.renew(G); return r; };
+  Hooks.around('Cats', Cats, 'newRegen', 'kart', (regen, G, C) => (Kart.on(G) && C.tier >= 5 && Kart.pick(G, C)) || regen(G, C));
+  Hooks.around('Potential', Potential, 'performance', 'kart', (perf, G, d) => (d.series === 'kart' && d.kart && d.kart.perf != null ? d.kart.perf : perf(G, d)));
+  Hooks.around('DriverDB', DriverDB, 'seriesName', 'kart', (name, sid) => (sid === 'kart' ? 'Kart' : name(sid)));
+  Hooks.around('Career', Career, 'endSeason', 'kart', (end, G) => { Kart.season(G); const r = end(G); Kart.renew(G); return r; });
 })();

@@ -750,12 +750,11 @@ Engine.stewardsLap = (race, wk, L, scType) => {
 };
 /* bandeirada: decide o que ficou pendente e converte punições não cumpridas */
 (() => {
-  const fr = Engine.finishRace;
-  Engine.finishRace = (race, wk, ...a) => {
+  Hooks.around('Engine', Engine, 'finishRace', 'engine', (fr, race, wk, ...a) => {
     try {
       (race.inv || []).filter(i => !i.done).forEach(i => Engine.decide(race, wk, i, true));
       race.cars.forEach(c => { if (c.serve) { const add = c.serve.kind === 'sg' ? 30 : 20; c.pendingPen += add; c.penalty += add; Engine.event(race, 'penalty', byLang(`${wk.nameOf(c.did)} não cumpriu a punição a tempo: +${add} s no tempo final.`, `${wk.nameOf(c.did)} did not serve the penalty in time: +${add} s on the final time.`), c.did); c.serve = null; } });
     } catch (e) { /* segue */ }
     return fr(race, wk, ...a);
-  };
+  });
 })();

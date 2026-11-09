@@ -111,8 +111,7 @@ Time.catchUp = (G) => {
 };
 
 (function () {
-  const sw = Career.startWeekend;
-  Career.startWeekend = (G) => {
+  Hooks.around('Career', Career, 'startWeekend', 'time', (sw, G) => {
     Time.catchUp(G);
     const r = sw(G);
     // peça nova só num dos carros: diferença de desempenho entre os dois carros da equipe
@@ -121,30 +120,27 @@ Time.catchUp = (G) => {
       Career.lineup(G, G.player.teamId).forEach(d => { const x = RnD.seatPerf(G, d.seat, track); if (x) G.weekend.dform[d.id] = +((G.weekend.dform[d.id] || 0) + x).toFixed(3); });
     }
     return r;
-  };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  });
+  Hooks.around('Career', Career, 'finishWeekend', 'time', (fw, G, ...a) => {
     const round = G.weekend ? G.weekend.round : G.season.round;
     const r = fw(G, ...a);
     G.today = Time.addDays(Time.raceDate(G, round), 1);
     G.todayYear = G.season.year;
     return r;
-  };
+  });
   // mensagens: prioridade (vermelho = decisão, amarelo = importante)
-  const mail = Career.mail;
-  Career.mail = (G, m) => {
+  Hooks.around('Career', Career, 'mail', 'time', (mail, G, m) => {
     const prio = m.prio || (m.choices ? 'decision' : (m.important || m.tag === 'dev') ? 'important' : 'normal');
     mail(G, { ...m, prio, date: G.today || null });
-  };
+  });
 })();
 
 /* carreira nova: as categorias que já começaram antes da data inicial do jogo
    (Fórmula E desde dezembro, F4 Emirados, FR Oriente Médio, NASCAR, IndyCar...) chegam com as etapas já disputadas */
 (function () {
-  const cr = Career.create;
-  Career.create = (...a) => {
+  Hooks.around('Career', Career, 'create', 'time', (cr, ...a) => {
     const G = cr(...a);
     try { Time.init(G); if (typeof Cats !== 'undefined' && Cats.on(G)) Cats.advanceTo(G, G.today); } catch (e) { /* sem categorias */ }
     return G;
-  };
+  });
 })();

@@ -192,8 +192,7 @@ Econ.crisis = (G, t, cash) => {
 
 (function () {
   // auditoria antes do fechamento (o fechamento zera o gasto do ano) e orçamento novo depois
-  const es = Career.endSeason;
-  Career.endSeason = (G) => {
+  Hooks.around('Career', Career, 'endSeason', 'econ', (es, G) => {
     const pt = G.player.teamId;
     G.db.teams.forEach(t => {
       if (t.id === pt && !Career.isObs(G)) Econ.audit(G, t, G.finances.spent, true);
@@ -206,10 +205,9 @@ Econ.crisis = (G, t, cash) => {
     G.db.teams.forEach(t => { if (t.id !== pt || Career.isObs(G)) Econ.aiSeasonEnd(G, t); });
     if (team) Econ.playerSeasonEnd(G, team);
     return r;
-  };
+  });
   // punição do teto: menos túnel de vento e CFD no ano seguinte
   if (typeof Regs !== 'undefined' && Regs.atrFactor) {
-    const af = Regs.atrFactor;
-    Regs.atrFactor = (G, teamId) => { const t = Career.team(G, teamId); const p = t && t.capPenalty; return af(G, teamId) * (p && G.season && p.y === G.season.year ? p.atr : 1); };
+    Hooks.around('Regs', Regs, 'atrFactor', 'econ', (af, G, teamId) => { const t = Career.team(G, teamId); const p = t && t.capPenalty; return af(G, teamId) * (p && G.season && p.y === G.season.year ? p.atr : 1); });
   }
 })();

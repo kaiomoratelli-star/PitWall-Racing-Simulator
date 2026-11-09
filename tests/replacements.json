@@ -3,5 +3,12 @@
   "approved": {
     "ACT.driverPage": "ui-history.js refaz a ficha do piloto com tudo da versão de ui-screens.js e acrescenta a carreira real (dados históricos). Conferido em 09/11/2026.",
     "CHG.devArea": "ui-dev.js repete exatamente a mesma linha de ui-regs.js (ir para o P&D da área escolhida). Conferido em 09/11/2026."
-  }
+  },
+  "tempSwaps": [
+    "stories.js:Career.news",
+    "stories.js:Social.post",
+    "stories.js:Career.mail",
+    "stories.js:Career.record"
+  ],
+  "_leia_tempSwaps": "Trocas temporárias dentro de uma função (silenciar notícias e restaurar logo depois). Não são redefinições."
 }

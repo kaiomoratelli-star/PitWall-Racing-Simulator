@@ -104,8 +104,7 @@ CarDev.deliver = (G, t, all) => {
 
 (function () {
   // eficiência da organização no fim de cada temporada (antes do carro novo)
-  const es = Career.endSeason;
-  Career.endSeason = (G) => { const sc = Career.standingsC(G); CarDev.orgYear(G, sc); return es(G); };
+  Hooks.around('Career', Career, 'endSeason', 'cardev', (es, G) => { const sc = Career.standingsC(G); CarDev.orgYear(G, sc); return es(G); });
   // piso de diferença entre carros (regcal) sai: a diferença vem da economia e da capacidade de cada equipe
   if (typeof RegCal !== 'undefined') RegCal.spread = () => null;
 })();

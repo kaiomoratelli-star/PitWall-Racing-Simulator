@@ -61,16 +61,14 @@ Chaos.tplFx = (G, fx, c, t) => {
 };
 /* evento leve com a equipe do jogador e com escolha: vira decisão na caixa de entrada */
 (function () {
-  const pm = Chaos.playerMail;
-  Chaos.playerMail = (G, c, t, inv) => {
+  Hooks.around('Chaos', Chaos, 'playerMail', 'chaos-catalog', (pm, G, c, t, inv) => {
     if (!c.choice) return pm(G, c, t, inv);
     const res = (fx) => { const o = { ...fx }; ['morale', 'popularity'].forEach(k => { if (o[k]) { const m = {}; Object.entries(o[k]).forEach(([w, v]) => { const id = w === 'D' ? c.did : w === 'D2' ? c.did2 : w; if (id) m[id] = v; }); o[k] = m; } }); return o; };
     Career.mail(G, { from: byLang('Assessoria de imprensa', 'Press office'), tag: 'team', important: true, title: c.title, body: c.body + (c.real ? byLang(' (Ficção do jogo.)', ' (Game fiction.)') : ''),
       choices: c.choice.map(o => ({ label: byLang(o.l[0], o.l[1]), outcome: byLang(o.o[0], o.o[1]), effects: res(o.fx || {}) })) });
-  };
+  });
   // eventos leves não geram registro permanente nem post de urgência; só notícia
-  const dc = Chaos.discover;
-  Chaos.discover = (G, h) => {
+  Hooks.around('Chaos', Chaos, 'discover', 'chaos-catalog', (dc, G, h) => {
     if (!h.light) return dc(G, h);
     const t = h.tid ? Career.team(G, h.tid) : null;
     Career.news(G, h.title, 'paddock', h.body, { tm: t ? [t.id] : [], dr: [h.did, h.did2].filter(Boolean) });
@@ -80,7 +78,7 @@ Chaos.tplFx = (G, fx, c, t) => {
     Chaos.tplFx(G, spec.fx || {}, c, t);
     if (spec.after) spec.after(G, c, t);
     if (t && Chaos.mine(G, t) && (h.choice || (Chaos.byK(h.k).sev || 1) >= 2)) Chaos.playerMail(G, c, t, false);
-  };
+  });
 })();
 
 /* atalhos ficam dentro deste bloco: nada de nomes de uma letra no escopo global do jogo */

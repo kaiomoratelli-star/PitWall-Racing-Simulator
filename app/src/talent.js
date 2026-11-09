@@ -279,20 +279,16 @@ Talent.dynamicCeiling = (G) => {
 
 (function () {
   // carreira nova: nível, potencial e perfil de todos os pilotos (depois da base, das categorias e do kart)
-  const ip = Career.initPeople;
-  Career.initPeople = (G) => { const r = ip(G); Talent.ensure(G); Talent.replenish(G); return r; };
+  Hooks.around('Career', Career, 'initPeople', 'talent', (ip, G) => { const r = ip(G); Talent.ensure(G); Talent.replenish(G); return r; });
   // evolução por corrida e por temporada nunca passa do teto
-  Career.driverGrowth = (G) => { Talent.grow(G); Talent.capAll(G); };
+  Hooks.base('Career', Career, 'driverGrowth', 'talent', (G) => { Talent.grow(G); Talent.capAll(G); }, 'evolução com teto de potencial (níveis ocultos)');
   if (typeof Cats !== 'undefined') {
-    const dev = Cats.develop;
-    Cats.develop = (G) => { const r = dev(G); Talent.capAll(G); return r; };
+    Hooks.around('Cats', Cats, 'develop', 'talent', (dev, G) => { const r = dev(G); Talent.capAll(G); return r; });
   }
   // potencial anual: anda entre a nota e o teto
   if (typeof Potential !== 'undefined') {
-    const ev = Potential.evolve;
-    Potential.evolve = (G) => { Talent.dynamicCeiling(G); const r = ev(G); Talent.capAll(G); return r; };
+    Hooks.around('Potential', Potential, 'evolve', 'talent', (ev, G) => { Talent.dynamicCeiling(G); const r = ev(G); Talent.capAll(G); return r; });
   }
   // fim de temporada: novos pilotos recebem nível e perfil; teto garantido
-  const es = Career.endSeason;
-  Career.endSeason = (G) => { const r = es(G); Talent.replenish(G); Talent.ensure(G); return r; };
+  Hooks.around('Career', Career, 'endSeason', 'talent', (es, G) => { const r = es(G); Talent.replenish(G); Talent.ensure(G); return r; });
 })();

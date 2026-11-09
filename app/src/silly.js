@@ -138,11 +138,9 @@ Silly.choose = (G, d, talks) => {
 /* ---------- ganchos ---------- */
 (function () {
   // pedido salarial com o empurrão do empresário
-  const ask = Market.ask;
-  Market.ask = (d) => +(ask(d) * (1 + (d ? Silly.push(null, d) * 0.5 : 0))).toFixed(2);
+  Hooks.around('Market', Market, 'ask', 'silly', (ask, d) => +(ask(d) * (1 + (d ? Silly.push(null, d) * 0.5 : 0))).toFixed(2));
   // leilão: com várias propostas, o piloto escolhe uma e as outras perdem
-  const rt = Market.resolveTalks;
-  Market.resolveTalks = (G) => {
+  Hooks.around('Market', Market, 'resolveTalks', 'silly', (rt, G) => {
     const M = Market.state(G);
     const due = M.talks.filter(k => k.status === 'talks' && k.resolve <= G.season.round && !k.awaitPlayer);
     const byD = {};
@@ -155,10 +153,9 @@ Silly.choose = (G, d, talks) => {
       win.offer.salary = +(win.offer.salary * 1.03).toFixed(2);
     });
     return rt(G);
-  };
+  });
   // proposta do jogador concorre com as da IA que estão na mesa
-  const po = Market.playerOffer;
-  Market.playerOffer = (G, did, offer, immediate) => {
+  Hooks.around('Market', Market, 'playerOffer', 'silly', (po, G, did, offer, immediate) => {
     const res = po(G, did, offer, immediate);
     if (!res || res.status !== 'accept' || offer.renew) return res;
     const d = Career.driver(G, did), mine = Career.team(G);
@@ -168,36 +165,32 @@ Silly.choose = (G, d, talks) => {
     if (pick.team === mine.id) return res;
     const t = Career.team(G, pick.team);
     return { status: 'counter', p: res.p, counter: { ...offer, salary: +(pick.offer.salary * 1.05).toFixed(2) }, msg: byLang(`${Silly.agent(G, d).name}, empresário de ${d.name}, avisa que a ${t.name} ofereceu ${fmtMoney(pick.offer.salary)}/ano. Para fechar com você, quer pelo menos ${fmtMoney(pick.offer.salary * 1.05)}.`, `${Silly.agent(G, d).name}, ${d.name}'s manager, says ${t.name} offered ${fmtMoney(pick.offer.salary)}/yr. To sign with you, he wants at least ${fmtMoney(pick.offer.salary * 1.05)}.`) };
-  };
+  });
   // contrato novo leva bônus, direitos de imagem e às vezes opção de renovação; a comissão do empresário sai na assinatura
-  const sf = Market.signFuture;
-  Market.signFuture = (G, d, t, offer, buyout) => {
+  Hooks.around('Market', Market, 'signFuture', 'silly', (sf, G, d, t, offer, buyout) => {
     const r = sf(G, d, t, offer, buyout);
     d.pendingTerms = Silly.terms(G, d, t, offer, localRng(`terms:${G.seed}:${d.id}:${G.season.year}`));
     const fee = +(offer.salary * Silly.agent(G, d).fee).toFixed(2);
     if (t.id === G.player.teamId && !Career.isObs(G)) Career.ledger(G, byLang(`Comissão do empresário de ${d.name}`, `${d.name}'s manager commission`), -fee, 'mercado'); else t.cash = +((t.cash || 0) - fee).toFixed(2);
     return r;
-  };
-  const pd = Career.placeDriver;
-  Career.placeDriver = (G, d, tid, role, salary, years) => {
+  });
+  Hooks.around('Career', Career, 'placeDriver', 'silly', (pd, G, d, tid, role, salary, years) => {
     const terms = d.pendingTerms; d.pendingTerms = null;
     const out = pd(G, d, tid, role, salary, years);
     if (role !== 'R' && d.contract) Object.assign(d.contract, terms || Silly.terms(G, d, Career.team(G, tid), { salary, years }, localRng(`terms:${G.seed}:${d.id}:${G.season.year}:p`)));
     return out;
-  };
+  });
   // contrato na ficha: empresário, bônus e direitos de imagem
-  const ct = Market.contractText;
-  Market.contractText = (G, d) => {
+  Hooks.around('Market', Market, 'contractText', 'silly', (ct, G, d) => {
     let s = ct(G, d);
     const c = d.contract || {};
     if (d.team && c.bonus) s += byLang(` · bônus: vitória ${fmtMoney(c.bonus.win)}, pódio ${fmtMoney(c.bonus.podium)}, título ${fmtMoney(c.bonus.title)}`, ` · bonuses: win ${fmtMoney(c.bonus.win)}, podium ${fmtMoney(c.bonus.podium)}, title ${fmtMoney(c.bonus.title)}`);
     if (d.team && c.imageRights) s += byLang(` · ${Math.round(c.imageRights * 100)}% dos direitos de imagem com a equipe`, ` · ${Math.round(c.imageRights * 100)}% of image rights with the team`);
     const ag = Silly.agent(G, d);
     return s + byLang(` · empresário: ${ag.name} (comissão de ${Math.round(ag.fee * 100)}%)`, ` · manager: ${ag.name} (${Math.round(ag.fee * 100)}% commission)`);
-  };
+  });
   // bônus pagos por resultado
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  Hooks.around('Career', Career, 'finishWeekend', 'silly', (fw, G, ...a) => {
     const res = fw(G, ...a);
     const last = G.season.results[G.season.results.length - 1];
     if (last) last.cls.filter(c => c.status === 'fin' && c.pos <= 3).forEach(c => {
@@ -208,5 +201,5 @@ Silly.choose = (G, d, talks) => {
     });
     Silly.tick(G);
     return res;
-  };
+  });
 })();

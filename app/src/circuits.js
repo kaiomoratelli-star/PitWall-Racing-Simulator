@@ -158,12 +158,11 @@ Circuits.addReal = (db) => {
   return n;
 };
 (function () {
-  const ss = Career.startSeason;
-  Career.startSeason = (G, first) => {
+  Hooks.around('Career', Career, 'startSeason', 'circuits', (ss, G, first) => {
     const year = G.season ? G.season.year + 1 : G.db.rules.startYear;
     if (G.db && G.db.tracks) Circuits.prepare(G, year, !G.season);
     return ss(G, first);
-  };
+  });
 })();
 /* calendário oficial (F1_CALENDAR_2027): ordem, datas, sprints e dia da corrida (Las Vegas no sábado).
    As datas ficam em cada pista; nas temporadas seguintes o jogo repete o mês e o dia no fim de semana mais próximo. */

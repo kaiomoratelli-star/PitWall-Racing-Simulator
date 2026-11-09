@@ -48,14 +48,12 @@ MarketPlus.affinity = (agent, tid) => (localRng(`aff:${agent.key}:${tid}`)() - 0
 
 /* ---------- decoradores ---------- */
 (function () {
-  const appeal = Market.teamAppeal;
-  Market.teamAppeal = (G, t) => {
+  Hooks.around('Market', Market, 'teamAppeal', 'market-plus', (appeal, G, t) => {
     const cash = t.id === G.player.teamId ? G.finances.balance : (t.cash ?? t.budget * 0.3);
     const stability = clamp(cash / Math.max(1, t.budget) * 25, -18, 8);   // equipe no vermelho afasta pilotos
     return appeal(G, t) + stability;
-  };
-  const accepts = Market.driverAccepts;
-  Market.driverAccepts = (G, d, t, offer) => {
+  });
+  Hooks.around('Market', Market, 'driverAccepts', 'market-plus', (accepts, G, d, t, offer) => {
     const res = accepts(G, d, t, offer);
     const ovr = driverOverall(d);
     const ap = Market.teamAppeal(G, t);
@@ -66,9 +64,8 @@ MarketPlus.affinity = (agent, tid) => (localRng(`aff:${agent.key}:${tid}`)() - 0
     const ag = MarketPlus.agent(d);
     adj += MarketPlus.affinity(ag, t.id) * (ag.rep / 100) * 0.06;
     return { ...res, p: clamp(res.p + adj, 0.02, 0.98), agent: ag };
-  };
-  const cand = Market.candidateScore;
-  Market.candidateScore = (G, t, d) => {
+  });
+  Hooks.around('Market', Market, 'candidateScore', 'market-plus', (cand, G, t, d) => {
     let s = cand(G, t, d);
     // patrocínio pessoal: pesa conforme a necessidade de caixa da equipe
     if (d.backing) {
@@ -84,7 +81,7 @@ MarketPlus.affinity = (agent, tid) => (localRng(`aff:${agent.key}:${tid}`)() - 0
       s += fromGroup ? pol[1].academyWeight : -pol[1].externalPenalty;
     }
     return s;
-  };
+  });
 })();
 
 /* dinheiro do patrocínio pessoal entra uma vez por temporada (fim do ano) */
@@ -97,8 +94,7 @@ MarketPlus.seasonPayments = (G) => {
   });
 };
 (function () {
-  const end = Career.endSeason;
-  Career.endSeason = (G) => { MarketPlus.seasonPayments(G); const r = end(G); MarketPlus.tagNew(G); return r; };
+  Hooks.around('Career', Career, 'endSeason', 'market-plus', (end, G) => { MarketPlus.seasonPayments(G); const r = end(G); MarketPlus.tagNew(G); return r; });
 })();
 /* multa de rescisão quando uma equipe do jogo troca de piloto no meio do ano */
 MarketPlus.exitFee = (G, d, t) => {

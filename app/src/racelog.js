@@ -192,8 +192,7 @@ RaceLog.summary = (race, wk, L, run, r) => {
 
 /* acopla ao motor: depois de cada volta, o relatório */
 (function () {
-  const step = Engine.stepLap;
-  Engine.stepLap = (race, wk) => {
+  Hooks.around('Engine', Engine, 'stepLap', 'racelog', (step, race, wk) => {
     if (race.finished) return;
     const before = race.clashes ? race.clashes.length : 0;
     step(race, wk);
@@ -203,5 +202,5 @@ RaceLog.summary = (race, wk, L, run, r) => {
       const w = race.cars.find(c => c.pos === 1);
       if (w) { const ro = localRng(`win:${race.trackId}`); RaceLog.radio(race, w.did, `${wk.nameOf(w.did)}: "${RaceLog.RADIO.win[Math.floor(ro() * 2)][1]}"`); }
     }
-  };
+  });
 })();

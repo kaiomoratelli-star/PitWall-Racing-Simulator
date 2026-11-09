@@ -105,8 +105,7 @@ Scouting.payroll = (G) => sum(Scouting.state(G).staff.map(s => s.salary));
 
 (function () {
   // a qualidade de quem observou reduz o erro da estimativa
-  const est = Potential.estimate;
-  Potential.estimate = (G, d, viewer) => {
+  Hooks.around('Potential', Potential, 'estimate', 'scouting', (est, G, d, viewer) => {
     const e = est(G, d, viewer);
     if (viewer && viewer !== G.player.teamId) return e;
     const S = Potential.state(G); const j = S.judge && S.judge[d.id];
@@ -117,25 +116,23 @@ Scouting.payroll = (G) => sum(Scouting.state(G).staff.map(s => s.salary));
     const ovr = driverOverall(d);
     const lo = Math.round(Math.max(ovr, mid - half)), hi = Math.round(Math.min(99, Math.max(lo, mid + half)));
     return { ...e, lo, hi, mid: Math.round(mid) };
-  };
+  });
   // observar um piloto pela tela antiga = mandar um olheiro livre (ou o primeiro) para a missão
-  Potential.observe = (G, did) => {
+  Hooks.base('Potential', Potential, 'observe', 'scouting', (G, did) => {
     const S = Scouting.state(G);
     const free = S.staff.find(s => !s.task);
     if (!free) return byLang('Todos os olheiros estão em missão. Libere um na aba Olheiros.', 'All scouts are on assignment. Free one in the Scouts tab.');
     Scouting.assign(G, free.id, { type: 'driver', target: did });
     return null;
-  };
-  Potential.cancel = (G, did) => { const S = Scouting.state(G); S.staff.forEach(s => { if (s.task && s.task.type === 'driver' && s.task.target === did) s.task = null; }); };
-  Potential.tick = (G) => Scouting.tick(G);
-  const rep = Potential.report;
-  Potential.report = (G, d, s) => { rep(G, d); const R = Potential.state(G).reports[0]; if (R && R.did === d.id) { R.tier = Scouting.tierLabel(G, d); R.by = s ? s.name : null; } };
+  }, 'observar um piloto = mandar um olheiro do departamento');
+  Hooks.base('Potential', Potential, 'cancel', 'scouting', (G, did) => { const S = Scouting.state(G); S.staff.forEach(s => { if (s.task && s.task.type === 'driver' && s.task.target === did) s.task = null; }); }, 'cancelar a missão do olheiro');
+  Hooks.base('Potential', Potential, 'tick', 'scouting', (G) => Scouting.tick(G), 'o andamento das observações é o do departamento de olheiros');
+  Hooks.around('Potential', Potential, 'report', 'scouting', (rep, G, d, s) => { rep(G, d); const R = Potential.state(G).reports[0]; if (R && R.did === d.id) { R.tier = Scouting.tierLabel(G, d); R.by = s ? s.name : null; } });
   // mercado de olheiros a cada temporada; salários no fim do ano
-  const es = Career.endSeason;
-  Career.endSeason = (G) => {
+  Hooks.around('Career', Career, 'endSeason', 'scouting', (es, G) => {
     if (!Career.isObs(G)) { const p = +Scouting.payroll(G).toFixed(2); if (p) Career.ledger(G, byLang('Olheiros: salários do ano', 'Scouting: yearly salaries'), -p, 'staff'); }
     const r = es(G);
     if (!Career.isObs(G)) Scouting.refreshMarket(G);
     return r;
-  };
+  });
 })();

@@ -40,15 +40,14 @@ Parts.afterRace = (G, race, gp) => {
 };
 
 (() => {
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => {
+  Hooks.around('Career', Career, 'finishWeekend', 'parts', (fw, G, ...a) => {
     const wk = G.weekend; const race = wk && wk.race; const tr = wk && Career.track(G, wk.trackId);
     let bill = [];
     if (race && !race.dmgDone) { try { bill = Parts.afterRace(G, race, tr ? tr.gp : ''); } catch (e) { /* sem conta */ } race.dmgDone = true; }
     const r = fw(G, ...a);
     if (G.lastRace && race) { G.lastRace.dmg = race.dmg || []; G.lastRace.bill = bill; }
     return r;
-  };
+  });
 })();
 
 /* =============================================================
@@ -110,7 +109,7 @@ Parts.addGrid = (G, d, n, parts) => {
 };
 
 /* depois da corrida: desgaste, quebras e trocas (substitui o modelo de unidade única) */
-Regs.puTick = (G, race) => {
+Hooks.base('Regs', Regs, 'puTick', 'parts', (G, race) => {
   const track = Career.track(G, race.trackId);
   const air = G.weekend && G.weekend.weather && G.weekend.weather.air ? G.weekend.weather.air[1] : 24;
   const heat = air > 28 ? 1 + (air - 28) * 0.02 : 1;
@@ -136,7 +135,7 @@ Regs.puTick = (G, race) => {
     if (isMine) { const worn = Parts.KEYS.filter(k => S.c[k].wear >= 85 && S.c[k].warned !== S.c[k].used); if (worn.length) { worn.forEach(k => (S.c[k].warned = S.c[k].used)); Career.mail(G, { from: byLang('Engenheiro de motor', 'Power unit engineer'), tag: 'dev', title: byLang(`${d.name}: ${worn.map(k => Parts.label(k, true)).join(', ')} no fim da vida útil`, `${d.name}: ${worn.map(k => Parts.label(k, true)).join(', ')} near end of life`), body: byLang(`Peça gasta quebra mais e perde rendimento. Troque na tela do Carro antes da classificação${worn.some(k => S.c[k].used >= Parts.limit(G, k)) ? '; a cota acabou, então haverá punição no grid. Escolha uma pista boa para ultrapassar' : ''}.`, `Worn parts fail more and lose performance. Swap them on the Car screen before qualifying${worn.some(k => S.c[k].used >= Parts.limit(G, k)) ? '; the allocation is used up, so a grid penalty applies. Pick a track that is good for overtaking' : ''}.`) }); } }
     if (isMine && swap.length) Career.mail(G, { from: byLang('Engenheiro de motor', 'Power unit engineer'), tag: 'dev', title: byLang(`${d.name}: ${swap.join(', ')} trocado(s)`, `${d.name}: ${swap.join(', ')} replaced`), body: byLang(`${broke ? 'Quebra na corrida. ' : 'Peça no fim da vida útil. '}${pen ? `Além da cota: ${pen} posições de punição no próximo grid.` : 'Dentro da cota, sem punição.'}`, `${broke ? 'Failure in the race. ' : 'Part at the end of its life. '}${pen ? `Beyond the allocation: ${pen}-place grid penalty at the next race.` : 'Within the allocation, no penalty.'}`) });
   });
-};
+}, 'motor por componente (ICE, TC, MGU-K, ES, CE, EX, câmbio) no lugar da unidade única');
 
 /* troca estratégica pedida pelo jogador antes da classificação */
 Parts.swapNow = (G, did, k) => {
@@ -155,12 +154,11 @@ Parts.raceMods = (G, did) => {
   return { risk: +risk.toFixed(2), pace: +pace.toFixed(3) };
 };
 (() => {
-  const sr = Career.startRace;
-  Career.startRace = (G, ...a) => {
+  Hooks.around('Career', Career, 'startRace', 'parts', (sr, G, ...a) => {
     const r = sr(G, ...a);
     try { const race = G.weekend && G.weekend.race; if (race) race.cars.forEach(c => { const m = Parts.raceMods(G, c.did); c.puRisk = m.risk; c.puPace = m.pace; }); } catch (e) { /* sem efeito */ }
     return r;
-  };
+  });
 })();
 
 /* =============================================================
@@ -205,10 +203,8 @@ Testing.run = (G, first) => {
     ] });
 };
 (() => {
-  const ss = Career.startSeason;
-  Career.startSeason = (G, first, ...a) => { const r = ss(G, first, ...a); try { Testing.run(G, !!first); } catch (e) { /* sem testes */ } return r; };
-  const ae = Events.applyEffects;
-  Events.applyEffects = (G, fx) => {
+  Hooks.around('Career', Career, 'startSeason', 'parts', (ss, G, first, ...a) => { const r = ss(G, first, ...a); try { Testing.run(G, !!first); } catch (e) { /* sem testes */ } return r; });
+  Hooks.around('Events', Events, 'applyEffects', 'parts', (ae, G, fx) => {
     const out = ae(G, fx);
     try {
       if (fx && fx.testProg && G.season) {
@@ -218,10 +214,9 @@ Testing.run = (G, first) => {
       }
     } catch (e) { /* sem efeito */ }
     return out;
-  };
+  });
   // o fator de testes entra no risco de quebra junto com o desgaste do motor
-  const sr = Career.startRace;
-  Career.startRace = (G, ...a) => { const r = sr(G, ...a); try { const race = G.weekend && G.weekend.race; if (race) race.cars.forEach(c => { c.puRisk = +((c.puRisk || 1) * Testing.riskMul(G, c.tid)).toFixed(2); }); } catch (e) { /* nada */ } return r; };
+  Hooks.around('Career', Career, 'startRace', 'parts#2', (sr, G, ...a) => { const r = sr(G, ...a); try { const race = G.weekend && G.weekend.race; if (race) race.cars.forEach(c => { c.puRisk = +((c.puRisk || 1) * Testing.riskMul(G, c.tid)).toFixed(2); }); } catch (e) { /* nada */ } return r; });
 })();
 
 /* =============================================================
@@ -238,13 +233,11 @@ Parts.freezeBlock = (G, area, next) => {
 };
 (() => {
   if (typeof RnD !== 'undefined' && RnD.quote) {
-    const q0 = RnD.quote;
-    RnD.quote = (G, cfg) => { const q = q0(G, cfg); try { if (q && !q.blocked) q.blocked = Parts.freezeBlock(G, q.area || cfg.area, !!(q.next ?? cfg.next)); } catch (e) { /* nada */ } return q; };
+    Hooks.around('RnD', RnD, 'quote', 'parts', (q0, G, cfg) => { const q = q0(G, cfg); try { if (q && !q.blocked) q.blocked = Parts.freezeBlock(G, q.area || cfg.area, !!(q.next ?? cfg.next)); } catch (e) { /* nada */ } return q; });
   }
   if (typeof CarDev !== 'undefined' && CarDev.start) {
-    const s0 = CarDev.start;
     // IA: com o chassi congelado, todo o ganho de aero/chassi vai para o carro do ano seguinte
-    CarDev.start = (G, t, area, gain, bankShare, P) => s0(G, t, area, gain, Regs.r(G).chassisFreeze && area !== 'reliability' ? 1 : bankShare, P);
+    Hooks.around('CarDev', CarDev, 'start', 'parts', (s0, G, t, area, gain, bankShare, P) => s0(G, t, area, gain, Regs.r(G).chassisFreeze && area !== 'reliability' ? 1 : bankShare, P));
   }
 })();
 
@@ -266,8 +259,7 @@ Testing.midSeason = (G) => {
     ] });
 };
 (() => {
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const r = fw(G, ...a); try { Testing.midSeason(G); } catch (e) { /* sem teste */ } return r; };
+  Hooks.around('Career', Career, 'finishWeekend', 'parts#2', (fw, G, ...a) => { const r = fw(G, ...a); try { Testing.midSeason(G); } catch (e) { /* sem teste */ } return r; });
 })();
 
 /* previsão de estouro da cota: em que etapa cada elemento precisaria de uma unidade além da cota */

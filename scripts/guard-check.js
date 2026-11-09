@@ -48,6 +48,24 @@ Object.entries(defs).forEach(([k, v]) => {
   v.slice(1).forEach(d => { if (!d.wraps && !allowed.has(k)) errors.push(`${k} redefinida por inteiro em ${d.at} (antes em ${v[0].at}) sem guardar a anterior. Se a troca é intencional, registre em tests/replacements.json com o motivo e confira se nada da versão antiga se perdeu.`); });
 });
 
+// 6. ganchos: o estilo antigo de embrulho (const old = Obj.f; Obj.f = ...) é proibido; e uma função do jogo
+//    só pode ser redefinida por Hooks.base / Hooks.replace (com motivo), nunca por cima em silêncio.
+const OBJ = 'Career|Events|Engine|RnD|Regs|Owners|Council|Market|Staff|Media|Social|Cats|AI|Sisters|Mfr|Fac|CarDev|Time|SL|Parts|Orders|People|Talks|Econ|Quali|Practice|Setup|RaceLog|Chaos|Identity|Contracts|Academy|Scouting|Talent|Potential|Silly|Narr|Kart|Disc|Circuits|Stories|RegCal|MarketPlus|Testing|DriverDB|Persons|Store';
+const tempSwaps = new Set(repl.tempSwaps || []);
+const firstDef = {};
+order.forEach(m => {
+  const lines = read(m).split('\n');
+  lines.forEach((l, i) => {
+    const w = l.match(new RegExp(`^\\s*const (\\w+) = ((?:${OBJ})\\.\\w+);`));
+    if (w && lines.slice(i + 1, i + 8).some(x => new RegExp(`^\\s*${w[2].replace('.', '\\.')}\\s*=(?!=)`).test(x))) errors.push(`${m}.js:${i + 1}: embrulho no estilo antigo de ${w[2]} — use Hooks.around('${w[2].split('.')[0]}', ${w[2].split('.')[0]}, '${w[2].split('.')[1]}', 'nome', (next, ...) => ...)`);
+    const a = l.match(new RegExp(`^(\\s*)((?:${OBJ})\\.[A-Za-z_]\\w*)\\s*=(?!=)\\s*(\\(|function|async|\\w+\\s*=>)`));
+    if (!a) return;
+    const k = a[2];
+    if (firstDef[k] && !tempSwaps.has(`${m}.js:${k}`)) errors.push(`${m}.js:${i + 1}: ${k} redefinida por cima (primeira definição em ${firstDef[k]}) — use Hooks.base(...) ou Hooks.replace(...) com o motivo`);
+    if (!firstDef[k]) firstDef[k] = `${m}.js:${i + 1}`;
+  });
+});
+
 // 3. botões que chamam ações inexistentes
 const noComments = (t) => t.split('\n').map(l => l.replace(/^\s*\/\/.*$/, '').replace(/\/\/\s[^`'"]*$/, '').replace(/;\s+\/\/.*$/, ';')).join('\n');
 const uiSrc = noComments(ui.map(read).join('\n') + core.map(read).join('\n'));

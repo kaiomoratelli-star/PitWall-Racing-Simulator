@@ -290,16 +290,11 @@ Mfr.applyTyre = (G) => { const x = Mfr.tyreNow(G); Engine.TYRE_SUP = { wear: x.w
 /* ---------- ganchos ---------- */
 (function () {
   Engine.TYRE_SUP = { wear: 1, warm: 1 };
-  const wr = Engine.wearRate;
-  Engine.wearRate = (...a) => wr(...a) * Engine.TYRE_SUP.wear;
-  const ip = Career.initPeople;
-  Career.initPeople = (G) => { const r = ip(G); Mfr.ensure(G); Mfr.applyTyre(G); return r; };
-  const sw = Career.startWeekend;
-  Career.startWeekend = (G, ...a) => { Mfr.ensure(G); Mfr.applyTyre(G); return sw(G, ...a); };
-  const fw = Career.finishWeekend;
-  Career.finishWeekend = (G, ...a) => { const res = fw(G, ...a); if (G.season.round === Math.round(G.season.calendar.length * 0.6)) Mfr.market(G); return res; };
-  const es = Career.endSeason;
-  Career.endSeason = (G) => {
+  Hooks.around('Engine', Engine, 'wearRate', 'manufacturers', (wr, ...a) => wr(...a) * Engine.TYRE_SUP.wear);
+  Hooks.around('Career', Career, 'initPeople', 'manufacturers', (ip, G) => { const r = ip(G); Mfr.ensure(G); Mfr.applyTyre(G); return r; });
+  Hooks.around('Career', Career, 'startWeekend', 'manufacturers', (sw, G, ...a) => { Mfr.ensure(G); Mfr.applyTyre(G); return sw(G, ...a); });
+  Hooks.around('Career', Career, 'finishWeekend', 'manufacturers', (fw, G, ...a) => { const res = fw(G, ...a); if (G.season.round === Math.round(G.season.calendar.length * 0.6)) Mfr.market(G); return res; });
+  Hooks.around('Career', Career, 'endSeason', 'manufacturers', (es, G) => {
     Mfr.ensure(G);
     const regBefore = G.history.length;
     const r = es(G);
@@ -310,15 +305,14 @@ Mfr.applyTyre = (G) => { const x = Mfr.tyreNow(G); Engine.TYRE_SUP = { wear: x.w
     Mfr.tender(G);
     Mfr.sync(G);
     return r;
-  };
+  });
   // equipes que compraram/entraram com motor próprio: o fabricante novo aparece na aba
   if (typeof Owners !== 'undefined') {
-    const ep = Owners.engineProjects;
-    Owners.engineProjects = (G) => {
+    Hooks.around('Owners', Owners, 'engineProjects', 'manufacturers', (ep, G) => {
       ep(G); const S = Mfr.st(G);
       G.db.engines.forEach(e => { if (!S.list.find(m => m.id === e.id)) S.list.push({ id: e.id, name: e.name, country: null, active: true, raw: e.power, reliability: e.reliability, eff: Mfr.REF.eff - 1.5, dev: 120, fee: 14, since: G.season.year, rep: 50 }); });
       S.list.forEach(m => { const e = byId(G.db.engines, m.id); if (e && m.cand && !m.active) { m.active = true; m.since = G.season.year; m.raw = e.power; m.reliability = e.reliability; m.eff = Mfr.REF.eff - 1.5; } });
       G.db.teams.forEach(t => { if (t.works) S.contracts[t.id] = { mid: t.engine, until: 2099, fee: 0, works: true }; });
-    };
+    });
   }
 })();
