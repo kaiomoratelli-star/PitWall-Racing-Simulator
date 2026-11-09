@@ -188,7 +188,7 @@ SCREENS.academy = {
       const f = Academy.form(G, d), c = d.acContract, x = Scouting.tierEst(G, d);
       const opts = Academy.options(G, d);
       const plan = d.acPlan && d.acPlan.y === y ? d.acPlan.opt : '';
-      const planSel = opts.length ? `<select class="inp" style="width:auto;max-width:220px" data-chg="acPlan" data-id="${d.id}"><option value="">Plano para ${y + 1}: decisão da academia</option>${opts.map(o => `<option value="${o.id}" ${plan === o.id ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>` : '<span class="small muted">—</span>';
+      const planSel = opts.length ? `<select class="inp" style="width:auto;max-width:260px" data-chg="acPlan" data-id="${d.id}" aria-label="${byLang(`Plano para ${y + 1}`, `Plan for ${y + 1}`)}"><option value="">${byLang(`${y + 1}: a academia decide`, `${y + 1}: academy decides`)}</option>${opts.map(o => `<option value="${o.id}" ${plan === o.id ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>` : '<span class="small muted">—</span>';
       const ends = c && c.until <= y;
       return `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}<div class="small muted">${natTag(d.nat)} ${d.age} anos</div></td>
         <td class="small"><b>${esc(f.where)}</b>${f.team ? `<div class="muted">${esc(f.team)}</div>` : ''}</td>

@@ -629,3 +629,5 @@ td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec
 
 /* 0.8.7 — abas internas de telas longas */
 .in85-tabs { display: flex; gap: 4px; margin: -4px 0 16px; }
+.ed85-tabs { padding: 12px 14px 0; flex-wrap: wrap; gap: 4px; }
+.tbl.edit select.inp { min-width: 116px; }

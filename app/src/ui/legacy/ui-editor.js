@@ -27,7 +27,7 @@ SCREENS.editor = {
     <div class="page-head"><div><div class="eyebrow">${ED.target === 'career' ? 'Editando a carreira em andamento' : 'Base usada em novas carreiras'}</div><h1>Editor da base</h1></div>
       <div class="row">${G ? segBtns('edTarget', ED.target, [['base', 'Base para novas carreiras'], ['career', 'Carreira atual']]) : `<button class="btn" data-act="go" data-v="title">Voltar</button>`}<button class="btn primary" data-act="edSave">Salvar alterações</button></div></div>
     ${ED.target === 'career' ? '<div class="callout warn">Mudanças aqui valem imediatamente para a carreira atual: carros, pilotos, pistas e regras.</div>' : ''}
-    <div class="panel"><div class="tabs">${tabs.map(([k, l]) => `<button class="${ED.tab === k ? 'on' : ''}" data-act="edTab" data-t="${k}">${l}</button>`).join('')}</div><div class="panel-b">${body}</div></div>`;
+    <div class="panel"><div class="n-tabs ed85-tabs" role="tablist">${tabs.map(([k, l]) => `<button class="${ED.tab === k ? 'on' : ''}" role="tab" aria-selected="${ED.tab === k}" data-act="edTab" data-t="${k}">${l}</button>`).join('')}</div><div class="panel-b">${body}</div></div>`;
     return G ? inner : `<div class="main" style="max-width:1400px;margin:0 auto"><div class="main-inner">${inner}</div></div>`;
   },
   after() { if (ED.tab === 'tracks') drawEdTrack(); },
