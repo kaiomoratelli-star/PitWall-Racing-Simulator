@@ -605,3 +605,14 @@ td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec
 .mail.digest .t::before { content: '▤ '; opacity: .6; }
 .digest-list .digest-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .digest-list .digest-item:last-child { border-bottom: 0; }
+
+/* 0.8.7 — primeiros passos e dicas */
+.tut85-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tut85-l li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.tut85-l li:last-child { border-bottom: 0; }
+.tut85-l li > span:nth-child(2) { flex: 1; }
+.tut85-l li.ok { color: var(--muted); }
+.tut85-n { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 800; border: 1.5px solid var(--line); flex: none; }
+.tut85-l li.ok .tut85-n { background: var(--pos, #1fae5b); border-color: transparent; color: #fff; }
+.tut85-tip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); border-left: 4px solid #f5b400; background: var(--panel); font-size: 13px; }
+.tut85-tip > span { flex: 1; min-width: 220px; }
