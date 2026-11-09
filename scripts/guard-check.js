@@ -18,7 +18,8 @@ const errors = [];
 const warn = [];
 
 // 4. arquivos e build
-const files = fs.readdirSync(SRC).filter(f => f.endsWith('.js')).map(f => f.slice(0, -3));
+const walk = (d, pre = '') => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? walk(path.join(d, e.name), pre + e.name + '/') : e.name.endsWith('.js') ? [pre + e.name.slice(0, -3)] : []));
+const files = walk(SRC);
 const listed = new Set([...order, ...data.map(d => d)]);
 files.forEach(f => { if (!listed.has(f) && !['head'].includes(f)) errors.push(`app/src/${f}.js não está em scripts/modules.js (nunca entra no jogo)`); });
 order.forEach(m => { if (!fs.existsSync(path.join(SRC, m + '.js'))) errors.push(`scripts/modules.js cita ${m}.js, que não existe`); });

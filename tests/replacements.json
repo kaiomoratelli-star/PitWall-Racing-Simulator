@@ -5,10 +5,10 @@
     "CHG.devArea": "ui-dev.js repete exatamente a mesma linha de ui-regs.js (ir para o P&D da área escolhida). Conferido em 09/11/2026."
   },
   "tempSwaps": [
-    "stories.js:Career.news",
-    "stories.js:Social.post",
-    "stories.js:Career.mail",
-    "stories.js:Career.record"
+    "core/season/stories.js:Career.news",
+    "core/season/stories.js:Social.post",
+    "core/season/stories.js:Career.mail",
+    "core/season/stories.js:Career.record"
   ],
   "_leia_tempSwaps": "Trocas temporárias dentro de uma função (silenciar notícias e restaurar logo depois). Não são redefinições."
 }
