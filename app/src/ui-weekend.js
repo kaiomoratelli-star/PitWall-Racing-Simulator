@@ -253,7 +253,7 @@ SCREENS.analysis = {
     const tabs = [['laps', 'Tempos de volta'], ['sectors', 'Setores e velocidade'], ['pace', 'Ritmo e consistência'], ['deg', 'Degradação'], ['pos', 'Posições'], ['gap', 'Diferença para o líder'], ['tyres', 'Estratégia de pneus'], ['quali', 'Classificação'], ['season', 'Temporada'], ['h2h', 'Duelo de companheiros']];
     let body = '';
     if (!lr && ['laps', 'sectors', 'pace', 'deg', 'pos', 'gap', 'tyres', 'quali'].includes(tab)) body = '<div class="empty">Dispute uma corrida para liberar a telemetria.</div>';
-    else if (tab === 'laps') body = lapChartHtml(lr);
+    else if (tab === 'laps') body = lapTimesHtml(lr);
     else if (tab === 'sectors') body = sectorsHtml(lr);
     else if (tab === 'pace') body = paceHtml(lr);
     else if (tab === 'deg') body = degHtml(lr);
@@ -286,6 +286,29 @@ function seriesColor(lr, did, used) {
   const col = teamColor(c.tid);
   const dash = used[col] ? '5 4' : null; used[col] = true;
   return { col, dash };
+}
+/* tempos de volta da Análise (o nome antigo colidia com o gráfico de posições do relatório) */
+function lapTimesHtml(lr) {
+  const sel = analysisPick(lr);
+  const used = {};
+  const scLaps = new Set(); (lr.scHistory || []).forEach(s => { for (let l = s.from; l <= s.to + 1; l++) scLaps.add(l); });
+  const series = sel.ids.map(did => {
+    const c = lr.cars.find(x => x.did === did);
+    const pitLaps = new Set(c.stints.map(s => s.to).filter(Boolean)); c.stints.forEach(s => pitLaps.add(s.from + 1));
+    const { col, dash } = seriesColor(lr, did, used);
+    const pts = [];
+    for (let l = 1; l < c.times.length; l++) {
+      const t = c.times[l]; if (t == null) continue;
+      if (sel.clean && (l === 1 || pitLaps.has(l) || scLaps.has(l))) { pts.push(null); continue; }
+      pts.push([l, t]);
+    }
+    return { name: rawName(did), color: col, dash, pts, width: c.tid === G.player.teamId ? 2.6 : 1.8 };
+  });
+  const bands = (lr.scHistory || []).map(s => ({ from: s.from, to: s.to, color: '#f5c518' }));
+  const best = sel.ids.map(did => lr.cars.find(x => x.did === did)).map(c => ({ c, avg: avg(c.times.filter((t, l) => t && l > 1)) }));
+  return `${driverPicker(lr, sel)}<div class="row" style="margin-bottom:8px"><label class="check small"><input type="checkbox" ${sel.clean ? 'checked' : ''} data-act="anaClean"> Esconder 1ª volta, voltas de box e de Safety Car</label></div>
+  ${lineChart('laps', { series, h: 340, xLabel: 'Volta', yFmt: v => fmtLap(v), tipFmt: v => fmtLap(v), bands })}
+  <div class="tbl-wrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Piloto</th><th class="r">Melhor</th><th class="r">Média</th><th class="r">Ultrapassagens</th><th class="r">Paradas</th><th class="r">Acerto</th></tr></thead><tbody>${best.map(({ c, avg: a }) => `<tr><td>${dTag(c.did)}</td><td class="r num">${fmtLap(c.best)}</td><td class="r num">${fmtLap(a)}</td><td class="r num">${c.overtakes}</td><td class="r num">${c.pits}</td><td class="r num">${Math.round((c.setupQ || 0) * 100)}%</td></tr>`).join('')}</tbody></table></div>`;
 }
 function posChartHtml(lr) {
   const used = {};

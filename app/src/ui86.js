@@ -367,3 +367,130 @@ CHG.brFile86 = (el) => {
 };
 ACT.brSave86 = () => { const B = UI.brand; const e = Sisters.rebrand(G, B.child, B); if (e) return toast(e, 'bad'); toast(byLang('Nova identidade aplicada.', 'New identity applied.'), 'good'); autosave(); go('sister'); };
 AREA_OF85.sisterBrand = 'equipe'; SCREEN_TITLE85.sisterBrand = 'Nova identidade';
+
+/* ---------- Finanças: previsão do ano, receita prevista, custos fixos e patrimônio dos donos
+   (existiam na 0.8.4 e sumiram quando a tela foi refeita na 0.8.5) ---------- */
+(function () {
+  const sc = SCREENS.finance; if (!sc) return;
+  const h = sc.html;
+  sc.html = function () {
+    const out = h.call(this);
+    if ((UI.params.tab || 'visao') !== 'visao' || Career.isObs(G)) return out;
+    const team = Career.team(G); const s = G.season;
+    const L = (G.finances.ledger || []).filter(x => x.year === s.year);
+    const played = Math.max(1, s.round), left = s.calendar.length - s.round;
+    const net = sum(L.map(x => x.amount)) / played;
+    const pos = Career.standingsC(G).findIndex(x => x.tid === team.id) + 1;
+    const proj = G.finances.balance + net * left;
+    const cap = typeof Econ !== 'undefined' ? Econ.cap(G) : G.db.rules.budgetCap;
+    const capProj = typeof Econ !== 'undefined' ? G.finances.spent + Econ.committed(G, team) - cap * 0.03 * (left / s.calendar.length) : G.finances.spent / played * s.calendar.length;
+    const capPct = Math.round(capProj / cap * 100);
+    const drv = sum(Career.teamDrivers(G, team.id).map(d => d.salary || 0)), stf = typeof Staff !== 'undefined' ? Staff.payroll(team) : 0;
+    const box = (l, v, sub, cls) => `<div class="fc86"><small>${l}</small><b class="n-num ${cls || ''}">${v}</b>${sub ? `<em>${sub}</em>` : ''}</div>`;
+    let econ = '';
+    if (typeof Econ !== 'undefined') {
+      const rv = Econ.revenue(G, team); const spon = sum((G.sponsors || []).map(x => x.perRace || 0)) * s.calendar.length; const pool = Math.max(1, Econ.sponsorPool(team));
+      econ = box(byLang('Receita prevista no ano', 'Expected revenue this year'), fmtMoney(rv.commercial + spon + rv.owner), byLang(`comercial ${fmtMoney(rv.commercial)} · patrocínio ${fmtMoney(spon)} · donos ${fmtMoney(rv.owner)}`, `commercial ${fmtMoney(rv.commercial)} · sponsorship ${fmtMoney(spon)} · owners ${fmtMoney(rv.owner)}`)) +
+        box(byLang('Mercado de patrocínio', 'Sponsorship market'), Math.round(spon / pool * 100) + '%', byLang(`do que as marcas pagam por uma equipe com a sua exposição (${fmtMoney(pool)}/ano)`, `of what brands pay a team with your exposure (${fmtMoney(pool)}/yr)`)) +
+        box(byLang('Custos fixos no ano', 'Fixed costs this year'), fmtMoney(-(Econ.factory(G, team) + Econ.marketing(G, team))), byLang(`fábrica e pessoal ${fmtMoney(Econ.factory(G, team))} · marketing ${fmtMoney(Econ.marketing(G, team))}`, `factory and staff ${fmtMoney(Econ.factory(G, team))} · marketing ${fmtMoney(Econ.marketing(G, team))}`), 'n-loss') +
+        box(byLang('Patrimônio dos donos', 'Owners\' equity'), fmtMoney(G.finances.corporate || 0), byLang(`o caixa guarda até ${fmtMoney(Econ.reserve(G, team))}; o excedente vai para os donos`, `the team keeps up to ${fmtMoney(Econ.reserve(G, team))}; the surplus goes to the owners`));
+    }
+    const card = K85.card({ t: byLang(`Previsão para o fim de ${s.year}`, `Forecast for the end of ${s.year}`), a: `<small class="n-mu">${byLang(`média das ${played} etapa(s) disputada(s)`, `average of ${played} round(s) raced`)}</small>`,
+      body: `<div class="fc86-g">${box(byLang('Caixa projetado', 'Projected cash'), fmtMoney(proj), byLang(`você está em ${ordinal(pos)}: a posição final define a distribuição comercial do ano que vem`, `you are ${ordinal(pos)}: the final position sets next year's commercial payout`), proj < 0 ? 'n-loss' : 'n-gain')}
+        ${box(byLang('Teto no fim do ano', 'Cap at year end'), capPct + '%', capProj > cap ? byLang('risco de estourar o teto: multa e punição esportiva', 'risk of breaching the cap: fine and sporting penalty') : byLang('dentro do limite', 'within the limit'), capProj > cap ? 'n-loss' : '')}
+        ${box(byLang('Folha fixa por ano', 'Fixed payroll per year'), fmtMoney(drv + stf), byLang(`pilotos ${fmtMoney(drv)} · funcionários ${fmtMoney(stf)}`, `drivers ${fmtMoney(drv)} · staff ${fmtMoney(stf)}`))}${econ}</div>` });
+    // entra logo depois do cabeçalho da tela
+    try { const tmp = document.createElement('div'); tmp.innerHTML = out; const ph = tmp.querySelector('.n-ph'); if (ph) { ph.insertAdjacentHTML('afterend', card); return tmp.innerHTML; } } catch (e) { /* segue */ }
+    return out + card;
+  };
+})();
+
+/* ---------- Calendário: tabela da temporada com vencedor, pole, sua melhor posição e condições
+   (a tabela antiga sumiu quando o calendário virou visão por mês/etapa na 0.8.5) ---------- */
+(function () {
+  const sc = SCREENS.calendar; if (!sc) return;
+  const h = sc.html;
+  sc.html = function () {
+    const out = h.call(this);
+    if (UI.params.tab !== 'etapas') return out;
+    const s = G.season; const mineT = Career.isObs(G) ? null : G.player.teamId;
+    const rows = s.calendar.map((tid, i) => {
+      const tr = Career.track(G, tid); const r = s.results[i];
+      const mine = r && mineT ? r.cls.filter(c => c.tid === mineT) : [];
+      const best = mine.length ? Math.min(...mine.map(c => (c.status === 'fin' ? c.pos : 99))) : null;
+      const cond = r ? [r.wet > 0.25 ? K85.tag(byLang('Chuva', 'Rain'), 'acc') : K85.tag(byLang('Seco', 'Dry')), r.sc ? K85.tag(`SC ×${r.sc}`, 'neg') : '', r.cls.some(x => x.status === 'dsq') ? K85.tag('DSQ', 'neg') : ''].join(' ') : '';
+      return [`<span class="n-num">${i + 1}</span>`, `<b>${esc(tr.gp)}</b>${tr.sprint ? ' ' + K85.tag('Sprint', 'acc') : ''}`, `<small class="n-mu">${esc(tr.circuit)}</small>`,
+        r ? K85.who(r.winner, { tid: (r.cls[0] || {}).tid }) : i === s.round ? K85.tag(byLang('próxima', 'next'), 'acc') : '', r && r.pole ? `<small>${esc((Career.driver(G, r.pole) || {}).name || '')}</small>` : '',
+        best ? `<b class="n-num">${best === 99 ? byLang('Abandono', 'DNF') : 'P' + best}</b>` : '', cond];
+    });
+    return out + K85.card({ t: byLang(`Temporada ${s.year}: resultados por etapa`, `${s.year} season: results by round`), flush: true,
+      body: K85.table([[byLang('Etapa', 'Round'), 'c'], [byLang('Grande Prêmio', 'Grand Prix')], [byLang('Circuito', 'Circuit')], [byLang('Vencedor', 'Winner')], ['Pole'], [byLang('Sua melhor posição', 'Your best position'), 'c'], [byLang('Condições', 'Conditions')]], rows) });
+  };
+})();
+
+/* ---------- Parcerias técnicas (além das equipes irmãs) ---------- */
+function partnersCard86() {
+  if (typeof Owners === 'undefined' || !Owners.partners) return '';
+  const P = Owners.partners(G); const me = Career.isObs(G) ? null : G.player.teamId; const t = me ? Career.team(G) : null;
+  const pkgName = (k) => (k === 'full' ? byLang('Completo', 'Full') : k === 'basic' ? byLang('Básico', 'Basic') : byLang('Histórico', 'Historic'));
+  const parts = (p) => esc(byLang((p.parts || []).join(', '), (p.partsEn || p.parts || []).join(', ')));
+  const rows = Object.entries(P).filter(([c, p]) => Career.team(G, c) && Career.team(G, p.parent)).map(([c, p]) => [K85.tm(c), `<small class="n-mu">→</small> ${K85.tm(p.parent)}`, `<small>${parts(p)}</small>`, `<small>${pkgName(p.pkg)}${p.fee ? ` · ${fmtMoney(p.fee)}/${byLang('ano', 'yr')}` : ''}</small>`, `<span class="n-num">${p.since}</span>`,
+    me && (c === me || p.parent === me) && p.player !== undefined ? `<button class="btn sm danger" data-act="ptEnd86" data-id="${c}">${byLang('Encerrar', 'End')}</button>` : (me && (c === me || p.parent === me) ? `<button class="btn sm danger" data-act="ptEnd86" data-id="${c}">${byLang('Encerrar', 'End')}</button>` : '')]);
+  let mine = '';
+  if (t) {
+    const myP = P[me];
+    if (t.works) {
+      const kids = Owners.kidsOf(G, me);
+      const cands = G.db.teams.filter(x => !Owners.canParent(G, me, x.id));
+      mine = `<p class="n-sm">${byLang(`Como equipe de fábrica, você pode vender peças às clientes do seu motor (até 2). Parceiras hoje: ${kids.length}.`, `As a works team you can sell parts to your engine customers (up to 2). Current partners: ${kids.length}.`)}</p>` +
+        (cands.length ? `<div class="pt86-o">${cands.map(x => `<div class="pt86-r">${K85.tm(x.id)}<span class="n-grow"></span><button class="btn sm" data-act="ptOffer86" data-id="${x.id}" data-pkg="basic">${byLang('Oferecer básico', 'Offer basic')} (+${fmtMoney(Owners.PKG.basic.fee)}/${byLang('ano', 'yr')})</button><button class="btn sm primary" data-act="ptOffer86" data-id="${x.id}" data-pkg="full">${byLang('Oferecer completo', 'Offer full')} (+${fmtMoney(Owners.PKG.full.fee)}/${byLang('ano', 'yr')})</button></div>`).join('')}</div>` : `<p class="n-mu n-sm">${byLang('Nenhuma cliente do seu motor disponível agora.', 'No customer of your engine available right now.')}</p>`);
+    } else if (myP) {
+      mine = `<p class="n-sm">${byLang(`Você compra ${parts(myP)} da`, `You buy ${parts(myP)} from`)} ${K85.tm(myP.parent)} ${byLang('desde', 'since')} ${myP.since}.</p>`;
+    } else {
+      const works = G.db.teams.filter(x => x.works && !Owners.canParent(G, x.id, me));
+      mine = `<p class="n-sm">${byLang('Clientes podem comprar peças da equipe de fábrica que fornece o seu motor. A transferência aproxima o seu chassi e a confiabilidade dos dela (nunca a aerodinâmica). A taxa anual entra no teto de gastos.', 'Customers can buy parts from the works team that supplies their engine. The transfer brings your chassis and reliability closer to theirs (never the aerodynamics). The yearly fee counts towards the cost cap.')}</p>` +
+        (works.length ? `<div class="pt86-o">${works.map(x => `<div class="pt86-r">${K85.tm(x.id)}<span class="n-grow"></span><button class="btn sm" data-act="ptAsk86" data-id="${x.id}" data-pkg="basic">${byLang('Pedir básico', 'Ask basic')}: ${byLang('motor e câmbio', 'engine and gearbox')} (${fmtMoney(Owners.PKG.basic.fee)}/${byLang('ano', 'yr')})</button><button class="btn sm primary" data-act="ptAsk86" data-id="${x.id}" data-pkg="full">${byLang('Pedir completo', 'Ask full')}: + ${byLang('suspensão e túnel', 'suspension and tunnel')} (${fmtMoney(Owners.PKG.full.fee)}/${byLang('ano', 'yr')})</button></div>`).join('')}</div>` : `<p class="n-mu n-sm">${byLang('A equipe de fábrica do seu motor não está disponível (já tem duas parceiras, ou o seu fornecedor não tem equipe na F1).', 'Your engine\'s works team is not available (it already has two partners, or your supplier has no F1 team).')}</p>`);
+    }
+  }
+  return K85.card({ t: byLang('Parcerias técnicas', 'Technical partnerships'), a: `<small class="n-mu">${byLang('compra de peças entre equipes, sem ser dona', 'parts deals between teams, without ownership')}</small>`,
+    body: mine + (rows.length ? K85.table([[byLang('Parceira', 'Partner')], [byLang('Principal', 'Parent')], [byLang('Peças', 'Parts')], [byLang('Pacote', 'Package')], [byLang('Desde', 'Since'), 'c'], ['', 'r']], rows) : K85.empty(byLang('Nenhuma parceria técnica no grid.', 'No technical partnerships on the grid.'))) });
+}
+(function () {
+  const sc = SCREENS.sister; if (!sc) return;
+  const h = sc.html;
+  sc.html = function () { return h.call(this) + partnersCard86(); };
+  ACT.ptAsk86 = (el) => { const e = Owners.askPartner(G, el.dataset.id, el.dataset.pkg); if (e) return toast(e, 'bad'); toast(byLang('Parceria fechada!', 'Partnership agreed!'), 'good'); autosave(); render(); };
+  ACT.ptOffer86 = (el) => { const e = Owners.offerPartner(G, el.dataset.id, el.dataset.pkg); if (e) return toast(e, 'bad'); toast(byLang('Parceria fechada!', 'Partnership agreed!'), 'good'); autosave(); render(); };
+  ACT.ptEnd86 = (el) => { const e = Owners.endPartnerPlayer(G, el.dataset.id); if (e) return toast(e, 'bad'); toast(byLang('Parceria encerrada.', 'Partnership ended.'), 'good'); autosave(); render(); };
+})();
+
+/* ---------- Página da equipe: chefes de equipe (sumiu na 0.8.5) ---------- */
+(function () {
+  const sc = SCREENS.teamPage; if (!sc) return;
+  const h = sc.html;
+  sc.html = function () {
+    const out = h.call(this);
+    const t = Career.team(G, UI.params.id); if (!t) return out;
+    const lore = (typeof TEAM_LORE !== 'undefined' && TEAM_LORE[t.id]) || {};
+    const real = (lore.principals || []).slice().reverse().map(([n, a, b]) => [esc(n), `<span class="n-num n-mu">${a}–${b || byLang('hoje', 'now')}</span>`]);
+    const sim = []; (t.history || []).filter(x => x.sim && x.principal).forEach(x => { const l = sim[sim.length - 1]; if (l && l.n === x.principal) l.b = x.y; else sim.push({ n: x.principal, a: x.y, b: x.y }); });
+    const rows = sim.reverse().map(s => [`${esc(s.n)} ${K85.tag(byLang('carreira', 'career'))}`, `<span class="n-num n-mu">${s.a}–${s.b}</span>`]).concat(real);
+    if (t.principal && !rows.some(r => r[0].startsWith(esc(t.principal)))) rows.unshift([`<b>${esc(t.principal)}</b>`, `<span class="n-num n-mu">${byLang('atual', 'current')}</span>`]);
+    return rows.length ? out + K85.card({ t: byLang('Chefes de equipe', 'Team principals'), flush: true, body: K85.table([[byLang('Nome', 'Name')], [byLang('Período', 'Period'), 'r']], rows.slice(0, 14)) }) : out;
+  };
+})();
+
+/* ---------- P&D: restrição aerodinâmica (ATR) de cada equipe (sumiu na 0.8.5) ---------- */
+(function () {
+  const sc = SCREENS.dev; if (!sc || typeof Regs === 'undefined') return;
+  const h = sc.html;
+  sc.html = function () {
+    const out = h.call(this);
+    if (Career.isObs(G)) return out;
+    const R = Regs.r(G); if (!R.atr) return out + K85.card({ t: byLang('Restrição aerodinâmica (ATR)', 'Aerodynamic testing restriction (ATR)'), body: `<p class="n-mu">${byLang('Desligada pelo regulamento atual: todas as equipes têm o mesmo tempo de túnel e CFD.', 'Disabled by current regulations: all teams have the same tunnel and CFD time.')}</p>` });
+    const list = G.db.teams.map(t => ({ t, f: Regs.atrFactor(G, t.id) })).sort((a, b) => a.f - b.f);
+    const me = G.player.teamId;
+    return out + K85.card({ t: byLang('Restrição aerodinâmica (ATR)', 'Aerodynamic testing restriction (ATR)'), a: `<small class="n-mu">${byLang(`do campeão ${R.atrMin}% ao último ${R.atrMax}%`, `from the champion ${R.atrMin}% to last ${R.atrMax}%`)}</small>`, flush: true,
+      body: K85.table([[byLang('Equipe', 'Team')], [byLang('Tempo de túnel e CFD', 'Tunnel and CFD time')]], list.map(x => [K85.tm(x.t.id) + (x.t.id === me ? ' ' + K85.tag(byLang('você', 'you'), 'acc') : ''), `${K85.bar(x.f * 100, R.atrMax, x.t.id === me ? 'var(--team)' : 'var(--blue)', 160)} <b class="n-num">${Math.round(x.f * 100)}%</b>`])) });
+  };
+})();

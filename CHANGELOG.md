@@ -35,6 +35,16 @@ Ainda não publicada. O plano está em `docs/PLANO-0.8.6.md` e a auditoria do c�
 - Equipe irmã: a dona indica quem corre nela (piloto da academia, o seu reserva ou um piloto livre com superlicença).
 - Equipe irmã comprada pode ganhar identidade nova: nome, nome completo, sigla, cores, logo (da lista ou importado) e nome do chassi, com prévia e opção de voltar à original.
 
+**Parcerias técnicas e o que tinha sumido (09/11)**
+- Parceria técnica sem ser dona, como Haas–Ferrari e Williams–Mercedes, em Equipe → Parcerias. A cliente pede à equipe de fábrica do seu motor um pacote básico (motor e câmbio, US$ 6 mi/ano) ou completo (mais suspensão e túnel de vento, US$ 14 mi/ano). A equipe de fábrica pode oferecer parceria às clientes (até 2). Qualquer lado pode encerrar.
+- Varredura entre versões (0.8.4 × hoje: telas, abas, painéis, botões e funções). Voltaram:
+  - em Análise → Tempos de volta, o gráfico de tempos com a opção de esconder a 1ª volta, as paradas e o Safety Car (a aba mostrava o gráfico de posições por um conflito de nomes);
+  - a aba Artes nas notícias e o botão de curtir nas redes;
+  - nas Finanças, a previsão para o fim do ano: caixa projetado, teto no fim do ano, folha fixa, receita prevista, mercado de patrocínio, custos fixos e patrimônio dos donos;
+  - no Calendário → Etapas, a tabela da temporada com vencedor, pole, sua melhor posição e condições;
+  - na página da equipe, os chefes de equipe;
+  - no P&D, a restrição aerodinâmica (ATR) de cada equipe.
+
 **Limpeza**
 - Cerca de 680 linhas de código sem uso removidas; funções esquecidas reaproveitadas (rivalidades, créditos e licenças, censo de talentos, estouros do teto).
 - Nota do chefe de equipe e aerodinâmica ativa passaram a ter efeito.

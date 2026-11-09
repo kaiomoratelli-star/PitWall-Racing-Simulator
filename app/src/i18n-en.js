@@ -698,3 +698,4 @@ I18N_PATS.unshift(
   [/^Voltas até a vida do pneu cair para 30%: ([\s\S]+)$/, (m, a) => 'Laps until tyre life drops to 30%: ' + a.replace(/voltas/g, 'laps').replace(/corrida de/g, 'race of')],
   [/^Vida do pneu (\d+)% · ([\d.]+)°C$/, 'Tyre life $1% · $2°C'],
 );
+I18N_PATS.unshift([/^(.+) \((\d+) anos, potencial estimado ([\d–]+)\) venceu de novo na categoria de acesso\. O empresário oferece um contrato de piloto reserva com opção de promoção\.$/, '$1 ($2, estimated potential $3) won again in the feeder series. The manager offers a reserve driver contract with a promotion option.']);
