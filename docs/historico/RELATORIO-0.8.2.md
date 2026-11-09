@@ -1,6 +1,6 @@
 # Relatório da V0.8.2 — auditoria, integridade da database e economia
 
-Data: 07/11/2026. Base: auditoria em `docs/AUDITORIA-0.8.2.md` (plano aprovado). Inclui a correção da 0.8.1 (aceleração de hardware desligada).
+Data: 07/11/2026. Base: auditoria em `docs/historico/AUDITORIA-0.8.2.md` (plano aprovado). Inclui a correção da 0.8.1 (aceleração de hardware desligada).
 
 ## 1. Resumo executivo
 
@@ -176,7 +176,7 @@ Leitura:
 **Criados**
 - Código e dados: `app/src/persons.js`, `app/src/econ.js`, `app/data/calendar-2027.js`, `app/data/driverdb-2026.js`.
 - Scripts: `scripts/audit.js`, `scripts/import_driverdb.py`, `scripts/driverdb-photos.js`.
-- Documentação: `docs/AUDITORIA-0.8.2.md`, `docs/RELATORIO-0.8.2.md`, `docs/DUPLICATAS.md`, `docs/VERIFICACAO-DATABASE.md`, `docs/RELATORIO-SIMULACAO.md`.
+- Documentação: `docs/historico/AUDITORIA-0.8.2.md`, `docs/historico/RELATORIO-0.8.2.md`, `docs/DUPLICATAS.md`, `docs/VERIFICACAO-DATABASE.md`, `docs/RELATORIO-SIMULACAO.md`.
 - Imagens: `app/assets/img/faces/ddb/` (71 fotos), logos novos em `logos/institutions`, `logos/tyres` e `logos/teams`.
 
 **Modificados**

@@ -15,7 +15,7 @@
 ## Próximas versões (decisão de 08/11/2026)
 | Versão | Tema |
 |---|---|
-| **0.8.6** | Expansão esportiva e administrativa, mais as pendências da 0.8.5. Plano em `docs/PLANO-0.8.6.md`. |
+| **0.8.6** | Expansão esportiva e administrativa, mais as pendências da 0.8.5. Plano em `docs/historico/PLANO-0.8.6.md`. |
 | **0.9** | Somente a Carreira de Piloto |
 | **1.0** | Categorias e equipes jogáveis (F2, F3 e outras), Sandbox, modos especiais e preparação para o lançamento |
 

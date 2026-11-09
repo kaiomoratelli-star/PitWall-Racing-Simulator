@@ -1,6 +1,6 @@
 # Relatório da V0.8.3 — talento, carros, academia, olheiros e patrocínio
 
-Data: 07/11/2026. Plano e decisões do dono: `docs/PLANO-0.8.3.md`. Simulações completas: `docs/RELATORIO-SIMULACAO.md`.
+Data: 07/11/2026. Plano e decisões do dono: `docs/historico/PLANO-0.8.3.md`. Simulações completas: `docs/RELATORIO-SIMULACAO.md`.
 
 ## 1. Resumo executivo
 
@@ -186,7 +186,7 @@ Equipes de fora do grupo de sempre (Audi, Alpine, Haas, Racing Bulls, Williams) 
 **Novos**
 - Código: `app/src/talent.js`, `app/src/cardev.js`, `app/src/academy.js`, `app/src/scouting.js`.
 - Dados: `app/data/driver-tiers.js`, `app/data/sponsor-brands.js`.
-- Documentação: `docs/PLANO-0.8.3.md`, `docs/RELATORIO-0.8.3.md`, `docs/PENDENCIAS-V1.md`.
+- Documentação: `docs/historico/PLANO-0.8.3.md`, `docs/historico/RELATORIO-0.8.3.md`, `docs/PENDENCIAS-V1.md`.
 - Imagens: logos de marcas e da Eurocup-4.
 
 **Modificados**

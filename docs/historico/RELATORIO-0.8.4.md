@@ -1,6 +1,6 @@
 # Relatório da V0.8.4 — equipes como empresas, mercado vivo, política e eventos
 
-Data: 08/11/2026. Roteiro e avaliação: `docs/ROADMAP-0.8.4.md`. Decisões do dono: respostas de 08/11/2026 (ver seção 1).
+Data: 08/11/2026. Roteiro e avaliação: `docs/historico/ROADMAP-0.8.4.md`. Decisões do dono: respostas de 08/11/2026 (ver seção 1).
 
 ## 1. Decisões do dono e como ficaram
 

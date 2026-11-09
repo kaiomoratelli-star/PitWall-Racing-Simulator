@@ -35,7 +35,7 @@ npm test           # simulação prolongada com diagnóstico
 npm run test:smoke # testa o aplicativo real
 npm run dist       # gera o instalador (no Windows)
 ```
-Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), regras do projeto em [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) e histórico de versões em [CHANGELOG.md](CHANGELOG.md).
+Índice da documentação em [docs/README.md](docs/README.md). Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), regras do projeto em [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) e histórico de versões em [CHANGELOG.md](CHANGELOG.md).
 
 ## Marca
 Logo da Moratelli Game Company, ícone, tela de abertura e imagens do instalador são gerados por

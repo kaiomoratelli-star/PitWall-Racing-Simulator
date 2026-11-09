@@ -14,7 +14,7 @@ Data: 09/11/2026. **Publicada** com a autorização do dono do jogo (09/11/2026)
 | Ordens de equipe | Obedecer ou recusar (personalidade, campeonato, moral, confiança, química), rádio variado, carta com escolhas, redes sociais, política "piloto nº 1" | `engine.js` (`Engine.obeyP`), `orders.js` |
 | Pessoas | Moral com causas, química entre companheiros, confiança no chefe, promessas, funcionários com moral, pedidos e conflitos, demissão do diretor técnico | `people.js` |
 | Conversas | Tela Equipe → Conversas: 12 assuntos, 5 perfis de piloto, falas sorteadas sem repetir, promessas | `talks.js`, `ui86.js` |
-| Limpeza | ~680 linhas sem uso removidas, funções esquecidas reaproveitadas | ver `docs/AUDITORIA-0.8.6.md` |
+| Limpeza | ~680 linhas sem uso removidas, funções esquecidas reaproveitadas | ver `docs/historico/AUDITORIA-0.8.6.md` |
 | Inglês | Catálogo antigo de eventos (111 textos), cargos dos funcionários e tela de funcionários traduzidos | `i18n-en.js` |
 
 ## 1b. Fechamento (itens do plano que faltavam)

@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.8.6 — Expansão esportiva e administrativa (09/11/2026)
-O plano está em `docs/PLANO-0.8.6.md` e a auditoria do código em `docs/AUDITORIA-0.8.6.md`.
+O plano está em `docs/historico/PLANO-0.8.6.md` e a auditoria do código em `docs/historico/AUDITORIA-0.8.6.md`.
 
 **Superlicença e treino livre com novatos**
 - Superlicença completa: 40 pontos nas três últimas temporadas (25 para a de treino livre), idade mínima e pontos por TL1.
@@ -64,7 +64,7 @@ O plano está em `docs/PLANO-0.8.6.md` e a auditoria do código em `docs/AUDITOR
 - Nota do chefe de equipe e aerodinâmica ativa passaram a ter efeito.
 
 ## 0.8.5 — Nova interface (08/11/2026)
-Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da escolha tela a tela do dono do jogo. Relatório da verificação em `docs/RELATORIO-0.8.5.md`.
+Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da escolha tela a tela do dono do jogo. Relatório da verificação em `docs/historico/RELATORIO-0.8.5.md`.
 
 **Sistema visual**
 - Temas escuro (padrão) e claro, trocados no topo ou em Opções → Interface.
@@ -189,7 +189,7 @@ Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da
   - coerência dos números com os dados do jogo (11 verificações).
 
 ## 0.8.4 — Equipes como empresas, mercado vivo, política e eventos (08/11/2026)
-Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, relatório em `docs/RELATORIO-0.8.4.md`). A interface fica para a 0.8.5, depois de uma conversa de design.
+Terceira etapa do plano de ultrarrealismo (roteiro em `docs/historico/ROADMAP-0.8.4.md`, relatório em `docs/historico/RELATORIO-0.8.4.md`). A interface fica para a 0.8.5, depois de uma conversa de design.
 
 **Equipes como empresas**
 - Cada equipe tem dono, com riqueza, ambição e paciência:
@@ -268,7 +268,7 @@ Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, r
 - Cerca de 22 acontecimentos por temporada, quase todos pequenos: fãs, capacetes especiais, memes, rumores, alfândega, hotel lotado, patrocínios, roupas, gripe, entre outros. Alguns pedem decisão do jogador.
 - Escândalos agora são raros, cerca de 0,4 por temporada (antes 1,6).
 
-**Revisão e blindagem (dossiê em `docs/DOSSIE-0.8.4.md`)**
+**Revisão e blindagem (dossiê em `docs/historico/DOSSIE-0.8.4.md`)**
 - Corrigidos 18 problemas, entre eles:
   - deriva com o tempo: motores, confiabilidade, patrimônio, aporte e instalações;
   - crescimento sem fim do registro, do mercado e dos casos;
@@ -343,7 +343,7 @@ Terceira etapa do plano de ultrarrealismo (roteiro em `docs/ROADMAP-0.8.4.md`, r
 - Saves antigos ganham donos, opções de eventos e empresários sob demanda (migração completa só depois da V1, ver `docs/PENDENCIAS-V1.md`).
 
 ## 0.8.3 — Talento, carros, academia, olheiros e patrocínio (07/11/2026)
-Segunda etapa do plano de ultrarrealismo (plano em `docs/PLANO-0.8.3.md`, relatório em `docs/RELATORIO-0.8.3.md`).
+Segunda etapa do plano de ultrarrealismo (plano em `docs/historico/PLANO-0.8.3.md`, relatório em `docs/historico/RELATORIO-0.8.3.md`).
 
 **Nível do piloto (oculto) define o teto do potencial**
 - Escala única do automobilismo:
@@ -424,7 +424,7 @@ Segunda etapa do plano de ultrarrealismo (plano em `docs/PLANO-0.8.3.md`, relat�
 - Por decisão do projeto, as recalibrações desta fase valem para carreiras novas. Os saves antigos abrem e seguem, e a migração completa fica para depois da V1.0 (`docs/PENDENCIAS-V1.md`).
 
 ## 0.8.2 — Auditoria, integridade da database e economia (07/11/2026)
-Primeira etapa do plano de ultrarrealismo (auditoria completa em `docs/AUDITORIA-0.8.2.md`). Inclui a correção da 0.8.1.
+Primeira etapa do plano de ultrarrealismo (auditoria completa em `docs/historico/AUDITORIA-0.8.2.md`). Inclui a correção da 0.8.1.
 
 **Pilotos: uma pessoa, um registro**
 - Novo sistema de identidade (`persons.js`): cada piloto tem uma chave persistente (Wikidata ou nome canônico + ano de nascimento). Dois registros só viram um com nome compatível (apelidos e transliterações: Cam/Cameron, Nico/Nicolás, Maksimilian/Maximilian) **e** nada em conflito (Wikidata, nascimento, nacionalidade, idade possível, Jr./Sr.). Homônimos ficam separados.

@@ -9,42 +9,30 @@ Referência: versão 0.2.0 (novembro de 2026).
 | Jogo | JavaScript puro (sem framework), HTML e CSS | Já era assim na v0.1. Roda igual no navegador, no artefato do Claude e no desktop |
 | Desktop | **Electron 33** | O jogo é web. O Electron empacota o Chromium junto, então a aparência e o comportamento são idênticos em qualquer Windows 10/11. O Tauri depende do WebView2 do sistema, o que gera variações e exigiria reescrever os saves em Rust |
 | Instalador | electron-builder + NSIS | Gera `Setup.exe` em português, com atalhos e desinstalador |
-| Saves | Arquivos JSON em `%APPDATA%\PitWall Racing Simulator` | Separados da instalação. Gravação atômica e cópias de segurança |
+| Saves | Arquivos JSON compactados (gzip) em `%APPDATA%\PitWall Racing Simulator` | Separados da instalação. Gravação atômica, conferida, com cópias de segurança |
 
 ## 2. Estrutura de pastas
 
 ```
-app/src/        código do jogo (módulos carregados nesta ordem)
-  util.js       RNG com semente, formatação, nomes
-  data.js       base de dados padrão (regras, motores, equipes, pilotos, pistas) + dados reais
-  engine.js     simulação: carro, acerto, clima, classificação, corrida volta a volta
-  physics.js    compostos C1–C5, temperatura de pneu e pista, clima, setores, bateria
-  regs.js       regulamento técnico/esportivo e versões por temporada
-  setup.js      modelo de acerto (5 ajustes × 5 sensações), memória e feedback do piloto, janela do engenheiro
-  practice.js   treinos livres com relógio (60 min), programas, garagem, alocação de pneus, simulação pelo engenheiro
-  narrator.js   narração de transmissão com nomes reais de curvas e controle de repetição
-  quali.js      classificação ao vivo Q1/Q2/Q3 e SQ1/SQ2/SQ3, tráfego, voltas deletadas, bandeira vermelha
-  racelog.js    relatório volta a volta: rádio, ordens de equipe, undercut, resumo narrado de cada volta
-  circuitgen.js gerador de circuitos e logística do calendário
-  migrate.js    versão do save + migrações
-  ai.js         IA dos chefes de equipe (caixa, personalidade, investimentos, staff)
-  staff.js      15 funções de staff, mercado e decisões das equipes
-  market.js     contratos, superlicença, academias, silly season e negociação
-  career.js     carreira/universo: temporada, fim de semana, finanças, P&D,
-                registro permanente (log), arquivo histórico
-  events.js     eventos com decisões + notícias baseadas em fatos
-  media.js      imprensa, rede social, memória de histórias, rivalidades, escândalos fictícios
-  cats.js       outras categorias: simulação por data, superlicença, progressão, novos talentos
-  sisters.js    equipes irmãs: compra, academia compartilhada, promoções, parceria técnica
-  council.js    Conselho da FIA (Comissão de F1): propostas, impacto por equipe, votos, negociação, aplicação
-  lang-en.js    textos do núcleo em inglês (narração, rádio, feedback); applyLang() troca os modelos
-  diag.js       verificação de integridade e reparos seguros
-  storage.js    salvamento (disco no desktop, nuvem no Claude, navegador)
-  sound.js      sons sintetizados (WebAudio)
-  i18n.js       idiomas: o português é a chave; em inglês, um observador traduz o que entra na tela
-  i18n-en.js    catálogo em inglês (textos fixos) e modelos para textos com números e nomes
-  ui-*.js       interface
-  main.js       inicialização + testes automáticos do executável
+app/src/        código do jogo, em pastas por assunto (0.8.7); ordem de carregamento em scripts/modules.js
+  core/base/    util (RNG com semente, formatação), hooks (ganchos com nome), data, persons,
+                migrate (versão do save + migrações), schema (campos do save e conferência),
+                time, lang-en (textos do núcleo em inglês), diag (integridade)
+  core/race/    engine (corrida volta a volta), physics, setup, practice, narrator, quali, racelog,
+                sl (superlicença, pontos de punição, comissários, revisão/apelação),
+                parts (peças, motor por componente, testes, congelamentos), orders (ordens de equipe)
+  core/season/  regs, identity, circuitgen, circuits, regcal, career (+ career-weekend, career-dev,
+                career-market, career-season-end), econ, events, stories, cats, kart, disciplines
+  core/people/  ai, staff, market, driverdb, potential, talent, scouting, market-plus, contracts,
+                academy, silly, people (moral, química), talks (conversas)
+  core/world/   media, rnd, cardev, sisters, council, owners (+ entry, hooks, partners), chaos,
+                chaos-catalog, facilities, manufacturers
+  ui/base/      storage (saves: disco, nuvem, navegador; compactação), sound, ui-core, assets,
+                ui-avatar, i18n, i18n-en, main
+  ui/legacy/    telas antigas (ui-*), já com o visual novo
+  ui/v85/       casca e telas da 0.8.5 (ui85-*)
+  ui/screens/   telas e acréscimos numerados, um assunto por arquivo (01 a 20)
+  *.css         estilos (raiz de app/src)
 app/data/       dados reais: real-db (F1 2026), real-extra (contratos, staff, academias),
                 history (1950–hoje), records (recordes e linhagens), team-lore, categories
 app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias).
@@ -55,7 +43,7 @@ app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, ci
 desktop/        processo principal do Electron
   main.js       janela, tela de abertura, tela cheia, IPC, erros, testes
   preload.js    ponte segura com o jogo (contextIsolation + sandbox)
-  storage.js    saves em disco, gravação atômica, backups, recuperação
+  storage.js    saves em disco (gzip), gravação atômica conferida, backups, recuperação
   logger.js     log com rotação
 build/          ícones do aplicativo
 scripts/        build, testes (simulação longa e teste do executável), ícones
@@ -94,7 +82,7 @@ Proteções:
 
 ## 4. Compatibilidade entre versões (migrações)
 
-`SAVE_VERSION` em `app/src/migrate.js`. Ao carregar um save antigo, `Migrate.run` aplica os
+`SAVE_VERSION` em `app/src/core/base/migrate.js`. Ao carregar um save antigo, `Migrate.run` aplica os
 passos em ordem (v1→v2→…). Para mudar o formato do save:
 1. incremente `SAVE_VERSION`;
 2. adicione `Migrate.steps[versãoAnterior] = (G) => { … }` que só *adiciona* ou converte campos;
@@ -146,4 +134,4 @@ superlicença, sem imagens ou sons, sem histórico real desde 1950.
 - O jogador escolhe português (Brasil) ou inglês na primeira abertura, na tela inicial e em Salvar e opções. A escolha fica no `localStorage` (`pw-lang`) e vale para todas as carreiras.
 - Interface: o texto em português é a chave do catálogo (`I18N_EN` em `i18n-en.js`). Em inglês, `I18N` observa o DOM (`MutationObserver`) e traduz texto, `title`, `placeholder` e `aria-label`: primeiro pelo catálogo exato, depois pelos modelos com números e nomes (`I18N_PATS`), por fim frase a frase. Em português nada é observado.
 - Textos gerados pelo jogo: o núcleo usa `byLang(pt, en)` nas frases montadas no código e `applyLang()` troca os modelos de narração, rádio, feedback do piloto, pneus e abandonos. O que já foi gerado (notícias, registros) fica no idioma em que foi escrito; as manchetes mais comuns também são traduzidas na exibição.
-- Para traduzir um texto novo: escreva em português como sempre e acrescente a linha em `i18n-en.js` (texto fixo) ou um modelo (texto com números). Textos gerados no núcleo usam `byLang()`. `npm test` roda `scripts/check-scope.js`, que impede chamar uma função global quando uma variável local tem o mesmo nome.
+- Para traduzir um texto novo (0.8.7): no núcleo e nas telas novas, escreva `byLang('português', 'English')` no próprio código, inclusive para texto que fica guardado no save (notícias, cartas, redes): ele nasce no idioma da carreira. O catálogo `i18n-en.js` fica para as telas antigas. Nunca decida uma regra comparando texto traduzido; o `lang-parity-check` garante que a mesma semente dá o mesmo jogo nos dois idiomas, e o `i18n-check` procura português que escapou nas telas em inglês.

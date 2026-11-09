@@ -128,7 +128,7 @@ Regras reais da FIA. O texto exato do Apêndice L do Código Esportivo Internaci
 3. **Tela "Créditos e licenças"** em Sistema. Mostra a fonte, o autor e a licença de cada imagem, incluindo as 118 fotos novas das notícias. Importante antes de qualquer venda.
 4. **Estouros do teto de gastos** num quadro nas Finanças (`G.capBreaches`).
 5. **Botão para cancelar uma missão de olheiro**; remover o "contratar já" antigo da academia.
-6. **Limpeza do código antigo:** lista completa em `docs/AUDITORIA-0.8.6.md`:
+6. **Limpeza do código antigo:** lista completa em `docs/historico/AUDITORIA-0.8.6.md`:
    - 19 funções que nada chama e 2 ações sem botão;
    - 24 versões antigas substituídas;
    - 5 mecânicas sem efeito: a nota do chefe de equipe da IA, "Aerodinâmica ativa", "Câmbios por temporada", "Dias de teste" e a opção "Redação do paddock".
@@ -164,7 +164,7 @@ Regras reais da FIA. O texto exato do Apêndice L do Código Esportivo Internaci
 3. **Recurso de punições:** sim, com todas as regras da F1: direito de revisão, apelação e diretrizes de punição.
 4. **Reparos de batidas:** seguem todas as regras da F1 (Regulamento Financeiro).
 5. **Tela de início:** só a Largada, com mais variação de fundo; as outras três saem.
-6. **Código sem uso:** a lista completa foi entregue (`docs/AUDITORIA-0.8.6.md`) para o dono decidir o que remover.
+6. **Código sem uso:** a lista completa foi entregue (`docs/historico/AUDITORIA-0.8.6.md`) para o dono decidir o que remover.
 
 ## 6. Fora da 0.8.6
 - **0.9: Carreira de Piloto.** Começar como piloto (kart, F4 ou outra categoria), assinar com equipes, evoluir atributos, lidar com empresário e imprensa e chegar à F1. Só esse tema.
