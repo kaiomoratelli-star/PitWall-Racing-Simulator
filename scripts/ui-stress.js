@@ -20,7 +20,7 @@ const file = path.resolve(process.argv[3] || path.join(__dirname, '..', 'app', '
       const errs = [];
       p.on('pageerror', e => errs.push(e.message));
       await p.addInitScript((l) => { try { localStorage.setItem('pw-lang', l); } catch (e) { /* sem armazenamento */ } }, lang);
-      await p.goto('file://' + file);
+      await p.goto('file://' + file); await p.evaluate(() => { UI.strictRng = true; });
       await p.waitForTimeout(300);
       const out = await p.evaluate(async ({ mode, races }) => {
         const log = [];

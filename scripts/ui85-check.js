@@ -24,7 +24,7 @@ const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole',
     const errs = [];
     p.on('pageerror', e => errs.push('pageerror: ' + e.message));
     await p.addInitScript(([l, th, nv]) => { try { localStorage.setItem('pw-lang', l); localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: th, nav: nv, motion: 'off' })); } catch (e) { /* sem armazenamento */ } }, [lang, theme, nav]);
-    await p.goto('file://' + file); await p.waitForTimeout(300);
+    await p.goto('file://' + file); await p.waitForTimeout(300); await p.evaluate(() => { UI.strictRng = true; });
     const res = await p.evaluate(async ({ team, rounds, VIEWS }) => {
       const out = { bad: [], checks: [] };
       const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -53,6 +53,16 @@ const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole',
         for (const t of tabsOf(view)) { const k = `${view}:${t}`; if (!seen.has(k)) { seen.add(k); await visit(k); } }
       }
       out.visited = seen.size;
+      // (0.8.7) a guarda do sorteio funciona: uma tela que sorteia ao desenhar vira erro e o sorteio volta
+      {
+        SCREENS.__rngProbe = { html() { RNG.next(); return '<div>probe</div>'; } };
+        const st = RNG.state; let threw = false;
+        try { go('__rngProbe'); } catch (e) { threw = /sorteou/.test(e.message); }
+        if (!threw) out.bad.push('guarda do sorteio: uma tela que sorteia ao desenhar não foi pega');
+        if (RNG.state !== st) out.bad.push('guarda do sorteio: o sorteio não foi devolvido');
+        delete SCREENS.__rngProbe; UI.rngLeaks = UI.rngLeaks.filter(x => x !== '__rngProbe'); go('hub');
+        if (UI.rngLeaks.length) out.bad.push('telas que sortearam ao desenhar: ' + UI.rngLeaks.join(', '));
+      }
       // ---- coerência ----
       const sd = Career.standingsD(G), sc = Career.standingsC(G);
       go('hub'); await sleep(20);

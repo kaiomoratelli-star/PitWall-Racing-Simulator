@@ -13,7 +13,7 @@ const path = require('path');
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1440, height: 900 } });
   await pg.addInitScript(() => { try { localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: 'dark', nav: 'side', motion: 'off' })); } catch (e) {} });
   const pageErrors = []; pg.on('pageerror', e => pageErrors.push(e.message));
-  await pg.goto('file://' + path.join(__dirname, '..', 'app', 'dist', 'index.html')); await pg.waitForTimeout(600);
+  await pg.goto('file://' + path.join(__dirname, '..', 'app', 'dist', 'index.html')); await pg.waitForTimeout(600); await pg.evaluate(() => { UI.strictRng = true; });
   const res = await pg.evaluate(async ({ seasons, team }) => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const fails = []; const steps = []; const cnt = { rounds: 0, screens: 0, talks: 0, mails: 0, radio: 0, swaps: 0, saves: 0 };

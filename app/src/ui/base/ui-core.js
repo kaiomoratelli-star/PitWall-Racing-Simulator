@@ -82,13 +82,28 @@ ACT.toggleNav = () => { UI.navOpen = !UI.navOpen; const n = $('.nav'); if (n) n.
 
 const SCREENS = {};  // view -> função que retorna html (e opcional after())
 
+// (0.8.7) desenhar uma tela nunca pode consumir o sorteio do jogo: senão o resultado da simulação
+// dependeria de quais telas o jogador abriu. Se uma tela sortear ao desenhar, o sorteio é devolvido
+// (a simulação fica igual) e o caso vai para o log e o Diagnóstico; nos testes (UI.strictRng) vira erro.
+UI.rngLeaks = [];
+function pureHtml(scr) {
+  const st = (typeof RNG !== 'undefined') ? RNG.state : null;
+  const h = scr.html();
+  if (st !== null && RNG.state !== st) {
+    RNG.state = st;
+    const where = UI.view + (UI.params && UI.params.tab ? ':' + UI.params.tab : '');
+    if (!UI.rngLeaks.includes(where)) { UI.rngLeaks.push(where); Store.log('error', `a tela ${where} sorteou ao desenhar (sorteio devolvido)`); }
+    if (UI.strictRng) throw new Error(`a tela ${where} sorteou ao desenhar`);
+  }
+  return h;
+}
 function render() {
   const app = $('#app');
   const scr = SCREENS[UI.view] || SCREENS.title;
   if (!G || scr.bare) {
-    app.innerHTML = scr.html();
+    app.innerHTML = pureHtml(scr);
   } else {
-    app.innerHTML = shellHtml(scr.html());
+    app.innerHTML = shellHtml(pureHtml(scr));
   }
   const mi = $('.main-inner');
   if (mi && UI._lastView !== UI.view + JSON.stringify(UI.params || {})) mi.classList.add('enter');
