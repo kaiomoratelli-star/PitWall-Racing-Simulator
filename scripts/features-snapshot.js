@@ -10,7 +10,7 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const SRC = path.join(root, 'app', 'src');
 const { core, ui } = require('./modules');
-const read = (m) => fs.readFileSync(path.join(SRC, m + '.js'), 'utf8');
+const read = (m) => fs.readFileSync(path.join(SRC, m + '.js'), 'utf8').replace(/\r\n/g, '\n');   // Windows grava CRLF
 const coreSrc = core.map(read).join('\n'), uiSrc = ui.map(read).join('\n');
 const uniq = (a) => [...new Set(a)].sort();
 const out = {

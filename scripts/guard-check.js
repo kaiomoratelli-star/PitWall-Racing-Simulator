@@ -13,7 +13,7 @@ const root = path.join(__dirname, '..');
 const SRC = path.join(root, 'app', 'src');
 const { core, ui, data } = require('./modules');
 const order = [...core, ...ui];
-const read = (m) => fs.readFileSync(path.join(SRC, m + '.js'), 'utf8');
+const read = (m) => fs.readFileSync(path.join(SRC, m + '.js'), 'utf8').replace(/\r\n/g, '\n');   // Windows grava CRLF
 const errors = [];
 const warn = [];
 
