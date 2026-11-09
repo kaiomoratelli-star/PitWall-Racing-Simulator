@@ -49,7 +49,7 @@ const Smoke = {
         out.ok = true;
       } else if (mode === 'verify') {
         const g = await Store.loadGame('slot3'); if (!g) throw new Error('save não encontrado');
-        loadCareer(g); step(`save reaberto: etapa ${G.season.round}, semente ${G.seed}`);
+        if (!loadCareer(g)) throw new Error('save recusado ao reabrir: ' + JSON.stringify(UI.schemaReport || {})); step(`save reaberto: etapa ${G.season.round}, semente ${G.seed}`);
         out.round = G.season.round; out.seed = G.seed;
         simulateRound(); step('continuou a temporada após reabrir');
         await Store.saveGame('slot3', G);

@@ -70,31 +70,48 @@ function startTitleAnim() {
 
 ACT.loadSlot = async (el) => {
   const g = await Store.loadGame(el.dataset.slot);
-  if (!g) return toast('Não foi possível carregar esse jogo.', 'bad');
-  SLOT = el.dataset.slot;
-  loadCareer(g);
+  if (!g) return toast(byLang('Não foi possível carregar esse jogo.', 'Could not load this game.'), 'bad');
+  // (0.8.7) o espaço só muda se o jogo abrir de fato; antes, um save que falhava deixava o próximo
+  // salvamento automático gravar a carreira anterior por cima dele
+  if (loadCareer(g)) SLOT = el.dataset.slot;
 };
+// abre um jogo: migração, esquema (0.8.7) e só então troca o G. Devolve true se abriu.
 function loadCareer(g) {
   try {
     const steps = Migrate.run(g);
-    if (steps.length) { Store.log('info', 'save migrado: ' + steps.join(', ')); toast(`Save atualizado para a versão atual (${steps.join(', ')}).`, 'good'); }
-  } catch (e) { Store.log('error', 'migração: ' + e.message); return toast(e.message, 'bad'); }
+    if (steps.length) { Store.log('info', 'save migrado: ' + steps.join(', ')); toast(byLang(`Save atualizado para a versão atual (${steps.join(', ')}).`, `Save updated to the current version (${steps.join(', ')}).`), 'good'); }
+  } catch (e) { Store.log('error', 'migração: ' + e.message); toast(e.message, 'bad'); return false; }
+  if (typeof Schema !== 'undefined') {
+    const fixed = Schema.repair(g); if (fixed.length) Store.log('warn', 'save consertado (listas refeitas): ' + fixed.join(', '));
+    const r = Schema.check(g);
+    if (r.fatal.length) { Store.log('error', 'save recusado: ' + r.fatal.join('; ')); toast(byLang(`Esse save não pode ser aberto: ${r.fatal[0]}. Nada foi alterado.`, `This save cannot be opened: ${r.fatal[0]}. Nothing was changed.`), 'bad'); return false; }
+    if (r.errors.length) { Store.log('warn', 'save com dados incoerentes: ' + r.errors.slice(0, 20).join('; ')); toast(byLang(`O save abriu, mas tem ${r.errors.length} dado(s) incoerente(s). Detalhes em Diagnóstico.`, `The save opened but has ${r.errors.length} inconsistent value(s). See Diagnostics.`), 'bad'); }
+    if (r.warnings.length) Store.log('info', 'save com campos fora do esquema: ' + r.warnings.join('; '));
+    UI.schemaReport = r;
+  }
   G = g;
   RNG.state = G.rngState || G.seed;
   cancelAnimationFrame(UI.anim);
   go(G.weekend ? (G.weekend.phase === 'race' ? 'race' : 'weekend') : 'hub');
+  return true;
 }
 CHG.importSave = async (el) => {
   const f = el.files[0]; if (!f) return;
   try {
     const obj = await Store.readFile(f);
-    if (obj && obj.season && obj.db && obj.player) { SLOT = (await firstFreeSlot()) || 'slot3'; loadCareer(obj); autosave(); toast('Jogo importado.', 'good'); }
+    if (obj && obj.season && obj.db && obj.player) {
+      // (0.8.7) importar nunca grava por cima de um jogo salvo: precisa de um espaço livre
+      const free = await firstFreeSlot();
+      if (!free) return toast(byLang('Os três espaços estão ocupados. Apague um jogo em Salvar e opções antes de importar.', 'All three slots are in use. Delete a game in Save & options before importing.'), 'bad');
+      if (loadCareer(obj)) { SLOT = free; autosave(); toast(byLang('Jogo importado.', 'Game imported.'), 'good'); }
+    }
     else if (obj && obj.teams && obj.drivers && obj.tracks) { BASE = normalizeDb(obj); await Store.saveBaseDb(BASE); toast('Base de dados importada. Ela será usada em novas carreiras.', 'good'); render(); }
     else toast('Arquivo não reconhecido.', 'bad');
   } catch (e) { toast(e.message, 'bad'); }
 };
+// (0.8.7) pergunta ao armazenamento (não à lista em memória, que pode estar desatualizada); o espaço do jogo aberto nunca conta como livre
 async function firstFreeSlot() {
-  for (const s of Store.SLOTS) if (!(UI.slotMetas || {})[s]) return s;
+  for (const s of Store.SLOTS) { if (G && s === SLOT) continue; let m = null; try { m = await Store.slotMeta(s); } catch (e) { m = true; } if (!m) return s; }
   return null;
 }
 
@@ -517,7 +534,13 @@ SCREENS.saves = {
 };
 CHG.optPractice = (el) => { G.options.practiceFormat = el.value; autosave(); toast('Vale a partir do próximo fim de semana.'); };
 CHG.opt = (el) => { const k = el.dataset.k; G.options[k] = el.type === 'checkbox' ? el.checked : (k === 'difficulty' ? el.value : Number(el.value)); autosave(); toast('Opção salva.'); };
-ACT.saveNow = async () => { const w = await Store.saveGame(SLOT, G); UI.lastSave = { at: Date.now(), where: w }; toast(w === 'cloud' ? 'Salvo na sua conta.' : 'Salvo neste navegador.', 'good'); render(); };
+ACT.saveNow = async () => {
+  const w = await Store.saveGame(SLOT, G); UI.lastSave = { at: Date.now(), where: w };
+  const msg = { cloud: byLang('Salvo na sua conta.', 'Saved to your account.'), disk: byLang('Salvo no disco.', 'Saved to disk.'), local: byLang('Salvo neste navegador.', 'Saved in this browser.'),
+    full: byLang('O armazenamento do navegador está cheio: o jogo NÃO foi salvo. Use "Baixar arquivo do jogo".', 'Browser storage is full: the game was NOT saved. Use "Download game file".'),
+    invalid: byLang('O jogo tem dados centrais faltando e NÃO foi salvo (o save anterior foi mantido).', 'The game is missing core data and was NOT saved (the previous save was kept).') }[w] || String(w);
+  toast(msg, w === 'full' || w === 'invalid' ? 'bad' : 'good'); render();
+};
 ACT.exportSave = async () => { const r = await Store.exportFile(`pitwall-${Career.isObs(G) ? 'observador' : Career.team(G).short}-${G.season.year}.json`, G); if (!r.ok) toast(r.msg, 'bad'); };
 ACT.copySave = () => copyText(JSON.stringify(G));
 ACT.toTitle = async () => { autosave(); G = null; await refreshSlots(); go('title'); };

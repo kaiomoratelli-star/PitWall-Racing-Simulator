@@ -74,6 +74,8 @@ Diag.run = (G) => {
   db.drivers.filter(d => d.team).forEach(d => { if (d.contractYears < -1) errors.push(`${d.name} com contrato vencido há mais de uma temporada`); });
   let size = 0; try { size = JSON.stringify(G).length; } catch (e) { errors.push('Save não serializável: ' + e.message); }
   if (size > 30e6) warns.push(`Save grande (${(size / 1e6).toFixed(1)} MB)`);
+  // (0.8.7) esquema do save: campos que faltam, tipos errados e campos sem registro
+  if (typeof Schema !== 'undefined') { const r = Schema.check(G); r.fatal.concat(r.errors).forEach(x => errors.push('esquema: ' + x)); r.warnings.forEach(x => warns.push('esquema: ' + x)); }
   return { errors, warns, stats: { size, drivers: db.drivers.length, active: db.drivers.filter(d => !d.retired).length, seasons: (G.history || []).length, log: (G.log || []).length } };
 };
 

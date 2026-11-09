@@ -44,6 +44,7 @@ jobs:
           node scripts/build.js
           node scripts/ui85-check.js 3
           node scripts/playthrough-check.js 1
+          node scripts/browser-save-check.js
 
       - name: Gerar Setup.exe
         run: npm run dist
@@ -101,18 +102,32 @@ jobs:
           $data = "$env:APPDATA\PitWall Racing Simulator"
           Start-Process "${{ env.EXE }}" -ArgumentList '--smoke-test' -Wait
           Start-Sleep 2
-          if (!(Test-Path "$data\saves\slot3.json")) { throw "Save não foi criado na pasta de dados do Windows" }
+          if (!(Test-Path "$data\saves\slot3.json.gz")) { throw "Save não foi criado na pasta de dados do Windows" }
           Start-Process "${{ env.SETUP }}" -ArgumentList '/S' -Wait
           Get-Process | Where-Object { $_.Name -like 'PitWall-Racing-Simulator-Setup*' } | Wait-Process -Timeout 600 -ErrorAction SilentlyContinue
           for ($i = 0; $i -lt 300 -and !(Test-Path "${{ env.EXE }}"); $i++) { Start-Sleep 2 }
-          if (!(Test-Path "$data\saves\slot3.json")) { throw "Atualização apagou o save" }
+          if (!(Test-Path "$data\saves\slot3.json.gz")) { throw "Atualização apagou o save" }
           Start-Process "${{ env.EXE }}" -ArgumentList '--smoke-verify' -Wait
           Start-Sleep 2
           $v = Get-Content "$data\smoke-verify.json" | ConvertFrom-Json
           if (!$v.ok) { throw "Save não abriu após a atualização: $($v.error)" }
+          # save real da 0.8.6 (JSON sem compactação, como aquela versão gravava) aberto pelo jogo instalado
+          Remove-Item "$data\saves\slot3.json.gz", "$data\saves\slot3.meta.json" -ErrorAction SilentlyContinue
+          $in = [IO.File]::OpenRead("$PWD\tests\saves\0.8.6-entre-etapas.json.gz")
+          $gz = New-Object IO.Compression.GZipStream($in, [IO.Compression.CompressionMode]::Decompress)
+          $out = [IO.File]::Create("$data\saves\slot3.json"); $gz.CopyTo($out); $out.Close(); $gz.Close(); $in.Close()
+          Remove-Item "$data\smoke-verify.json" -ErrorAction SilentlyContinue
+          Start-Process "${{ env.EXE }}" -ArgumentList '--smoke-verify' -Wait
+          Start-Sleep 2
+          $v = Get-Content "$data\smoke-verify.json" | ConvertFrom-Json
+          if (!$v.ok) { throw "Save da 0.8.6 não abriu: $($v.error)" }
+          if (!(Test-Path "$data\saves\slot3.json.gz")) { throw "Save da 0.8.6 não foi regravado compactado" }
+          if (Test-Path "$data\saves\slot3.json") { throw "Save antigo ficou na pasta principal" }
+          if (!(Get-ChildItem "$data\saves\backups" -Filter "slot3.*-antigo.json")) { throw "Save antigo não foi guardado nos backups" }
+          Write-Host "Save da 0.8.6 aberto, continuado e regravado compactado; o original ficou nos backups."
           Start-Process (Join-Path (Split-Path "${{ env.EXE }}") "Uninstall PitWall Racing Simulator.exe") -ArgumentList '/S' -Wait
           Start-Sleep 3
-          if (!(Test-Path "$data\saves\slot3.json")) { throw "Desinstalar apagou os saves" }
+          if (!(Test-Path "$data\saves\slot3.json.gz")) { throw "Desinstalar apagou os saves" }
           Write-Host "Saves preservados após atualizar e desinstalar."
 
       - uses: actions/upload-artifact@v4

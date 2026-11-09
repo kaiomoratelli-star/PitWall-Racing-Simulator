@@ -380,7 +380,7 @@ document.addEventListener('input', (e) => {
 
 function autosave() {
   if (!G) return;
-  Store.saveGame(SLOT, G).then(where => { if (where === 'full') { if (!UI.fullWarned) { UI.fullWarned = true; toast(byLang('O armazenamento do navegador está cheio e o jogo não foi salvo. Use "Baixar arquivo do jogo" em Salvar e opções.', 'Browser storage is full and the game was not saved. Use "Download game file" in Save & options.'), 'bad'); } Store.log('error', 'autosave: armazenamento local cheio'); return; } UI.lastSave = { at: Date.now(), where }; }).catch(e => { Store.log('error', 'autosave: ' + (e && e.message)); toast('Não foi possível salvar o jogo. Veja Diagnóstico.', 'bad'); });
+  Store.saveGame(SLOT, G).then(where => { if (where === 'invalid') { if (!UI.invalidWarned) { UI.invalidWarned = true; toast(byLang('O jogo atual tem dados centrais faltando e não foi salvo, para não estragar o save anterior. Veja Diagnóstico.', 'The current game is missing core data and was not saved, to protect the previous save. See Diagnostics.'), 'bad'); } return; } if (where === 'full') { if (!UI.fullWarned) { UI.fullWarned = true; toast(byLang('O armazenamento do navegador está cheio e o jogo não foi salvo. Use "Baixar arquivo do jogo" em Salvar e opções.', 'Browser storage is full and the game was not saved. Use "Download game file" in Save & options.'), 'bad'); } Store.log('error', 'autosave: armazenamento local cheio'); return; } UI.lastSave = { at: Date.now(), where }; }).catch(e => { Store.log('error', 'autosave: ' + (e && e.message)); toast('Não foi possível salvar o jogo. Veja Diagnóstico.', 'bad'); });
 }
 
 /* erros inesperados: registra no log (com a pilha) e avisa sem derrubar o jogo.

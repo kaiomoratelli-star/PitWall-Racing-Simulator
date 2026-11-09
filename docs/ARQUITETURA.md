@@ -66,13 +66,20 @@ scripts/        build, testes (simulação longa e teste do executável), ícone
 
 ```
 %APPDATA%\PitWall Racing Simulator\
-  saves\slot1.json, slot2.json, slot3.json   jogos salvos
+  saves\slot1.json.gz … slot3.json.gz        jogos salvos (gzip, desde a 0.8.7; antes: slotN.json)
   saves\slotN.meta.json                      resumo exibido na tela inicial
-  saves\backups\                             5 versões anteriores de cada save
+  saves\backups\                             5 versões anteriores de cada save, o .json antigo de
+                                             antes da 0.8.7 (…-antigo.json) e os apagados (…apagado-…)
   saves\base-database.json                   base editada no Editor
   logs\pitwall.log                           log de diagnóstico (rotação a cada 2 MB)
   window-state.json                          tamanho, posição e tela cheia
 ```
+
+Gravação: o processo principal compacta, grava num arquivo temporário, lê de volta e compara com o
+original antes de trocar o arquivo; um JSON inválido nunca é gravado. Antes de gravar, o jogo confere o
+esquema do save (`core/base/schema.js`): sem as peças centrais (universo, temporada, jogador), não grava
+e o save anterior fica. Ao abrir, o save passa pela migração e pelo esquema; se faltar algo central,
+é recusado sem mudar o jogo aberto. No navegador e na nuvem o save vai como `gz1:` + gzip em base64.
 
 O programa fica em `%LOCALAPPDATA%\Programs\PitWall Racing Simulator\`. Instalar uma versão nova
 ou desinstalar **não** apaga a pasta de dados (`deleteAppDataOnUninstall: false`).

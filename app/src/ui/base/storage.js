@@ -68,34 +68,64 @@ Store.metaOf = (G) => {
   return { player: G.player.name, team: t ? t.name : 'Modo Observador', color: t ? t.color : '#e10600', mode: G.mode, year: G.season.year, round: G.season.round, total: G.season.calendar.length, seed: G.seed };
 };
 
+/* ---- compactação (0.8.7): navegador e nuvem guardam "gz1:" + gzip em base64 (~6x menor que o JSON).
+   Saves antigos, sem o marcador, continuam sendo lidos como JSON puro. Sem CompressionStream, grava como antes. ---- */
+Store.GZ = 'gz1:';
+Store.canZip = () => typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined' && typeof Blob !== 'undefined';
+Store.b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+Store.unb64 = (b) => { const s = atob(b); const u8 = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u8[i] = s.charCodeAt(i); return u8; };
+Store.pack = async (str) => {
+  if (!Store.canZip()) return str;
+  try {
+    const buf = await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+    const packed = Store.GZ + Store.b64(new Uint8Array(buf));
+    // confere antes de usar: se a volta não bater, grava sem compactar
+    return (await Store.unpack(packed)) === str ? packed : str;
+  } catch (e) { Store.log('warn', 'compactação do save falhou: ' + (e && e.message)); return str; }
+};
+Store.unpack = async (str) => {
+  if (typeof str !== 'string' || !str.startsWith(Store.GZ)) return str;
+  const u8 = Store.unb64(str.slice(Store.GZ.length));
+  return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+};
+Store.parse = async (str) => { if (!str) return null; try { return JSON.parse(await Store.unpack(str)); } catch (e) { Store.log('error', 'save ilegível: ' + (e && e.message)); return null; } };
+
 /* ---- API do jogo ---- */
 let saveChain = Promise.resolve();
 Store.saveGame = (slot, G) => {
   G.savedAt = Date.now();
   G.rngState = RNG.state;
+  // (0.8.7) nunca grava um jogo sem as peças centrais: o save anterior fica como está
+  if (typeof Schema !== 'undefined') { const r = Schema.check(G); if (r.fatal.length) { Store.log('error', 'save não gravado: ' + r.fatal.join('; ')); return Promise.resolve('invalid'); } }
   const str = JSON.stringify(G);
   const meta = Store.metaOf(G);
+  // desktop: o processo principal compacta, confere e grava (desktop/storage.js)
   if (Store.native) return Store.native.saveSlot(slot, str, { ...meta, at: G.savedAt, version: G.version }).then(() => 'disk');
-  // navegador: o armazenamento local tem limite (~5 MB); carreira longa pode não caber — avisa em vez de falhar calado
-  const okLocal = Store.lsSet('save:' + slot, str);
-  if (okLocal) Store.lsSet('meta:' + slot, JSON.stringify({ ...meta, at: G.savedAt }));
-  if (!Store.cloud()) return Promise.resolve(okLocal ? 'local' : 'full');
-  saveChain = saveChain.then(() => Store.cloudWrite('save_' + slot, str, meta)).then(() => 'cloud').catch(e => { console.warn('save', e); return 'local'; });
-  return saveChain;
+  // navegador: o armazenamento local tem limite (~5 MB); compactado cabe muito mais — se ainda assim não couber, avisa.
+  // As gravações entram numa fila: a compactação é assíncrona e um save antigo nunca pode terminar por cima de um novo.
+  const at = G.savedAt;
+  const job = saveChain.catch(() => {}).then(async () => {
+    const packed = await Store.pack(str);
+    const okLocal = Store.lsSet('save:' + slot, packed);
+    if (okLocal) Store.lsSet('meta:' + slot, JSON.stringify({ ...meta, at }));
+    if (!Store.cloud()) return okLocal ? 'local' : 'full';
+    try { await Store.cloudWrite('save_' + slot, packed, meta); return 'cloud'; } catch (e) { console.warn('save', e); return okLocal ? 'local' : 'full'; }
+  });
+  saveChain = job;
+  return job;
 };
 
 Store.loadGame = async (slot) => {
   if (Store.native) {
     const r = await Store.native.loadSlot(slot);
     if (!r || !r.data) return null;
-    if (r.recovered) setTimeout(() => toast(`O save principal estava danificado. Recuperamos a cópia de segurança de ${new Date(r.recoveredAt).toLocaleString('pt-BR')}.`, 'bad'), 300);
+    if (r.recovered) setTimeout(() => toast(byLang(`O save principal estava danificado. Recuperamos a cópia de segurança de ${new Date(r.recoveredAt).toLocaleString('pt-BR')}.`, `The main save was damaged. We restored the backup from ${new Date(r.recoveredAt).toLocaleString('en-GB')}.`), 'bad'), 300);
     try { return JSON.parse(r.data); } catch (e) { return null; }
   }
-  let str = null;
-  if (Store.cloud()) { try { str = await Store.cloudRead('save_' + slot); } catch (e) { str = null; } }
-  if (!str) str = Store.lsGet('save:' + slot);
-  if (!str) return null;
-  try { return JSON.parse(str); } catch (e) { return null; }
+  let g = null;
+  if (Store.cloud()) { try { g = await Store.parse(await Store.cloudRead('save_' + slot)); } catch (e) { g = null; } }
+  if (!g) g = await Store.parse(Store.lsGet('save:' + slot));
+  return g;
 };
 
 Store.slotMeta = async (slot) => {
@@ -112,20 +142,19 @@ Store.deleteGame = async (slot) => {
   if (Store.cloud()) await Store.cloudDelete('save_' + slot).catch(() => {});
 };
 
-Store.saveBaseDb = (db) => {
+Store.saveBaseDb = async (db) => {
   const str = JSON.stringify(db);
   if (Store.native) return Store.native.saveBase(str);
-  Store.lsSet('basedb', str);
-  if (Store.cloud()) return Store.cloudWrite('basedb', str, { name: db.name }).catch(() => {});
-  return Promise.resolve();
+  const packed = await Store.pack(str);
+  Store.lsSet('basedb', packed);
+  if (Store.cloud()) return Store.cloudWrite('basedb', packed, { name: db.name }).catch(() => {});
 };
 Store.loadBaseDb = async () => {
   if (Store.native) { const str = await Store.native.loadBase(); if (!str) return null; try { return JSON.parse(str); } catch (e) { return null; } }
-  let str = null;
-  if (Store.cloud()) { try { str = await Store.cloudRead('basedb'); } catch (e) { str = null; } }
-  if (!str) str = Store.lsGet('basedb');
-  if (!str) return null;
-  try { return JSON.parse(str); } catch (e) { return null; }
+  let db = null;
+  if (Store.cloud()) { try { db = await Store.parse(await Store.cloudRead('basedb')); } catch (e) { db = null; } }
+  if (!db) db = await Store.parse(Store.lsGet('basedb'));
+  return db;
 };
 
 /* ---- arquivos ---- */
