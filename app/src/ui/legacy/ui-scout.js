@@ -44,7 +44,12 @@ SCREENS.scout = {
     const label = (k) => (k === 'f1' ? 'Fórmula 1' : k === 'none' ? 'Sem equipe' : Cats.get(G, k) ? Cats.get(G, k).name : typeof DriverDB !== 'undefined' ? DriverDB.seriesName(k) : k);
     const nats = [...new Set(pool.map(d => d.nat))].sort();
     let ds = pool.filter(d => (!f.s || seriesKey(d) === f.s) && (!f.n || d.nat === f.n) && d.age <= f.a && (!f.q || d.name.toLowerCase().includes(f.q.toLowerCase())));
-    ds = ds.map(d => ({ d, x: Scouting.tierEst(G, d) })).sort((p, q) => q.x.e.mid - p.x.e.mid).slice(0, 80);
+    ds = ds.map(d => ({ d, x: Scouting.tierEst(G, d) })).sort((p, q) => q.x.e.mid - p.x.e.mid);
+    // (0.8.7) páginas de 25 (antes: só os 80 primeiros, numa tela de 5 alturas)
+    const SC_PAGE = 25, scTotal = ds.length, scPages = Math.max(1, Math.ceil(scTotal / SC_PAGE)), scPage = clamp(+P.pg || 0, 0, scPages - 1);
+    ds = ds.slice(scPage * SC_PAGE, scPage * SC_PAGE + SC_PAGE);
+    const scP = (pg) => esc(JSON.stringify({ ...P, pg }));
+    const scPager = scPages > 1 ? `<div class="row" style="gap:8px;align-items:center;justify-content:flex-end;padding:10px 14px"><span class="small muted">${scPage * SC_PAGE + 1}–${Math.min(scTotal, (scPage + 1) * SC_PAGE)} ${byLang('de', 'of')} ${scTotal}</span><button class="btn sm" data-act="go" data-v="scout" data-p='${scP(scPage - 1)}' ${scPage === 0 ? 'disabled' : ''}>${byLang('Anterior', 'Previous')}</button><button class="btn sm" data-act="go" data-v="scout" data-p='${scP(scPage + 1)}' ${scPage >= scPages - 1 ? 'disabled' : ''}>${byLang('Próxima', 'Next')}</button></div>` : '';
     const cmp = UI.scoutCmp || [];
     const sel = (k, v, opts) => `<select class="inp" style="width:auto" data-chg="scoutF" data-k="${k}">${opts}</select>`;
     const watching = (id) => S.staff.some(s => s.task && s.task.type === 'driver' && s.task.target === id);
@@ -57,10 +62,10 @@ SCREENS.scout = {
         <div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th></th><th></th><th>Piloto</th><th class="r">Idade</th><th>Onde corre</th><th class="r">Nota</th><th>Nível estimado</th><th class="r">Potencial</th><th>Confiança</th><th></th></tr></thead><tbody>
         ${ds.map(({ d, x }) => `<tr><td><input type="checkbox" ${cmp.includes(d.id) ? 'checked' : ''} data-chg="scoutPick" data-id="${d.id}" aria-label="Comparar"></td><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}<div class="small muted">${natTag(d.nat)}</div></td><td class="r num">${d.age}</td><td class="small">${esc(whereOf(d))}</td><td class="r num">${driverOverall(d)}</td><td class="small"><b>${esc(byLang(x.t.name, x.t.en))}</b> <span style="color:var(--accent)">${Scouting.stars(x.stars)}</span></td><td class="r num">${x.e.lo}–${x.e.hi}</td><td class="small ${x.e.label === 'alta' ? 'pos' : x.e.label === 'baixa' ? 'muted' : ''}">${x.e.label}</td>
           <td class="r" style="white-space:nowrap">${watching(d.id) ? `<span class="small muted">observando</span> <button class="btn sm ghost" data-act="scoutCancel" data-id="${d.id}" title="${byLang('Cancelar a observação e liberar o olheiro', 'Cancel and free the scout')}">✕</button>` : `<button class="btn sm" data-act="scoutObserve" data-id="${d.id}" ${S.staff.every(s => s.task) ? 'disabled' : ''}>Observar</button>`}${d.age <= 23 && !d.team && Market.academyOf(G, d) !== Market.myAcademy(G) ? ` <button class="btn sm ghost" data-act="acNeg" data-id="${d.id}">Academia</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="10" class="empty">Nenhum piloto com esses filtros.</td></tr>'}
-        </tbody></table></div></div>`;
+        </tbody></table></div>${scPager}</div>`;
   },
 };
-CHG.scoutF = (el) => { go('scout', { ...UI.params, [el.dataset.k]: el.value }); };
+CHG.scoutF = (el) => { go('scout', { ...UI.params, [el.dataset.k]: el.value, pg: 0 }); };   // filtro novo volta para a primeira página
 CHG.scoutPick = (el) => { const id = el.dataset.id; UI.scoutCmp = (UI.scoutCmp || []).filter(x => x !== id); if (el.checked) UI.scoutCmp = [...UI.scoutCmp, id].slice(-2); render(); };
 ACT.scoutObserve = (el) => { const e = Potential.observe(G, el.dataset.id); if (e) return toast(e, 'bad'); toast('Olheiro enviado: relatório em 4 etapas.', 'good'); autosave(); render(); };
 CHG.scoutTask = (el) => { const [type, target] = el.value.split(':'); if (!el.value) return; Scouting.assign(G, el.dataset.id, type === 'none' ? null : { type, target }); autosave(); render(); };
