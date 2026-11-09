@@ -116,7 +116,7 @@ async function firstFreeSlot() {
 }
 
 /* ================= NOVA CARREIRA ================= */
-const NC = { mode: 'manager', teamId: null, name: '', nat: 'BRA', seed: '', difficulty: 'normal', aiEvents: true, rainMult: 1, eventRate: 1, variance: 1, slot: null, practiceFormat: 'real' };
+const NC = { dStyle: 'complete', bg: 'media', startAge: 14, number: 27, mode: 'manager', teamId: null, name: '', nat: 'BRA', seed: '', difficulty: 'normal', aiEvents: true, rainMult: 1, eventRate: 1, variance: 1, slot: null, practiceFormat: 'real' };
 SCREENS.newcareer = {
   bare: true,
   html() {
@@ -148,16 +148,16 @@ SCREENS.newcareer = {
     return `
     <div class="main" style="max-width:1280px;margin:0 auto">
       <div class="main-inner">
-        <div class="page-head"><div><div class="eyebrow">Novo universo</div><h1>${NC.mode === 'observer' ? 'Acompanhe o campeonato' : 'Escolha sua equipe'}</h1></div>
-          <div class="row"><button class="btn" data-act="go" data-v="title">Voltar</button><button class="btn primary lg" data-act="ncStart">${NC.mode === 'observer' ? 'Começar a temporada' : 'Assumir a equipe'}</button></div></div>
+        <div class="page-head"><div><div class="eyebrow">Novo universo</div><h1>${NC.mode === 'driver' ? byLang('Crie seu piloto', 'Create your driver') : NC.mode === 'observer' ? 'Acompanhe o campeonato' : 'Escolha sua equipe'}</h1></div>
+          <div class="row"><button class="btn" data-act="go" data-v="title">Voltar</button><button class="btn primary lg" data-act="ncStart">${NC.mode === 'driver' ? byLang('Começar no kart', 'Start in karting') : NC.mode === 'observer' ? 'Começar a temporada' : 'Assumir a equipe'}</button></div></div>
         <div class="panel"><div class="panel-b row between">
-          <div class="stack" style="gap:4px;max-width:70ch"><b>${NC.mode === 'observer' ? 'Modo Observador' : 'Modo Manager'}</b><span class="small muted">${NC.mode === 'observer' ? 'Os chefes de equipe tomam todas as decisões. Você assiste às corridas e acompanha o mercado, as finanças e as histórias do campeonato, sem interferir.' : 'Você comanda uma equipe: acerto, estratégia, contratos, desenvolvimento e finanças.'}</span></div>
-          ${segBtns('ncMode', NC.mode, [['manager', 'Manager'], ['observer', 'Observador']])}
+          <div class="stack" style="gap:4px;max-width:70ch"><b>${NC.mode === 'driver' ? byLang('Carreira de Piloto', 'Driver Career') : NC.mode === 'observer' ? 'Modo Observador' : 'Modo Manager'}</b><span class="small muted">${NC.mode === 'driver' ? byLang('Você é o piloto. Começa no kart da sua região e vai até onde o talento, as escolhas e a sorte levarem: Fórmula 1, outras categorias ou nenhuma delas. Seu teto de talento é oculto — até para você.', 'You are the driver. You start in your regional karting series and go as far as talent, choices and luck take you: Formula 1, other series or none of them. Your talent ceiling is hidden — even from you.') : NC.mode === 'observer' ? 'Os chefes de equipe tomam todas as decisões. Você assiste às corridas e acompanha o mercado, as finanças e as histórias do campeonato, sem interferir.' : 'Você comanda uma equipe: acerto, estratégia, contratos, desenvolvimento e finanças.'}</span></div>
+          ${segBtns('ncMode', NC.mode, [['manager', 'Manager'], ['driver', byLang('Piloto', 'Driver')], ['observer', 'Observador']])}
         </div></div>
         <div class="grid g-hub">
-          <div class="team-pick" style="${NC.mode === 'observer' ? 'opacity:.55;pointer-events:none' : ''}">${cards}</div>
+          ${NC.mode === 'driver' && typeof ncDriverForm === 'function' ? ncDriverForm() : `<div class="team-pick" style="${NC.mode === 'observer' ? 'opacity:.55;pointer-events:none' : ''}">${cards}</div>`}
           <div class="panel"><div class="panel-h"><h3>Configuração</h3></div><div class="panel-b stack">
-            <label class="field"><span>Seu nome</span><input class="inp" id="nc-name" value="${esc(NC.name)}" placeholder="Chefe de Equipe" data-inp="ncField" data-k="name"></label>
+            <label class="field"><span>${NC.mode === 'driver' ? byLang('Nome do piloto', 'Driver name') : 'Seu nome'}</span><input class="inp" id="nc-name" value="${esc(NC.name)}" placeholder="${NC.mode === 'driver' ? byLang('Seu nome de piloto', 'Your driver name') : 'Chefe de Equipe'}" data-inp="ncField" data-k="name"></label>
             <label class="field"><span>Nacionalidade</span><select class="inp" id="nc-nat" data-chg="ncField" data-k="nat">${Object.entries(NAT_NAMES).map(([k, v]) => opt(k, v, NC.nat)).join('')}</select></label>
             <label class="field"><span>Dificuldade</span><select class="inp" id="nc-dif" data-chg="ncField" data-k="difficulty">${opt('easy', 'Fácil (seu carro rende um pouco mais)', NC.difficulty)}${opt('normal', 'Normal', NC.difficulty)}${opt('hard', 'Difícil', NC.difficulty)}</select></label>
             <label class="field"><span>Imprevisibilidade do grid inicial</span><select class="inp" id="nc-var" data-chg="ncField" data-k="variance">${opt(0, 'Nenhuma (base exata)', NC.variance)}${opt(1, 'Normal', NC.variance)}${opt(2, 'Alta', NC.variance)}</select></label>
@@ -176,10 +176,10 @@ SCREENS.newcareer = {
 };
 ACT.ncMode = (el) => { NC.mode = el.dataset.val; render(); };
 ACT.ncTeam = (el) => { NC.teamId = el.dataset.id; render(); };
-CHG.ncField = (el) => { const k = el.dataset.k; NC[k] = ['rainMult', 'eventRate', 'variance'].includes(k) ? Number(el.value) : el.value; };
+CHG.ncField = (el) => { const k = el.dataset.k; NC[k] = ['rainMult', 'eventRate', 'variance', 'startAge', 'number'].includes(k) ? Number(el.value) : el.value; };
 CHG.ncCheck = (el) => { NC[el.dataset.k] = el.checked; };
 ACT.ncStart = () => {
-  G = Career.create(BASE, { ...NC, name: NC.name.trim() || 'Chefe de Equipe' });
+  G = Career.create(BASE, { ...NC, style: NC.dStyle, name: NC.name.trim() || (NC.mode === 'driver' ? byLang('Piloto', 'Driver') : 'Chefe de Equipe') });
   SLOT = NC.slot || 'slot1';
   cancelAnimationFrame(UI.anim);
   autosave();

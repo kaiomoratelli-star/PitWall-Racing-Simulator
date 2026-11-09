@@ -66,6 +66,26 @@ const VIEWS = require('./ui85-check-views.json');   // lista compartilhada com o
         delete SCREENS.__rngProbe; UI.rngLeaks = UI.rngLeaks.filter(x => x !== '__rngProbe'); go('hub');
         if (UI.rngLeaks.length) out.bad.push('telas que sortearam ao desenhar: ' + UI.rngLeaks.join(', '));
       }
+      // (0.9) carreira de piloto: cria, avança e corre etapas pela interface, e abre todas as telas que o piloto enxerga
+      out.driver = await (async () => {
+        const keepG = G; const bad = [];
+        try {
+          G = Career.create(BASE, { mode: 'driver', name: 'Piloto Teste', nat: team === 'williams' ? 'GBR' : 'BRA', seed: 'ui-drv-' + team, bg: 'media', startAge: 14, number: 27 });
+          for (let i = 0; i < 3; i++) { ACT.dAdvance(); ACT.dRun(); }
+          for (const v of ['hub', 'dchamp', 'inbox', 'calendar', 'standings', 'paddock', 'owners', 'manufacturers', 'council', 'news', 'social', 'cats', 'circuits', 'log', 'history', 'seasons', 'hall', 'saves', 'diag', 'cases']) {
+            if (!SCREENS[v]) continue;
+            go(v, {}); await sleep(25);
+            const txt = document.getElementById('app').innerText; const m = BAD.exec(txt);
+            if (m) bad.push(`piloto/${v}: "${txt.slice(Math.max(0, m.index - 50), m.index + 30).replace(/\s+/g, ' ')}"`);
+            if (document.documentElement.scrollWidth > window.innerWidth + 2) bad.push(`piloto/${v}: rolagem horizontal`);
+          }
+          if (!document.querySelector('.x-cta')) bad.push('piloto: sem botão principal');
+          if (!DCareer.me(G) || G.dcareer.season.r !== 3) bad.push(`piloto: ${G.dcareer.season.r} etapas corridas, esperado 3`);
+        } catch (e) { bad.push('piloto: ' + e.message); }
+        G = keepG; go('hub');
+        return bad;
+      })();
+      out.bad.push(...out.driver);
       // ---- coerência ----
       const sd = Career.standingsD(G), sc = Career.standingsC(G);
       go('hub'); await sleep(20);

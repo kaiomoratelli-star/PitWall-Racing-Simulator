@@ -90,7 +90,7 @@ CHG.optChaos = (el) => { const o = Chaos.opts(G); chaosSet(o, el.dataset.k, el);
     let out = nc.call(this);
     // eventos: troca o seletor antigo pelas opções novas
     out = out.replace(/<label class="field"><span>Eventos fora da pista<\/span>[\s\S]*?<\/label>/, chaosOptionsHtml(NC.chaos, 'ncChaos'));
-    if (NC.mode === 'observer') return out;
+    if (NC.mode === 'observer' || NC.mode === 'driver') return out;   // (0.9) o piloto não escolhe equipe
     const tabs = `<div class="panel" style="margin-bottom:12px"><div class="panel-b row between" style="gap:10px;flex-wrap:wrap"><div class="stack" style="gap:2px"><b>${byLang('Que equipe você vai comandar?', 'Which team will you run?')}</b><span class="small muted">${byLang('Candidatas e equipes criadas entram como a 12ª equipe do grid.', 'Candidates and created teams join as the 12th team on the grid.')}</span></div>${segBtns('ncSrc', NC.src, [['grid', byLang('Equipe do grid', 'Grid team')], ['cand', byLang('Candidata (12ª)', 'Candidate (12th)')], ['custom', byLang('Criar equipe (12ª)', 'Create team (12th)')]])}</div></div>`;
     let pick = '';
     if (NC.src === 'cand') {

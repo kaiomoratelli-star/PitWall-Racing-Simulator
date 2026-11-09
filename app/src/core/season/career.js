@@ -40,16 +40,17 @@ Career.create = (baseDb, opts) => {
     });
     db.drivers.forEach(d => { d.pace = Math.round(clamp(d.pace + RNG.normal(0, 0.8 * v), 40, 99)); });
   }
-  const obs = opts.mode === 'observer';
+  const drv = opts.mode === 'driver';                      // (0.9) carreira de piloto: sem equipe própria, como o observador
+  const obs = opts.mode === 'observer' || drv;
   db.drivers.forEach(d => { d.history = d.history || []; });
   db.teams.forEach(t => { t.history = t.history || []; });
   const team = obs ? null : byId(db.teams, opts.teamId);
   // orçamento de cada equipe a partir das receitas reais do modelo (econ.js)
   if (typeof Econ !== 'undefined') Econ.init({ db, history: [] });
   const G = {
-    version: SAVE_VERSION, seed, createdAt: Date.now(), savedAt: null, mode: obs ? 'observer' : 'manager',
+    version: SAVE_VERSION, seed, createdAt: Date.now(), savedAt: null, mode: drv ? 'driver' : obs ? 'observer' : 'manager',
     log: [], archive: [],
-    player: { name: opts.name || (obs ? 'Observador' : 'Chefe de Equipe'), nat: opts.nat || 'BRA', teamId: obs ? null : opts.teamId, fired: false, careerWins: 0, titles: 0 },
+    player: { name: opts.name || (drv ? 'Piloto' : obs ? 'Observador' : 'Chefe de Equipe'), nat: opts.nat || 'BRA', teamId: obs ? null : opts.teamId, fired: false, careerWins: 0, titles: 0 },
     options: { aiEvents: opts.aiEvents !== false, eventRate: opts.eventRate ?? 1, difficulty: opts.difficulty || 'normal', rainMult: opts.rainMult ?? 1, categories: opts.categories !== false, practiceFormat: opts.practiceFormat || 'real' },
     db,
     season: null, history: [],
@@ -103,7 +104,8 @@ Career.initPeople = (G) => {
   if (typeof Kart !== 'undefined') Kart.init(G);
   if (typeof MarketPlus !== 'undefined') MarketPlus.init(G);
 };
-Career.isObs = (G) => G.mode === 'observer';
+Career.isObs = (G) => G.mode === 'observer' || G.mode === 'driver';   // "sem equipe própria": o modo piloto (0.9) também
+Career.isDrv = (G) => G.mode === 'driver';
 
 /* Registro permanente do universo: toda decisão relevante entra aqui */
 Career.LOG_TYPES = {

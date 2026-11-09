@@ -645,3 +645,16 @@ td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec
 .hl85-note { font-size: 11.5px; color: var(--muted); }
 .hl85-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
 .rp .hl85 { border-top: 1px solid var(--line); margin-top: 8px; }
+
+/* 0.9 — carreira de piloto: central */
+.dh-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.dh-head h1 { margin: 2px 0; } .dh-head h1 small { font-size: .55em; color: var(--muted); margin-left: 6px; }
+.dh-head p { color: var(--muted); margin: 0; }
+.dh-top { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 2.2fr); gap: 16px; margin-bottom: 16px; align-items: stretch; }
+.dh-next { background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--accent); border-radius: 14px; padding: 18px; display: grid; gap: 8px; align-content: center; }
+.dh-next h2 { margin: 0; font-size: 22px; } .dh-next p { margin: 0; color: var(--muted); }
+.dh-stats .n-grid { height: 100%; }
+.dh-attrs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; }
+.dh-a { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(80px, 1.4fr) 32px; align-items: center; gap: 10px; font-size: 13px; }
+.dh-a .n-bar { width: 100%; } .dh-a b { text-align: right; }
+@media (max-width: 1150px) { .dh-top { grid-template-columns: 1fr; } .dh-stats .n-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }

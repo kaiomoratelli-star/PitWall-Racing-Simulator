@@ -65,7 +65,8 @@ Store.cloudDelete = async (key) => {
 
 Store.metaOf = (G) => {
   const t = Career.isObs(G) ? null : Career.team(G);
-  return { player: G.player.name, team: t ? t.name : 'Modo Observador', color: t ? t.color : '#e10600', mode: G.mode, year: G.season.year, round: G.season.round, total: G.season.calendar.length, seed: G.seed };
+  const drv = G.mode === 'driver' && G.dcareer;   // (0.9) carreira de piloto: mostra o campeonato atual
+  return { player: G.player.name, team: t ? t.name : drv ? ((typeof Kart !== 'undefined' && (Kart.CHAMPS.find(c => c.id === G.dcareer.champ) || {}).name) || 'Carreira de Piloto') : 'Modo Observador', color: t ? t.color : '#e10600', mode: G.mode, year: G.season.year, round: G.season.round, total: G.season.calendar.length, seed: G.seed };
 };
 
 /* ---- compactação (0.8.7): navegador e nuvem guardam "gz1:" + gzip em base64 (~6x menor que o JSON).

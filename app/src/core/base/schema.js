@@ -18,7 +18,7 @@ const Schema = {
     createdAt: { t: 'number', by: 'Career.create' },
     savedAt: { t: 'number', null: true, by: 'Store.saveGame' },
     rngState: { t: 'number', null: true, by: 'Store.saveGame' },
-    mode: { t: 'string', by: 'Career.create', one: ['manager', 'observer'] },
+    mode: { t: 'string', by: 'Career.create', one: ['manager', 'observer', 'driver'] },
     player: { t: 'object', by: 'Career.create' },
     options: { t: 'object', by: 'Career.create' },
     db: { t: 'object', by: 'Career.create (base de dados do universo)' },
@@ -84,6 +84,7 @@ const Schema = {
     staffBoost: { t: 'object', lazy: true, null: true, by: 'Staff' },
     teamPolicy: { t: 'object', lazy: true, null: true, by: 'Orders (piloto nº 1)' },
     teamSetup: { t: 'object', lazy: true, null: true, by: 'Owners (equipe nova)' },
+    dcareer: { t: 'object', lazy: true, by: 'DCareer (carreira de piloto, 0.9)' },
   },
 };
 

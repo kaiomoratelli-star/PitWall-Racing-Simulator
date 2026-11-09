@@ -51,7 +51,11 @@ Kart.season = (G) => {
   const y = G.season.year;
   Kart.CHAMPS.forEach(ch => {
     const ds = Kart.drivers(G, ch.id);
-    const tab = ds.map(d => ({ d, s: driverOverall(d) * 1.0 + (d.age - 12) * 0.6 + RNG.normal(0, 3) })).sort((a, b) => b.s - a.s);
+    // (0.9) campeonato do jogador (modo piloto): a classificação do ano vem das etapas disputadas, não do sorteio resumido
+    const real = typeof DCareer !== 'undefined' && DCareer.on(G) && G.dcareer.season && G.dcareer.season.champ === ch.id && G.dcareer.season.year === y ? DCareer.standings(G) : null;
+    const tab = real && real.length
+      ? real.map(x => ({ d: Career.driver(G, x.did) })).filter(x => x.d).concat(ds.filter(d => !real.some(x => x.did === d.id)).map(d => ({ d })))
+      : ds.map(d => ({ d, s: driverOverall(d) * 1.0 + (d.age - 12) * 0.6 + RNG.normal(0, 3) })).sort((a, b) => b.s - a.s);
     tab.forEach((x, i) => {
       x.d.kart.res = (x.d.kart.res || []).concat([[y, i + 1, tab.length]]).slice(-5);
       const exp = ds.slice().sort((a, b) => driverOverall(b) - driverOverall(a)).indexOf(x.d) + 1;
@@ -66,6 +70,7 @@ Kart.season = (G) => {
 Kart.renew = (G) => {
   if (!Kart.on(G)) return;
   Kart.drivers(G).forEach(d => {
+    if (d.player) return;   // (0.9) o jogador decide a própria carreira
     if (d.age >= 17 || (d.age >= 16 && RNG.chance(0.5))) { d.series = null; d.seriesTeam = null; d.retired = true; d.quit = true; d.retiredYear = G.season.year; }
   });
   Kart.CHAMPS.forEach(ch => {
@@ -78,7 +83,7 @@ Kart.renew = (G) => {
 Kart.pick = (G, C) => {
   const ch = Kart.CHAMPS.find(c => c.f4.includes(C.id));
   if (!ch) return null;
-  const pool = Kart.drivers(G, ch.id).filter(d => d.age >= 14);
+  const pool = Kart.drivers(G, ch.id).filter(d => d.age >= 14 && !d.player);   // (0.9) o jogador não é promovido sozinho
   if (!pool.length) return null;
   const last = (d) => (d.kart.res || []).slice(-1)[0];
   const sc = (d) => driverOverall(d) * 1.2 + (typeof Potential !== 'undefined' ? Potential.seenBy(G, d, 'f4') : d.potential) * 0.6 + (last(d) ? Math.max(0, 8 - last(d)[1]) : 0) + (d.academy ? 6 : 0) + RNG.normal(0, 2);

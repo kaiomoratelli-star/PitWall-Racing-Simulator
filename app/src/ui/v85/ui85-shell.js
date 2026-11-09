@@ -35,7 +35,7 @@ const ICON85 = {
 };
 /* áreas e abas: [view, rótulo, params, condição] */
 const AREAS85 = [
-  ['inicio', 'Início', 'Início', [['hub', 'Central'], ['inbox', 'Caixa de entrada'], ['calendar', 'Calendário']]],
+  ['inicio', 'Início', 'Início', [['hub', 'Central'], ['dchamp', 'Meu campeonato', null, () => typeof DCareer !== 'undefined' && DCareer.on(G)], ['inbox', 'Caixa de entrada'], ['calendar', 'Calendário']]],
   ['corrida', 'Corrida', 'Race', [['weekend', 'Fim de semana'], ['race', 'Corrida ao vivo', null, () => G.weekend && G.weekend.race], ['pole', 'Grid e pole', null, () => (G.weekend && G.weekend.quali && G.weekend.quali.order) || (G.lastRace && G.lastRace.quali)], ['podium', 'Pódio', null, () => G.lastRace && G.lastRace.cars], ['post', 'Pós-corrida', null, () => G.lastRace], ['analysis', 'Análise de dados']]],
   ['equipe', 'Equipe', 'Team', [['team', 'Pilotos', { tab: 'drivers' }], ['mano', 'Mano a Mano'], ['team', 'Funcionários', { tab: 'staff' }], ['academy', 'Academia'], ['scout', 'Olheiros'], ['sister', 'Parcerias'], ['teamSetup', 'Montagem da equipe', null, () => G.teamSetup && G.teamSetup.pending]]],
   ['carro', 'Carro', 'Car', [['car', 'Carro'], ['dev', 'Projetos de P&D']]],
@@ -57,7 +57,8 @@ function area85(view) {
 function tabsOf85(areaId) {
   const a = AREAS85.find(x => x[0] === areaId); if (!a) return [];
   const obs = G && Career.isObs(G);
-  return a[3].filter(t => (!obs || !OBS_HIDE85.has(t[0])) && (!t[3] || (G && t[3]())) && SCREENS[t[0]]);
+  const drv = G && Career.isDrv && Career.isDrv(G);   // (0.9) o piloto não tem equipe, mas tem caixa de entrada
+  return a[3].filter(t => (!obs || !OBS_HIDE85.has(t[0]) || (drv && t[0] === 'inbox')) && (!t[3] || (G && t[3]())) && SCREENS[t[0]]);
 }
 function tabOn85(t) {
   if (UI.view !== t[0]) return false;
@@ -68,6 +69,7 @@ const svg85 = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"
 
 /* botão de ação único */
 function cta85() {
+  if (typeof DCareer !== 'undefined' && DCareer.on(G) && typeof dCta85 === 'function') return dCta85();   // (0.9) carreira de piloto
   if (Career.isObs(G)) return `<button class="x-cta" data-act="simRound">${byLang('Simular etapa', 'Simulate round')}<small>${esc(nextRaceName85())}</small></button>`;
   if (Career.seasonOver(G)) return `<button class="x-cta" data-act="go" data-v="hub"><span>${byLang('Fim de temporada', 'Season review')}<small>${byLang('campeões e premiação', 'champions and awards')}</small></span>→</button>`;
   if (G.weekend) {
@@ -113,7 +115,7 @@ function shell85(inner) {
     const conf = Math.round(G.board.confidence);
     kpis = `<div class="x-kpis"><span class="x-kpi ${pos <= (G.board.target || 99) ? 'g' : 'y'}" title="${byLang('Meta da diretoria', 'Board target')}: ${G.board.target}º"><i></i>${byLang('Construtores', 'Constructors')} <b>${ordinal(pos)}</b></span><span class="x-kpi ${G.finances.balance < 0 ? 'r' : ''}"><i></i>${byLang('Caixa', 'Cash')} <b>${fmtMoney(G.finances.balance)}</b></span><span class="x-kpi ${conf < 30 ? 'r' : conf < 55 ? 'y' : 'g'}">${ring85(conf, 22, '')}${byLang('Diretoria', 'Board')} <b>${conf}%</b></span><span class="x-kpi"><i></i><b>${typeof Time !== 'undefined' ? esc(Time.fmt(G.today)) : G.season.year}</b></span></div>`;
   } else {
-    kpis = `<div class="x-kpis"><span class="x-kpi"><i></i>${byLang('Modo Observador', 'Observer mode')}</span><span class="x-kpi"><i></i>${byLang('Temporada', 'Season')} <b>${G.season.year} · ${Math.min(G.season.round + 1, G.season.calendar.length)}/${G.season.calendar.length}</b></span></div>`;
+    kpis = `<div class="x-kpis"><span class="x-kpi"><i></i>${typeof DCareer !== 'undefined' && DCareer.on(G) ? `${byLang('Carreira de Piloto', 'Driver Career')} · <b>${DCareer.me(G).age} ${byLang('anos', 'y/o')}</b>` : byLang('Modo Observador', 'Observer mode')}</span><span class="x-kpi"><i></i>${byLang('Temporada', 'Season')} <b>${G.season.year} · ${Math.min(G.season.round + 1, G.season.calendar.length)}/${G.season.calendar.length}</b></span></div>`;
   }
   const nav = UIPREF.get('nav');
   const logo = team ? (imgUrl(team.logo) ? `<img src="${imgUrl(team.logo)}" alt="">` : `<b>${esc(team.short || teamAbbr(team.name))}</b>`) : '<b>PW</b>';
