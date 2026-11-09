@@ -238,7 +238,11 @@ Engine.aiWantsPit = (race, car, wk, strategyRating) => {
   const c = car.tyre.c;
   const react = strategyRating / 100;
   const dry = 'SMH'.includes(c);
-  if (car.damage.wing > 0 && lapsLeft > 3) return true;
+  // (0.8.7) peça solta com bandeira preta e laranja: para já. Asa muito danificada: para. Dano leve: só se perder mais do que a parada custa
+  if (car.meatball) return true;
+  const wd = car.damage.wing || 0;
+  if (wd >= 0.6 && lapsLeft > 3) return true;
+  if (wd > 0 && lapsLeft > 3 && wd * 0.9 * lapsLeft > ((wk.track && wk.track.pitLoss) || 20) + 3.4) return true;
   if (car.tyre.puncture) return true;
   if (dry && wNext > 0.22 && RNG.chance(0.35 + react * 0.55)) return true;
   if (c === 'I' && wNext > 0.72 && RNG.chance(0.3 + react * 0.5)) return true;
@@ -365,7 +369,7 @@ Engine.stepLap = (race, wk) => {
         } else {
           const loss = RNG.range(3, 11);
           t += loss;
-          if (RNG.chance(0.3)) { Engine.hurt(race, c, 'wing', 1); Engine.event(race, 'issue', byLang(`${wk.nameOf(c.did)} roda e danifica a asa dianteira.`, `${wk.nameOf(c.did)} spins and damages the front wing.`), c.did); }
+          if (RNG.chance(0.3)) { const ws = RNG.range(0.3, 1); Engine.hurt(race, c, 'wing', ws); Engine.event(race, 'issue', ws < 0.6 ? byLang(`${wk.nameOf(c.did)} roda e perde um pedaço da asa dianteira.`, `${wk.nameOf(c.did)} spins and loses part of the front wing.`) : byLang(`${wk.nameOf(c.did)} roda e danifica a asa dianteira.`, `${wk.nameOf(c.did)} spins and damages the front wing.`), c.did); }
           else if (RNG.chance(0.18)) { const pt = RNG.chance(0.75) ? 'floor' : 'gbx'; Engine.hurt(race, c, pt, RNG.range(0.3, 0.8)); Engine.event(race, 'issue', byLang(`${wk.nameOf(c.did)} roda pela brita e danifica o ${Engine.PARTS[pt][0]}.`, `${wk.nameOf(c.did)} spins through the gravel and damages the ${Engine.PARTS[pt][1]}.`), c.did); }
           else Engine.event(race, 'spin', byLang(`${wk.nameOf(c.did)} roda e perde ${loss.toFixed(1)}s.`, `${wk.nameOf(c.did)} spins and loses ${loss.toFixed(1)}s.`), c.did);
         }
@@ -392,7 +396,7 @@ Engine.stepLap = (race, wk) => {
       c.stints[c.stints.length - 1].to = L;
       c.stints.push({ c: newC, from: L, to: null });
       c.tyre = { c: newC, wear: 0, age: -1, temp: 70 }; c.used.push(newC);
-      if (c.damage.wing) { c.damage.wing = 0; const nose = RNG.range(2.5, 4.5); t += nose; c.lastNose = +nose.toFixed(1); (race.dmg = race.dmg || []).push({ did: c.did, tid: c.tid, part: 'nose', sev: 1, lap: L, fix: true }); }
+      if (c.damage.wing) { c.damage.wing = 0; c.loosePart = null; c.meatball = null; const nose = RNG.range(2.5, 4.5); t += nose; c.lastNose = +nose.toFixed(1); (race.dmg = race.dmg || []).push({ did: c.did, tid: c.tid, part: 'nose', sev: 1, lap: L, fix: true }); }
       if (c.pendingPen) { t += c.pendingPen; c.pendingPen = 0; }
       c.lastStop = +stop.toFixed(1);
       // toda parada fica registrada; o texto com a posição de volta é completado no fim da volta
@@ -533,7 +537,7 @@ Engine.collision = (race, wk, a, b) => {
   } else if (sev < 0.6) {
     const victim = RNG.chance(0.5) ? a : b;
     const pt = RNG.weighted(['wing', 'floor', 'susp', 'brakes', 'gbx'], p => ({ wing: 55, floor: 20, susp: 15, brakes: 5, gbx: 5 })[p]);
-    Engine.hurt(race, victim, pt, pt === 'wing' ? 1 : RNG.range(0.3, 0.9)); victim.T += RNG.range(1, 4);
+    Engine.hurt(race, victim, pt, pt === 'wing' ? RNG.range(0.25, 1) : RNG.range(0.3, 0.9)); victim.T += RNG.range(1, 4);
     Engine.event(race, 'contact', byLang(`Toque entre ${names}. ${wk.nameOf(victim.did)} com ${Engine.PARTS[pt][0]} danificad${pt === 'susp' ? 'a' : pt === 'brakes' ? 'os' : 'o'}.`, `Contact between ${names}. ${wk.nameOf(victim.did)} has ${Engine.PARTS[pt][1]} damage.`), victim.did);
   } else {
     a.T += RNG.range(0.5, 2); b.T += RNG.range(0.5, 2);
@@ -649,6 +653,12 @@ Engine.PARTS = { wing: ['asa dianteira', 'front wing', 'Asa dianteira', 'Front w
 Engine.hurt = (race, c, part, sev) => {
   c.damage[part] = Math.min(1, (c.damage[part] || 0) + sev);
   (race.dmg = race.dmg || []).push({ did: c.did, tid: c.tid, part, sev: +sev.toFixed(2), lap: race.lap });
+  // (0.8.7) asa: muito danificada pode ficar pendurada (os comissários mostram a bandeira preta e laranja);
+  // pedaços grandes ficam na pista e podem trazer o Safety Car virtual (Damage.lap decide, em core/race/damage.js)
+  if (part === 'wing' && c.status === 'run' && race.lap > 0) {
+    if (c.damage.wing >= 0.75 && !c.loosePart && RNG.chance(0.4)) c.loosePart = { lap: race.lap };
+    if (sev >= 0.5 && RNG.chance(0.3)) race.debrisLap = race.lap;
+  }
 };
 
 /* ordens de equipe: chance de o piloto obedecer */
@@ -682,6 +692,7 @@ Engine.orderLine = (k, mate) => { const L = Engine.ORDER_LINES[k]; const x = L[M
    ============================================================= */
 Engine.PEN_TXT.vantagem = ['sair da pista e ganhar vantagem', 'leaving the track and gaining an advantage'];
 Engine.PEN_TXT.bandeira = ['ignorar bandeiras azuis', 'ignoring blue flags'];
+Engine.PEN_TXT.solta = ['não parar com peça solta (bandeira preta e laranja)', 'not pitting with a loose part (black and orange flag)'];
 Engine.KIND_TXT = { warn: ['advertência', 'a warning'], dt: ['drive-through', 'a drive-through'], sg: ['stop-and-go de 10 s', 'a 10 s stop-and-go'], grid: ['posições no grid da próxima corrida', 'grid places at the next race'] };
 /* diretrizes: [peso, tipo, segundos, pontos na superlicença] */
 Engine.GUIDE = {

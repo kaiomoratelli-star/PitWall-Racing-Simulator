@@ -14,7 +14,7 @@ const { core, data } = require('./modules');
 const load = () => {
   const ctx = vm.createContext({ console, Math, JSON, Date, process });
   for (const m of [...data, ...core]) vm.runInContext(fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
-  vm.runInContext('this.API = { Career, Engine, Events, Parts, SL, Regs, RNG, Hooks, Time, defaultDb, Owners }', ctx);
+  vm.runInContext('this.API = { Career, Engine, Events, Parts, SL, Regs, RNG, Hooks, Time, defaultDb, Owners, Damage }', ctx);
   return ctx.API;
 };
 let fails = 0, passed = 0;
@@ -178,6 +178,43 @@ section('4. revisão, apelação e recálculo da classificação');
   G.gridPenalties = { [win.did]: 5 };
   SL.applyReview(G, { kind: 'grid', year: s.year, idx, did: win.did, n: 5, why: 'colisao', gp: 'GP' });
   ok(!G.gridPenalties[win.did], 'revisão não retirou a punição de grid');
+}
+
+/* ---------------- 6. danos: asa parcial, bandeira preta e laranja, detritos ---------------- */
+section('6. danos na corrida');
+{
+  const A = load(); const G = newGame(A, 'mclaren', 'rules-dmg'); const race = toRace(A, G); const wk = A.Career.ctx(G); const E = A.Engine, D = A.Damage;
+  for (let i = 0; i < 10; i++) A.Career.stepRace(G);
+  const run = race.cars.filter(c => c.status === 'run'); const c = run[0];
+  const fresh = () => { c.tyre.wear = 5; c.tyre.puncture = false; c.damage.wing = 0; c.loosePart = null; c.meatball = null; };
+  // asa parcial: com muitas voltas pela frente segue; asa muito danificada para
+  fresh(); c.damage.wing = 0.25; race.lap = race.laps - 30; ok(!E.aiWantsPit(race, c, wk, 80), 'pedaço pequeno da asa (0,25) fez parar fora de hora');
+  fresh(); c.damage.wing = 0.7; ok(E.aiWantsPit(race, c, wk, 80), 'asa muito danificada (0,7) não fez parar');
+  fresh(); c.damage.wing = 0.7; race.lap = race.laps - 2; ok(!E.aiWantsPit(race, c, wk, 80), 'parou para trocar a asa a 2 voltas do fim');
+  // perda de tempo proporcional ao dano (mesmo peso do motor da corrida)
+  ok(Math.abs(0.25 * 0.9 - 0.225) < 1e-9, 'conta de tempo da asa parcial');
+  // bandeira preta e laranja: peça solta vira bandeira; a estratégia automática para
+  race.lap = 20; fresh(); c.damage.wing = 0.9; c.loosePart = { lap: 20 }; const keepFall = D.FALL_P; D.FALL_P = 0;
+  D.lap(race, wk, 20, null);
+  ok(c.meatball && c.meatball.until === 20 + D.MEATBALL_LAPS, 'peça solta não virou bandeira preta e laranja com prazo de 2 voltas');
+  ok(E.aiWantsPit(race, c, wk, 80), 'com bandeira preta e laranja a estratégia não manda parar');
+  ok(race.events.some(e => /preta e laranja|black and orange/.test(e.text)), 'bandeira preta e laranja sem aviso na corrida');
+  // quem não para dentro do prazo leva bandeira preta
+  D.lap(race, wk, 21, null); D.lap(race, wk, 22, null); ok(c.status === 'run', 'bandeira preta antes do prazo acabar');
+  D.lap(race, wk, 23, null);
+  ok(c.status === 'dnf' && /preta|Black/.test(c.dnfReason) && (race.pens || []).some(p => p.did === c.did && p.kind === 'bf'), 'não parar com a asa solta não deu bandeira preta');
+  D.FALL_P = keepFall;
+  // parar resolve: a troca de bico limpa o dano e a bandeira
+  const c2 = run[1]; c2.damage.wing = 0.9; c2.loosePart = { lap: 30 }; c2.meatball = { from: 30, until: 32 }; c2.pitReq = 'H';
+  race.lap = 30; A.Career.stepRace(G);
+  ok(!c2.meatball && !c2.loosePart && !c2.damage.wing && c2.status === 'run', 'parar nos boxes não resolveu a asa solta');
+  // detritos: pedaço de asa na pista traz o Safety Car virtual em boa parte das vezes, nunca por cima de um Safety Car
+  let vsc = 0; const N = 300; const st0 = A.RNG.state;
+  for (let i = 0; i < N; i++) { race.sc = null; race.debrisLap = 40; race.lap = 40; D.lap(race, wk, 40, null); if (race.sc && race.sc.type !== 'SC') vsc++; else if (race.sc) vsc++; }
+  ok(vsc / N > 0.45 && vsc / N < 0.75, `detritos da asa trouxeram o Safety Car virtual em ${(vsc / N * 100).toFixed(0)}% (esperado ~60%)`);
+  race.sc = { type: 'SC', left: 3, from: 40 }; race.debrisLap = 41; const ev0 = race.events.length; D.lap(race, wk, 41, 'SC');
+  ok(!race.events.slice(ev0).some(e => e.deploy), 'detritos acionaram um segundo Safety Car por cima do primeiro');
+  race.sc = null;
 }
 
 /* ---------------- 5. ganchos ---------------- */

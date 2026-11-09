@@ -251,7 +251,7 @@ SL.stewardsMail = (G, race, idx, gp, dsq) => {
 
 /* equipes da IA também pedem revisão de vez em quando */
 SL.aiReviews = (G, race, idx, gp) => {
-  (race.pens || []).filter(p => p.kind !== 'warn').forEach(p => {
+  (race.pens || []).filter(p => p.kind !== 'warn' && p.kind !== 'bf').forEach(p => {
     const c = race.cars.find(x => x.did === p.did); if (!c || c.tid === G.player.teamId || c.status !== 'fin') return;
     const res = G.season.results[idx]; const r = res && res.cls.find(x => x.did === p.did);
     if (!r || r.pos > 12 || !RNG.chance(0.25)) return;
@@ -298,6 +298,7 @@ SL.penWhat = (p) => {
   if (k === 'dt') return ['drive-through', 'drive-through'];
   if (k === 'sg') return ['stop-and-go', 'stop-and-go'];
   if (k === 'warn') return ['advertência', 'warning'];
+  if (k === 'bf') return ['bandeira preta', 'black flag'];
   return [`${p.s}s`, `${p.s}s`];
 };
 /* a partir de 2026 os comissários podem reabrir uma decisão por conta própria (imagem nova, telemetria) */

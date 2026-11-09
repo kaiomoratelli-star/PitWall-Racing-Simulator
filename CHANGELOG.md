@@ -22,6 +22,13 @@ Base: as prioridades P1 a P3 de `docs/AVALIACAO-0.8.6.md`. Relatório completo e
 - Ponto na superlicença por limite de pista vira decisão dos comissários (~50%): suspensões de 2,3 para 1,0 a cada 8 temporadas.
 - Texto gerado pelo jogo (eventos, notícias, mercado, Conselho, redes) em inglês de verdade quando o jogo está em inglês.
 
+**Danos na corrida (pedido do dono)**
+- Asa dianteira com dano parcial: um pedaço da asa custa menos tempo por volta e o carro pode seguir até a parada normal; dano grande pede a troca do bico.
+- Bandeira preta e laranja: asa solta obriga a parar em até 2 voltas; quem não para leva bandeira preta. A peça pode cair antes e ficar na pista.
+- Detritos de asa na pista podem trazer o Safety Car virtual.
+- Rádio do engenheiro conforme o dano; faixa da Direção de prova mostra a bandeira preta e laranja.
+- Saúde do carro: no treino, na classificação e na estratégia (motor e câmbio por componente, consertos da última corrida) e na corrida, ao vivo no muro dos boxes (cada peça, perda em segundos por volta, peça solta, pneu e motor).
+
 **Interface**
 - Primeiros passos na Central e dica curta na primeira visita a cada tela.
 - Resumo da etapa na caixa de entrada (avisos de rotina agrupados; o jogador escolhe o que continua chegando como carta).

@@ -445,7 +445,10 @@ Events.radio = (race, car, wk) => {
   if (car.tyre.c === 'I' && w < 0.12) msgs.push(byLang('Pista secando. Hora de pneus de pista seca.', 'Track drying. Time for slicks.'));
   if (car.tyre.wear > 70 && 'SMH'.includes(car.tyre.c)) msgs.push(byLang(`Pneus em ${Math.round(car.tyre.wear)}%. Desempenho caindo rápido.`, `Tyres at ${Math.round(car.tyre.wear)}%. Performance dropping fast.`));
   if (race.sc && car.tyre.wear > 30) msgs.push(byLang('Safety Car: parada mais barata agora.', 'Safety Car: a cheaper stop now.'));
-  if (car.damage.wing) msgs.push(byLang('Asa danificada, recomendo parar.', 'Wing damaged, I recommend pitting.'));
+  // (0.8.7) conforme o tamanho do dano e a bandeira preta e laranja
+  if (car.meatball) msgs.unshift(byLang(`BOX, BOX! Bandeira preta e laranja: asa solta. Pare até a volta ${car.meatball.until} ou é bandeira preta.`, `BOX, BOX! Black and orange flag: loose wing. Pit by lap ${car.meatball.until} or it is a black flag.`));
+  else if (car.damage.wing >= 0.6) msgs.push(byLang(`Asa muito danificada: ${(car.damage.wing * 0.9).toFixed(1)} s por volta. Recomendo parar.`, `Heavy wing damage: ${(car.damage.wing * 0.9).toFixed(1)} s per lap. I recommend pitting.`));
+  else if (car.damage.wing > 0) msgs.push(byLang(`Perdemos um pedaço da asa: ${(car.damage.wing * 0.9).toFixed(1)} s por volta. Dá para seguir até a parada.`, `We lost part of the wing: ${(car.damage.wing * 0.9).toFixed(1)} s per lap. We can stay out until the stop.`));
   return msgs;
 };
 

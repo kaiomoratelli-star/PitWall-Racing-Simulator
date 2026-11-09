@@ -14,7 +14,7 @@ Base: as prioridades P1 a P3 da [avaliação da 0.8.6](AVALIACAO-0.8.6.md).
 | 4, 15 | Estado sem esquema; save grande (P2) | `core/base/schema.js` registra todos os campos de `G`, confere ao abrir e antes de gravar. Saves compactados com gzip (3 MB → ~0,5 MB; 5 MB → 1,2 MB no navegador), conferidos antes de substituir o anterior. Escolha: compactar em vez de cortar o histórico, para não perder nada da carreira. |
 | 5, 17 | Tradução depois de pronto; inglês incompleto (P2) | Texto gerado pelo jogo nasce no idioma com `byLang` (20 eventos antigos, notícias de corrida, categorias, mercado, Conselho, redes). `i18n-check`: de 89 para 6 trechos em português nas telas em inglês (só nomes próprios e um título citado). |
 | 6 | Sorteio compartilhado (P2) | O `render` confere o sorteio: se uma tela sortear, é devolvido, registrado e, nos testes, vira erro. Nenhuma tela sorteia hoje. |
-| 8 | Teste por regra (P2) | `rules-check` (71 verificações): escala dos comissários, fim de corrida sem DT/SG, conversão em 20/30 s, rigor, cotas do motor (10/5/fim do grid), superlicença, suspensão e volta do piloto, revisão/apelação e recálculo, ganchos. Testado estragando regras de propósito: o teste falha. |
+| 8 | Teste por regra (P2) | `rules-check` (83 verificações): escala dos comissários, fim de corrida sem DT/SG, conversão em 20/30 s, rigor, cotas do motor (10/5/fim do grid), superlicença, suspensão e volta do piloto, revisão/apelação e recálculo, ganchos. Testado estragando regras de propósito: o teste falha. |
 | 10 | Tutorial (P2) | Primeiros passos (8 passos que se marcam sozinhos) e dica curta na primeira visita a cada tela; desligável e religável. Fica no navegador, não no save. |
 | 11 | Muitas cartas (P2) | Resumo da etapa na caixa de entrada; o jogador escolhe que tipos continuam como carta (Diretoria por padrão). |
 | 12 | Punições só no rádio (P2) | Faixa "Direção de prova" na corrida. |
@@ -23,6 +23,18 @@ Base: as prioridades P1 a P3 da [avaliação da 0.8.6](AVALIACAO-0.8.6.md).
 | 14 | Suspensões por pontos (P3) | Ponto por limite de pista vira decisão dos comissários (~50%, sem sorteio): de 2,3 para 1,0 suspensão a cada 8 temporadas (3 universos × 8 temporadas). |
 | 18 | Acessibilidade (P3) | Teclado (Tab, Enter, Espaço) em tudo o que é clicável, foco nas janelas, contraste do texto secundário acima de 4,5:1 nos dois temas, tamanho do texto. |
 | 19 | Telas longas (P3) | Carro com abas; Mercado (7,8 → 2,2 alturas de tela) e Olheiros em páginas — antes, pilotos além dos 120/80 primeiros nem apareciam. |
+
+## 1b. Pedido do dono antes do lançamento: danos e saúde do carro
+
+| O quê | Como ficou | Medido em 120 corridas (5 universos) |
+|---|---|---|
+| Asa dianteira parcial | Toque ou rodada tiram de 25% a 100% da asa; perda de 0,9 s por volta × dano. Dano a partir de 60% (ou quando a perda passa do custo da parada) faz a estratégia parar; menos que isso segue até a parada normal, e o bico é trocado nela. | 71 asas danificadas: 27 parciais e 44 grandes; 66 trocas de bico |
+| Bandeira preta e laranja | Asa com 75% ou mais de dano pode ficar solta (40%); os comissários dão 2 voltas para parar; sem parar, bandeira preta (fora da corrida). A peça pode cair antes (25% por volta). | cerca de uma a cada 8 corridas no grid inteiro |
+| Detritos | Pedaço grande de asa na pista traz o Safety Car virtual em ~60% dos casos, nunca por cima de outro Safety Car. | 8 Safety Cars virtuais por detritos de asa |
+| Saúde do carro | Fim de semana: cada componente do motor e câmbio com vida e cota, mais o que foi consertado. Corrida: no muro dos boxes, cada peça com barra, perda por volta, peça solta, pneu e motor; a bandeira aparece no topo. | — |
+
+Testes novos em `rules-check` (12 verificações): asa parcial não para fora de hora, asa grande para, nada de parar a 2 voltas do fim, bandeira com prazo de 2 voltas, bandeira preta para quem não para, parar resolve, Safety Car virtual por detritos e nunca por cima de outro. Testado estragando a regra da bandeira preta: o teste falha.
+A simulação muda com isso (pedido do dono), então a referência de determinismo foi regravada outra vez.
 
 ## 2. Problemas achados e corrigidos no caminho
 
@@ -34,7 +46,7 @@ Base: as prioridades P1 a P3 da [avaliação da 0.8.6](AVALIACAO-0.8.6.md).
 
 ## 3. Mudança na simulação
 
-Só uma, aprovada pela avaliação: o ponto por limite de pista (item 14). Com o ponto forçado em 1, a assinatura antiga volta igual, o que prova que nada mais mudou. A referência foi regravada em `tests/determinism.json`. Todo o resto (ganchos, pastas, traduções, interface) manteve a simulação idêntica.
+Duas: o ponto por limite de pista (item 14 da avaliação) e os danos novos (pedido do dono, seção 1b). Com o ponto forçado em 1, a assinatura antiga volta igual, o que prova que nada mais mudou. A referência foi regravada em `tests/determinism.json`. Todo o resto (ganchos, pastas, traduções, interface) manteve a simulação idêntica.
 
 ## 4. Testes
 

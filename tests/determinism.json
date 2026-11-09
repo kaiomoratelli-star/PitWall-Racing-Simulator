@@ -1,22 +1,22 @@
 {
  "obs-a": {
-  "hash": "a8c98895f680bd13",
-  "kb": 3199,
-  "champ": "charles-leclerc,charles-leclerc,lando-norris"
+  "hash": "36860a1509a7ea61",
+  "kb": 3190,
+  "champ": "lewis-hamilton,charles-leclerc,max-verstappen"
  },
  "obs-b": {
-  "hash": "0b0b0d71f7c234d2",
-  "kb": 3055,
-  "champ": "george-russell,max-verstappen"
+  "hash": "0fe117b228c51b27",
+  "kb": 3062,
+  "champ": "george-russell,charles-leclerc"
  },
  "mgr-mclaren": {
-  "hash": "2dfab38b60c95f6c",
-  "kb": 3159,
-  "champ": "kimi-antonelli,george-russell"
+  "hash": "8683f83200c2e4e5",
+  "kb": 3162,
+  "champ": "george-russell,george-russell"
  },
  "mgr-haas": {
-  "hash": "cc760fefb010a001",
-  "kb": 3188,
-  "champ": "max-verstappen,kimi-antonelli"
+  "hash": "988e7f274a334644",
+  "kb": 3185,
+  "champ": "george-russell,george-russell"
  }
 }
