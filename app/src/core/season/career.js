@@ -118,7 +118,11 @@ Career.record = (G, type, text, refs = {}) => {
 
 Career.mail = (G, m) => {
   G.inbox.unshift({ id: Career.nextId(G, 'm'), read: false, round: G.season ? G.season.round : 0, year: G.season ? G.season.year : 0, ...m });
-  if (G.inbox.length > 120) G.inbox.length = 120;
+  // (0.8.7) o limite de 120 corta as mais antigas, mas nunca uma decisão ainda sem resposta
+  if (G.inbox.length > 120) {
+    const keep = G.inbox.slice(120).filter(x => x.choices && x.resolved == null);
+    G.inbox.length = 120; if (keep.length) G.inbox.push(...keep);
+  }
 };
 Career.news = (G, title, tag = 'geral', body = '', refs) => {
   const n = { id: Career.nextId(G, 'n'), title, tag, body, round: G.season ? G.season.round : 0, year: G.season ? G.season.year : 0 };

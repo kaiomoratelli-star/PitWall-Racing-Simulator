@@ -600,3 +600,8 @@ td.secs { display: table-cell !important; vertical-align: middle; } td.secs .sec
 .rc85-i.inv em { color: #d99a00; } .rc85-i.serve em { color: var(--neg, #e10600); } .rc85-i.done em { color: var(--muted); }
 .rc85-i small { color: var(--muted); font-size: 11px; }
 .rc85-i.me { border-color: var(--team, var(--fg)); box-shadow: inset 3px 0 0 var(--team, var(--fg)); }
+
+/* 0.8.7 — resumo da etapa na caixa de entrada */
+.mail.digest .t::before { content: '▤ '; opacity: .6; }
+.digest-list .digest-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.digest-list .digest-item:last-child { border-bottom: 0; }

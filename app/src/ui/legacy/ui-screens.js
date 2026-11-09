@@ -346,21 +346,65 @@ ACT.nextSeason = () => {
 };
 
 /* ================= CAIXA DE ENTRADA ================= */
-const TAG_LABEL = { board: 'Diretoria', media: 'Mídia', money: 'Comercial', dev: 'Técnico', team: 'Equipe', fia: 'Federação', market: 'Paddock', ai: 'Paddock' };
+const TAG_LABEL = { board: 'Diretoria', media: 'Mídia', money: 'Comercial', dev: 'Técnico', team: 'Equipe', fia: 'Federação', regs: 'Regulamento', market: 'Paddock', ai: 'Paddock' };
 function mailRow() { return ''; }   // substituída em ui-time.js
+/* (0.8.7) Resumo da etapa: avisos sem decisão e sem urgência de uma mesma etapa viram uma linha só.
+   O jogador escolhe quais tipos continuam sempre como carta (G.options.mailCards) ou desliga o resumo. */
+// entram no resumo os avisos sem decisão, inclusive os "importantes" de rotina (peça trocada, fim da vida útil);
+// abrir o resumo dá todos como lidos de uma vez. Por padrão a Diretoria (suspensão, cota de novatos) segue como carta.
+const mailDigestOn = () => G.options.mailDigest !== false;
+const mailCardsOf = () => G.options.mailCards || ['board'];
+const mailDigestable = (m) => mailDigestOn() && !m.choices && ['normal', 'important'].includes(Time.prio(m)) && !mailCardsOf().includes(m.tag || '');
+function mailListItems() {
+  const groups = {}; const out = [];
+  G.inbox.forEach(m => { if (mailDigestable(m)) { const k = `${m.year}:${m.round}`; (groups[k] = groups[k] || []).push(m); } });
+  const seen = new Set();
+  G.inbox.forEach(m => {
+    const k = `${m.year}:${m.round}`; const g = groups[k];
+    if (!mailDigestable(m) || !g || g.length < 2) { out.push({ m }); return; }
+    if (seen.has(k)) return; seen.add(k); out.push({ digest: k, list: g });
+  });
+  return out;
+}
+function digestRow(it, sel) {
+  const L = it.list; const unread = L.filter(m => !m.read).length; const [y, r] = it.digest.split(':');
+  const imp = L.filter(m => !m.read && Time.prio(m) === 'important').length;
+  const tags = [...new Set(L.map(m => TAG_LABEL[m.tag] || byLang('Mensagem', 'Message')))].slice(0, 4).join(' · ');
+  return `<button class="mail digest ${unread ? 'unread' : ''} ${sel ? 'on' : ''}" data-act="openDigest" data-k="${it.digest}"><span class="dot"></span><span style="min-width:0"><span class="t">${byLang('Resumo da etapa', 'Round summary')} ${+r + 1} · ${y}</span>${imp ? `<span class="chip warn" style="float:right">${imp} ${byLang('importante(s)', 'important')}</span>` : ''}<br><span class="small muted">${L.length} ${byLang('avisos', 'notices')}${unread ? ` · ${unread} ${byLang('não lidos', 'unread')}` : ''} · ${esc(tags)}</span></span></button>`;
+}
+function digestDetail(k) {
+  const L = G.inbox.filter(m => mailDigestable(m) && `${m.year}:${m.round}` === k); const [y, r] = k.split(':');
+  return `<div class="panel-h"><div><div class="label">${byLang('Resumo da etapa', 'Round summary')} ${+r + 1} · ${y}</div><h2 style="margin-top:6px">${L.length} ${byLang('avisos sem decisão', 'notices with no decision')}</h2><p class="small muted">${byLang('Abrir o resumo marca todos como lidos. Em "Sempre como carta" você escolhe o que continua chegando sozinho.', 'Opening the summary marks them all as read. Use "Always as a card" to choose what keeps arriving on its own.')}</p></div></div>
+  <div class="panel-b stack digest-list">${L.map(m => `<div class="digest-item"><div class="label">${Time.prio(m) === 'important' ? `<span class="chip warn">${byLang('importante', 'important')}</span> ` : ''}${esc(TAG_LABEL[m.tag] || byLang('Mensagem', 'Message'))} · ${esc(m.from || '')}</div><b>${esc(m.title)}</b>${m.body ? `<p class="small" style="white-space:pre-wrap;max-width:68ch;margin-top:4px">${esc(m.body)}</p>` : ''}</div>`).join('')}</div>`;
+}
+function mailPrefsHtml() {
+  const on = mailDigestOn(); const cards = mailCardsOf();
+  const tags = Object.keys(TAG_LABEL).filter(t => t !== 'ai');
+  return `<div class="mail-prefs row" style="gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px">
+    <button class="btn sm ${on ? 'primary' : ''}" data-act="mailDigestToggle">${on ? byLang('Resumo da etapa: ligado', 'Round summary: on') : byLang('Resumo da etapa: desligado', 'Round summary: off')}</button>
+    ${on ? `<span class="small muted">${byLang('Sempre como carta:', 'Always as a card:')}</span>${tags.map(t => `<button class="btn sm ${cards.includes(t) ? 'primary' : 'ghost'}" data-act="mailCardTag" data-tag="${t}" aria-pressed="${cards.includes(t)}">${esc(TAG_LABEL[t])}</button>`).join('')}` : ''}
+  </div>`;
+}
 SCREENS.inbox = {
   html() {
-    const sel = UI.params.id ? G.inbox.find(m => m.id === UI.params.id) : (G.inbox.find(m => m.choices && m.resolved == null) || G.inbox[0]);
+    const dk = UI.params.digest;
+    const sel = dk ? null : UI.params.id ? G.inbox.find(m => m.id === UI.params.id) : (G.inbox.find(m => m.choices && m.resolved == null) || G.inbox.find(m => !mailDigestable(m)) || G.inbox[0]);
     if (sel && !sel.read && !sel.choices) sel.read = true;
+    if (dk) G.inbox.forEach(m => { if (mailDigestable(m) && `${m.year}:${m.round}` === dk) m.read = true; });
+    const items = mailListItems();
     return `
     <div class="page-head"><div><div class="eyebrow">Mensagens e decisões</div><h1>Caixa de entrada</h1></div>
       <div class="row">${G.options.aiEvents && Store.sample ? '<button class="btn" data-act="aiEventNow">Buscar novidades do paddock</button>' : ''}<button class="btn" data-act="markAllRead">Marcar tudo como lido</button></div></div>
+    ${mailPrefsHtml()}
     <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)">
-      <div class="panel"><div class="mail-list" style="max-height:70vh;overflow:auto">${G.inbox.map(m => mailRow(m, sel && m.id === sel.id)).join('') || '<div class="empty">Vazia.</div>'}</div></div>
-      <div class="panel">${sel ? mailDetail(sel) : '<div class="empty">Selecione uma mensagem.</div>'}</div>
+      <div class="panel"><div class="mail-list" style="max-height:70vh;overflow:auto">${items.map(it => it.digest ? digestRow(it, dk === it.digest) : mailRow(it.m, sel && it.m.id === sel.id)).join('') || '<div class="empty">Vazia.</div>'}</div></div>
+      <div class="panel">${dk ? digestDetail(dk) : sel ? mailDetail(sel) : '<div class="empty">Selecione uma mensagem.</div>'}</div>
     </div>`;
   },
 };
+ACT.openDigest = (el) => go('inbox', { digest: el.dataset.k });
+ACT.mailDigestToggle = () => { G.options.mailDigest = !mailDigestOn(); autosave(); go('inbox', {}); };
+ACT.mailCardTag = (el) => { const t = el.dataset.tag; const c = new Set(mailCardsOf()); c.has(t) ? c.delete(t) : c.add(t); G.options.mailCards = [...c]; autosave(); go('inbox', UI.params); };
 function mailDetail(m) {
   const choices = m.choices ? (m.resolved == null
     ? `<div class="stack" style="gap:8px">${m.choices.map((c, i) => `<button class="btn choice" data-act="choose" data-id="${m.id}" data-i="${i}"><b>${esc(c.label)}</b>${c.hint ? `<span class="small muted">${esc(c.hint)}</span>` : ''}${c.gamble ? `<span class="small muted">Resultado incerto</span>` : ''}</button>`).join('')}</div>`
