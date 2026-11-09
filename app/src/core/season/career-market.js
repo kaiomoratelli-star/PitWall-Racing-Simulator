@@ -85,7 +85,7 @@ Career.aiFillSeat = (G, tid, seat) => {
   const ac = typeof Market !== 'undefined' ? Market.academyOf(G, pickD) : null;
   const salary = +Math.max(0.6, (typeof Market !== 'undefined' ? Market.ask(pickD) : Career.marketValue(pickD)) * 0.85).toFixed(2);
   Career.placeDriver(G, pickD, tid, seat, salary, RNG.int(0, 1));
-  Career.news(G, `${team.name} anuncia ${pickD.name}`, 'mercado');
+  Career.news(G, byLang(`${team.name} anuncia ${pickD.name}`, `${team.name} announce ${pickD.name}`), 'mercado');
   Career.record(G, 'contrato', `Motivo da escolha de ${pickD.name} pela ${team.name}: ${ac && (ac.team === tid || (team.partnerOf || []).includes(ac.team)) ? `piloto da ${ac.name}` : 'melhor piloto livre dentro do orçamento'} (nota ${driverOverall(pickD)}).`, { teams: [tid], drivers: [pickD.id] });
   return pickD;
 };

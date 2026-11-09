@@ -89,7 +89,7 @@ DriverDB.init = (G) => {
     d.seatStatus = s ? { y: year, status: 'confirmado (lista anunciada)', src: s.src, ver: s.ver } : { y: year, status: 'vaga ainda não definida na fonte', src: DRIVER_DB.meta.source, ver: DRIVER_DB.meta.verified };
   });
   G.driverDbDone = { year, matched: DRIVER_DB.drivers.length - pool.length, added, verified: DRIVER_DB.meta.verified };
-  Career.record(G, 'inicio', `Base de pilotos reais: ${G.driverDbDone.matched} pilotos ligados à carreira real e ${added} pilotos de outras categorias no universo (fonte: ${DRIVER_DB.meta.source}, verificada em ${DRIVER_DB.meta.verified}).`);
+  Career.record(G, 'inicio', byLang(`Base de pilotos reais: ${G.driverDbDone.matched} pilotos ligados à carreira real e ${added} pilotos de outras categorias no universo (fonte: ${DRIVER_DB.meta.source}, verificada em ${DRIVER_DB.meta.verified}).`, `Real driver database: ${G.driverDbDone.matched} drivers linked to their real careers and ${added} drivers from other series in the universe (source: ${DRIVER_DB.meta.source}, checked on ${DRIVER_DB.meta.verified}).`));
 };
 DriverDB.addSl = (d, p) => {
   d.sl = d.sl || [];

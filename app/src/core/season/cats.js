@@ -317,7 +317,7 @@ Cats.runEvent = (G, cat, ev) => {
   const w = main && Career.driver(G, main.top[0]);
   if (w && (cat.id === 'f2' || cat.id === 'f3' || cat.pro) && typeof Media !== 'undefined') {
     const ac = w.academy && Career.team(G, w.academy);
-    if (RNG.chance(cat.id === 'f2' ? 0.8 : 0.45)) Career.news(G, `${cat.short}: ${w.name} vence ${cat.pro ? 'em' : 'a corrida principal em'} ${ev.place || ev.circuit} (etapa ${ev.r})`, 'categorias', `${ac ? `Membro da academia da ${ac.name}. ` : ''}${w.name} soma ${s.pts[w.id] || 0} pontos na ${cat.name} ${s.year}.`, { dr: [w.id], outlet: cat.pro ? 'motorsport' : 'f1' });
+    if (RNG.chance(cat.id === 'f2' ? 0.8 : 0.45)) Career.news(G, byLang(`${cat.short}: ${w.name} vence ${cat.pro ? 'em' : 'a corrida principal em'} ${ev.place || ev.circuit} (etapa ${ev.r})`, `${cat.short}: ${w.name} wins ${cat.pro ? 'at' : 'the feature race at'} ${ev.place || ev.circuit} (round ${ev.r})`), 'categorias', byLang(`${ac ? `Membro da academia da ${ac.name}. ` : ''}${w.name} soma ${s.pts[w.id] || 0} pontos na ${cat.name} ${s.year}.`, `${ac ? `${ac.name} academy member. ` : ''}${w.name} has ${s.pts[w.id] || 0} points in the ${s.year} ${cat.name}.`), { dr: [w.id], outlet: cat.pro ? 'motorsport' : 'f1' });
   }
 };
 Cats.standings = (cat) => {
@@ -352,9 +352,9 @@ Cats.finishYear = (G) => {
     });
     if (champ) {
       const big = cat.id === 'f2' || cat.id === 'f3' || cat.pro;
-      Career.news(G, `${champ.name} é campeão da ${cat.name} ${y}`, 'categorias', `${champ.name} fechou o ano com ${sd[0].pts} pontos e ${sd[0].w || 0} vitória(s).${tsd[0] ? ` ${tsd[0].name} venceu entre as equipes.` : ''}`, { dr: [champ.id], main: big && cat.id === 'f2' });
+      Career.news(G, byLang(`${champ.name} é campeão da ${cat.name} ${y}`, `${champ.name} is the ${y} ${cat.name} champion`), 'categorias', byLang(`${champ.name} fechou o ano com ${sd[0].pts} pontos e ${sd[0].w || 0} vitória(s).${tsd[0] ? ` ${tsd[0].name} venceu entre as equipes.` : ''}`, `${champ.name} finished the year with ${sd[0].pts} points and ${sd[0].w || 0} win(s).${tsd[0] ? ` ${tsd[0].name} took the teams' title.` : ''}`), { dr: [champ.id], main: big && cat.id === 'f2' });
       Career.record(G, 'categorias', `${y}: ${champ.name} campeão da ${cat.name}.`, { drivers: [champ.id], year: y });
-      if (big && typeof Social !== 'undefined') Social.post(G, { driver: champ.id, kind: 'title', text: `Campeão da ${cat.name}! Obrigado à equipe e a todos que me apoiaram. Próximo passo: ${cat.id === 'f2' ? 'Fórmula 1' : 'subir mais um degrau'}.`, hype: 1.6 });
+      if (big && typeof Social !== 'undefined') Social.post(G, { driver: champ.id, kind: 'title', text: byLang(`Campeão da ${cat.name}! Obrigado à equipe e a todos que me apoiaram. Próximo passo: ${cat.id === 'f2' ? 'Fórmula 1' : 'subir mais um degrau'}.`, `${cat.name} champion! Thank you to the team and everyone who backed me. Next step: ${cat.id === 'f2' ? 'Formula 1' : 'one more rung up the ladder'}.`), hype: 1.6 });
     }
   });
   Cats.develop(G);
@@ -528,5 +528,5 @@ Cats.runCrewEvent = (G, cat, ev) => {
   out.races.push({ label, top: fin.slice(0, 10).map(r => r.c.crew[0].id), crews: fin.slice(0, 10).map(r => r.c.crew.map(d => d.id)), fl: null, dnf: res.filter(r => r.dnf).length });
   s.res.push(out);
   const w = fin[0];
-  if (w && typeof Media !== 'undefined' && RNG.chance(0.6)) Career.news(G, `${cat.short}: ${w.c.crew.map(d => d.name).join(', ')} vencem em ${ev.place || ev.circuit} (etapa ${ev.r})`, 'categorias', `Carro ${cat.teams.find(t => t.id === w.c.team)?.name || ''}.`, { dr: w.c.crew.map(d => d.id), outlet: 'motorsport' });
+  if (w && typeof Media !== 'undefined' && RNG.chance(0.6)) Career.news(G, byLang(`${cat.short}: ${w.c.crew.map(d => d.name).join(', ')} vencem em ${ev.place || ev.circuit} (etapa ${ev.r})`, `${cat.short}: ${w.c.crew.map(d => d.name).join(', ')} win at ${ev.place || ev.circuit} (round ${ev.r})`), 'categorias', `${byLang('Carro', 'Car')} ${cat.teams.find(t => t.id === w.c.team)?.name || ''}.`, { dr: w.c.crew.map(d => d.id), outlet: 'motorsport' });
 };

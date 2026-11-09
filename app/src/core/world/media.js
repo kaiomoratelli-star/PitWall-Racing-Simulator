@@ -81,10 +81,10 @@ Media.context = (G, ds, ts) => {
     const d = Career.driver(G, id); if (!d) return;
     const i = sd.findIndex(x => x.did === id);
     const t = d.team && Career.team(G, d.team);
-    if (i >= 0 && G.season.round > 0) out.push(`${d.name}${t ? ` (${t.name})` : ''} é o ${ordinal(i + 1)} no campeonato de ${G.season.year}, com ${sd[i].pts} pontos.`);
-    else if (d.career) out.push(`${d.name} soma ${d.career.starts} GPs e ${d.career.wins} vitória(s) na carreira.`);
+    if (i >= 0 && G.season.round > 0) out.push(byLang(`${d.name}${t ? ` (${t.name})` : ''} é o ${ordinal(i + 1)} no campeonato de ${G.season.year}, com ${sd[i].pts} pontos.`, `${d.name}${t ? ` (${t.name})` : ''} is ${ordinal(i + 1)} in the ${G.season.year} championship, with ${sd[i].pts} points.`));
+    else if (d.career) out.push(byLang(`${d.name} soma ${d.career.starts} GPs e ${d.career.wins} vitória(s) na carreira.`, `${d.name} has ${d.career.starts} GPs and ${d.career.wins} win(s) in their career.`));
   });
-  ts.slice(0, 1).forEach(id => { const i = sc.findIndex(x => x.tid === id); const t = Career.team(G, id); if (t && i >= 0 && G.season.round > 0 && !ds.some(x => { const d = Career.driver(G, x); return d && d.team === id; })) out.push(`A ${t.name} ocupa o ${ordinal(i + 1)} lugar entre os construtores, com ${sc[i].pts} pontos.`); });
+  ts.slice(0, 1).forEach(id => { const i = sc.findIndex(x => x.tid === id); const t = Career.team(G, id); if (t && i >= 0 && G.season.round > 0 && !ds.some(x => { const d = Career.driver(G, x); return d && d.team === id; })) out.push(byLang(`A ${t.name} ocupa o ${ordinal(i + 1)} lugar entre os construtores, com ${sc[i].pts} pontos.`, `${t.name} are ${ordinal(i + 1)} in the constructors' standings, with ${sc[i].pts} points.`)); });
   return out.join(' ');
 };
 
@@ -125,38 +125,38 @@ Media.raceReport = (G, summary, race) => {
   let head;
   const sinceWin = m.lastWin[w.id] != null ? w.career.starts - m.lastWin[w.id] : null;
   const teamDrought = m.teamLastWin[wt.id] != null ? m.races - m.teamLastWin[wt.id] : null;
-  if (w.career.wins === 1) head = `${w.name} vence pela primeira vez na F1 no ${track.gp}`;
-  else if (fromGrid >= 8) head = `De ${ordinal(fromGrid)} ao topo: ${w.name} faz corrida de recuperação e vence o ${track.gp}`;
-  else if (sinceWin && sinceWin >= 15) head = `${w.name} encerra jejum de ${sinceWin} corridas e vence o ${track.gp}`;
-  else if (teamDrought && teamDrought >= 20) head = `${wt.name} volta a vencer depois de ${teamDrought} GPs com ${w.name} no ${track.gp}`;
-  else if (summary.wet > 0.25) head = `${w.name} domina a chuva e vence o ${track.gp}`;
-  else if (w.nat === track.country) head = `Festa em casa: ${w.name} vence o ${track.gp}`;
-  else head = [`${w.name} vence o ${track.gp} com a ${wt.name}`, `${w.name} leva a ${wt.name} à vitória em ${track.place || track.circuit}`, `Vitória de ${w.name} no ${track.gp}`][hashStr(track.id + G.season.year) % 3];
+  if (w.career.wins === 1) head = byLang(`${w.name} vence pela primeira vez na F1 no ${track.gp}`, `${w.name} wins for the first time in F1 at the ${track.gp}`);
+  else if (fromGrid >= 8) head = byLang(`De ${ordinal(fromGrid)} ao topo: ${w.name} faz corrida de recuperação e vence o ${track.gp}`, `From ${ordinal(fromGrid)} to the top: ${w.name} storms through to win the ${track.gp}`);
+  else if (sinceWin && sinceWin >= 15) head = byLang(`${w.name} encerra jejum de ${sinceWin} corridas e vence o ${track.gp}`, `${w.name} ends a ${sinceWin}-race drought to win the ${track.gp}`);
+  else if (teamDrought && teamDrought >= 20) head = byLang(`${wt.name} volta a vencer depois de ${teamDrought} GPs com ${w.name} no ${track.gp}`, `${wt.name} win again after ${teamDrought} GPs with ${w.name} at the ${track.gp}`);
+  else if (summary.wet > 0.25) head = byLang(`${w.name} domina a chuva e vence o ${track.gp}`, `${w.name} masters the rain to win the ${track.gp}`);
+  else if (w.nat === track.country) head = byLang(`Festa em casa: ${w.name} vence o ${track.gp}`, `Home party: ${w.name} wins the ${track.gp}`);
+  else head = [byLang(`${w.name} vence o ${track.gp} com a ${wt.name}`, `${w.name} wins the ${track.gp} for ${wt.name}`), byLang(`${w.name} leva a ${wt.name} à vitória em ${track.place || track.circuit}`, `${w.name} takes ${wt.name} to victory in ${track.place || track.circuit}`), byLang(`Vitória de ${w.name} no ${track.gp}`, `Victory for ${w.name} at the ${track.gp}`)][hashStr(track.id + G.season.year) % 3];
   m.lastWin[w.id] = w.career.starts; m.teamLastWin[wt.id] = m.races;
-  lines.push(`${w.name} (${wt.name}) largou em ${ordinal(fromGrid)} e venceu em ${track.circuit}${p2 ? `, à frente de ${p2.name}` : ''}${p3 ? ` e ${p3.name}` : ''}.`);
+  lines.push(byLang(`${w.name} (${wt.name}) largou em ${ordinal(fromGrid)} e venceu em ${track.circuit}${p2 ? `, à frente de ${p2.name}` : ''}${p3 ? ` e ${p3.name}` : ''}.`, `${w.name} (${wt.name}) started ${ordinal(fromGrid)} and won at ${track.circuit}${p2 ? `, ahead of ${p2.name}` : ''}${p3 ? ` and ${p3.name}` : ''}.`));
   // momentos
   const crashes = ev.filter(e => e.type === 'crash').slice(0, 2).map(e => e.text);
   const flags = ev.filter(e => e.type === 'sc' || e.type === 'flag');
-  if (flags.length) lines.push(`A prova teve ${summary.sc || flags.length} intervenção(ões) de Safety Car${ev.some(e => /vermelha/i.test(e.text)) ? ' e bandeira vermelha' : ''}.`);
+  if (flags.length) { const red = ev.some(e => /vermelha|red flag/i.test(e.text)); lines.push(byLang(`A prova teve ${summary.sc || flags.length} intervenção(ões) de Safety Car${red ? ' e bandeira vermelha' : ''}.`, `The race had ${summary.sc || flags.length} Safety Car period(s)${red ? ' and a red flag' : ''}.`)); }
   crashes.forEach(c => lines.push(c));
-  if (summary.fastest && Career.driver(G, summary.fastest.did)) lines.push(`Volta mais rápida: ${Career.driver(G, summary.fastest.did).name}.`);
-  const dnfTop = cls.filter(c => c.status === 'dnf' && c.grid <= 4).map(c => `${Career.driver(G, c.did).name} (${c.reason || 'abandono'})`);
-  if (dnfTop.length) lines.push(`Abandonaram entre os favoritos: ${dnfTop.join(', ')}.`);
-  if (st[0]) lines.push(`No campeonato, ${Career.driver(G, st[0].did).name} lidera com ${st[0].pts} pontos${st[1] ? `, ${st[0].pts - st[1].pts} à frente de ${Career.driver(G, st[1].did).name}` : ''}.`);
+  if (summary.fastest && Career.driver(G, summary.fastest.did)) lines.push(`${byLang('Volta mais rápida', 'Fastest lap')}: ${Career.driver(G, summary.fastest.did).name}.`);
+  const dnfTop = cls.filter(c => c.status === 'dnf' && c.grid <= 4).map(c => `${Career.driver(G, c.did).name} (${c.reason || byLang('abandono', 'retired')})`);
+  if (dnfTop.length) lines.push(`${byLang('Abandonaram entre os favoritos', 'Retirements among the favourites')}: ${dnfTop.join(', ')}.`);
+  if (st[0]) lines.push(byLang(`No campeonato, ${Career.driver(G, st[0].did).name} lidera com ${st[0].pts} pontos${st[1] ? `, ${st[0].pts - st[1].pts} à frente de ${Career.driver(G, st[1].did).name}` : ''}.`, `In the championship, ${Career.driver(G, st[0].did).name} leads on ${st[0].pts} points${st[1] ? `, ${st[0].pts - st[1].pts} ahead of ${Career.driver(G, st[1].did).name}` : ''}.`));
   Career.news(G, head, 'corrida', lines.join(' '), { dr: [w.id, p2 && p2.id, p3 && p3.id].filter(Boolean), tm: [wt.id], tr: track.id, main: true });
 
   // marcos e recordes
   Media.milestones(G, w, track);
   // redes sociais
-  const vic = ['P1! Que corrida. Obrigado, equipe! 🏆', 'Vitória! Carro incrível hoje. Vamos!', `Que sensação vencer em ${track.place || track.circuit}!`, 'Sem palavras. Obrigado a todos na fábrica.'];
-  Social.post(G, { driver: w.id, kind: 'win', text: w.career.wins === 1 ? 'Minha primeira vitória na F1. Sonho de criança realizado. Obrigado a todos que acreditaram.' : vic[hashStr(w.id + m.races) % vic.length], hype: w.career.wins === 1 ? 3 : 1.4 });
-  Social.post(G, { team: wt.id, as: 'team', kind: 'win', text: `VITÓRIA! ${w.name} vence o ${track.gp}! ${p2 && Career.driver(G, cls[1].did).team === wt.id ? 'Dobradinha!! ' : ''}🏁`, hype: 1.2 });
-  Social.post(G, { by: 'f1', kind: 'result', text: `RESULTADO — ${track.gp}\n1. ${w.name}\n2. ${p2 ? p2.name : '—'}\n3. ${p3 ? p3.name : '—'}` });
+  const vic = [byLang('P1! Que corrida. Obrigado, equipe! 🏆', 'P1! What a race. Thank you, team! 🏆'), byLang('Vitória! Carro incrível hoje. Vamos!', 'Win! Incredible car today. Let\'s go!'), byLang(`Que sensação vencer em ${track.place || track.circuit}!`, `What a feeling to win in ${track.place || track.circuit}!`), byLang('Sem palavras. Obrigado a todos na fábrica.', 'No words. Thank you to everyone at the factory.')];
+  Social.post(G, { driver: w.id, kind: 'win', text: w.career.wins === 1 ? byLang('Minha primeira vitória na F1. Sonho de criança realizado. Obrigado a todos que acreditaram.', 'My first F1 win. A childhood dream come true. Thank you to everyone who believed.') : vic[hashStr(w.id + m.races) % vic.length], hype: w.career.wins === 1 ? 3 : 1.4 });
+  Social.post(G, { team: wt.id, as: 'team', kind: 'win', text: byLang(`VITÓRIA! ${w.name} vence o ${track.gp}! ${p2 && Career.driver(G, cls[1].did).team === wt.id ? 'Dobradinha!! ' : ''}🏁`, `WIN! ${w.name} wins the ${track.gp}! ${p2 && Career.driver(G, cls[1].did).team === wt.id ? 'One-two!! ' : ''}🏁`), hype: 1.2 });
+  Social.post(G, { by: 'f1', kind: 'result', text: `${byLang('RESULTADO', 'RESULT')} — ${track.gp}\n1. ${w.name}\n2. ${p2 ? p2.name : '—'}\n3. ${p3 ? p3.name : '—'}` });
   cls.filter(c => c.status === 'dnf').slice(0, 2).forEach(c => {
     const d = Career.driver(G, c.did);
-    if (d && RNG.chance(0.5)) Social.post(G, { driver: d.id, kind: 'dnf', text: ['Dia difícil. Vamos analisar e voltar mais fortes.', 'Não era o resultado que queríamos. Cabeça erguida.', 'Frustrante. Próxima.'][hashStr(d.id + m.races) % 3] });
+    if (d && RNG.chance(0.5)) Social.post(G, { driver: d.id, kind: 'dnf', text: [byLang('Dia difícil. Vamos analisar e voltar mais fortes.', 'Tough day. We will analyse it and come back stronger.'), byLang('Não era o resultado que queríamos. Cabeça erguida.', 'Not the result we wanted. Heads up.'), byLang('Frustrante. Próxima.', 'Frustrating. Next one.')][hashStr(d.id + m.races) % 3] });
   });
-  const fanLines = [`${w.name} pilotando demais hoje`, `Estratégia da ${wt.name} foi perfeita`, `Que corrida em ${track.place || track.circuit}!!`, `Alguém explica essa estratégia?`, `${p2 ? p2.name : 'O segundo colocado'} merecia mais hoje`];
+  const fanLines = [byLang(`${w.name} pilotando demais hoje`, `${w.name} was on another level today`), byLang(`Estratégia da ${wt.name} foi perfeita`, `${wt.name} nailed the strategy`), byLang(`Que corrida em ${track.place || track.circuit}!!`, `What a race in ${track.place || track.circuit}!!`), byLang('Alguém explica essa estratégia?', 'Can someone explain that strategy?'), byLang(`${p2 ? p2.name : 'O segundo colocado'} merecia mais hoje`, `${p2 ? p2.name : 'The runner-up'} deserved more today`)];
   Social.post(G, { by: 'fan', kind: 'fan', text: fanLines[hashStr(track.id + m.races) % fanLines.length] });
   // rivalidades
   Media.rivalryTick(G, summary, race);
@@ -172,14 +172,14 @@ Media.legends = () => {
 };
 Media.milestones = (G, d, track) => {
   const wins = d.career.wins;
-  [10, 25, 50, 75, 100, 125, 150].forEach(n => { if (wins === n && Media.once(G, `wins${n}:${d.id}`)) Career.news(G, `${d.name} chega a ${n} vitórias na Fórmula 1`, 'historia', `Marca alcançada no ${track.gp}.`, { dr: [d.id] }); });
+  [10, 25, 50, 75, 100, 125, 150].forEach(n => { if (wins === n && Media.once(G, `wins${n}:${d.id}`)) Career.news(G, byLang(`${d.name} chega a ${n} vitórias na Fórmula 1`, `${d.name} reaches ${n} Formula 1 wins`), 'historia', byLang(`Marca alcançada no ${track.gp}.`, `Milestone reached at the ${track.gp}.`), { dr: [d.id] }); });
   const passed = Media.legends().filter(l => l.id !== d.id && l.wins === wins - 1 && !G.db.drivers.some(x => x.id === l.id && x.career.wins > l.wins));
   passed.slice(0, 1).forEach(l => {
     if (!Media.once(G, `pass:${d.id}:${l.id}`)) return;
     const all = Math.max(...Media.legends().map(x => x.wins), ...G.db.drivers.filter(x => x.id !== d.id).map(x => x.career.wins));
     const top = wins > all;
-    Career.news(G, top ? `${d.name} se torna o maior vencedor da história da Fórmula 1` : `${d.name} supera ${l.name} em vitórias na F1`, 'historia', `Agora são ${wins} vitórias${top ? ' — novo recorde absoluto' : `, uma a mais que ${l.name} (${l.wins})`}.`, { dr: [d.id] });
-    if (top) Social.post(G, { by: 'f1', kind: 'record', text: `HISTÓRIA. ${d.name} chega a ${wins} vitórias e se torna o maior vencedor de todos os tempos.`, hype: 3 });
+    Career.news(G, top ? byLang(`${d.name} se torna o maior vencedor da história da Fórmula 1`, `${d.name} becomes the most successful driver in Formula 1 history`) : byLang(`${d.name} supera ${l.name} em vitórias na F1`, `${d.name} passes ${l.name} for F1 wins`), 'historia', byLang(`Agora são ${wins} vitórias${top ? ' — novo recorde absoluto' : `, uma a mais que ${l.name} (${l.wins})`}.`, `Now on ${wins} wins${top ? ' — a new all-time record' : `, one more than ${l.name} (${l.wins})`}.`), { dr: [d.id] });
+    if (top) Social.post(G, { by: 'f1', kind: 'record', text: byLang(`HISTÓRIA. ${d.name} chega a ${wins} vitórias e se torna o maior vencedor de todos os tempos.`, `HISTORY. ${d.name} reaches ${wins} wins and becomes the most successful driver of all time.`), hype: 3 });
   });
 };
 
@@ -280,9 +280,9 @@ Media.seasonEnd = (G, summary) => {
   const legends = Media.legends();
   const titles = champ.career.titles;
   const maxTitles = Math.max(7, ...G.db.drivers.filter(x => x.id !== champ.id).map(x => x.career.titles));
-  Career.news(G, titles === 1 ? `${champ.name} é campeão mundial pela primeira vez` : `${champ.name} conquista o ${titles}º título mundial`, 'campeonato', `${summary.constructorName} fica com o título de construtores de ${summary.year}.${titles > maxTitles ? ' Ninguém na história venceu tantos campeonatos.' : titles === maxTitles ? ' Igualou o recorde de títulos da categoria.' : ''}`, { dr: [champ.id], tm: [summary.constructor], main: true });
-  Social.post(G, { driver: champ.id, kind: 'title', text: titles === 1 ? 'CAMPEÃO DO MUNDO. Não consigo acreditar. Obrigado a todos.' : `Título número ${titles}. Cada um tem um sabor diferente. Obrigado, equipe!`, hype: 4 });
-  Social.post(G, { by: 'f1', kind: 'title', text: `${champ.name.toUpperCase()}, CAMPEÃO MUNDIAL DE ${summary.year} 🏆`, hype: 3 });
+  Career.news(G, titles === 1 ? byLang(`${champ.name} é campeão mundial pela primeira vez`, `${champ.name} is world champion for the first time`) : byLang(`${champ.name} conquista o ${titles}º título mundial`, `${champ.name} wins a ${ordinal(titles)} world title`), 'campeonato', byLang(`${summary.constructorName} fica com o título de construtores de ${summary.year}.${titles > maxTitles ? ' Ninguém na história venceu tantos campeonatos.' : titles === maxTitles ? ' Igualou o recorde de títulos da categoria.' : ''}`, `${summary.constructorName} take the ${summary.year} constructors' title.${titles > maxTitles ? ' Nobody in history has won more championships.' : titles === maxTitles ? ' Equals the series record for titles.' : ''}`), { dr: [champ.id], tm: [summary.constructor], main: true });
+  Social.post(G, { driver: champ.id, kind: 'title', text: titles === 1 ? byLang('CAMPEÃO DO MUNDO. Não consigo acreditar. Obrigado a todos.', 'WORLD CHAMPION. I cannot believe it. Thank you all.') : byLang(`Título número ${titles}. Cada um tem um sabor diferente. Obrigado, equipe!`, `Title number ${titles}. Every one tastes different. Thank you, team!`), hype: 4 });
+  Social.post(G, { by: 'f1', kind: 'title', text: byLang(`${champ.name.toUpperCase()}, CAMPEÃO MUNDIAL DE ${summary.year} 🏆`, `${champ.name.toUpperCase()}, ${summary.year} WORLD CHAMPION 🏆`), hype: 3 });
   // rivalidades esfriam entre temporadas
   const m = Media.mem(G);
   Object.entries(m.rivals).forEach(([k, r]) => { r.score = +(r.score * 0.55).toFixed(2); if (r.score < 1) delete m.rivals[k]; else r.stage = Math.min(r.stage, r.score >= 8 ? 2 : r.score >= 4.5 ? 1 : 0); });

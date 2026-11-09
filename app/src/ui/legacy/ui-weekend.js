@@ -384,7 +384,7 @@ function sectorsHtml(lr) {
   const cell = (v, k) => `<td class="r num ${v <= best[k] + 1e-6 ? 'pur' : ''}">${v.toFixed(3)}<span class="small muted"> ${v > best[k] ? '+' + (v - best[k]).toFixed(3) : ''}</span></td>`;
   return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Piloto</th><th class="r">Setor 1</th><th class="r">Setor 2</th><th class="r">Setor 3</th><th class="r">Volta ideal</th><th class="r">Melhor volta</th><th class="r">Velocidade máx.</th></tr></thead><tbody>
   ${rows.map(r => `<tr class="${r.c.tid === G.player.teamId ? 'me' : ''}"><td>${dTag(r.c.did)}</td>${r.s.map(cell).join('')}<td class="r num">${fmtLap(r.ideal)}</td><td class="r num">${fmtLap(r.c.best)}</td><td class="r num">${r.c.vmax || '—'} km/h</td></tr>`).join('')}
-  </tbody></table></div><p class="small muted" style="margin-top:8px">Volta ideal = soma dos melhores setores. Roxo = melhor da corrida. Condições: ar ${lr.weather ? lr.weather.air : '—'}°C, pista ${lr.weather ? lr.weather.track : '—'}°C.</p>`;
+  </tbody></table></div><p class="small muted" style="margin-top:8px">${byLang('Volta ideal = soma dos melhores setores. Roxo = melhor da corrida. Condições: ar', 'Ideal lap = sum of the best sectors. Purple = best of the race. Conditions: air')} ${lr.weather ? lr.weather.air : '—'}°C, ${byLang('pista', 'track')} ${lr.weather ? lr.weather.track : '—'}°C.</p>`;
 }
 function paceHtml(lr) {
   const rows = lr.cars.filter(c => c.status !== 'dnf').map(c => { const L = cleanLaps(lr, c).map(x => x.t); return { c, avg: avg(L), sd: stdev(L), n: L.length, gain: c.grid - c.pos }; }).filter(r => r.n > 3).sort((a, b) => a.avg - b.avg);

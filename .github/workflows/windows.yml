@@ -45,6 +45,7 @@ jobs:
           node scripts/ui85-check.js 3
           node scripts/playthrough-check.js 1
           node scripts/browser-save-check.js
+          node scripts/i18n-check.js 6
 
       - name: Gerar Setup.exe
         run: npm run dist

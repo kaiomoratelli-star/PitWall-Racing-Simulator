@@ -146,9 +146,9 @@ Market.tick = (G) => {
     const chance = (d.age - 34) * 0.025 + (driverOverall(d) < 82 ? 0.03 : 0) + ((st.points || 0) === 0 && G.season.round > 8 ? 0.03 : 0);
     if (d.contractYears <= 0 && RNG.chance(chance)) {
       d.retiring = true;
-      Career.news(G, `${d.name} anuncia que vai se aposentar ao fim de ${G.season.year}`, 'mercado');
+      Career.news(G, byLang(`${d.name} anuncia que vai se aposentar ao fim de ${G.season.year}`, `${d.name} announces retirement at the end of ${G.season.year}`), 'mercado');
       Career.record(G, 'aposentadoria', `${d.name} anunciou a aposentadoria ao fim de ${G.season.year}, aos ${d.age} anos.`, { drivers: [d.id], teams: [d.team] });
-      if (typeof Social !== 'undefined') Social.post(G, { kind: 'retire', driver: d.id, text: `Obrigado por tudo. ${G.season.year} será minha última temporada.` });
+      if (typeof Social !== 'undefined') Social.post(G, { kind: 'retire', driver: d.id, text: byLang(`Obrigado por tudo. ${G.season.year} será minha última temporada.`, `Thank you for everything. ${G.season.year} will be my last season.`) });
     }
   });
   if (p < 0.28) { Market.resolveTalks(G); return; }
@@ -190,7 +190,7 @@ Market.tick = (G) => {
       M.talks.push({ id: Career.nextId(G, 'tk'), team: t.id, driver: c.d.id, seat, offer, status: 'talks', y: G.season.year, start: G.season.round, resolve: G.season.round + RNG.int(1, 3) });
       M.history.push({ team: t.id, driver: c.d.id, y: G.season.year });
       if (pt && c.d.team === pt) Market.approachPlayer(G, t, c.d, offer);
-      else if (RNG.chance(0.6)) Market.rumor(G, `talk:${c.d.id}:${t.id}:${G.season.year}`, `Rumor: ${t.name} conversa com ${c.d.name} para ${G.season.year + 1}`, `${c.d.name} ${c.d.team ? `tem contrato com a ${Career.team(G, c.d.team).name} até ${Market.until(G, c.d)}` : 'está livre no mercado'}.`);
+      else if (RNG.chance(0.6)) Market.rumor(G, `talk:${c.d.id}:${t.id}:${G.season.year}`, byLang(`Rumor: ${t.name} conversa com ${c.d.name} para ${G.season.year + 1}`, `Rumour: ${t.name} in talks with ${c.d.name} for ${G.season.year + 1}`), byLang(`${c.d.name} ${c.d.team ? `tem contrato com a ${Career.team(G, c.d.team).name} até ${Market.until(G, c.d)}` : 'está livre no mercado'}.`, `${c.d.name} ${c.d.team ? `is under contract with ${Career.team(G, c.d.team).name} until ${Market.until(G, c.d)}` : 'is a free agent'}.`));
     });
   });
   Market.resolveTalks(G);
@@ -232,8 +232,8 @@ Market.signFuture = (G, d, t, offer, buyout = 0) => {
     if (from === G.player.teamId) Career.ledger(G, `Multa recebida: saída de ${d.name}`, buyout, 'receita'); else if (ft) ft.cash += buyout;
     if (t.id === G.player.teamId) Career.ledger(G, `Multa paga pela liberação de ${d.name}`, -buyout, 'mercado'); else t.cash -= buyout;
   }
-  const head = from ? `${d.name} troca a ${Career.team(G, from).name} pela ${t.name} em ${G.season.year + 1}` : `${t.name} anuncia ${d.name} para ${G.season.year + 1}`;
-  Career.news(G, head, 'mercado', `Contrato até ${G.season.year + offer.years}${offer.role === 'R' ? ' como reserva' : ''}.`);
+  const head = from ? byLang(`${d.name} troca a ${Career.team(G, from).name} pela ${t.name} em ${G.season.year + 1}`, `${d.name} swaps ${Career.team(G, from).name} for ${t.name} in ${G.season.year + 1}`) : byLang(`${t.name} anuncia ${d.name} para ${G.season.year + 1}`, `${t.name} announce ${d.name} for ${G.season.year + 1}`);
+  Career.news(G, head, 'mercado', byLang(`Contrato até ${G.season.year + offer.years}${offer.role === 'R' ? ' como reserva' : ''}.`, `Contract until ${G.season.year + offer.years}${offer.role === 'R' ? ' as reserve' : ''}.`));
   Career.record(G, 'contrato', `${d.name} assinou pré-contrato com a ${t.name} até ${G.season.year + offer.years} (${offer.role === 'R' ? 'reserva' : 'carro #' + offer.role}, ${fmtMoney(offer.salary)}/ano)${from ? `; deixa a ${Career.team(G, from).name}` : ''}${buyout ? `; multa de ${fmtMoney(buyout)}` : ''}.`, { teams: [t.id, from].filter(Boolean), drivers: [d.id] });
   if (typeof Social !== 'undefined') Social.post(G, { kind: 'signing', team: t.id, driver: d.id, text: `Bem-vindo, ${d.name}! Juntos a partir de ${G.season.year + 1}.` });
   if (from === G.player.teamId) Career.mail(G, { from: 'Diretor esportivo', tag: 'team', title: `${d.name} assinou com a ${t.name}`, body: `${d.name} vai deixar a equipe no fim de ${G.season.year}. Você precisa de um piloto para o carro #${d.seat} em ${G.season.year + 1}.` });
@@ -247,11 +247,11 @@ Market.approachPlayer = (G, t, d, offer) => {
   const buyout = under ? +(d.salary * d.contractYears * 0.8 + 2).toFixed(1) : 0;
   tk.awaitPlayer = true; tk.buyout = buyout;
   Career.mail(G, {
-    from: t.name, tag: 'market', title: `${t.name} quer ${d.name} para ${G.season.year + 1}`,
-    body: `${t.principal}, chefe da ${t.name}, procurou a equipe: quer ${d.name} para o carro #${offer.role} em ${G.season.year + 1}, com salário de ${fmtMoney(offer.salary)}/ano. ${under ? `O contrato atual vai até ${Market.until(G, d)}; eles oferecem ${fmtMoney(buyout)} de multa.` : 'O contrato dele termina neste ano.'}`,
+    from: t.name, tag: 'market', title: byLang(`${t.name} quer ${d.name} para ${G.season.year + 1}`, `${t.name} want ${d.name} for ${G.season.year + 1}`),
+    body: byLang(`${t.principal}, chefe da ${t.name}, procurou a equipe: quer ${d.name} para o carro #${offer.role} em ${G.season.year + 1}, com salário de ${fmtMoney(offer.salary)}/ano. ${under ? `O contrato atual vai até ${Market.until(G, d)}; eles oferecem ${fmtMoney(buyout)} de multa.` : 'O contrato dele termina neste ano.'}`, `${t.principal}, ${t.name} team principal, approached us: they want ${d.name} for car #${offer.role} in ${G.season.year + 1}, on ${fmtMoney(offer.salary)}/year. ${under ? `The current contract runs until ${Market.until(G, d)}; they offer a ${fmtMoney(buyout)} release fee.` : 'Their contract ends this year.'}`),
     choices: [
-      { label: under ? `Liberar e receber ${fmtMoney(buyout)}` : 'Não criar obstáculos', outcome: `${d.name} está livre para negociar com a ${t.name}.`, effects: { marketTalk: { id: tk.id, allow: true } } },
-      { label: 'Recusar a abordagem', outcome: under ? `O contrato foi mantido. ${d.name} ficou incomodado.` : `${d.name} ainda pode decidir sair, já que o contrato termina.`, effects: { marketTalk: { id: tk.id, allow: false }, morale: { [d.id]: under ? -6 : -2 } } },
+      { label: under ? byLang(`Liberar e receber ${fmtMoney(buyout)}`, `Release them for ${fmtMoney(buyout)}`) : byLang('Não criar obstáculos', 'Do not stand in the way'), outcome: byLang(`${d.name} está livre para negociar com a ${t.name}.`, `${d.name} is free to negotiate with ${t.name}.`), effects: { marketTalk: { id: tk.id, allow: true } } },
+      { label: byLang('Recusar a abordagem', 'Reject the approach'), outcome: under ? byLang(`O contrato foi mantido. ${d.name} ficou incomodado.`, `The contract stands. ${d.name} was annoyed.`) : byLang(`${d.name} ainda pode decidir sair, já que o contrato termina.`, `${d.name} may still leave, since the contract is ending.`), effects: { marketTalk: { id: tk.id, allow: false }, morale: { [d.id]: under ? -6 : -2 } } },
     ],
   });
 };

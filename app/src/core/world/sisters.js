@@ -144,7 +144,7 @@ Sisters.swap = (G, upId, downId, why) => {
   const P = Career.team(G, pT).name, Cn = Career.team(G, cT).name;
   const when = G.season.round > 0 && !Career.seasonOver(G) ? 'a partir da próxima etapa' : `para ${y}`;
   Career.record(G, 'contrato', `${P} promove ${up.name} da ${Cn} e rebaixa ${down.name} (${when}). ${why || ''}`.trim(), { teams: [pT, cT], drivers: [up.id, down.id] });
-  Career.news(G, `${P} promove ${up.name}; ${down.name} volta para a ${Cn}`, 'mercado', `Troca de assentos dentro da família ${P}, ${when}. ${why || ''}`.trim(), { teams: [pT, cT], drivers: [up.id, down.id], main: true });
+  Career.news(G, byLang(`${P} promove ${up.name}; ${down.name} volta para a ${Cn}`, `${P} promote ${up.name}; ${down.name} returns to ${Cn}`), 'mercado', `Troca de assentos dentro da família ${P}, ${when}. ${why || ''}`.trim(), { teams: [pT, cT], drivers: [up.id, down.id], main: true });
   return null;
 };
 /* pares candidatos: o melhor da irmã contra o pior da principal */

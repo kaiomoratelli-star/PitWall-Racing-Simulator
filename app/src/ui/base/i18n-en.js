@@ -699,3 +699,21 @@ I18N_PATS.unshift(
   [/^Vida do pneu (\d+)% · ([\d.]+)°C$/, 'Tyre life $1% · $2°C'],
 );
 I18N_PATS.unshift([/^(.+) \((\d+) anos, potencial estimado ([\d–]+)\) venceu de novo na categoria de acesso\. O empresário oferece um contrato de piloto reserva com opção de promoção\.$/, '$1 ($2, estimated potential $3) won again in the feeder series. The manager offers a reserve driver contract with a promotion option.']);
+
+/* 0.8.7 — textos que ainda escapavam em português (achados pelo scripts/i18n-check.js) */
+Object.assign(I18N_EN, {
+  'Recorde da volta (corrida)': 'Lap record (race)', 'Volta mais rápida em classificação': 'Fastest qualifying lap', 'Mais vitórias': 'Most wins',
+  'Equipes que mais venceram': 'Teams with the most wins', 'Mais poles': 'Most poles',
+  'Nascem de batidas, disputas por posição e brigas pelo título; esfriam entre temporadas': 'Born from crashes, position fights and title battles; they cool down between seasons',
+  'Consistência (desvio)': 'Consistency (std. dev.)', 'Posições ganhas': 'Positions gained', 'Piloto A': 'Driver A', 'Piloto B': 'Driver B',
+  'Melhor tempo por equipe (gap para a pole)': 'Best time per team (gap to pole)', 'Por GP': 'Per GP', 'Satisfação': 'Satisfaction',
+  'Quem sai de uma rival cumpre 6 etapas de afastamento antes de começar.': 'Anyone joining from a rival serves 6 rounds of gardening leave before starting.',
+  'Página da equipe': 'Team page', 'marca registrada da equipe: licenciar antes da venda': 'team trademark: license before sale',
+  'Grupo Aurora Participações (fictício)': 'Aurora Holdings Group (fictional)', 'Audi AG (com participação do Qatar Investment Authority)': 'Audi AG (with a stake held by the Qatar Investment Authority)',
+  'equipe': 'team', 'Regulamento': 'Regulations', 'Mensagens e decisões': 'Messages and decisions',
+  'ganha muito': 'gains a lot', 'ganha': 'gains', 'perde muito': 'loses a lot', 'perde': 'loses', 'neutro': 'neutral',
+});
+I18N_PATS.unshift(
+  [/^(\d+) corrida\(s\)$/, '$1 race(s)'], [/^corrida: (.+)$/, 'race: $1'], [/^classificação: (.+)$/, 'qualifying: $1'],
+  [/^Desde (\d{4}) · companheiros de equipe$/, 'Since $1 · teammates'], [/^\/(\d+) etapas · próxima:$/, '/$1 rounds · next:'],
+);

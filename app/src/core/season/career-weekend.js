@@ -307,7 +307,8 @@ Career.postRaceEffects = (G, summary, race) => {
   if (legKm) Career.ledger(G, `Frete e viagem (${legKm.toLocaleString('pt-BR')} km)`, -CircuitGen.freight(legKm) * Staff.opsMul(team), 'operação');
   if (!team.works) Career.ledger(G, byLang('Arrendamento de motor', 'Engine lease'), -((typeof Mfr !== 'undefined' ? Mfr.fee(G, team) : Engine.engineOf(G.db, team).cost) / races), 'motor');
   my.forEach(r => {
-    if (r.status === 'dnf' && /Acidente|Colisão/.test(r.reason || '')) {
+    // (0.8.7) o motivo vem no idioma do jogo: antes só o português era reconhecido e quem jogava em inglês nunca pagava reparos
+    if (r.status === 'dnf' && /Acidente|Colisão|Accident|Collision/.test(r.reason || '')) {
       const cost = RNG.range(0.9, 2.6);
       Career.ledger(G, `Reparos: chassi de ${Career.driver(G, r.did).name}`, -cost, 'reparo');
       report.lines.push(`O acidente de ${Career.driver(G, r.did).name} custou ${fmtMoney(cost)} em reparos.`);

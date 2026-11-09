@@ -82,7 +82,7 @@ Regs.puTick = (G, race) => {
     d.pu.age++;
     const t = Career.team(G, c.tid);
     const rel = Engine.reliability(G.db, t);
-    const failed = c.status === 'dnf' && /motor|energia|elétrica|potência|Superaquecimento/i.test(c.dnfReason || '');
+    const failed = c.status === 'dnf' && /motor|energia|elétrica|potência|Superaquecimento|engine|energy|electric|power|overheat/i.test(c.dnfReason || '');
     if (failed || d.pu.age >= life * (0.85 + rel / 330)) {
       d.pu.used++; d.pu.age = 0;
       if (d.pu.used > R.puLimit) {

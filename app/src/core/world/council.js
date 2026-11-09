@@ -361,7 +361,7 @@ Council.openMeeting = (G) => {
     Career.mail(G, { from: 'Comissão de F1', tag: 'regs', title: `Reunião do Conselho: ${props.length} propostas em votação`,
       body: `A Comissão de F1 se reúne antes do ${C.open.gp}. Em pauta:\n${props.map(pr => `• ${pr.title} (impacto para a ${Career.team(G, mine).name}: ${Council.impWord(pr.imp[mine])})`).join('\n')}\n\nVote e negocie na tela Conselho da FIA até o início do próximo fim de semana.${promised.length ? `\n\nAtenção: você tem acordo de apoio com ${promised.map(pm => Career.team(G, pm.tid).name).join(', ')}.` : ''}` });
   }
-  Career.news(G, `Comissão de F1 se reúne com ${props.length} propostas na pauta`, 'regulamento', props.map(pr => '• ' + pr.title).join('\n'));
+  Career.news(G, byLang(`Comissão de F1 se reúne com ${props.length} propostas na pauta`, `F1 Commission meets with ${props.length} proposals on the agenda`), 'regulamento', props.map(pr => '• ' + pr.title).join('\n'));
 };
 
 /* ---------- concessões em troca de voto ---------- */
@@ -425,9 +425,9 @@ Council.resolve = (G) => {
     grp.forEach(k => { C.cool[k] = Math.max(C.cool[k] || 0, m.year + (res === 'aprovada' ? (grp.length > 1 ? 3 : 1) : 2)); });
     if (res === 'aprovada') Council.schedule(G, pr);
     const prop = Council.proposerName(G, pr.proposer);
-    const why = !T.fia ? ' A FIA votou contra.' : !T.fom ? ' A Fórmula 1 votou contra.' : '';
+    const why = !T.fia ? byLang(' A FIA votou contra.', ' The FIA voted against.') : !T.fom ? byLang(' A Fórmula 1 votou contra.', ' Formula 1 voted against.') : '';
     lines.push(`• ${pr.title}: ${res.toUpperCase()} (${T.yes} a favor, ${T.no} contra${T.und ? `, ${T.und} abstenções` : ''}; precisava de ${T.need}).${why}`);
-    Career.news(G, `Conselho ${res === 'aprovada' ? 'aprova' : 'rejeita'}: ${pr.title}`, 'regulamento', `Proposta de ${prop}. ${T.yes} equipes a favor e ${T.no} contra.${why}${res === 'aprovada' ? ` ${pr.eff === 'now' ? 'Vale já a partir da próxima etapa.' : `Vale a partir de ${pr.eff}.`}` : ''}`);
+    Career.news(G, byLang(`Conselho ${res === 'aprovada' ? 'aprova' : 'rejeita'}: ${pr.title}`, `Council ${res === 'aprovada' ? 'approves' : 'rejects'}: ${pr.title}`), 'regulamento', byLang(`Proposta de ${prop}. ${T.yes} equipes a favor e ${T.no} contra.${why}${res === 'aprovada' ? ` ${pr.eff === 'now' ? 'Vale já a partir da próxima etapa.' : `Vale a partir de ${pr.eff}.`}` : ''}`, `Proposed by ${prop}. ${T.yes} teams for and ${T.no} against.${why}${res === 'aprovada' ? ` ${pr.eff === 'now' ? 'Applies from the next round.' : `Applies from ${pr.eff}.`}` : ''}`));
     Career.record(G, 'regulamento', `Conselho da FIA (${m.year}): ${pr.title} — ${res} (${T.yes}×${T.no}). Proposta de ${prop}.`, { year: m.year });
     // acordos do jogador: quem tinha a promessa de apoio cobra
     if (mine) C.promises.slice().forEach(pm => {
@@ -468,7 +468,7 @@ Council.applySeason = (G, year) => {
   const list = C.scheduled[year];
   list.forEach(x => Council.apply(G, x.ops));
   Career.record(G, 'regulamento', `Entram em vigor em ${year} as decisões do Conselho da FIA: ${list.map(x => x.title).join('; ')}.`, { year });
-  Career.news(G, `${list.length === 1 ? 'Mudança aprovada pelo Conselho entra' : `${list.length} mudanças aprovadas pelo Conselho entram`} em vigor em ${year}`, 'regulamento', list.map(x => '• ' + x.title).join('\n'));
+  Career.news(G, byLang(`${list.length === 1 ? 'Mudança aprovada pelo Conselho entra' : `${list.length} mudanças aprovadas pelo Conselho entram`} em vigor em ${year}`, `${list.length === 1 ? 'Council-approved change takes' : `${list.length} Council-approved changes take`} effect in ${year}`), 'regulamento', list.map(x => '• ' + x.title).join('\n'));
   delete C.scheduled[year];
 };
 Council.apply = (G, ops) => {

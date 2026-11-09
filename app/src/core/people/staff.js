@@ -164,7 +164,7 @@ Staff.aiDecisions = (G, phase) => {
         cand.salary = Staff.salaryFor('principal', cand.rating);
         Staff.fire(G, t.id, pr.id, `duas temporadas abaixo da meta (${hist.map(h => ordinal(h.pos)).join(' e ')})`);
         const np = Staff.get(t, 'principal'); np.name = cand.name; np.rating = cand.rating; np.interim = false; t.principal = cand.name;
-        Career.news(G, `${t.name} anuncia ${cand.name} como novo chefe de equipe`, 'mercado');
+        Career.news(G, byLang(`${t.name} anuncia ${cand.name} como novo chefe de equipe`, `${t.name} name ${cand.name} as new team principal`), 'mercado');
       }
       // contratos vencidos: renova ou deixa sair
       t.staffList.forEach(s => {
