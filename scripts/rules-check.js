@@ -63,6 +63,9 @@ section('1. comissários');
   // punição de tempo vai para o tempo; os pontos na superlicença vão para a lista da corrida
   race.pens = []; race.pp = []; const T0 = car.penalty; E.penalize(race, wk, car, 5, 'colisao', 2);
   ok(car.penalty === T0 + 5 && race.pens.length === 1 && race.pp.length === 1 && race.pp[0].pts === 2, 'penalize não registrou tempo e pontos');
+  // (0.8.7) limites de pista: o ponto na superlicença é decisão dos comissários, em cerca de metade dos casos, sem sorteio
+  { let n = 0, pts = 0; const st0 = A.RNG.state; race.cars.forEach(cc => { for (let l = 1; l <= 60; l++) { n++; pts += E.tlPoint({ lap: l, laps: 57 }, cc, { id: 'bahrain' }); } });
+    ok(pts / n > 0.4 && pts / n < 0.6, `limites de pista com ponto em ${(pts / n * 100).toFixed(0)}% (esperado ~50%)`); ok(A.RNG.state === st0, 'decisão do ponto de limite de pista consumiu o sorteio'); }
   // DT/SG não cumprido vira 20 s / 30 s no tempo final
 }
 {

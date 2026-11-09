@@ -405,7 +405,7 @@ Engine.stepLap = (race, wk) => {
       c.tl++;
       const tlw = race.R.trackLimitWarnings;
       if (c.tl === tlw) Engine.event(race, 'flag', byLang(`Bandeira preta e branca para ${wk.nameOf(c.did)}: ${tlw}ª advertência por limite de pista.`, `Black and white flag for ${wk.nameOf(c.did)}: track limits warning number ${tlw}.`), c.did);
-      if (c.tl === tlw + 1) { c.pendingPen += 5; c.penalty += 5; (race.pp = race.pp || []).push({ did: c.did, pts: 1, why: 'limites' }); (race.pens = race.pens || []).push({ did: c.did, s: 5, why: 'limites', lap: race.lap, pts: 1 }); Engine.event(race, 'penalty', byLang(`5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, `5s penalty for ${wk.nameOf(c.did)} for exceeding track limits.`), c.did); }
+      if (c.tl === tlw + 1) { const tlPts = Engine.tlPoint(race, c, track); c.pendingPen += 5; c.penalty += 5; if (tlPts) (race.pp = race.pp || []).push({ did: c.did, pts: tlPts, why: 'limites' }); (race.pens = race.pens || []).push({ did: c.did, s: 5, why: 'limites', lap: race.lap, pts: tlPts }); Engine.event(race, 'penalty', byLang(`5s de punição para ${wk.nameOf(c.did)} por exceder os limites de pista.`, `5s penalty for ${wk.nameOf(c.did)} for exceeding track limits.`), c.did); }
     }
     c.lapTime = t;
     if (!scType) { c.lastS = Engine.sectorSplit(track, t - (pitted.has(c) ? (t - pc.total) * 0.8 : 0), sd); c.secs[L] = c.lastS; } else c.lastS = null;
@@ -633,6 +633,9 @@ Engine.applyOrders = (race, wk, L, scType) => {
 
 /* punição dos comissários durante a corrida (fica registrada para o direito de revisão) */
 Engine.PEN_TXT = { pitspeed: ['excesso de velocidade no pit lane', 'speeding in the pit lane'], unsafe: ['liberação insegura do box', 'unsafe release'], largada: ['largada queimada', 'jump start'], colisao: ['causar colisão', 'causing a collision'], limites: ['exceder os limites de pista', 'exceeding track limits'] };
+/* (0.8.7) limites de pista: o ponto na superlicença é decisão dos comissários (cerca de metade dos casos),
+   como na F1 real, em vez de automático. Decidido por hash (sem sorteio), para não mexer na sequência do RNG. */
+Engine.tlPoint = (race, c, track) => (hashStr(`${c.did}:${race.lap}:${track && track.id}:${race.laps}`) % 2 === 0 ? 1 : 0);
 Engine.penalize = (race, wk, c, s, why, pts) => {
   c.pendingPen += s; c.penalty += s;
   (race.pens = race.pens || []).push({ did: c.did, s, why, lap: race.lap, pts: pts || 0 });
