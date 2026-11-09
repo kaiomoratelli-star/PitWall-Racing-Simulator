@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.7 — Solidez: nada some, saves seguros, testes que falham (em desenvolvimento, não publicada)
+## 0.8.7 — Solidez: nada some, saves seguros, testes que falham (09/11/2026)
 Base: as prioridades P1 a P3 de `docs/AVALIACAO-0.8.6.md`. Relatório completo em `docs/RELATORIO-0.8.7.md`.
 
 **Saves**

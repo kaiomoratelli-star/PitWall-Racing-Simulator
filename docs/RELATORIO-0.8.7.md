@@ -1,6 +1,6 @@
 # Relatório da 0.8.7 — Solidez
 
-Data: 09/11/2026. Situação: **pronta e testada no branch `v0.8.7`, não publicada** (o lançamento depende da autorização do dono do jogo).
+Data: 09/11/2026. Situação: **publicada em 09/11/2026, com a autorização do dono do jogo.**
 Base: as prioridades P1 a P3 da [avaliação da 0.8.6](AVALIACAO-0.8.6.md).
 
 ## 1. O que cada item da avaliação virou
@@ -66,4 +66,4 @@ Bateria final, toda verde (25 de 25):
 ## 5. Para o dono do jogo
 
 - Saves da 0.8.7 não abrem em versões anteriores (gravados compactados). Os saves antigos continuam abrindo na 0.8.7 e o arquivo original fica nos backups.
-- Nada foi publicado. O lançamento (merge na `main`, que dispara o CI de release) espera autorização.
+- Publicada em 09/11/2026 com a autorização do dono do jogo.
