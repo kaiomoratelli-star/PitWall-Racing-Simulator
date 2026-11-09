@@ -400,7 +400,8 @@ Engine.stepLap = (race, wk) => {
       Engine.event(race, 'pit', byLang(`${wk.nameOf(c.did)} para nos boxes: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`, `${wk.nameOf(c.did)} pits: ${Engine.tyreLabel ? Engine.tyreLabel(track, newC) : TYRES[newC].name} (${stop.toFixed(1)}s).`), c.did, { stop: +stop.toFixed(1), slow, tyre: newC, imp: true }); c._pitEvIdx = race.events.length - 1;
     }
     // limites de pista: três advertências e a quarta vira punição
-    if (!scType && RNG.chance(0.006 * ((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120) * (track.street ? 0.4 : 1))) {
+    if (track.tlF == null) track.tlF = /aut|austria|spielberg|red-bull-ring|qat|losail|lusail|bhr|bahrain|sakhir|abu|yas|americas|austin|ricard|jeddah|ksa/i.test(track.id + ' ' + (track.circuit || '')) ? 3 : track.street ? 0.4 : 1;   // pistas com muita área asfaltada geram mais exclusões de volta
+    if (!scType && RNG.chance(0.014 * track.tlF * ((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120))) {
       c.tl++;
       const tlw = race.R.trackLimitWarnings;
       if (c.tl === tlw) Engine.event(race, 'flag', byLang(`Bandeira preta e branca para ${wk.nameOf(c.did)}: ${tlw}ª advertência por limite de pista.`, `Black and white flag for ${wk.nameOf(c.did)}: track limits warning number ${tlw}.`), c.did);
