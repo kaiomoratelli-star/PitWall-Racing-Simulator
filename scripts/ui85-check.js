@@ -17,13 +17,13 @@ const VIEWS = require('./ui85-check-views.json');   // lista compartilhada com o
 (async () => {
   const b = await chromium.launch();
   const fails = [];
-  const runs = [['pt', 'dark', 'side', 'mclaren', 1440], ['en', 'light', 'top', 'williams', 1366], ['pt', 'light', 'bottom', 'ferrari', 1920], ['pt', 'dark', 'side', 'haas', 1100]];
-  for (const [lang, theme, nav, team, width] of runs) {
-    const tag = `${lang}/${theme}/${nav}/${team}/${width}`;
+  const runs = [['pt', 'dark', 'side', 'mclaren', 1440], ['en', 'light', 'top', 'williams', 1366], ['pt', 'light', 'bottom', 'ferrari', 1920], ['pt', 'dark', 'side', 'haas', 1100], ['pt', 'light', 'side', 'alpine', 1366, 'xlarge']];   // (0.8.7) a última com texto "Muito grande"
+  for (const [lang, theme, nav, team, width, size] of runs) {
+    const tag = `${lang}/${theme}/${nav}/${team}/${width}${size ? '/' + size : ''}`;
     const p = await b.newPage({ viewport: { width, height: 900 } });
     const errs = [];
     p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-    await p.addInitScript(([l, th, nv]) => { try { localStorage.setItem('pw-lang', l); localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: th, nav: nv, motion: 'off' })); } catch (e) { /* sem armazenamento */ } }, [lang, theme, nav]);
+    await p.addInitScript(([l, th, nv, sz]) => { try { localStorage.setItem('pw-lang', l); localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: th, nav: nv, motion: 'off', size: sz || 'normal' })); } catch (e) { /* sem armazenamento */ } }, [lang, theme, nav, size]);
     await p.goto('file://' + file); await p.waitForTimeout(300); await p.evaluate(() => { UI.strictRng = true; });
     const res = await p.evaluate(async ({ team, rounds, VIEWS }) => {
       const out = { bad: [], checks: [] };
@@ -43,6 +43,9 @@ const VIEWS = require('./ui85-check-views.json');   // lista compartilhada com o
         const txt = document.getElementById('app').innerText;
         const m = BAD.exec(txt); if (m) out.bad.push(`${v}: "${txt.slice(Math.max(0, m.index - 50), m.index + 30).replace(/\s+/g, ' ')}"`);
         if (document.documentElement.scrollWidth > window.innerWidth + 2) out.bad.push(`${v}: rolagem horizontal (${document.documentElement.scrollWidth}px)`);
+        // (0.8.7) teclado: tudo o que é clicável e não é botão precisa receber foco
+        const noKb = [...document.querySelectorAll('#app [data-act]:not(button):not(a[href]):not(input):not(select):not(textarea)')].filter(e => e.getAttribute('tabindex') == null).length;
+        if (noKb) out.bad.push(`${v}: ${noKb} item(ns) clicável(is) sem foco pelo teclado`);
       };
       // (0.8.7) além da lista fixa, visita toda aba interna que a própria tela oferece (botões que voltam para a mesma tela com outra aba)
       const seen = new Set();
