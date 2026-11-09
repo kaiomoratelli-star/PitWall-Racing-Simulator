@@ -32,7 +32,7 @@ K85.kv = (pairs) => `<dl class="n-kv">${pairs.filter(Boolean).map(([a, b]) => `<
 K85.list = (items) => `<div class="n-list">${items.map(it => `<div class="n-li${it.on ? ' on' : ''}"${at85(it.do)}>${it.lead || ''}<span class="n-lt"><b>${it.title}</b>${it.sub ? `<span>${it.sub}</span>` : ''}</span>${it.tail || ''}</div>`).join('')}</div>`;
 K85.help = (t) => `<div class="n-help">${esc(t)}</div>`;
 K85.empty = (t, act) => `<div class="n-empty"><i></i><div><p>${esc(t)}</p>${act ? `<div style="margin-top:8px">${act}</div>` : ''}</div></div>`;
-K85.form = (arr, lg) => `<span class="n-form${lg ? ' lg' : ''}">${arr.map(v => `<i class="${v === 'AB' ? 'r' : v <= 3 ? 'pd' : v <= 10 ? 'pt' : ''}">${v}</i>`).join('')}</span>`;
+K85.form = (arr, lg) => `<span class="n-form${lg ? ' lg' : ''}">${arr.map(v => `<i class="${v === 'AB' ? 'r' : v <= 3 ? 'fpd' : v <= 10 ? 'pt' : ''}">${v}</i>`).join('')}</span>`;
 
 /* ---------- gráficos SVG ---------- */
 K85.spark = (vals, o = {}) => {

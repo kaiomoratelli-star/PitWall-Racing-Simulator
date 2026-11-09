@@ -283,7 +283,7 @@ a.n-li, .n-li[data-act] { cursor: pointer; } a.n-li:hover, .n-li[data-act]:hover
 /* forma recente (quadrados) */
 .n-form { display: flex; gap: 3px; }
 .n-form i { font: 600 11px/22px var(--f-mono); font-style: normal; width: 26px; text-align: center; border-radius: 4px; background: var(--s3); color: var(--muted); }
-.n-form i.pd { background: #D9B53A; color: #1A1400; } .n-form i.pt { background: color-mix(in srgb, var(--green) 20%, transparent); color: var(--green); } .n-form i.r { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); font-size: 9px; }
+.n-form i.fpd { background: #D9B53A; color: #1A1400; } .n-form i.pt { background: color-mix(in srgb, var(--green) 20%, transparent); color: var(--green); } .n-form i.r { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); font-size: 9px; }
 .n-form.lg i { width: 38px; line-height: 30px; font-size: 14px; }
 /* dica no lugar de parágrafo */
 .n-help { display: flex; gap: 10px; align-items: flex-start; background: color-mix(in srgb, var(--blue) 8%, transparent); border: 1px solid color-mix(in srgb, var(--blue) 25%, transparent); border-radius: 9px; padding: 9px 12px; color: var(--fg2); font-size: 12.5px; margin-top: 12px; }

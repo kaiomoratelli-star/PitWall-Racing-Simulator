@@ -10,6 +10,7 @@
 /* abas novas nas áreas */
 (function () {
   const mundo = AREAS85.find(a => a[0] === 'mundo'); if (mundo && !mundo[3].some(t => t[0] === 'cases')) mundo[3].splice(Math.max(0, mundo[3].findIndex(t => t[0] === 'council') + 1), 0, ['cases', 'Comissários e casos']);
+  const eq = AREAS85.find(a => a[0] === 'equipe'); if (eq && !eq[3].some(t => t[0] === 'talks')) eq[3].splice(Math.max(0, eq[3].findIndex(t => t[0] === 'mano') + 1), 0, ['talks', 'Conversas', null, () => !Career.isObs(G)]);
   const sis = AREAS85.find(a => a[0] === 'sistema'); if (sis && !sis[3].some(t => t[0] === 'credits')) sis[3].splice(sis[3].length - 1, 0, ['credits', 'Créditos e licenças']);
 })();
 
@@ -191,5 +192,110 @@ function fp1Panel86() {
     if (pen) Career.ledger(G, byLang(`Elemento extra: ${Parts.label(el.dataset.k, true)} (${d.name})`, `Extra element: ${Parts.label(el.dataset.k, true)} (${d.name})`), -Parts.extraCost(el.dataset.k), 'motor');
     toast(pen ? byLang(`${Parts.label(el.dataset.k, true)} novo para ${d.name}: ${pen} posições de punição no grid.`, `New ${Parts.label(el.dataset.k, true)} for ${d.name}: ${pen}-place grid penalty.`) : byLang(`${Parts.label(el.dataset.k, true)} novo para ${d.name}, dentro da cota.`, `New ${Parts.label(el.dataset.k, true)} for ${d.name}, within the allocation.`), pen ? 'bad' : 'good');
     autosave(); render();
+  };
+})();
+
+/* ---------- Pilotos: política de equipe e tensão entre companheiros (0.8.6-B) ---------- */
+(function () {
+  if (typeof drivers85 !== 'function' || typeof Orders === 'undefined') return;
+  const d85 = drivers85;
+  drivers85 = function () {
+    const base = d85();
+    const ds = Career.teamDrivers(G, G.player.teamId).filter(d => d.seat !== 'R');
+    if (ds.length < 2) return base;
+    const [a, b] = ds; const n1 = Orders.no1(G); const ten = Orders.tension(G, a.id, b.id);
+    const opt3 = [['', byLang('Disputa livre', 'Free racing')], [a.id, `${byLang('Nº 1', 'No. 1')}: ${a.name}`], [b.id, `${byLang('Nº 1', 'No. 1')}: ${b.name}`]];
+    const dis = ds.map(d => `${esc(shortName(d))}: <b class="n-num">${d.disobey || 0}</b>`).join(' · ');
+    const card = K85.card({ t: byLang('Política de equipe', 'Team policy'), body: `<div class="pol86">
+      <div class="pol86-seg">${opt3.map(([v, l]) => `<button class="seg ${(n1 || '') === v ? 'on' : ''}" data-act="setNo186" data-v="${v}">${esc(l)}</button>`).join('')}</div>
+      <div class="pol86-k"><span><small>${byLang('Química entre os dois', 'Chemistry between them')}</small>${(() => { const ch = typeof People !== 'undefined' ? People.chem(G, a.id, b.id) : -ten; return `${K85.bar(ch + 100, 200, ch >= 15 ? 'var(--green)' : ch <= -15 ? 'var(--red)' : 'var(--yellow)', 160)} <b class="n-num">${ch > 0 ? '+' : ''}${ch}</b> <em class="n-mu">${typeof People !== 'undefined' ? esc(People.chemLabel(ch)) : ''}</em>`; })()}</span><span><small>${byLang('Ordens desobedecidas (recentes)', 'Orders disobeyed (recent)')}</small>${dis}</span></div>
+      <p class="n-mu n-sm">${n1 ? byLang('Com piloto nº 1, a equipe pede passagem sozinha quando ele está logo atrás. O nº 2 obedece mais, mas perde moral a cada corrida.', 'With a number one driver, the team asks for the swap automatically when he is right behind. The number two obeys more but loses morale every race.') : byLang('Disputa livre: nenhum pedido automático. Você ainda pode dar ordens pelo rádio durante a corrida.', 'Free racing: no automatic requests. You can still give radio orders during the race.')}</p></div>` });
+    return base + card;
+  };
+  ACT.setNo186 = (el) => { Orders.setNo1(G, el.dataset.v || null); autosave(); render(); };
+})();
+
+
+/* ---------- Conversas com os pilotos (0.8.6-A) ---------- */
+SCREENS.talks = {
+  html() {
+    if (Career.isObs(G) || typeof Talks === 'undefined') return K85.empty(byLang('Disponível só no modo carreira.', 'Available in career mode only.'));
+    const ds = Career.teamDrivers(G, G.player.teamId).sort((a, b) => (a.seat === 'R' ? 9 : a.seat) - (b.seat === 'R' ? 9 : b.seat));
+    if (!ds.length) return K85.empty(byLang('Sem pilotos na equipe.', 'No drivers in the team.'));
+    const sel = Career.driver(G, UI.talkDid) || ds[0]; UI.talkDid = sel.id;
+    const T = UI.talk && UI.talk.did === sel.id && UI.talk.y === G.season.year && UI.talk.r === G.season.round ? UI.talk : null;
+    const mates = ds.filter(d => d.seat !== 'R');
+    const chem = mates.length === 2 ? People.chem(G, mates[0].id, mates[1].id) : null;
+    const trustBar = (d) => { const v = Math.round(People.trust(d)); return `${K85.bar(v, 100, v >= 65 ? 'var(--green)' : v >= 40 ? 'var(--yellow)' : 'var(--red)', 90)} <b class="n-num">${v}</b>`; };
+    const list = ds.map(d => `<button class="tk86-d ${d.id === sel.id ? 'on' : ''}" data-act="talkSel86" data-v="${d.id}" style="--tc:${Career.team(G).color}">${K85.av(d, 44)}<span><b>${esc(d.name)}</b><small>${d.seat === 'R' ? byLang('Reserva', 'Reserve') : byLang('Carro', 'Car') + ' #' + d.seat} · ${esc(byLang(...Talks.ARCH[Talks.arch(d)]))}</small><small>${byLang('Confiança', 'Trust')} ${trustBar(d)}</small><small>${byLang('Moral', 'Morale')} <b class="n-num">${Math.round(d.morale ?? 70)}</b>${Talks.canTalk(G, d) ? '' : ` · <em class="n-mu">${byLang('já conversaram nesta etapa', 'already talked this round')}</em>`}</small></span></button>`).join('');
+    const causes = People.causes(G, sel);
+    const causeHtml = causes.length ? causes.map(c => `<span class="tk86-c ${c.v >= 0 ? 'up' : 'dn'}"><b class="n-num">${c.v >= 0 ? '+' : ''}${c.v}</b>${esc(c.name)}</span>`).join('') : `<small class="n-mu">${byLang('Sem mudanças recentes.', 'No recent changes.')}</small>`;
+    let talk;
+    if (!Talks.canTalk(G, sel) && !(T && T.res)) talk = `<p class="n-mu">${byLang(`Você já conversou com ${esc(shortName(sel))} nesta etapa. Volte depois da próxima corrida.`, `You already talked to ${esc(shortName(sel))} this round. Come back after the next race.`)}</p>`;
+    else if (!T) talk = `<p class="n-mu">${byLang('Chame o piloto para uma conversa. O assunto vem do momento dele: resultados, companheiro, contrato, promessas, ordens...', 'Call the driver in for a talk. The topic comes from his situation: results, team-mate, contract, promises, orders...')}</p><button class="btn primary" data-act="talkStart86">${byLang('Chamar para conversar', 'Call in for a talk')}</button>`;
+    else {
+      const face = K85.av(sel, 56);
+      talk = `<div class="tk86-chat"><div class="tk86-b them">${face}<p>${esc(T.open)}</p></div>
+        ${T.res ? `<div class="tk86-b me"><p>${esc(T.chosen)}</p></div><div class="tk86-b them ${T.res.tone}">${face}<p>${esc(T.res.reply)}</p></div>
+          <div class="tk86-fx"><span>${byLang('Moral', 'Morale')} <b class="n-num ${T.res.mood >= 0 ? 'n-gain' : 'n-loss'}">${T.res.mood >= 0 ? '+' : ''}${T.res.mood}</b></span><span>${byLang('Confiança', 'Trust')} <b class="n-num ${T.res.trust >= 0 ? 'n-gain' : 'n-loss'}">${T.res.trust >= 0 ? '+' : ''}${T.res.trust}</b></span>${T.res.promise ? `<span>${K85.tag(byLang('Promessa registrada', 'Promise recorded'), 'acc')} ${esc(People.promiseText(T.res.promise.kind))}</span>` : ''}</div>`
+        : `<div class="tk86-o">${T.opts.map(o => `<button class="btn" data-act="talkAns86" data-v="${o.k}">${esc(o.label)}</button>`).join('')}</div>`}</div>`;
+    }
+    const prom = People.promises(G).filter(p => ds.some(d => d.id === p.did) && p.y === G.season.year).slice().reverse().slice(0, 8);
+    const ST = { open: [byLang('Em aberto', 'Open'), ''], kept: [byLang('Cumprida', 'Kept'), 'pos'], broken: [byLang('Quebrada', 'Broken'), 'neg'], void: [byLang('Anulada', 'Void'), ''] };
+    const promHtml = prom.length ? K85.table([[byLang('Piloto', 'Driver')], [byLang('Promessa', 'Promise')], [byLang('Prazo', 'Due'), 'c'], [byLang('Situação', 'Status')]], prom.map(p => [K85.who(p.did, { tid: G.player.teamId }), `<small>${esc(People.promiseText(p.kind))}</small>`, `<span class="n-num">${byLang('etapa', 'round')} ${p.due}</span>`, K85.tag(ST[p.state][0], ST[p.state][1])])) : K85.empty(byLang('Nenhuma promessa neste ano.', 'No promises this year.'));
+    const hist = (sel.talkLog || []).slice().reverse().slice(0, 6);
+    const histHtml = hist.length ? hist.map(h => `<div class="tk86-h ${h.tone}"><small>${h.y} · ${byLang('etapa', 'round')} ${h.r}</small><span>${esc(h.reply)}</span><em class="n-num">${h.mood >= 0 ? '+' : ''}${h.mood} / ${h.trust >= 0 ? '+' : ''}${h.trust}</em></div>`).join('') : `<small class="n-mu">${byLang('Nenhuma conversa ainda.', 'No talks yet.')}</small>`;
+    return K85.head({ t: byLang('Conversas', 'Talks'), s: byLang('Relação com os pilotos: confiança, promessas e humor', 'Relationship with the drivers: trust, promises and mood') }) +
+      K85.grid('minmax(0,0.9fr) minmax(0,1.6fr)',
+        K85.col(K85.card({ t: byLang('Pilotos', 'Drivers'), body: `<div class="tk86-list">${list}</div>` }),
+          chem != null ? K85.card({ t: byLang('Química entre os titulares', 'Chemistry between the race drivers'), body: `<div class="tk86-chem"><b class="n-num ${chem >= 15 ? 'n-gain' : chem <= -15 ? 'n-loss' : ''}">${chem > 0 ? '+' : ''}${chem}</b><span>${esc(People.chemLabel(chem))}</span></div><p class="n-mu n-sm">${byLang('Sobe com a convivência e ordens justas; cai com batidas entre os dois, ordens a favor de um só e briga pelo posto de nº 1. Alta: os dois trocam dados e chegam mais confiantes à classificação. Baixa: ignoram mais as ordens e vazam coisas para a imprensa.', 'Rises with time together and fair orders; drops with crashes between them, orders favouring one, and fights for number one status. High: they share data and reach qualifying more confident. Low: they ignore orders more and leak to the press.')}</p>` }) : ''),
+        K85.col(K85.card({ t: `${byLang('Conversa com', 'Talk with')} ${sel.name}`, a: `<small class="n-mu">${esc(byLang(...Talks.ARCH[Talks.arch(sel)]))}</small>`, body: `<div class="tk86-cz"><small>${byLang('O que mais mexeu com o humor dele', 'What moved his mood the most')}</small>${causeHtml}</div>${talk}` }),
+          K85.card({ t: byLang('Promessas', 'Promises'), flush: true, body: promHtml }),
+          K85.card({ t: byLang('Conversas anteriores', 'Previous talks'), body: histHtml })));
+  },
+};
+ACT.talkSel86 = (el) => { UI.talkDid = el.dataset.v; render(); };
+ACT.talkStart86 = () => { const t = Talks.start(G, UI.talkDid); if (!t) return; UI.talk = Object.assign(t, { y: G.season.year, r: G.season.round }); render(); };
+ACT.talkAns86 = (el) => {
+  const T = UI.talk; if (!T || T.res) return;
+  const o = T.opts.find(x => x.k === el.dataset.v); const res = Talks.answer(G, T.did, T.topic, el.dataset.v);
+  if (!res) return toast(byLang('Já conversaram nesta etapa.', 'Already talked this round.'), 'bad');
+  T.res = res; T.chosen = o ? o.label.replace(/^[^:]+:\s*/, '') : ''; autosave(); render();
+};
+
+/* ---------- Página do piloto: humor com causas, confiança e química ---------- */
+(function () {
+  const sc = SCREENS.driverPage; if (!sc || typeof People === 'undefined') return;
+  const h = sc.html;
+  sc.html = function () {
+    const out = h.call(this);
+    const d = Career.driver(G, UI.params.id); if (!d || !d.team) return out;
+    const causes = People.causes(G, d);
+    const mate = Career.teamDrivers(G, d.team).find(x => x.id !== d.id && x.seat !== 'R');
+    const chem = mate && d.seat !== 'R' ? People.chem(G, d.id, mate.id) : null;
+    const mine = d.team === G.player.teamId && !Career.isObs(G);
+    return out + K85.card({ t: byLang('Humor', 'Mood'), a: mine ? `<a data-act="go" data-v="talks">${byLang('conversar', 'talk')}</a>` : '', body: `<div class="mood86">
+      <div class="mood86-k"><span><small>${byLang('Moral', 'Morale')}</small><b class="n-num">${Math.round(d.morale ?? 70)}</b></span>${mine ? `<span><small>${byLang('Confiança no chefe', 'Trust in the boss')}</small><b class="n-num">${Math.round(People.trust(d))}</b></span>` : ''}${chem != null ? `<span><small>${byLang('Química com', 'Chemistry with')} ${esc(shortName(mate))}</small><b class="n-num">${chem > 0 ? '+' : ''}${chem}</b> <em class="n-mu">${esc(People.chemLabel(chem))}</em></span>` : ''}<span><small>${byLang('Perfil', 'Profile')}</small><b>${esc(byLang(...Talks.ARCH[Talks.arch(d)]))}</b></span></div>
+      <div class="tk86-cz"><small>${byLang('Principais motivos nas últimas etapas', 'Main reasons over the last rounds')}</small>${causes.length ? causes.map(c => `<span class="tk86-c ${c.v >= 0 ? 'up' : 'dn'}"><b class="n-num">${c.v >= 0 ? '+' : ''}${c.v}</b>${esc(c.name)}</span>`).join('') : `<small class="n-mu">${byLang('Sem mudanças recentes.', 'No recent changes.')}</small>`}</div>
+      <p class="n-mu n-sm">${byLang('A moral pesa pouco na pista: alta dá um pouco mais de ritmo e menos erros; baixa, o contrário.', 'Morale matters a little on track: high gives slightly more pace and fewer mistakes; low, the opposite.')}</p></div>` });
+  };
+})();
+
+/* ---------- Funcionários: clima, pedidos e conflitos ---------- */
+(function () {
+  const sc = SCREENS.team; if (!sc || typeof People === 'undefined') return;
+  const h = sc.html;
+  sc.html = function () {
+    const out = h.call(this);
+    if ((UI.params.tab || 'drivers') !== 'staff' || Career.isObs(G)) return out;
+    const t = Career.team(G); const L = (t.staffList || []).filter(s => !s.isPlayer).slice().sort((a, b) => (a.morale ?? 70) - (b.morale ?? 70));
+    const C = G.staffConflict && G.staffConflict.y === G.season.year && G.staffConflict.until > G.season.round ? G.staffConflict : null;
+    const B = G.staffBoost && G.staffBoost.y === G.season.year && G.staffBoost.until > G.season.round ? G.staffBoost : null;
+    const nm = (id) => { const s = t.staffList.find(x => x.id === id); return s ? s.name : ''; };
+    const rows = L.map(s => { const m = Math.round(s.morale ?? 70); return [`<b>${esc(s.name)}</b>`, `<small>${esc(People.roleName(s.role))}</small>`, `${K85.bar(m, 100, m >= 65 ? 'var(--green)' : m >= 45 ? 'var(--yellow)' : 'var(--red)', 100)} <span class="n-num">${m}</span>`, s.poachRisk ? K85.tag(byLang('pode sair', 'may leave'), 'neg') : (m < 45 ? K85.tag(byLang('insatisfeito', 'unhappy'), 'neg') : '')]; });
+    return out + K85.card({ t: byLang('Clima entre os funcionários', 'Staff mood'), a: C ? K85.tag(byLang('Conflito em andamento', 'Ongoing conflict'), 'neg') : B ? K85.tag(byLang('Verba extra ativa', 'Extra budget active'), 'pos') : '', flush: true,
+      body: (C ? `<div class="n-help" style="margin:10px 14px">${byLang(`${esc(nm(C.a))} e ${esc(nm(C.b))} estão em conflito até a etapa ${C.until}: os projetos de P&D rendem cerca de 7% menos.`, `${esc(nm(C.a))} and ${esc(nm(C.b))} are in conflict until round ${C.until}: R&D projects yield about 7% less.`)}</div>` : '') +
+        K85.table([[byLang('Nome', 'Name')], [byLang('Cargo', 'Role')], [byLang('Moral', 'Morale')], ['']], rows) +
+        `<p class="n-mu n-sm" style="margin:10px 14px">${byLang('A moral sobe com bons resultados e pedidos atendidos. Funcionários bons pedem aumento, verba ou promoção; chefes de área insatisfeitos entram em conflito; o diretor técnico pode pedir demissão depois de um ano abaixo da meta.', 'Morale rises with good results and granted requests. Good staff ask for raises, budget or promotion; unhappy department heads clash; the technical director may resign after a year below target.')}</p>` });
   };
 })();

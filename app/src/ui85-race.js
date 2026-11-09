@@ -43,12 +43,12 @@ ACT.radio85 = (el) => {
     c.orders[k] = !c.orders[k]; on = c.orders[k];
     if (k === 'hold') race.cars.filter(x => x.tid === c.tid && x !== c).forEach(x => { x.orders = x.orders || {}; x.orders.hold = c.orders.hold; });
   } else if (k === 'letBy') {
-    if (c.orders.letBy) { c.orders.letBy = false; on = false; } else { c.orders.letBy = true; if (d) d.morale = clamp((d.morale || 60) - 5, 1, 100); }
+    if (c.orders.letBy) { c.orders.letBy = false; on = false; } else { c.orders.letBy = true; if (d) { if (typeof People !== 'undefined') People.mood(G, d, -5, 'orders'); else d.morale = clamp((d.morale || 60) - 5, 1, 100); } }
   } else if (k === 'extend') {
     c.noPitUntil = (c.noPitUntil && c.noPitUntil > L) ? 0 : L + 6; on = !!c.noPitUntil;
   } else if (k === 'motivate') {
     if (c.orders.motivatedUntil && L - (c._motAt || -99) < 10) { toast(byLang('Ele acabou de ouvir isso. Espere algumas voltas.', 'He just heard that. Wait a few laps.')); return; }
-    c.orders.motivatedUntil = L + 3; c._motAt = L; if (d) d.morale = clamp((d.morale || 60) + 3, 1, 100);
+    c.orders.motivatedUntil = L + 3; c._motAt = L; if (d) { if (typeof People !== 'undefined') People.mood(G, d, 3, 'talk'); else d.morale = clamp((d.morale || 60) + 3, 1, 100); }
   }
   const m = RADIO_MSG85[k];
   if (m) Engine.event(race, 'radio', on ? byLang(`Rádio para ${rawName(c.did)}: ${m[0]}`, `Radio to ${rawName(c.did)}: ${m[1]}`) : byLang(`Rádio para ${rawName(c.did)}: ordem cancelada.`, `Radio to ${rawName(c.did)}: order cancelled.`), c.did, { imp: true });

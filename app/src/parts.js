@@ -245,3 +245,25 @@ Parts.freezeBlock = (G, area, next) => {
     CarDev.start = (G, t, area, gain, bankShare, P) => s0(G, t, area, gain, Regs.r(G).chassisFreeze && area !== 'reliability' ? 1 : bankShare, P);
   }
 })();
+
+/* teste de meio de ano (1 dia, se o regulamento prevê testes): acerto, peças novas ou pneus */
+Testing.midSeason = (G) => {
+  const s = G.season; if (!s || s.midTest || !Testing.days(G)) return;
+  if (s.round < Math.floor(s.calendar.length / 2)) return;
+  s.midTest = true;
+  // equipes da IA: ganho médio pequeno, para não ficarem para trás
+  G.db.teams.forEach(t => { if (t.id === G.player.teamId && !Career.isObs(G)) return; const k = RNG.pick(['aero', 'chassis', 'tyreCare']); if (t.car && t.car[k] != null) t.car[k] = +clamp(t.car[k] + RNG.range(0, 0.3), 30, 110).toFixed(2); });
+  if (Career.isObs(G)) return;
+  Career.mail(G, { from: byLang('Diretor técnico', 'Technical director'), tag: 'dev', important: true,
+    title: byLang('Teste de meio de temporada: o que vamos testar?', 'Mid-season test: what do we test?'),
+    body: byLang('Temos um dia de pista depois desta etapa. Dá para focar em uma coisa só.', 'We have one track day after this round. We can focus on one thing only.'),
+    choices: [
+      { label: byLang('Acerto: os pilotos refinam o carro', 'Setup: drivers refine the car'), effects: { testProg: 'setup' }, outcome: byLang('Os pilotos saíram do teste mais confiantes com o carro.', 'The drivers left the test more confident in the car.') },
+      { label: byLang('Peças novas: validar o pacote de atualização', 'New parts: validate the upgrade package'), gamble: { p: 0.55, win: { car: { aero: 0.4 } }, lose: { car: { aero: 0.05 } }, winText: byLang('O pacote funcionou como no túnel.', 'The package worked as in the tunnel.'), loseText: byLang('Os números da pista não bateram com o túnel.', 'Track numbers did not match the tunnel.') } },
+      { label: byLang('Pneus: entender a janela de temperatura', 'Tyres: understand the temperature window'), effects: { car: { tyreCare: 0.35 } }, outcome: byLang('Aprendemos a ligar os pneus mais rápido e a cuidar deles no stint.', 'We learned to switch the tyres on faster and look after them in the stint.') },
+    ] });
+};
+(() => {
+  const fw = Career.finishWeekend;
+  Career.finishWeekend = (G, ...a) => { const r = fw(G, ...a); try { Testing.midSeason(G); } catch (e) { /* sem teste */ } return r; };
+})();

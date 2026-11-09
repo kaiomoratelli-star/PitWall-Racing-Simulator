@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.8.6 — Expansão esportiva e administrativa (em desenvolvimento)
+Ainda não publicada. O plano está em `docs/PLANO-0.8.6.md` e a auditoria do código em `docs/AUDITORIA-0.8.6.md`.
+
+**Superlicença e treino livre com novatos**
+- Superlicença completa: 40 pontos nas três últimas temporadas (25 para a de treino livre), idade mínima e pontos por TL1.
+- Pontos de punição: 12 em 12 meses suspendem o piloto por uma corrida; o reserva assume.
+- Cota de TL1 com novato (2 por carro por ano), com painel no treino, escolha de reserva ou piloto da academia, e multa no fim do ano para quem não cumprir.
+
+**Comissários**
+- Novas infrações: excesso de velocidade no pit lane, liberação insegura e largada queimada, além de colisão e limites de pista.
+- Direito de revisão das punições dadas na corrida: até 96 horas, só com elemento novo, taxa de US$ 0,1 mi; se aceita, a classificação e os pontos são recalculados.
+- Vistoria técnica depois da corrida (prancha, peso, combustível) com desclassificação e direito de apelar ao Tribunal de Apelação da FIA.
+- Equipes da IA também pedem revisão.
+- Tela "Comissários e casos" (Mundo) com todas as decisões do ano.
+
+**Carro**
+- Danos por peça: asa dianteira, assoalho, suspensão, freios e câmbio. Cada uma custa tempo por volta e pode ceder. Troca de bico no box deixa a parada mais longa. A conta de reparo entra no teto de gastos.
+- Motor por componente (ICE, turbo, MGU-K, bateria, eletrônica, escapamento e câmbio), com desgaste, cota por temporada e as punições reais de grid (10 posições no primeiro elemento extra, 5 nos seguintes, fim do grid acima de 15). Painel na tela do Carro com vida útil e botão de troca antes da classificação.
+- Testes de pré-temporada (pelo regulamento "Dias de teste") com foco escolhido e teste de meio de ano.
+- Congelamento de motor e de chassi votados no Conselho passam a travar o desenvolvimento.
+
+**Ordens de equipe e pessoas**
+- O piloto pode obedecer ou recusar a ordem, conforme personalidade, campeonato, moral, confiança e química. Rádio com falas variadas, notícias e reação nas redes.
+- Política de equipe: disputa livre ou piloto nº 1.
+- Moral com causas: a tela mostra os três motivos que mais pesaram.
+- Química entre companheiros (−100 a +100).
+- Conversas com os pilotos (Equipe → Conversas): o assunto nasce do momento, cada perfil de piloto fala e reage de um jeito, e as falas não se repetem em conversas próximas. Promessas ficam registradas e são cobradas.
+- Confiança no chefe pesa na renovação, nas ordens e no pedido de saída.
+- Funcionários com moral, pedidos de aumento, verba e promoção, conflitos entre chefes de área e demissão do diretor técnico depois de um ano ruim.
+
+**Limpeza**
+- Cerca de 680 linhas de código sem uso removidas; funções esquecidas reaproveitadas (rivalidades, créditos e licenças, censo de talentos, estouros do teto).
+- Nota do chefe de equipe e aerodinâmica ativa passaram a ter efeito.
+
 ## 0.8.5 — Nova interface (08/11/2026)
 Interface nova a partir das duas propostas (A "Transmissão" e B "Paddock") e da escolha tela a tela do dono do jogo. Relatório da verificação em `docs/RELATORIO-0.8.5.md`.
 

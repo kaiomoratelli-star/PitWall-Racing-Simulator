@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
 const rounds = +(process.argv[2] || 7);
 const file = path.resolve(process.argv[3] || path.join(__dirname, '..', 'app', 'dist', 'index.html'));
 
-const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole', 'podium', 'post', 'analysis', 'team', 'team:staff', 'mano', 'driverPage', 'academy', 'scout', 'sister', 'car', 'dev', 'facilities', 'market', 'finance', 'finance:analise', 'finance:extrato', 'sponsors', 'board', 'standings', 'paddock', 'teamPage', 'owners', 'manufacturers', 'manufacturers:pneus', 'manufacturers:mov', 'council', 'news', 'news:stories', 'social', 'cats', 'circuits', 'circuit', 'log', 'history', 'seasons', 'hall', 'saves', 'editor', 'account', 'diag'];
+const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole', 'podium', 'post', 'analysis', 'team', 'team:staff', 'mano', 'driverPage', 'academy', 'scout', 'sister', 'car', 'dev', 'facilities', 'market', 'finance', 'finance:analise', 'finance:extrato', 'sponsors', 'board', 'standings', 'paddock', 'teamPage', 'owners', 'manufacturers', 'manufacturers:pneus', 'manufacturers:mov', 'council', 'news', 'news:stories', 'social', 'cats', 'circuits', 'circuit', 'log', 'history', 'seasons', 'hall', 'saves', 'editor', 'account', 'cases', 'credits', 'talks', 'diag'];
 
 (async () => {
   const b = await chromium.launch();
