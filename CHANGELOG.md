@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.8.7 — Solidez: nada some, saves seguros, testes que falham (em desenvolvimento, não publicada)
+Base: as prioridades P1 a P3 de `docs/AVALIACAO-0.8.6.md`. Relatório completo em `docs/RELATORIO-0.8.7.md`.
+
+**Saves**
+- Saves compactados (gzip, ~6x menores: 3 MB → ~0,5 MB). No desktop o arquivo é lido de volta e comparado antes de substituir o anterior; no navegador e na nuvem também. Carreiras longas cabem no limite do navegador.
+- Saves das versões anteriores (.json) continuam abrindo; o original vai para os backups, nunca é apagado.
+- Esquema do save: todos os campos do jogo registrados e conferidos ao abrir e antes de gravar. Um jogo sem as peças centrais não é gravado (o save anterior fica).
+- Corrigido: abrir um save que falhava fazia o salvamento automático gravar a carreira anterior por cima dele.
+- Corrigido: importar um jogo com os três espaços ocupados gravava por cima do terceiro.
+- Corrigido: decisões pendentes podiam ser cortadas pelo limite de 120 mensagens da caixa de entrada.
+
+**Nada pode sumir**
+- Ganchos com nome no lugar das cadeias de embrulho (130 convertidos); trocas de propósito ficam registradas; o jogo confere ao abrir e o Diagnóstico lista tudo.
+- Código em pastas por assunto; arquivos grandes divididos.
+- Corrigido: a aba "Evolução dos pontos" da Classificação dependia da tela antiga.
+- Desenhar uma tela não pode mais mexer no sorteio do jogo (guarda no `render`).
+
+**Jogo**
+- Corrigido: quem jogava em inglês nunca pagava reparos de acidente (a mesma carreira dava resultados diferentes por idioma).
+- Ponto na superlicença por limite de pista vira decisão dos comissários (~50%): suspensões de 2,3 para 1,0 a cada 8 temporadas.
+- Texto gerado pelo jogo (eventos, notícias, mercado, Conselho, redes) em inglês de verdade quando o jogo está em inglês.
+
+**Interface**
+- Primeiros passos na Central e dica curta na primeira visita a cada tela.
+- Resumo da etapa na caixa de entrada (avisos de rotina agrupados; o jogador escolhe o que continua chegando como carta).
+- Faixa "Direção de prova" na corrida: investigações abertas, punições a cumprir e decisões recentes.
+- Etiquetas "por quê": química, moral, confiança no chefe, vida do motor e ATR.
+- Acessibilidade: teclado em tudo o que é clicável, contraste maior no texto secundário, tamanho do texto (Normal, Grande, Muito grande).
+- Carro com abas (Visão geral / Motor e peças); Mercado e Olheiros em páginas (antes só os 120 e 80 primeiros apareciam).
+- Editor e Academia no visual novo.
+
+**Testes (todos no CI do Windows)**
+- Determinismo, saves reais da 0.8.4/0.8.5/0.8.6, testes por regra, idioma não muda o jogo, esquema, saves em disco e no navegador, todas as telas e abas (5 combinações), inglês sem vazamento, cliques ao acaso; no Windows, um save real da 0.8.6 aberto no jogo instalado.
+
 ## 0.8.6 — Expansão esportiva e administrativa (09/11/2026)
 O plano está em `docs/historico/PLANO-0.8.6.md` e a auditoria do código em `docs/historico/AUDITORIA-0.8.6.md`.
 
