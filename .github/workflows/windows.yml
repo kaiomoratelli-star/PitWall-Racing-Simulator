@@ -31,6 +31,20 @@ jobs:
       - name: Simulação prolongada (vários universos e temporadas)
         run: npm test
 
+      - name: Saves de versões publicadas e determinismo
+        shell: bash
+        run: |
+          node scripts/save-compat-check.js 12
+          node scripts/determinism-check.js
+
+      - name: Testes da interface (Playwright)
+        shell: bash
+        run: |
+          npx playwright install chromium
+          node scripts/build.js
+          node scripts/ui85-check.js 3
+          node scripts/playthrough-check.js 1
+
       - name: Gerar Setup.exe
         run: npm run dist
 
