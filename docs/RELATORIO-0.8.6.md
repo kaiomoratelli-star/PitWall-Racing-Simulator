@@ -1,6 +1,6 @@
 # Relatório da 0.8.6 — Expansão esportiva e administrativa
 
-Data: 09/11/2026. Branch `v0.8.6`. **Ainda não publicada:** a versão só vai para o instalador com a autorização do dono do jogo.
+Data: 09/11/2026. **Publicada** com a autorização do dono do jogo (09/11/2026).
 
 ## 1. O que entrou
 
@@ -16,6 +16,22 @@ Data: 09/11/2026. Branch `v0.8.6`. **Ainda não publicada:** a versão só vai p
 | Conversas | Tela Equipe → Conversas: 12 assuntos, 5 perfis de piloto, falas sorteadas sem repetir, promessas | `talks.js`, `ui86.js` |
 | Limpeza | ~680 linhas sem uso removidas, funções esquecidas reaproveitadas | ver `docs/AUDITORIA-0.8.6.md` |
 | Inglês | Catálogo antigo de eventos (111 textos), cargos dos funcionários e tela de funcionários traduzidos | `i18n-en.js` |
+
+## 1b. Fechamento (itens do plano que faltavam)
+- **Direção de prova:**
+  - incidente "sob investigação" com decisão depois;
+  - escala completa: advertência, 5 s, 10 s, drive-through, stop-and-go e grid da próxima corrida;
+  - infrações novas: vantagem fora da pista e bandeira azul;
+  - caso reaberto pelos próprios comissários (regra de 2026).
+- **Ordem "Proteger o companheiro"** no rádio.
+- **Previsão de estouro da cota** de cada elemento do motor.
+- **Reserva com superlicença** ao assumir o carro, nunca o mesmo piloto nos dois carros.
+- **Calendário** com as etapas de novato no TL1.
+- **Pedidos do dono na reta final:**
+  - vida do pneu e das peças;
+  - indicação de pilotos e identidade nova para a equipe irmã;
+  - parceria técnica do jogador;
+  - volta do que tinha sumido entre versões (lista no CHANGELOG).
 
 ## 2. Medições
 
@@ -56,6 +72,28 @@ Data: 09/11/2026. Branch `v0.8.6`. **Ainda não publicada:** a versão só vai p
 - **Interface:** a faixa de forma usava a mesma classe CSS do pódio, o que esticava o "3". A classe foi renomeada.
 
 ## 4. Testes
+
+**Teste de funcionalidade novo** (`node scripts/playthrough-check.js 2 <equipe>`): joga 2 temporadas inteiras pela interface. Os números abaixo são de uma execução:
+
+| O que faz | Quantidade |
+|---|---|
+| Etapas | 47 |
+| Telas abertas | 656 |
+| Conversas | 94 |
+| Cartas decididas | 52 |
+| Ordens de rádio | 94 |
+| Trocas de peça do motor | 12 |
+| Ciclo salvar/carregar | 1 |
+
+A cada etapa, o teste confere:
+- dois titulares por equipe, sem carro repetido;
+- pontos por etapa iguais ao total;
+- dinheiro e carro sem valores inválidos;
+- posições sem buraco;
+- nenhum erro na interface.
+
+O save de uma carreira de 2 temporadas tem cerca de 3 MB: passa do limite do navegador (5 MB em UTF-16), mas no aplicativo vai para o disco.
+
 
 | Teste | Resultado |
 |---|---|

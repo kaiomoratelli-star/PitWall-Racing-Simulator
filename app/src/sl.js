@@ -140,7 +140,7 @@ SL.seasonCheck = (G) => {
    - Decisões tomadas DEPOIS da corrida (desclassificação técnica: prancha gasta, peso abaixo do mínimo,
      amostra de combustível) admitem apelação ao Tribunal de Apelação da FIA.                            */
 SL.REVIEW_FEE = 0.1; SL.APPEAL_FEE = 0.3;
-SL.REVIEW_P = { colisao: 0.3, unsafe: 0.25, limites: 0.15, largada: 0.12, pitspeed: 0.08 };
+SL.REVIEW_P = { colisao: 0.3, unsafe: 0.25, limites: 0.15, largada: 0.12, pitspeed: 0.08, vantagem: 0.25, bandeira: 0.1 };
 SL.DSQ_TXT = { prancha: ['desgaste excessivo da prancha do assoalho', 'excessive plank wear'], peso: ['carro abaixo do peso mínimo', 'car below the minimum weight'], combustivel: ['amostra de combustível insuficiente', 'insufficient fuel sample'] };
 SL.penTxt = (why) => { const w = (typeof Engine !== 'undefined' && Engine.PEN_TXT && Engine.PEN_TXT[why]) || SL.WHY[why] || [why, why]; return byLang(w[0], w[1]); };
 
@@ -179,6 +179,13 @@ SL.changesTxt = (G, ch) => ch.filter(c => c.did).slice(0, 4).map(c => `${(Career
 /* revisão aceita: cai a punição de tempo e os pontos na superlicença daquela etapa */
 SL.applyReview = (G, rv) => {
   const s = G.season; if (!s || rv.year !== s.year) return null;
+  if (rv.kind === 'grid') {
+    if (G.gridPenalties && G.gridPenalties[rv.did]) { G.gridPenalties[rv.did] = Math.max(0, G.gridPenalties[rv.did] - (rv.n || 0)); if (!G.gridPenalties[rv.did]) delete G.gridPenalties[rv.did]; }
+    SL.markPen(G, rv.idx, rv.did, rv.why, 'ok');
+    const d0 = Career.driver(G, rv.did);
+    Career.news(G, byLang(`Comissários retiram a punição de grid de ${d0 ? d0.name : ''}`, `Stewards withdraw ${d0 ? d0.name : ''}'s grid penalty`), 'regulamento', '', { dr: [rv.did] });
+    return [];
+  }
   const ch = SL.reclassify(G, rv.idx, cls => { const r = cls.find(x => x.did === rv.did); if (r) { r.T -= rv.s; r.penalty = Math.max(0, (r.penalty || 0) - rv.s); } });
   SL.markPen(G, rv.idx, rv.did, rv.why, 'ok');
   const d = Career.driver(G, rv.did);
@@ -217,15 +224,16 @@ SL.scrutineer = (G, idx, gp) => {
 SL.stewardsMail = (G, race, idx, gp, dsq) => {
   if (Career.isObs(G)) return;
   const tid = G.player.teamId, y = G.season.year;
-  const mine = (race.pens || []).filter(p => { const c = race.cars.find(x => x.did === p.did); return c && c.tid === tid && c.status === 'fin'; });
+  const mine = (race.pens || []).filter(p => { const c = race.cars.find(x => x.did === p.did); return c && c.tid === tid && (c.status === 'fin' || p.kind === 'grid') && p.kind !== 'warn'; });
   // uma carta por piloto, com a punição mais pesada
-  const by = {}; mine.forEach(p => { if (!by[p.did] || p.s > by[p.did].s) by[p.did] = p; });
+  const by = {}; mine.forEach(p => { if (!by[p.did] || (p.s || 0) + (p.n || 0) * 3 > (by[p.did].s || 0) + (by[p.did].n || 0) * 3) by[p.did] = p; });
   Object.values(by).forEach(p => {
     const d = Career.driver(G, p.did); if (!d) return;
-    const rv = { did: p.did, s: p.s, why: p.why, pts: p.pts || 0, idx, year: y, gp };
+    const rv = { did: p.did, s: p.s, why: p.why, pts: p.pts || 0, idx, year: y, gp, kind: p.kind || 'time', n: p.n || 0 };
+    const what = SL.penWhat(p);
     const fee = SL.REVIEW_FEE;
     Career.mail(G, { from: byLang('Comissários da FIA', 'FIA Stewards'), tag: 'fia', important: true,
-      title: byLang(`${gp}: ${p.s}s para ${d.name} (${SL.penTxt(p.why)})`, `${gp}: ${p.s}s for ${d.name} (${SL.penTxt(p.why)})`),
+      title: byLang(`${gp}: ${what[0]} para ${d.name} (${SL.penTxt(p.why)})`, `${gp}: ${what[1]} for ${d.name} (${SL.penTxt(p.why)})`),
       body: byLang(`A punição foi aplicada durante a corrida (volta ${p.lap}) e, pelo Código Esportivo, não admite apelação. A equipe pode pedir o direito de revisão, que só é aceito com um elemento novo, significativo e relevante (imagens de outra câmera, telemetria). Prazo: 96 horas. Taxa: ${fmtMoney(fee)}.`, `The penalty was given during the race (lap ${p.lap}) and, under the Sporting Code, cannot be appealed. The team may request a right of review, accepted only with a significant and relevant new element (other camera footage, telemetry). Deadline: 96 hours. Fee: ${fmtMoney(fee)}.`),
       choices: [
         { label: byLang(`Pedir direito de revisão (${fmtMoney(fee)})`, `Request a right of review (${fmtMoney(fee)})`), gamble: { p: SL.REVIEW_P[p.why] || 0.15, win: { money: -fee, moneyDesc: byLang('Taxa de revisão (FIA)', 'Review fee (FIA)'), review: rv }, lose: { money: -fee, moneyDesc: byLang('Taxa de revisão (FIA)', 'Review fee (FIA)'), board: -1, reviewNo: { idx, did: p.did, why: p.why, year: y } }, winText: byLang('Elemento novo aceito: a punição caiu e o resultado foi corrigido.', 'New element accepted: the penalty was withdrawn and the result corrected.'), loseText: byLang('Os comissários não viram elemento novo. A punição fica.', 'The stewards saw no new element. The penalty stands.') } },
@@ -247,12 +255,12 @@ SL.stewardsMail = (G, race, idx, gp, dsq) => {
 
 /* equipes da IA também pedem revisão de vez em quando */
 SL.aiReviews = (G, race, idx, gp) => {
-  (race.pens || []).forEach(p => {
+  (race.pens || []).filter(p => p.kind !== 'warn').forEach(p => {
     const c = race.cars.find(x => x.did === p.did); if (!c || c.tid === G.player.teamId || c.status !== 'fin') return;
     const res = G.season.results[idx]; const r = res && res.cls.find(x => x.did === p.did);
     if (!r || r.pos > 12 || !RNG.chance(0.25)) return;
     const d = Career.driver(G, p.did); const t = Career.team(G, c.tid);
-    if (RNG.chance(SL.REVIEW_P[p.why] || 0.15)) SL.applyReview(G, { did: p.did, s: p.s, why: p.why, pts: p.pts || 0, idx, year: G.season.year, gp });
+    if (RNG.chance(SL.REVIEW_P[p.why] || 0.15)) SL.applyReview(G, { did: p.did, s: p.s, why: p.why, pts: p.pts || 0, idx, year: G.season.year, gp, kind: p.kind || 'time', n: p.n || 0 });
     else { SL.markPen(G, idx, p.did, p.why, 'no'); Career.news(G, byLang(`${t.name} pede revisão da punição de ${d.name} e ouve um não`, `${t.name} requests a review of ${d.name}'s penalty and is turned down`), 'regulamento', byLang('Os comissários não viram elemento novo.', 'The stewards saw no new element.'), { dr: [d.id], tm: [t.id] }); }
   });
 };
@@ -276,12 +284,62 @@ SL.aiReviews = (G, race, idx, gp) => {
     try {
       const idx = G.season.results.length - 1; const gp = tr ? tr.gp : '';
       if (race && idx >= 0 && G.season.results[idx].trackId === (tr && tr.id)) {
-        G.season.results[idx].pens = (race.pens || []).map(p => ({ did: p.did, tid: (race.cars.find(c => c.did === p.did) || {}).tid, s: p.s, why: p.why, lap: p.lap }));
+        G.season.results[idx].pens = (race.pens || []).map(p => ({ did: p.did, tid: (race.cars.find(c => c.did === p.did) || {}).tid, s: p.s, why: p.why, lap: p.lap, kind: p.kind || 'time', n: p.n }));
+        // posições no grid da próxima corrida
+        (race.gridPens || []).forEach(g => { G.gridPenalties = G.gridPenalties || {}; G.gridPenalties[g.did] = Math.min(30, (G.gridPenalties[g.did] || 0) + g.n); });
+        SL.reopen(G, race, idx, gp);
         const dsq = SL.scrutineer(G, idx, gp);
         SL.aiReviews(G, race, idx, gp);
         SL.stewardsMail(G, race, idx, gp, dsq);
       }
     } catch (e) { /* sem comissários */ }
     return r;
+  };
+})();
+
+/* texto da punição por tipo */
+SL.penWhat = (p) => {
+  const k = p.kind || 'time';
+  if (k === 'grid') return [`${p.n} posições no grid`, `${p.n}-place grid drop`];
+  if (k === 'dt') return ['drive-through', 'drive-through'];
+  if (k === 'sg') return ['stop-and-go', 'stop-and-go'];
+  if (k === 'warn') return ['advertência', 'warning'];
+  return [`${p.s}s`, `${p.s}s`];
+};
+/* a partir de 2026 os comissários podem reabrir uma decisão por conta própria (imagem nova, telemetria) */
+SL.reopen = (G, race, idx, gp) => {
+  const nfa = (race.inv || []).filter(i => i.result === 'nfa');
+  if (!nfa.length || !RNG.chance(0.06 * nfa.length)) return;
+  const i = RNG.pick(nfa); const res = G.season.results[idx]; const row = res && res.cls.find(x => x.did === i.did);
+  if (!row || row.status !== 'fin') return;
+  const d = Career.driver(G, i.did); if (!d) return;
+  SL.reclassify(G, idx, cls => { const r = cls.find(x => x.did === i.did); if (r) { r.T += 5; r.penalty = (r.penalty || 0) + 5; } });
+  (res.pens = res.pens || []).push({ did: i.did, tid: row.tid, s: 5, why: i.why, lap: i.lap, kind: 'time', reopened: true });
+  d.pp = d.pp || []; d.pp.push({ date: SL.dayOf(G), y: G.season.year, pts: 1, why: i.why, gp });
+  Career.news(G, byLang(`Comissários reabrem o caso e punem ${d.name} no ${gp}`, `Stewards reopen the case and penalise ${d.name} at the ${gp}`), 'regulamento', byLang(`Imagens novas mostraram o incidente da volta ${i.lap} (${SL.penTxt(i.why)}). Pela regra de 2026, os próprios comissários podem rever a decisão: 5 s no tempo final.`, `New footage showed the lap ${i.lap} incident (${SL.penTxt(i.why)}). Under the 2026 rule the stewards themselves may revisit the decision: 5 s added to the final time.`), { dr: [d.id], main: true });
+};
+
+/* ---------- reserva que assume o carro (suspensão, lesão, doença) ----------
+   Mesmo critério da FIA: só entra quem tem superlicença completa. Ordem: reserva da equipe,
+   piloto da academia da equipe, piloto livre. Nunca o mesmo piloto nos dois carros. */
+(() => {
+  const ok = (G, d) => d && !d.retired && !d.injured && !d.banned && (d.age || 18) >= 18 && (!SL.status || SL.status(G, d) === 'full');
+  Career.lineup = (G, tid) => {
+    const ds = Career.teamDrivers(G, tid);
+    const seats = [1, 2].map(s => ds.find(d => d.seat === s));
+    const used = new Set(seats.filter(d => d && !d.injured && !d.banned).map(d => d.id));
+    const take = (d) => { used.add(d.id); return d; };
+    return seats.map(d => {
+      if (d && !d.injured && !d.banned) return d;
+      const res = ds.filter(x => x.seat === 'R' && !used.has(x.id) && ok(G, x)).sort((a, b) => driverOverall(b) - driverOverall(a))[0];
+      if (res) return take(res);
+      const ac = (G.academies || []).find(a => a.team === tid);
+      const acd = ac ? ac.members.map(id => Career.driver(G, id)).filter(x => x && !x.team && !used.has(x.id) && ok(G, x)).sort((a, b) => driverOverall(b) - driverOverall(a))[0] : null;
+      if (acd) return take(acd);
+      const free = G.db.drivers.filter(x => !x.team && !used.has(x.id) && ok(G, x)).sort((a, b) => driverOverall(b) - driverOverall(a))[0];
+      if (free) return take(free);
+      const any = G.db.drivers.filter(x => !x.team && !x.retired && !x.injured && !x.banned && !used.has(x.id)).sort((a, b) => driverOverall(b) - driverOverall(a))[0];
+      return any ? take(any) : d;
+    }).filter(Boolean);
   };
 })();

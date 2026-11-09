@@ -14,6 +14,7 @@ const RADIO85 = [
   ['cleanAir', 'Evitar ar sujo', 'Avoid dirty air', 'Por 5 voltas: abre cerca de 1,5 s do carro da frente para esfriar os pneus; não ataca.', 'For 5 laps: drops back about 1.5 s to cool the tyres; will not attack.', 'timed'],
   ['kerbs', 'Evitar zebras', 'Stay off kerbs', 'Menos erros e quebras; perde cerca de 0,07 s por volta.', 'Fewer mistakes and failures; about 0.07 s per lap slower.', 'toggle'],
   ['lift', 'Poupar (lift and coast)', 'Lift and coast', 'Economiza combustível, freios e pneus; cerca de 0,2 s mais lento por volta.', 'Saves fuel, brakes and tyres; about 0.2 s per lap slower.', 'toggle'],
+  ['shield', 'Proteger o companheiro', 'Shield team-mate', 'Por 8 voltas: segura quem vem atrás quando o companheiro está logo à frente (até 3 s), para ele abrir vantagem ou fazer a parada. Gasta mais pneu e perde um pouco de tempo.', 'For 8 laps: holds up the cars behind when the team-mate is just ahead (up to 3 s), so he can pull away or pit. Uses more tyre and loses a little time.', 'timed'],
   ['hold', 'Manter posições', 'Hold positions', 'Não briga por posição com o companheiro de equipe.', 'No fighting with the team-mate.', 'toggle'],
   ['letBy', 'Deixar o companheiro passar', 'Let team-mate by', 'Abre passagem assim que o companheiro estiver logo atrás (até 2,5 s). O piloto não gosta.', 'Lets the team-mate through once he is right behind (up to 2.5 s). The driver will not like it.', 'once'],
   ['extend', 'Estender o stint', 'Extend the stint', 'Adia a parada automática por 6 voltas, se o pneu aguentar.', 'Delays the automatic stop by 6 laps if the tyres allow.', 'once'],
@@ -25,6 +26,7 @@ const RADIO_MSG85 = {
   cleanAir: ['recue e saia do ar sujo, cuide dos pneus.', 'drop back out of the dirty air, look after the tyres.'],
   kerbs: ['evite as zebras, não queremos danos.', 'stay off the kerbs, we do not want damage.'],
   lift: ['poupe combustível e freios, faça lift and coast.', 'lift and coast, save fuel and brakes.'],
+  shield: ['segure quem vem atrás, o seu companheiro precisa de espaço.', 'hold up the cars behind, your team-mate needs space.'],
   hold: ['manter posições, sem briga com o companheiro.', 'hold positions, no fighting with your team-mate.'],
   letBy: ['deixe o seu companheiro passar.', 'let your team-mate through.'],
   extend: ['vamos estender este stint. Fique fora.', 'we are extending this stint. Stay out.'],
@@ -35,9 +37,9 @@ ACT.radio85 = (el) => {
   const c = race.cars.find(x => x.did === el.dataset.d); if (!c || c.status !== 'run') return;
   const k = el.dataset.o, L = race.lap; c.orders = c.orders || {};
   const d = Career.driver(G, c.did); let on = true;
-  if (['attack', 'defend', 'cleanAir'].includes(k)) {
+  if (['attack', 'defend', 'cleanAir', 'shield'].includes(k)) {
     const active = typeof c.orders[k] === 'number' && c.orders[k] > L;
-    ['attack', 'defend', 'cleanAir'].forEach(x => { delete c.orders[x]; });
+    ['attack', 'defend', 'cleanAir', 'shield'].forEach(x => { delete c.orders[x]; });
     if (active) on = false; else c.orders[k] = L + (Engine.ORDER_LAPS[k] || 5);
   } else if (['kerbs', 'lift', 'hold'].includes(k)) {
     c.orders[k] = !c.orders[k]; on = c.orders[k];
@@ -56,7 +58,7 @@ ACT.radio85 = (el) => {
 };
 function radioState85(c, k, L) {
   const o = c.orders || {};
-  if (['attack', 'defend', 'cleanAir'].includes(k)) return typeof o[k] === 'number' && o[k] > L ? `${o[k] - L}v` : '';
+  if (['attack', 'defend', 'cleanAir', 'shield'].includes(k)) return typeof o[k] === 'number' && o[k] > L ? `${o[k] - L}v` : '';
   if (k === 'extend') return c.noPitUntil && c.noPitUntil > L ? `${c.noPitUntil - L}v` : '';
   if (k === 'motivate') return o.motivatedUntil && o.motivatedUntil > L ? `${o.motivatedUntil - L}v` : '';
   if (k === 'letBy') return o.letBy ? byLang('pendente', 'pending') : '';

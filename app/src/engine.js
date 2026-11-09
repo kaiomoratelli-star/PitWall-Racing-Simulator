@@ -314,7 +314,7 @@ Engine.stepLap = (race, wk) => {
     const sd = (0.14 + (100 - drv.consistency) * 0.009 + w * 0.3) * ((drv.b && drv.b.sd) || 1);
     t += RNG.normal(0, sd);
     if (!scType && !o.kerbs && RNG.chance(0.0006 * (track.street ? 0.6 : 1) * (c.tyreMode === 'push' ? 1.4 : 1))) { const pt = RNG.chance(0.7) ? 'floor' : 'susp'; Engine.hurt(race, c, pt, RNG.range(0.15, 0.45)); Engine.event(race, 'issue', byLang(`${wk.nameOf(c.did)} pega a zebra com força: ${Engine.PARTS[pt][0]} danificad${pt === 'susp' ? 'a' : 'o'}.`, `${wk.nameOf(c.did)} hits the kerb hard: ${Engine.PARTS[pt][1]} damaged.`), c.did); }
-    if (!scType) t += (o.kerbs ? 0.07 : 0) + (o.lift ? 0.22 : 0) + (o.defend ? 0.06 : 0) - (o.attack ? 0.06 : 0) - (o.motivated ? 0.03 : 0);
+    if (!scType) t += (o.kerbs ? 0.07 : 0) + (o.lift ? 0.22 : 0) + (o.defend ? 0.06 : 0) + (o.shield ? 0.1 : 0) - (o.attack ? 0.06 : 0) - (o.motivated ? 0.03 : 0);
 
     if (L === 1) t += 2.6 + RNG.normal(0, 0.6) - (drv.start - 80) * 0.03 - (drv.racecraft - 80) * 0.01 - ((drv.b && drv.b.lap1) || 0);
     if (L === 1 && RNG.chance(0.0025 * (race.R ? race.R.penaltyStrictness : 1) * (1.4 - (drv.start || 80) / 200))) Engine.penalize(race, wk, c, 5, 'largada', 0);   // largada queimada
@@ -401,7 +401,7 @@ Engine.stepLap = (race, wk) => {
     }
     // limites de pista: três advertências e a quarta vira punição
     if (track.tlF == null) track.tlF = /aut|austria|spielberg|red-bull-ring|qat|losail|lusail|bhr|bahrain|sakhir|abu|yas|americas|austin|ricard|jeddah|ksa/i.test(track.id + ' ' + (track.circuit || '')) ? 3 : track.street ? 0.4 : 1;   // pistas com muita área asfaltada geram mais exclusões de volta
-    if (!scType && RNG.chance(0.014 * track.tlF * ((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120))) {
+    if (!scType && RNG.chance(0.012 * track.tlF * clamp(((drv.aggression || 50) / 55) * (1.4 - drv.concentration / 120), 0.55, 1.15))) {   // fator do piloto limitado: pilotos novos mais agressivos não podem inflar as punições ao longo das décadas
       c.tl++;
       const tlw = race.R.trackLimitWarnings;
       if (c.tl === tlw) Engine.event(race, 'flag', byLang(`Bandeira preta e branca para ${wk.nameOf(c.did)}: ${tlw}ª advertência por limite de pista.`, `Black and white flag for ${wk.nameOf(c.did)}: track limits warning number ${tlw}.`), c.did);
@@ -416,7 +416,7 @@ Engine.stepLap = (race, wk) => {
     c.laps = L;
     // pneus e combustível
     const wr = Engine.wearRate(c.tyre.c, track, drv, team, scType ? 'save' : c.tyreMode, w, c.tyre.temp) * (scType ? 0.45 : 1);
-    c.tyre.wear = clamp(c.tyre.wear + wr * (o.lift ? 0.94 : 1) * (o.attack ? 1.08 : 1) * (o.defend ? 1.04 : 1) * (o.cleanAir && c.lastGapAhead < 1.3 ? 0.93 : 1), 0, 100);
+    c.tyre.wear = clamp(c.tyre.wear + wr * (o.lift ? 0.94 : 1) * (o.attack ? 1.08 : 1) * (o.defend ? 1.04 : 1) * (o.shield ? 1.06 : 1) * (o.cleanAir && c.lastGapAhead < 1.3 ? 0.93 : 1), 0, 100);
     if (!scType) c.wearPerLap = +(wr / Engine.tyreWearMul(c.tyreMode)).toFixed(2); // ritmo de desgaste no modo equilibrado (base da estratégia)
     c.tyre.age++;
     c.fuel = Math.max(0, c.fuel - 100 / race.laps * (o.lift ? 0.9 : 1));
@@ -456,7 +456,7 @@ Engine.stepLap = (race, wk) => {
         if ((oc.hold && cur.tid === ahead.tid && !cur.ignoredHold) || oc.cleanAir) { cur.T = Math.max(cur.T, ahead.T + (oc.cleanAir ? 0.9 : 0.45)); break; }
         const dc = wk.effOf(cur.did), da = wk.effOf(ahead.did);
         const adv = (ahead.T + 0.25 - cur.T);
-        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.ersMode === 'overtake' ? 0.35 : 0) + (cur.tyreMode === 'push' ? 0.12 : 0) + (oc.attack ? 0.3 : 0) - (oa.defend ? 0.55 : 0);
+        const x = adv * 1.6 + (dc.overtaking - da.defending) / 22 + ((dc.b && dc.b.ovt) || 0) - ((da.b && da.b.def) || 0) + (cur.drs ? 0.7 : 0) + track.overtaking * 2.3 - 3.4 - (L === 1 ? -0.6 : 0) + (cur.ersMode === 'overtake' ? 0.35 : 0) + (cur.tyreMode === 'push' ? 0.12 : 0) + (oc.attack ? 0.3 : 0) - (oa.defend ? 0.55 : 0) - (oa.shield && cur.tid !== ahead.tid && race.cars.some(m => m !== ahead && m.tid === ahead.tid && m.status === 'run' && m.T < ahead.T && ahead.T - m.T < 3) ? 0.7 : 0);   // segura quem vem atrás para proteger o companheiro
         const p = 1 / (1 + Math.exp(-x));
         if (RNG.chance(p)) {
           cur.overtakes++;
@@ -467,6 +467,7 @@ Engine.stepLap = (race, wk) => {
           const ro = localRng(`ov:${race.trackId}:${L}:${cur.did}:${ahead.did}`);
           const ovTxt = typeof Narr !== 'undefined' ? Narr.fill(Narr.pick('rO', Narr.R.overtake, ro), { a: wk.nameOf(cur.did), b: wk.nameOf(ahead.did), c: Narr.corner(track, Math.floor(ro() * 3), ro), p: j }) : `${wk.nameOf(cur.did)} ultrapassa ${wk.nameOf(ahead.did)} pela ${ordinal(j)} posição.`;
           Engine.event(race, 'overtake', ovTxt, cur.did, { b: ahead.did, pos: j, imp: cur.isPlayer || ahead.isPlayer || j <= 10 });
+          if (!scType && RNG.chance(0.004 * (race.R ? race.R.penaltyStrictness : 1))) Engine.investigate(race, wk, cur, 'vantagem', { other: ahead.did });   // passou por fora da pista
           j--;
         } else {
           // briga roda a roda — chance de toque
@@ -490,6 +491,7 @@ Engine.stepLap = (race, wk) => {
   }
 
   Engine.applyOrders(race, wk, L, scType);
+  Engine.stewardsLap(race, wk, L, scType);
   // classificação provisória
   const runSorted = race.cars.filter(c => c.status === 'run').sort((a, b) => a.T - b.T);
   const out = race.cars.filter(c => c.status !== 'run').sort((a, b) => b.laps - a.laps || a.T - b.T);
@@ -537,13 +539,7 @@ Engine.collision = (race, wk, a, b) => {
     a.T += RNG.range(0.5, 2); b.T += RNG.range(0.5, 2);
     Engine.event(race, 'contact', byLang(`Roda a roda e toque leve entre ${names}. Os dois seguem.`, `Wheel to wheel and light contact between ${names}. Both continue.`), a.did);
   }
-  if (RNG.chance(clamp(0.45 * (race.R ? race.R.penaltyStrictness : 1), 0, 0.95))) {
-    const pen = RNG.chance(0.7) ? 5 : 10;
-    culprit.pendingPen += pen; culprit.penalty += pen;
-    (race.pp = race.pp || []).push({ did: culprit.did, pts: pen >= 10 ? 3 : 2, why: 'colisao' });
-    (race.pens = race.pens || []).push({ did: culprit.did, s: pen, why: 'colisao', lap: race.lap, pts: pen >= 10 ? 3 : 2 });   // pontos na superlicença (diretrizes da FIA: 2 a 3 por colisão)
-    Engine.event(race, 'penalty', byLang(`Comissários: ${pen}s de punição para ${wk.nameOf(culprit.did)} por causar a colisão.`, `Stewards: ${pen}s penalty for ${wk.nameOf(culprit.did)} for causing a collision.`), culprit.did);
-  }
+  if (RNG.chance(clamp(0.6 * (race.R ? race.R.penaltyStrictness : 1), 0, 0.95))) Engine.investigate(race, wk, culprit, 'colisao', { other: culprit === a ? b.did : a.did, heavy: sev < 0.22 });
 };
 
 Engine.deploySC = (race, type, why, wk) => {
@@ -607,7 +603,7 @@ Engine.ord = (c, L) => {
   if (o.motivatedUntil && L != null && L <= o.motivatedUntil) r.motivated = true;
   return r;
 };
-Engine.ORDER_LAPS = { attack: 5, defend: 5, cleanAir: 5 };
+Engine.ORDER_LAPS = { attack: 5, defend: 5, cleanAir: 5, shield: 8 };
 Engine.ORDERS = ['kerbs', 'cleanAir', 'defend', 'attack', 'lift', 'hold'];
 /* deixar o companheiro passar: executa quando ele está logo atrás (até 2,5 s) */
 Engine.applyOrders = (race, wk, L, scType) => {
@@ -672,3 +668,94 @@ Engine.ORDER_LINES = {
   ignoreHold: [['Ele está lento demais, vou passar.', 'He is too slow, I am going through.'], ['Desculpa, não dá para ficar atrás.', 'Sorry, I cannot stay behind.'], ['Eu tenho ritmo para a vitória!', 'I have the pace to win!'], ['A gente conversa depois.', 'We talk later.'], ['Vou na limpa, sem risco.', 'I will do it clean, no risk.'], ['Ninguém me segura hoje.', 'Nobody holds me back today.'], ['Ele está me atrasando, vou nessa.', 'He is holding me up, I am going.'], ['Não ouvi a parte de manter posição.', 'Did not hear the hold-position part.']],
 };
 Engine.orderLine = (k, mate) => { const L = Engine.ORDER_LINES[k]; const x = L[Math.floor(RNG.next() * L.length)]; return byLang(x[0], x[1]).replace('{m}', mate || ''); };
+
+/* =============================================================
+   DIREÇÃO DE PROVA (0.8.6)
+   - Incidente "sob investigação": a decisão sai 1 a 4 voltas depois, ou depois da bandeirada.
+   - Escala de punições: advertência, 5 s, 10 s, drive-through, stop-and-go (10 s parado) e posições no grid
+     da próxima corrida. Drive-through e stop-and-go são cumpridos em até 3 voltas; se a corrida acabar antes,
+     viram 20 s e 30 s no tempo final (como no regulamento).
+   - Diretrizes por infração; "nenhuma ação" também é uma decisão possível.
+   ============================================================= */
+Engine.PEN_TXT.vantagem = ['sair da pista e ganhar vantagem', 'leaving the track and gaining an advantage'];
+Engine.PEN_TXT.bandeira = ['ignorar bandeiras azuis', 'ignoring blue flags'];
+Engine.KIND_TXT = { warn: ['advertência', 'a warning'], dt: ['drive-through', 'a drive-through'], sg: ['stop-and-go de 10 s', 'a 10 s stop-and-go'], grid: ['posições no grid da próxima corrida', 'grid places at the next race'] };
+/* diretrizes: [peso, tipo, segundos, pontos na superlicença] */
+Engine.GUIDE = {
+  colisao: [[25, 'nfa', 0, 0], [8, 'warn', 0, 0], [40, 'time', 5, 2], [17, 'time', 10, 3], [5, 'dt', 0, 3], [2, 'sg', 0, 3], [3, 'grid', 3, 3]],
+  vantagem: [[35, 'nfa', 0, 0], [10, 'warn', 0, 0], [45, 'time', 5, 1], [10, 'time', 10, 2]],
+  bandeira: [[15, 'warn', 0, 0], [70, 'time', 5, 1], [15, 'dt', 0, 2]],
+};
+Engine.investigate = (race, wk, c, why, x) => {
+  if (!c || c.status !== 'run') return;
+  if ((race.inv || []).some(i => i.did === c.did && i.why === why && !i.done)) return;
+  const due = race.lap + RNG.int(1, 4);
+  (race.inv = race.inv || []).push({ did: c.did, why, lap: race.lap, due, other: x && x.other, heavy: x && x.heavy });
+  const w = Engine.PEN_TXT[why] || [why, why];
+  Engine.event(race, 'flag', byLang(`Incidente sob investigação: ${wk.nameOf(c.did)} por ${w[0]}${x && x.other ? ` (com ${wk.nameOf(x.other)})` : ''}. Decisão depois.`, `Incident under investigation: ${wk.nameOf(c.did)} for ${w[1]}${x && x.other ? ` (with ${wk.nameOf(x.other)})` : ''}. Decision later.`), c.did, { imp: true });
+};
+Engine.decide = (race, wk, inv, after) => {
+  inv.done = true;
+  const c = race.cars.find(x => x.did === inv.did); if (!c) return;
+  let G0 = (Engine.GUIDE[inv.why] || Engine.GUIDE.colisao).slice();
+  if (inv.heavy) G0 = G0.map(g => (g[1] === 'nfa' ? [g[0] * 0.4, ...g.slice(1)] : g[2] === 10 || g[1] === 'dt' ? [g[0] * 1.8, ...g.slice(1)] : g));
+  if (after || race.laps - race.lap < 4) G0 = G0.map(g => (g[1] === 'dt' || g[1] === 'sg' ? [0, ...g.slice(1)] : g));   // fim de corrida: só tempo ou grid
+  if (c.status !== 'run' && !after) G0 = G0.map(g => (g[1] === 'grid' ? [g[0] * 6, ...g.slice(1)] : g[1] === 'time' ? [0, ...g.slice(1)] : g));
+  const strict = race.R ? race.R.penaltyStrictness : 1;
+  const tot = G0.reduce((a, g) => a + g[0] * (g[1] === 'nfa' ? 1 / strict : 1), 0);
+  let r = RNG.next() * tot; const pick = G0.find(g => (r -= g[0] * (g[1] === 'nfa' ? 1 / strict : 1)) <= 0) || G0[G0.length - 1];
+  const [, kind, sec, pts] = pick; const nm = wk.nameOf(c.did); const w = Engine.PEN_TXT[inv.why] || [inv.why, inv.why];
+  const when = after ? byLang(' (decisão depois da corrida)', ' (post-race decision)') : '';
+  inv.result = kind;
+  if (kind === 'nfa') { Engine.event(race, 'flag', byLang(`Comissários: nenhuma ação contra ${nm} (${w[0]})${when}.`, `Stewards: no further action against ${nm} (${w[1]})${when}.`), c.did); return; }
+  if (kind === 'warn') { (race.pens = race.pens || []).push({ did: c.did, s: 0, why: inv.why, lap: race.lap, pts: 0, kind: 'warn' }); Engine.event(race, 'flag', byLang(`Comissários: advertência para ${nm} por ${w[0]}${when}.`, `Stewards: warning for ${nm} for ${w[1]}${when}.`), c.did); return; }
+  if (kind === 'time') { Engine.penalize(race, wk, c, sec, inv.why, pts); if (after) { c.T += c.pendingPen; c.pendingPen = 0; } return; }
+  if (kind === 'grid') {
+    (race.gridPens = race.gridPens || []).push({ did: c.did, n: sec, why: inv.why });
+    (race.pens = race.pens || []).push({ did: c.did, s: 0, why: inv.why, lap: race.lap, pts, kind: 'grid', n: sec });
+    if (pts) (race.pp = race.pp || []).push({ did: c.did, pts, why: inv.why });
+    Engine.event(race, 'penalty', byLang(`Comissários: ${nm} perde ${sec} posições no grid da próxima corrida por ${w[0]}${when}.`, `Stewards: ${nm} gets a ${sec}-place grid drop at the next race for ${w[1]}${when}.`), c.did, { imp: true });
+    return;
+  }
+  // drive-through ou stop-and-go: cumprir em até 3 voltas
+  c.serve = { kind, until: race.lap + 3 };
+  (race.pens = race.pens || []).push({ did: c.did, s: kind === 'dt' ? 20 : 30, why: inv.why, lap: race.lap, pts, kind });
+  if (pts) (race.pp = race.pp || []).push({ did: c.did, pts, why: inv.why });
+  const K = Engine.KIND_TXT[kind];
+  Engine.event(race, 'penalty', byLang(`Comissários: ${K[0]} para ${nm} por ${w[0]}. Precisa cumprir em até 3 voltas.`, `Stewards: ${K[1]} for ${nm} for ${w[1]}. Must be served within 3 laps.`), c.did, { imp: true });
+};
+Engine.stewardsLap = (race, wk, L, scType) => {
+  const track = wk.track;
+  (race.inv || []).filter(i => !i.done && L >= i.due).forEach(i => Engine.decide(race, wk, i, false));
+  race.cars.forEach(c => {
+    // cumpre drive-through / stop-and-go (fora do Safety Car, que não deixa cumprir)
+    if (c.serve && c.status === 'run' && !scType && (L >= c.serve.until - 1 || RNG.chance(0.5))) {
+      const loss = (track.pitLoss || 20) + (c.serve.kind === 'sg' ? 10 : 0);
+      c.T += loss;
+      Engine.event(race, 'penalty', byLang(`${wk.nameOf(c.did)} cumpre o ${Engine.KIND_TXT[c.serve.kind][0]} (${loss.toFixed(0)} s perdidos).`, `${wk.nameOf(c.did)} serves the ${c.serve.kind === 'dt' ? 'drive-through' : 'stop-and-go'} (${loss.toFixed(0)} s lost).`), c.did);
+      c.serve = null;
+    }
+  });
+  // bandeira azul: retardatário que segura o líder
+  if (!scType) {
+    const run = race.cars.filter(c => c.status === 'run'); const lead = run.reduce((a, c) => (!a || c.T < a.T ? c : a), null);
+    run.forEach(c => {
+      if (c === lead || !lead || c.T - lead.T < (track.baseLap || 90) * 0.95) return;
+      if (!RNG.chance(0.0012 * (race.R ? race.R.penaltyStrictness : 1))) return;
+      c.blue = (c.blue || 0) + 1;
+      if (c.blue === 1) Engine.event(race, 'flag', byLang(`Bandeira azul ignorada por ${wk.nameOf(c.did)}: o retardatário demora a abrir.`, `Blue flags ignored by ${wk.nameOf(c.did)}: the backmarker is slow to move over.`), c.did);
+      else Engine.investigate(race, wk, c, 'bandeira', {});
+    });
+  }
+};
+/* bandeirada: decide o que ficou pendente e converte punições não cumpridas */
+(() => {
+  const fr = Engine.finishRace;
+  Engine.finishRace = (race, wk, ...a) => {
+    try {
+      (race.inv || []).filter(i => !i.done).forEach(i => Engine.decide(race, wk, i, true));
+      race.cars.forEach(c => { if (c.serve) { const add = c.serve.kind === 'sg' ? 30 : 20; c.pendingPen += add; c.penalty += add; Engine.event(race, 'penalty', byLang(`${wk.nameOf(c.did)} não cumpriu a punição a tempo: +${add} s no tempo final.`, `${wk.nameOf(c.did)} did not serve the penalty in time: +${add} s on the final time.`), c.did); c.serve = null; } });
+    } catch (e) { /* segue */ }
+    return fr(race, wk, ...a);
+  };
+})();

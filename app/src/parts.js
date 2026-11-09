@@ -81,11 +81,13 @@ Parts.fromReason = (reason) => { const r = String(reason || ''); return /motor|e
 Parts.label = (k, short) => { const P = Parts.PU[k]; return short ? P[2] : byLang(P[0], P[1]); };
 
 /* desgaste de uma corrida (0–100 por elemento) */
-Parts.wearRace = (G, t, track, k, heat) => {
+Parts.wearRace = (G, t, track, k, heat) => Parts.wearBase(G, t, track, k, heat) * RNG.range(0.85, 1.15);
+/* desgaste médio por corrida, sem sorteio (usado também na previsão da tela) */
+Parts.wearBase = (G, t, track, k, heat) => {
   const races = G.season.calendar.length; const life = races / Math.max(1, Parts.limit(G, k));
   const rel = Engine.reliability(G.db, t);
   const powerTrack = track && track.weights ? 1 + ((track.weights.engine ?? 0.33) - 0.33) * 0.9 : 1;
-  return (100 / (life * 1.3)) * (1.08 - (rel - 80) / 250) * (k === 'gbx' || k === 'exh' ? 1 : powerTrack) * heat * RNG.range(0.85, 1.15);
+  return (100 / (life * 1.3)) * (1.08 - (rel - 80) / 250) * (k === 'gbx' || k === 'exh' ? 1 : powerTrack) * (heat || 1);
 };
 
 /* troca um elemento; devolve as posições de punição (0 se dentro da cota) */
@@ -267,3 +269,16 @@ Testing.midSeason = (G) => {
   const fw = Career.finishWeekend;
   Career.finishWeekend = (G, ...a) => { const r = fw(G, ...a); try { Testing.midSeason(G); } catch (e) { /* sem teste */ } return r; };
 })();
+
+/* previsão de estouro da cota: em que etapa cada elemento precisaria de uma unidade além da cota */
+Parts.forecast = (G, d) => {
+  const S = Parts.pu(G, d).c; const t = Career.team(G, d.team); if (!t) return [];
+  const s = G.season; const left = s.calendar.length - s.round; const out = [];
+  Parts.KEYS.forEach(k => {
+    const lim = Parts.limit(G, k); const rate = Parts.wearBase(G, t, null, k, 1) || 1;
+    let wear = S[k].wear, used = S[k].used, over = null;
+    for (let i = 1; i <= left; i++) { wear += rate; if (wear >= 97) { used++; wear = 0; if (used > lim && over == null) over = s.round + i; } }
+    out.push({ k, used: S[k].used, lim, end: used, over });
+  });
+  return out;
+};

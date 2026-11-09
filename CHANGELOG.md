@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.8.6 — Expansão esportiva e administrativa (em desenvolvimento)
-Ainda não publicada. O plano está em `docs/PLANO-0.8.6.md` e a auditoria do código em `docs/AUDITORIA-0.8.6.md`.
+## 0.8.6 — Expansão esportiva e administrativa (09/11/2026)
+O plano está em `docs/PLANO-0.8.6.md` e a auditoria do código em `docs/AUDITORIA-0.8.6.md`.
 
 **Superlicença e treino livre com novatos**
 - Superlicença completa: 40 pontos nas três últimas temporadas (25 para a de treino livre), idade mínima e pontos por TL1.
@@ -44,6 +44,20 @@ Ainda não publicada. O plano está em `docs/PLANO-0.8.6.md` e a auditoria do c�
   - no Calendário → Etapas, a tabela da temporada com vencedor, pole, sua melhor posição e condições;
   - na página da equipe, os chefes de equipe;
   - no P&D, a restrição aerodinâmica (ATR) de cada equipe.
+
+**Fechamento da 0.8.6 (09/11)**
+- Direção de prova completa:
+  - incidentes ficam "sob investigação" e a decisão sai algumas voltas depois ou após a bandeirada;
+  - escala de punições: advertência, 5 s, 10 s, drive-through, stop-and-go e posições no grid da próxima corrida;
+  - drive-through e stop-and-go não cumpridos em 3 voltas viram 20 s e 30 s;
+  - "nenhuma ação" também é uma decisão possível.
+- Novas infrações: sair da pista e ganhar vantagem, e ignorar bandeiras azuis.
+- Os comissários podem reabrir um caso por conta própria (regra de 2026).
+- Ordem de rádio "Proteger o companheiro": segura quem vem atrás quando o companheiro está logo à frente.
+- Motor: previsão de em que etapa cada elemento vai estourar a cota.
+- Reserva que assume o carro precisa de superlicença (reserva, academia ou piloto livre, nesta ordem); corrigido o caso raro de o mesmo reserva entrar nos dois carros.
+- Calendário marca as etapas com novato no TL1.
+- Teste de funcionalidade novo (`scripts/playthrough-check.js`): joga temporadas inteiras pela interface e confere a integridade dos dados.
 
 **Limpeza**
 - Cerca de 680 linhas de código sem uso removidas; funções esquecidas reaproveitadas (rivalidades, créditos e licenças, censo de talentos, estouros do teto).
