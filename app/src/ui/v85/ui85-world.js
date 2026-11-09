@@ -85,7 +85,7 @@ SCREENS.teamPage = {
       h = h.replace(/<p class="small muted" style="max-width:980px;margin:-4px 0 14px">([\s\S]*?)<\/p>/, (m, txt) => `<div class="n-help">${txt}</div>`);
       return h;
     },
-    after() { if (old.after) old.after.call(this); },
+    after() { bindCharts(); },
   };
 })();
 
@@ -129,7 +129,7 @@ function fiaHero85() {
         ${lead ? `<div class="pp-top">${art(lead, 'pp-lead')}<div class="pp-side">${art(s1, 'pp-s')}${art(s2, 'pp-s')}</div></div>` : K85.empty(byLang('Sem notícias.', 'No news.'))}
         <div class="pp-cols">${rest.slice(0, 24).map(n => art(n, 'pp-c')).join('')}</div></div>`;
     },
-    after() { if (old.after) old.after.call(this); },
+    after() { bindCharts(); },
   };
 })();
 
@@ -170,7 +170,6 @@ SCREENS.seasonEnd = {
 
 /* ---------------- Classificação: pontos por etapa, logos e total sempre visível no fim ---------------- */
 (function () {
-  const old = SCREENS.standings;
   // pontos de um piloto (ou equipe) em cada etapa: corrida + Sprint
   const roundPts = (r, key, id) => {
     const rc = r.cls.filter(c => c[key] === id); const sp = (r.sprint || []).filter(c => c[key] === id);
@@ -189,9 +188,11 @@ SCREENS.seasonEnd = {
   SCREENS.standings = {
     html() {
       const tab = UI.params.tab || 'drivers';
-      if (tab === 'chart') return old.html.call(this);
       const res = G.season.results; const myT = G.player.teamId;
       const tabs = [['drivers', byLang('Pilotos', 'Drivers')], ['teams', byLang('Construtores', 'Constructors')], ['chart', byLang('Evolução dos pontos', 'Points progression')]];
+      const hd = K85.head({ t: byLang('Classificação', 'Standings'), s: `${byLang('Temporada', 'Season')} ${G.season.year} · ${res.length}/${G.season.calendar.length} ${byLang('etapas', 'rounds')}`, tabs, tab });
+      // (0.8.7) o gráfico mora aqui; antes vinha da tela antiga
+      if (tab === 'chart') return hd + `<div class="n-card st85-card"><div class="panel-b">${pointsChart()}</div></div>`;
       let table;
       if (tab === 'drivers') {
         const sd = Career.standingsD(G);
@@ -203,10 +204,10 @@ SCREENS.seasonEnd = {
           ${sc.map((x, i) => { const t = Career.team(G, x.tid); const w = sum(res.map(r => r.cls.filter(c => c.tid === t.id && c.pos === 1 && c.status === 'fin').length)); const p = sum(res.map(r => r.cls.filter(c => c.tid === t.id && c.pos <= 3 && c.status === 'fin').length)); let eng = ''; try { eng = Engine.engineOf(G.db, t).name || ''; } catch (e) { /* sem motor */ }
             return `<tr class="${t.id === myT ? 'me' : ''}"><td class="st-p">${i + 1}</td><td class="st-n">${logo(t)}<b data-act="teamPage85" data-id="${t.id}">${esc(t.name)}</b></td><td class="st-t"><span>${esc(eng)}</span></td><td class="st-s">${w}</td><td class="st-s">${p}</td>${G.season.calendar.map((_, k) => { const r = res[k]; if (!r) return '<td class="st-r fut">·</td>'; const v = roundPts(r, 'tid', t.id); const best = Math.min(...r.cls.filter(c => c.tid === t.id && c.status === 'fin').map(c => c.pos), 99); return `<td class="st-r ${best <= 1 ? 'p1' : best <= 3 ? 'p3' : v.pts ? 'pts' : 'zero'}" title="${esc(r.gp)}">${v.pts}</td>`; }).join('')}<td class="st-pts">${x.pts}</td></tr>`; }).join('')}</tbody></table>`;
       }
-      return K85.head({ t: byLang('Classificação', 'Standings'), s: `${byLang('Temporada', 'Season')} ${G.season.year} · ${res.length}/${G.season.calendar.length} ${byLang('etapas', 'rounds')}`, tabs, tab }) +
+      return hd +
         `<div class="n-card st85-card"><div class="st85-wrap">${table}</div><div class="st85-leg"><span><i class="p1"></i>${byLang('vitória', 'win')}</span><span><i class="p2"></i>2º</span><span><i class="p3"></i>3º</span><span><i class="pts"></i>${byLang('pontuou', 'scored')}</span><span><b>AB</b> ${byLang('abandono', 'retired')}</span><span>${byLang('Pontos da etapa somam corrida e Sprint. Passe o mouse para ver a posição.', 'Round points add race and Sprint. Hover for the finishing position.')}</span></div></div>`;
     },
-    after() { if (old.after) old.after.call(this); },
+    after() { bindCharts(); },
   };
 })();
 

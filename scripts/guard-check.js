@@ -5,7 +5,9 @@
 //      e sem estar registrada em tests/replacements.json (troca aprovada, com o motivo);
 //   3. um botão chama uma ação que não existe (data-act="x" sem ACT.x);
 //   4. um arquivo de app/src não está no build, ou o build cita um arquivo que não existe;
-//   5. o manifesto de funcionalidades (tests/features.json) cita uma tela, ação ou função que não existe mais.
+//   5. o manifesto de funcionalidades (tests/features.json) cita uma tela, ação ou função que não existe mais;
+//   6. o estilo antigo de embrulho ou uma redefinição silenciosa de função do jogo;
+//   7. um embrulho guarda uma tela/ação que ainda não existe naquele ponto do build.
 // Uso: node scripts/guard-check.js
 const fs = require('fs');
 const path = require('path');
@@ -48,6 +50,20 @@ Object.entries(defs).forEach(([k, v]) => {
   if (v.length < 2) return;
   v.slice(1).forEach(d => { if (!d.wraps && !allowed.has(k)) errors.push(`${k} redefinida por inteiro em ${d.at} (antes em ${v[0].at}) sem guardar a anterior. Se a troca é intencional, registre em tests/replacements.json com o motivo e confira se nada da versão antiga se perdeu.`); });
 });
+
+// 7. (0.8.7) uma tela ou ação que embrulha a anterior (const old = SCREENS.x) precisa que a anterior exista antes dela
+//    na ordem do build; senão o embrulho chama algo indefinido (foi o que quebrou a aba de gráfico da Classificação).
+{
+  const firstDef = {};
+  Object.entries(defs).forEach(([k, v]) => { firstDef[k] = v[0].at; });
+  const pos = (at) => { const [f, ln] = at.split('.js:'); return [order.indexOf(f), +ln]; };
+  const before = (a, b) => (a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]));
+  order.forEach(m => read(m).split('\n').forEach((l, i) => {
+    const r = l.match(/^\s*const\s+\w+\s*=\s*(SCREENS|ACT|CHG)\.(\w+)\s*;/); if (!r) return;
+    const k = `${r[1]}.${r[2]}`; const here = [order.indexOf(m), i + 1];
+    if (!firstDef[k] || !before(pos(firstDef[k]), here)) errors.push(`${m}.js:${i + 1} guarda ${k}, que ainda não existe nesse ponto do build (o embrulho chamaria algo indefinido)`);
+  }));
+}
 
 // 6. ganchos: o estilo antigo de embrulho (const old = Obj.f; Obj.f = ...) é proibido; e uma função do jogo
 //    só pode ser redefinida por Hooks.base / Hooks.replace (com motivo), nunca por cima em silêncio.

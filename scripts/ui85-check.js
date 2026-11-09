@@ -44,7 +44,15 @@ const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole',
         const m = BAD.exec(txt); if (m) out.bad.push(`${v}: "${txt.slice(Math.max(0, m.index - 50), m.index + 30).replace(/\s+/g, ' ')}"`);
         if (document.documentElement.scrollWidth > window.innerWidth + 2) out.bad.push(`${v}: rolagem horizontal (${document.documentElement.scrollWidth}px)`);
       };
-      for (const v of VIEWS) await visit(v);
+      // (0.8.7) além da lista fixa, visita toda aba interna que a própria tela oferece (botões que voltam para a mesma tela com outra aba)
+      const seen = new Set();
+      const tabsOf = (view) => [...document.querySelectorAll(`[data-act="go"][data-v="${view}"][data-p]`)].map(el => { try { return JSON.parse(el.dataset.p).tab; } catch (e) { return null; } }).filter(Boolean);
+      for (const v of VIEWS) {
+        seen.add(v); await visit(v);
+        const view = v.split(':')[0];
+        for (const t of tabsOf(view)) { const k = `${view}:${t}`; if (!seen.has(k)) { seen.add(k); await visit(k); } }
+      }
+      out.visited = seen.size;
       // ---- coerência ----
       const sd = Career.standingsD(G), sc = Career.standingsC(G);
       go('hub'); await sleep(20);
@@ -99,7 +107,7 @@ const VIEWS = ['hub', 'inbox', 'calendar', 'calendar:etapas', 'weekend', 'pole',
       return out;
     }, { team, rounds, VIEWS });
     const bad = [...errs, ...res.bad, ...res.uiErrors, ...res.checks.filter(c => !c[1]).map(c => 'coerência: ' + c[0])];
-    console.log(`[${tag}] ${VIEWS.length} telas · ${res.checks.filter(c => c[1]).length}/${res.checks.length} verificações de coerência · ${bad.length ? bad.length + ' problema(s)' : 'sem problemas'}`);
+    console.log(`[${tag}] ${res.visited || VIEWS.length} telas e abas · ${res.checks.filter(c => c[1]).length}/${res.checks.length} verificações de coerência · ${bad.length ? bad.length + ' problema(s)' : 'sem problemas'}`);
     bad.slice(0, 25).forEach(x => console.log('   ' + x));
     if (bad.length) fails.push(tag);
     await p.close();
