@@ -26,6 +26,13 @@ const listed = new Set([...order, ...data.map(d => d)]);
 files.forEach(f => { if (!listed.has(f) && !['head'].includes(f)) errors.push(`app/src/${f}.js não está em scripts/modules.js (nunca entra no jogo)`); });
 order.forEach(m => { if (!fs.existsSync(path.join(SRC, m + '.js'))) errors.push(`scripts/modules.js cita ${m}.js, que não existe`); });
 
+// 8. (0.9) sintaxe: cada arquivo do jogo precisa compilar sozinho (um erro de sintaxe num arquivo de interface
+//    derruba o jogo inteiro ao abrir, e os testes do núcleo não passam por ele)
+{
+  const vmSyn = require('vm');
+  order.forEach(m => { try { new vmSyn.Script(read(m), { filename: m + '.js' }); } catch (e) { errors.push(`erro de sintaxe em ${m}.js: ${e.message}`); } });
+}
+
 // 1. funções com o mesmo nome
 const fnDefs = {};
 order.forEach(m => read(m).split('\n').forEach((l, i) => { const r = l.match(/^function (\w+)\s*\(/); if (r) (fnDefs[r[1]] = fnDefs[r[1]] || []).push(`${m}.js:${i + 1}`); }));
