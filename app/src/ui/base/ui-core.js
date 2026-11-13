@@ -327,14 +327,40 @@ function drawTrack(canvas, track, cars, opts = {}) {
   const rect = canvas.getBoundingClientRect();
   if (!rect.width) return;
   if (canvas.width !== Math.round(rect.width * dpr) || canvas.height !== Math.round(rect.height * dpr)) { canvas.width = Math.round(rect.width * dpr); canvas.height = Math.round(rect.height * dpr); }
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, rect.width, rect.height);
   const tp = trackPath(track);
   const pad = opts.pad ?? 28;
   const s = Math.min((rect.width - pad * 2) / tp.w, (rect.height - pad * 2) / tp.h);
   const ox = (rect.width - tp.w * s) / 2, oy = (rect.height - tp.h * s) / 2;
   const P = (p) => [ox + p[0] * s, oy + p[1] * s];
+  // (0.9) a pista (asfalto, linha, setores e largada) é desenhada uma vez numa camada guardada no próprio canvas e
+  // só é refeita quando muda o tamanho, a pista ou o visual; a cada quadro entram só os carros. Redesenhar os traços
+  // grossos da pista em todo quadro prendia a corrida a 30 FPS com a aceleração de hardware ligada.
+  const key = [track.id, canvas.width, canvas.height, dpr, pad, !!opts.wet, opts.outline || '', opts.thick || '', opts.lineColor || ''].join('|');
+  if (!canvas._pwBg || canvas._pwBg.key !== key || canvas._pwBg.tp !== tp) {   // tp muda quando o traçado muda (editor, gerador)
+    const bg = document.createElement('canvas'); bg.width = canvas.width; bg.height = canvas.height;
+    drawTrackBase(bg.getContext('2d'), tp, P, dpr, opts);
+    canvas._pwBg = { key, tp, cv: bg };
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(canvas._pwBg.cv, 0, 0);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  (cars || []).forEach(c => {
+    const q = P(trackPointAt(tp, c.frac));
+    ctx.beginPath(); ctx.arc(q[0], q[1], c.me ? 6.5 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = c.color; ctx.fill();
+    ctx.lineWidth = c.me ? 2.5 : 1.2; ctx.strokeStyle = c.me ? '#ffffff' : '#15151e'; ctx.stroke();
+    if (c.label) {
+      ctx.font = '700 11px "Titillium Web", sans-serif'; ctx.fillStyle = c.me ? '#ffffff' : 'rgba(255,255,255,.75)';
+      ctx.fillText(c.label, q[0] + 8, q[1] - 7);
+    }
+  });
+}
+// parte fixa do mapa: traçado, linha central, setores e largada/chegada
+function drawTrackBase(ctx, tp, P, dpr, opts) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const path = () => { ctx.beginPath(); tp.pts.forEach((p, i) => { const q = P(p); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.closePath(); };
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   if (opts.outline) {
@@ -352,19 +378,6 @@ function drawTrack(canvas, track, cars, opts = {}) {
   const ang = Math.atan2(sf2[1] - sf[1], sf2[0] - sf[0]) + Math.PI / 2;
   ctx.strokeStyle = opts.outline ? '#15151e' : ACCENT; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(sf[0] - Math.cos(ang) * 11, sf[1] - Math.sin(ang) * 11); ctx.lineTo(sf[0] + Math.cos(ang) * 11, sf[1] + Math.sin(ang) * 11); ctx.stroke();
-  if (opts.revealLen != null) {
-    // animação de desenho (tela título)
-  }
-  (cars || []).forEach(c => {
-    const q = P(trackPointAt(tp, c.frac));
-    ctx.beginPath(); ctx.arc(q[0], q[1], c.me ? 6.5 : 5, 0, Math.PI * 2);
-    ctx.fillStyle = c.color; ctx.fill();
-    ctx.lineWidth = c.me ? 2.5 : 1.2; ctx.strokeStyle = c.me ? '#ffffff' : '#15151e'; ctx.stroke();
-    if (c.label) {
-      ctx.font = '700 11px "Titillium Web", sans-serif'; ctx.fillStyle = c.me ? '#ffffff' : 'rgba(255,255,255,.75)';
-      ctx.fillText(c.label, q[0] + 8, q[1] - 7);
-    }
-  });
 }
 
 /* ---------- utilidades de formulários ---------- */

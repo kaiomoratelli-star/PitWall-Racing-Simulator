@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('pitwallNative', {
   info: () => ipcRenderer.invoke('app:info'),
   openPath: (which) => ipcRenderer.invoke('app:open', which),
   toggleFullscreen: () => ipcRenderer.invoke('app:fullscreen'),
+  setPref: (k, v) => ipcRenderer.invoke('prefs:set', k, v),
   log: (level, msg) => ipcRenderer.send('log', level, msg),
   ready: () => ipcRenderer.send('app:ready'),
   smokeMode: () => ipcRenderer.invoke('smoke:mode'),

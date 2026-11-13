@@ -21,9 +21,16 @@ log.info(`iniciando v${app.getVersion()} ${isDev ? '(dev)' : ''} electron ${proc
 
 // limite de memória do V8 e uma única instância aberta
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=2048');
-// sem aceleração de hardware: evita travamentos e artefatos de vídeo em algumas placas e drivers
-// (o jogo é 2D; tudo é desenhado pela CPU sem perda perceptível)
-app.disableHardwareAcceleration();
+// preferências do aplicativo (não do save): %APPDATA%\PitWall Racing Simulator\desktop-prefs.json
+const PREFS_FILE = path.join(DATA, 'desktop-prefs.json');
+const PREFS_DEFAULT = { hwAccel: true };
+function loadPrefs() { try { return { ...PREFS_DEFAULT, ...JSON.parse(fs.readFileSync(PREFS_FILE, 'utf8')) }; } catch (e) { return { ...PREFS_DEFAULT }; } }
+const prefs = loadPrefs();
+// (0.9) aceleração de hardware ligada por padrão; o jogador pode desligar nas opções (vale ao reiniciar),
+// para placas e drivers com travamentos ou artefatos de vídeo. --disable-hw-accel força o modo sem GPU.
+const hwAccel = prefs.hwAccel !== false && !process.argv.includes('--disable-hw-accel');
+if (!hwAccel) app.disableHardwareAcceleration();
+log.info(`aceleração de hardware: ${hwAccel ? 'ligada' : 'desligada'}`);
 if (!smokeMode && !app.requestSingleInstanceLock()) { app.quit(); }
 
 process.on('uncaughtException', (e) => {
@@ -105,7 +112,15 @@ handle('save:meta', (slot) => storage.slotMeta(slot));
 handle('save:delete', (slot) => storage.deleteSlot(slot));
 handle('base:write', (data) => storage.saveBase(data));
 handle('base:read', () => storage.loadBase());
-handle('app:info', () => ({ version: app.getVersion(), dataDir: DATA, savesDir: storage.dir, logFile: log.file, dev: isDev, electron: process.versions.electron }));
+handle('app:info', () => ({ version: app.getVersion(), dataDir: DATA, savesDir: storage.dir, logFile: log.file, dev: isDev, electron: process.versions.electron, hwAccel, prefs: loadPrefs() }));
+// só chaves conhecidas e do tipo certo; a mudança vale ao reiniciar o jogo
+handle('prefs:set', (k, v) => {
+  if (!Object.prototype.hasOwnProperty.call(PREFS_DEFAULT, k) || typeof v !== typeof PREFS_DEFAULT[k]) throw new Error(`preferência inválida: ${k}`);
+  const p = { ...loadPrefs(), [k]: v };
+  fs.writeFileSync(PREFS_FILE, JSON.stringify(p, null, 2));
+  log.info(`preferência ${k} = ${v} (vale ao reiniciar)`);
+  return p;
+});
 handle('app:open', (which) => shell.openPath(which === 'logs' ? path.dirname(log.file) : storage.dir));
 handle('app:fullscreen', () => { if (win) win.setFullScreen(!win.isFullScreen()); return win && win.isFullScreen(); });
 handle('file:export', async (name, data) => {

@@ -561,6 +561,8 @@ SCREENS.saves = {
       <div class="panel"><div class="panel-h"><h3>Jogo salvo</h3><span class="chip">${Store.where()}</span></div><div class="panel-b stack">
         ${Store.native && UI.appInfo ? `<dl class="kv"><dt>Versão do jogo</dt><dd>${esc(UI.appInfo.version)}</dd><dt>Pasta dos saves</dt><dd style="word-break:break-all">${esc(UI.appInfo.dataDir)}</dd></dl>
         <div class="row"><button class="btn" data-act="openDir" data-w="saves">Abrir pasta dos saves</button><button class="btn" data-act="openDir" data-w="logs">Abrir pasta de logs</button><button class="btn" data-act="fullscreen">Tela cheia (F11)</button></div>
+        <label class="check"><input type="checkbox" ${UI.appInfo.prefs && UI.appInfo.prefs.hwAccel === false ? '' : 'checked'} data-chg="hwAccel"> ${byLang('Aceleração de hardware (placa de vídeo)', 'Hardware acceleration (graphics card)')}</label>
+        <p class="small muted">${byLang('Desligue se a tela piscar, travar ou mostrar falhas de imagem. A mudança vale quando o jogo for reaberto.', 'Turn it off if the screen flickers, freezes or shows glitches. The change takes effect when the game is reopened.')}${UI.appInfo.prefs && UI.appInfo.hwAccel !== (UI.appInfo.prefs.hwAccel !== false) ? ` <b>${byLang('Reabra o jogo para aplicar.', 'Reopen the game to apply it.')}</b>` : ''}</p>
         <p class="small muted">Os saves ficam fora da pasta de instalação. Atualizar ou reinstalar o jogo não apaga suas temporadas. Cada salvamento guarda também as 5 versões anteriores como cópia de segurança.</p>` : ''}
         <p class="small muted">O jogo salva sozinho após cada corrida e decisão. ${UI.lastSave ? `Último salvamento: ${new Date(UI.lastSave.at).toLocaleTimeString('pt-BR')} (${UI.lastSave.where === 'cloud' ? 'nuvem' : 'navegador'}).` : ''}</p>
         <div class="row"><button class="btn primary" data-act="saveNow">Salvar agora</button><button class="btn" data-act="exportSave">Baixar arquivo do jogo</button><button class="btn" data-act="copySave">Copiar JSON</button></div>
@@ -605,6 +607,12 @@ async function refreshSlots() {
 
 ACT.openDir = (el) => Store.native && Store.native.openPath(el.dataset.w);
 ACT.fullscreen = () => Store.native && Store.native.toggleFullscreen();
+// (0.9) preferência do aplicativo, não do save: vale ao reabrir o jogo
+CHG.hwAccel = async (el) => {
+  if (!Store.native || !Store.native.setPref) return;
+  try { const p = await Store.native.setPref('hwAccel', !!el.checked); if (UI.appInfo) UI.appInfo.prefs = p; toast(byLang('Salvo. Vale quando o jogo for reaberto.', 'Saved. It takes effect when the game is reopened.')); render(); }
+  catch (e) { Store.log('error', 'hwAccel: ' + e.message); }
+};
 
 /* ================= EQUIPES DO GRID ================= */
 SCREENS.paddock = {
