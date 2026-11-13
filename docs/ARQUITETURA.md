@@ -43,6 +43,12 @@ app/data/       dados reais: real-db (F1 2026), real-extra (contratos, staff, ac
                 As fotos e logos do mundo real (app/assets/img, menos brand/) vão na pasta de imagens do
                 pacote (app/dist/packs/<id>/img); imgUrl (ui-core.js) monta o endereço por Pack.imgBase().
                 Os caminhos do ASSET_REGISTRY continuam lógicos ("assets/img/faces/...").
+                Edição fictícia (regra 19): scripts/make-fictional-pack.js gera o pacote pitwall-ficticio
+                (o mesmo banco com os nomes trocados por um dicionário fixo e os mesmos ids);
+                build.js --edicao=ficticia também passa os textos do código pelo dicionário
+                (scripts/fictional-code.js) e tira os comentários. Listas do mundo real que estavam no
+                código ficam em app/data/world-lists.js (WORLD_LISTS) e REAL_EXTRA.
+                Regra para código novo: nenhum nome real no código; sorteio nunca pelo nome (use o id).
 app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias).
                 (0.9) No build, só flags/, fonts/ e img/brand/ ficam no jogo base; o resto de img/
                 vai para a pasta de imagens do Pacote de dados.

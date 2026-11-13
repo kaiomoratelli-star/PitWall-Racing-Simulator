@@ -22,6 +22,13 @@ Cats.on = (G) => !!(G && G.cats && G.cats.order.length);
 Cats.get = (G, id) => G.cats && G.cats.byId[id];
 Cats.list = (G, all) => (G.cats ? G.cats.order.map(id => G.cats.byId[id]).filter(c => c && (all || c.enabled)) : []);
 Cats.norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+/* (0.9) duas grafias da mesma equipe? Nome inteiro igual, ou a primeira palavra distintiva de uma (2+ letras, fora as
+   genéricas) entre as palavras da outra. Antes era 'contém a primeira palavra': 'R-ace GP' (primeira palavra 'r') casava
+   com qualquer equipe que tivesse um r, e 'Matt Stone Racing' com 'AMattheis Vogel' (piloto na equipe errada). As
+   genéricas são as mesmas que o mundo fictício mantém, para os dois mundos casarem igual (regra 19). */
+Cats.TEAM_WORDS = new Set(['racing', 'team', 'teams', 'motorsport', 'motorsports', 'grand', 'prix', 'gp', 'junior', 'sport', 'sports', 'by', 'the', 'and', 'de', 'engineering', 'competition', 'autosport', 'corse', 'scuderia']);
+Cats.teamWords = (s) => Cats.norm(s).split(' ').filter(w => w.length >= 2 && !Cats.TEAM_WORDS.has(w));
+Cats.sameTeam = (a, b) => { const x = Cats.norm(a), y = Cats.norm(b); if (!x || !y) return false; if (x === y) return true; const w = Cats.teamWords(a)[0]; return !!w && Cats.teamWords(b).includes(w); };
 Cats.label = (G, d) => { const c = d && d.cat && Cats.get(G, d.cat); return c ? c.short : null; };
 
 /* ---------- criação dos pilotos ---------- */
@@ -41,7 +48,10 @@ Cats.makeDriver = (G, spec, C, ovr, age) => {
   // ids já usados nesta carreira (o cache é refeito quando a lista de pilotos muda de carreira ou é podada)
   if (!Cats._ids || Cats._idsArr !== G.db.drivers) { Cats._ids = new Set(G.db.drivers.map(d => d.id)); Cats._idsArr = G.db.drivers; }
   const ids = Cats._ids;
-  let id = 'c-' + Cats.norm(spec.name).replace(/ /g, '-').slice(0, 30);
+  // (0.9, regra 19) o pacote fictício traz o id calculado com o nome real: os mesmos ids nos dois mundos
+  // piloto gerado pelo jogo: id pelo contador da carreira, não pelo nome sorteado (no mundo fictício o nome é outro e
+  // o id tem de ser o mesmo; o estilo, o número e o potencial saem do id)
+  let id = spec.id || (spec.regen ? Career.nextId(G, 'c-g') : 'c-' + Cats.norm(spec.name).replace(/ /g, '-').slice(0, 30));
   while (ids.has(id)) id += 'x';
   ids.add(id);
   const styles = Object.keys(STYLE_PROFILES);
@@ -105,7 +115,7 @@ Cats.init = (G, only, opts) => {
       secondary: !!Cats.SECONDARY[C.id], pro: !!Cats.PRO[C.id], crew: !!C.crew, enabled: true, source: C.page,
       disc: C.disc || (C.crew ? 'end' : 'mono'), brief: C.brief || null, women: !!C.women, playoffs: !!C.playoffs, revived: C.revived || null,
       teams: C.teams.map((t, i) => {
-        const p = tst.findIndex(x => Cats.norm(x[1]).includes(Cats.norm(t.name).split(' ')[0]));
+        const p = tst.findIndex(x => Cats.sameTeam(t.name, x[1]));
         const q = p >= 0 ? 1 - p / Math.max(1, tst.length - 1) : 0.4;
         return { ...t, str: Math.round(50 + (q - 0.5) * spread + (hashStr(t.id) % 5) - 2) };
       }),
@@ -118,8 +128,9 @@ Cats.init = (G, only, opts) => {
       const pos = spec.pos || (st && st[0]) || null;
       const q = pos ? 1 - (pos - 1) / (n - 1) : 0.25;
       const [lo, hi] = Cats.RANGE_FIX[C.id] || C.range;
-      const ovr = Math.round(clamp(lo + (hi - lo) * Math.pow(clamp(q, 0, 1), 1.15) + ((hashStr(spec.name) % 25) - 12) / 10, lo - 3, hi + 1));
-      const age = spec.dob ? 2027 - Number(spec.dob.slice(0, 4)) : C.age + ((hashStr(spec.name) % 3) - 1);
+      const hn = spec.h != null ? spec.h : hashStr(spec.name);   // (0.9, regra 19) hash do nome real, que o pacote fictício leva pronto
+      const ovr = Math.round(clamp(lo + (hi - lo) * Math.pow(clamp(q, 0, 1), 1.15) + ((hn % 25) - 12) / 10, lo - 3, hi + 1));
+      const age = spec.dob ? 2027 - Number(spec.dob.slice(0, 4)) : C.age + ((hn % 3) - 1);
       let d = byName.get(Cats.norm(spec.name)) || people.find(spec.name, { nat: spec.nat, dob: spec.dob });
       if (!d) {
         d = Cats.makeDriver(G, { ...spec, q }, C, ovr, age);
@@ -210,7 +221,7 @@ Cats.initialGrid = (G) => {
     for (let i = 0; need > 0; i++) {
       let [d, st] = pick[i] || [];
       if (!d) { d = Cats.newRegen(G, cat); st = 'gerado'; }
-      const team = (d.seriesTeam && (cat.teams.find(t => Cats.norm(t.name).includes(Cats.norm(d.seriesTeam).split(' ')[0])) || {}).id) || seats.shift() || RNG.pick(cat.teams).id;
+      const team = (d.seriesTeam && (cat.teams.find(t => Cats.sameTeam(d.seriesTeam, t.name)) || {}).id) || seats.shift() || RNG.pick(cat.teams).id;
       d.cat = cat.id; d.ctm = team; d.series = null; d.seriesTeam = null;
       inMain.add(d.id);
       cat.entries.push({ did: d.id, team, no: d.number, st });

@@ -14,6 +14,7 @@ const STEPS = [
   ['workflow-check.js'],
   ['docs-check.js'],
   ['pack-check.js'],
+  ['fictional-world-check.js', '1'],   // regra 19: o mundo fictício joga a mesma carreira, só com outros nomes
   ['check-scope.js'],
   ['storage-check.js'],
   ['schema-check.js', '1'],

@@ -25,16 +25,11 @@ const Mfr = {};
 Mfr.CAP = 4;
 Mfr.REF = { power: 92, reliability: 89, eff: 85 };   // "limite" do regulamento vigente (retorno decrescente)
 /* fabricantes que ainda não estão na F1 (podem entrar só como fornecedores) */
-Mfr.CANDS = [
-  { id: 'pu-gm', name: 'General Motors', country: 'USA', logo: null, dev: 130, interest: 0.9, from: 2029, partner: 'cadillac', real: 'A GM anunciou motor próprio para a Cadillac a partir de 2029.' },
-  { id: 'pu-toyota', name: 'Toyota', country: 'JPN', logo: 'logos/manufacturers/toyota-gazoo-racing.png', dev: 140, interest: 0.35, from: 2028, real: 'Correu na F1 até 2009 e hoje é parceira técnica da Haas.' },
-  { id: 'pu-porsche', name: 'Porsche', country: 'GER', logo: 'logos/manufacturers/porsche.png', dev: 130, interest: 0.3, from: 2029, real: 'Campeã como fornecedora da McLaren (TAG-Porsche, 1984–86).' },
-  { id: 'pu-hyundai', name: 'Hyundai', country: 'KOR', logo: 'logos/manufacturers/hyundai.png', dev: 120, interest: 0.3, from: 2029, real: 'Campeã do mundial de rali; estuda a F1 desde 2025.' },
-  { id: 'pu-bmw', name: 'BMW', country: 'GER', logo: 'logos/manufacturers/bmw.png', dev: 120, interest: 0.2, from: 2029, real: 'Fornecedora campeã com a Brabham (1983) e parceira da Williams (2000–05).' },
-  { id: 'pu-cosworth', name: 'Cosworth', country: 'GBR', logo: null, dev: 60, interest: 0.15, from: 2030, real: 'Fornecedora independente mais vitoriosa da história (DFV); saiu da F1 em 2013.' },
-];
+// (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.mfrCands, app/data/world-lists.js), não no código
+Object.defineProperty(Mfr, 'CANDS', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.mfrCands) || [], configurable: true });
 /* fabricantes que podem surgir como projetos novos ao longo das décadas (nome, país) */
-Mfr.GEN_POOL = [['Peugeot', 'FRA'], ['Lamborghini', 'ITA'], ['Nissan', 'JPN'], ['Ilmor', 'GBR'], ['Mahindra', 'IND'], ['Rimac', 'CRO'], ['BYD', 'CHN'], ['Geely', 'CHN'], ['Kia', 'KOR'], ['Lotus Powertrain', 'GBR'], ['Mugen', 'JPN'], ['Pankl', 'AUT'], ['AVL', 'AUT'], ['Mecachrome', 'FRA'], ['Judd', 'GBR'], ['Polestar', 'SWE'], ['Tata', 'IND'], ['Xpeng', 'CHN']];
+// (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.mfrGenPool, app/data/world-lists.js), não no código
+Object.defineProperty(Mfr, 'GEN_POOL', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.mfrGenPool) || [], configurable: true });
 /* contratos reais de 2026 (estimados quando não divulgados) */
 Mfr.REAL_CONTRACTS = { mclaren: 2030, williams: 2030, alpine: 2030, haas: 2028, cadillac: 2028, 'racing-bulls': 2030 };
 Mfr.st = (G) => (G.mfr = G.mfr || { list: [], contracts: {}, log: [], tyres: null, seq: 0 });
@@ -248,16 +243,8 @@ Mfr.askWorks = (G, mid) => {
 };
 
 /* ---------- pneus ---------- */
-Mfr.TYRES = {
-  pirelli: { name: 'Pirelli', logo: 'logos/tyres/pirelli.png', wear: 1.0, warm: 1.0, bid: 0.75, note: ['Degradação planejada para estratégia', 'Degradation designed for strategy'] },
-  michelin: { name: 'Michelin', logo: 'logos/tyres/michelin.png', wear: 0.85, warm: 1.08, bid: 0.6, note: ['Pneu durável, mais difícil de aquecer', 'Durable tyre, harder to warm up'] },
-  bridgestone: { name: 'Bridgestone', logo: 'logos/tyres/bridgestone.png', wear: 0.9, warm: 1.0, bid: 0.45, note: ['Consistente, pouca queda de rendimento', 'Consistent, little drop-off'] },
-  hankook: { name: 'Hankook', logo: 'logos/tyres/hankook.png', wear: 1.08, warm: 0.95, bid: 0.5, note: ['Aquece rápido, gasta mais', 'Warms up fast, wears more'] },
-  goodyear: { name: 'Goodyear', logo: 'logos/tyres/goodyear.png', wear: 0.95, warm: 1.02, bid: 0.35, note: ['Robusto, conhecido pelos ovais', 'Robust, known from ovals'] },
-  yokohama: { name: 'Yokohama', logo: 'logos/tyres/yokohama.png', wear: 1.02, warm: 0.98, bid: 0.3, note: ['Equilibrado', 'Balanced'] },
-  firestone: { name: 'Firestone', logo: 'logos/tyres/firestone.png', wear: 0.95, warm: 1.0, bid: 0.15, note: ['Fornecedora da IndyCar', 'IndyCar supplier'] },
-  kumho: { name: 'Kumho', logo: 'logos/tyres/kumho.png', wear: 1.05, warm: 0.97, bid: 0.2, note: ['Barata e agressiva', 'Cheap and aggressive'] },
-};
+// (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.tyres, app/data/world-lists.js), não no código
+Object.defineProperty(Mfr, 'TYRES', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.tyres) || {}, configurable: true });
 /* fornecedores das outras categorias (dados reais de 2026) */
 Mfr.SERIES_TYRES = { f2: 'pirelli', f3: 'pirelli', f1a: 'pirelli', freca: 'pirelli', indycar: 'firestone', nxt: 'firestone', fe: 'hankook', sf: 'yokohama', sfl: 'kumho', wec: 'michelin', imsa: 'michelin', elms: 'goodyear', nascup: 'goodyear', nasxf: 'goodyear', nastr: 'goodyear', dtm: 'pirelli', stockcar: 'hankook', supercars: 'dunlop' };
 Mfr.tyres = (G) => {
@@ -265,7 +252,10 @@ Mfr.tyres = (G) => {
   if (!S.tyres) S.tyres = { f1: { id: 'pirelli', until: 2028, since: 2011 }, hist: [{ y: 2011, id: 'pirelli' }], tender: null };
   return S.tyres;
 };
-Mfr.tyreNow = (G) => Mfr.TYRES[Mfr.tyres(G).f1.id] || Mfr.TYRES.pirelli;
+// pneu neutro, sem marca: vale quando o Pacote de dados não traz os fornecedores (mundo sem pacote)
+Mfr.NEUTRAL_TYRE = { name: 'Pneu padrão', wear: 1, warm: 1, bid: 0.5, note: ['Fornecedor único', 'Single supplier'] };
+Mfr.tyreOf = (id) => Mfr.TYRES[id] || Mfr.NEUTRAL_TYRE;
+Mfr.tyreNow = (G) => Mfr.TYRES[Mfr.tyres(G).f1.id] || Mfr.TYRES.pirelli || Mfr.NEUTRAL_TYRE;
 /* licitação: dois anos antes do fim do contrato a FIA abre o processo */
 Mfr.tender = (G) => {
   const T = Mfr.tyres(G), y = G.season.year;
@@ -282,7 +272,7 @@ Mfr.tender = (G) => {
     T.f1 = { id: win, until: y + 4, since: changed ? y + 1 : T.f1.since };
     if (changed) T.hist.push({ y: y + 1, id: win });
     T.tender = null;
-    Career.news(G, changed ? byLang(`${Mfr.TYRES[win].name} vence a licitação e será a fornecedora de pneus da F1 a partir de ${y + 1}`, `${Mfr.TYRES[win].name} wins the tender and will supply F1 tyres from ${y + 1}`) : byLang(`${Mfr.TYRES[win].name} segue como fornecedora de pneus da F1 até ${y + 4}`, `${Mfr.TYRES[win].name} stays as F1 tyre supplier until ${y + 4}`), 'regulamento', changed ? byLang(Mfr.TYRES[win].note[0] + '. As equipes vão precisar reaprender o pneu.', Mfr.TYRES[win].note[1] + '. Teams will have to relearn the tyre.') : '', { main: changed });
+    Career.news(G, changed ? byLang(`${Mfr.tyreOf(win).name} vence a licitação e será a fornecedora de pneus da F1 a partir de ${y + 1}`, `${Mfr.tyreOf(win).name} wins the tender and will supply F1 tyres from ${y + 1}`) : byLang(`${Mfr.tyreOf(win).name} segue como fornecedora de pneus da F1 até ${y + 4}`, `${Mfr.tyreOf(win).name} stays as F1 tyre supplier until ${y + 4}`), 'regulamento', changed ? byLang(Mfr.TYRES[win].note[0] + '. As equipes vão precisar reaprender o pneu.', Mfr.TYRES[win].note[1] + '. Teams will have to relearn the tyre.') : '', { main: changed });
   }
 };
 Mfr.applyTyre = (G) => { const x = Mfr.tyreNow(G); Engine.TYRE_SUP = { wear: x.wear, warm: x.warm }; };

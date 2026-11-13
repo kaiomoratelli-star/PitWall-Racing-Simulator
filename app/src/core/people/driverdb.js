@@ -74,7 +74,7 @@ DriverDB.init = (G) => {
     const ovr = DriverDB.rating(p) ?? (DriverDB.RANGE[last.s] ? DriverDB.RANGE[last.s][0] + 1 : null);
     if (ovr == null) return;
     const C = { id: last.s, tier: 3 };
-    const d = Cats.makeDriver(G, { name: p.name, nat: p.nat || 'GBR', dob: p.dob, no: (p.seasons.slice(-1)[0] || {}).no, team: last.team }, C, ovr, age ?? 26);
+    const d = Cats.makeDriver(G, { id: p.cid, name: p.name, nat: p.nat || 'GBR', dob: p.dob, no: (p.seasons.slice(-1)[0] || {}).no, team: last.team }, C, ovr, age ?? 26);
     d.cat = null; d.series = last.s; d.seriesTeam = last.team || null; d.seriesStatus = last.status;
     d.uid = p.uid; d.aliases = p.aliases; d.realSeasons = DriverDB.compact(p); d.origin = 'driverdb';
     if (p.img) d.commonsImg = p.img;

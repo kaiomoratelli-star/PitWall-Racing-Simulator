@@ -113,8 +113,11 @@ function fmtMoney(m) {
 }
 function ordinal(n) { return `${n}º`; }
 
-/* Nomes para staff, novatos e pilotos gerados — por nacionalidade */
-const NAME_POOL = {
+/* Nomes para staff, novatos e pilotos gerados — por nacionalidade.
+   (0.9, regra 19) "var" e não "const": o Pacote de dados fictício traz a mesma lista com os nomes passados pelo
+   dicionário (Pack.install troca a variável global), para os pilotos gerados também terem nomes fictícios e
+   colidirem com os mesmos nomes do mundo real (o jogo sorteia de novo quando o nome já existe). */
+var NAME_POOL = {
   BRA: { f: ['Lucas', 'Pedro', 'Thiago', 'Bruno', 'Caio', 'Felipe', 'Enzo', 'Vitor', 'Henrique', 'Murilo', 'Beatriz', 'Larissa'], l: ['Silva', 'Souza', 'Andrade', 'Barros', 'Monteiro', 'Pacheco', 'Teixeira', 'Rocha', 'Prado', 'Fontes', 'Bastos'] },
   GBR: { f: ['James', 'Harry', 'Oliver', 'George', 'Jack', 'Alfie', 'Thomas', 'Emily', 'Charlotte'], l: ['Whitmore', 'Hale', 'Carter', 'Bennett', 'Pryce', 'Sutton', 'Lowe', 'Barrow', 'Fenwick'] },
   ITA: { f: ['Marco', 'Andrea', 'Giulio', 'Matteo', 'Davide', 'Riccardo', 'Giulia'], l: ['Rossetti', 'Galli', 'Ferraresi', 'Conti', 'Moretti', 'Bellandi', 'Caruso'] },

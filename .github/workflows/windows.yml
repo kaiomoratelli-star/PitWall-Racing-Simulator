@@ -45,6 +45,7 @@ jobs:
           node scripts/determinism-check.js
           node scripts/determinism-check.js --pack
           node scripts/save-compat-check.js 12 --pack
+          node scripts/fictional-world-check.js 2
 
       - name: Testes da interface (Playwright)
         shell: bash

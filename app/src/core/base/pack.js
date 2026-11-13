@@ -16,7 +16,7 @@ const Pack = {
     REAL_DB: 'object', REAL_EXTRA: 'object', REAL_HISTORY: 'object', REAL_RECORDS: 'object', TEAM_LORE: 'object',
     REAL_CATS: 'object', ASSET_REGISTRY: 'array', DRIVER_DB: 'object', FIA_CIRCUITS: 'object', REAL_TRACKS: 'object',
     DRIVER_WOMEN: 'array', F1_CALENDAR_2027: 'object', DRIVERDB_2026: 'object', DRIVER_TIERS: 'object',
-    SPONSOR_BRANDS: 'object', TEAM_CANDIDATES: 'array', TEAM_OWNERS: 'object', GENERIC_LOGOS: 'array',
+    SPONSOR_BRANDS: 'object', SPONSOR_POOL: 'array', NICKNAMES: 'object', NAME_POOL: 'object', FEMALE_NAMES: 'object', WORLD_LISTS: 'object', TEAM_CANDIDATES: 'array', TEAM_OWNERS: 'object', GENERIC_LOGOS: 'array',
   },
   installed: null,
 };

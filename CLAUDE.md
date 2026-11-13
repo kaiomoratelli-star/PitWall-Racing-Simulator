@@ -11,7 +11,8 @@ plano da versão: `docs/PLANO-0.9.md`.
 | Comando | O que faz |
 |---|---|
 | `npm test` | guardas, Schema, regras, paridade PT/EN, simulação prolongada e categorias (~4 min) |
-| `npm run build` | gera `app/dist/index.html` e o Pacote de dados `app/dist/packs/pitwall-dados-reais.js` (`--sem-dados-reais`: só o mundo fictício) |
+| `npm run build` | gera `app/dist/index.html` e o Pacote de dados `app/dist/packs/pitwall-dados-reais.js` (`--edicao=ficticia`: a edição fictícia, regra 19; `--sem-dados-reais`: sem pacote nenhum) |
+| `node scripts/fictional-world-check.js 2` | regra 19: a mesma carreira no mundo real e no fictício (só os nomes mudam) e nenhum nome real sobrando |
 | `node scripts/determinism-check.js` | 4 carreiras com semente fixa; compara as assinaturas com `tests/determinism.json` |
 | `node scripts/determinism-check.js --write` | regrava as assinaturas (só após mudança de jogo aprovada e registrada no CHANGELOG) |
 | `node scripts/ui85-check.js 2` | interface em Playwright/Chromium (precisa do build) |

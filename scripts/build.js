@@ -17,9 +17,23 @@ const pkg = require('../package.json');
 // o teste do jogo fictício confere.
 const noReal = process.argv.includes('--sem-dados-reais');
 const { buildPack, wrapPack, packConsts, copyPackImages } = require('./make-data-pack');
-const packs = noReal ? [] : [buildPack()];
-const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${src(m + '.js')}`).join('\n');
-const css = ['styles.css', 'ui85.css', 'ui85-screens.css', 'ui85-fx.css'].filter(f => fs.existsSync(path.join(root, 'app', 'src', f))).map(src).join('\n');
+// (0.9, regra 19) --edicao=ficticia: o mesmo banco de dados com os nomes trocados e os mesmos ids (Pacote de dados
+// pitwall-ficticio, sem fotos). É a edição gratuita; sem a opção, o jogo leva o pacote real.
+const fict = process.argv.includes('--edicao=ficticia');
+const packs = noReal ? [] : fict ? [require('./make-fictional-pack').buildFictionalPack().pack] : [buildPack()];
+// edição fictícia: os textos escritos no código ("Fórmula 1", "Conselho da FIA"...) passam pelo mesmo dicionário do
+// pacote fictício (scripts/fictional-code.js); o instalador não leva o dicionário nem nenhum nome real
+let codeMap = null;
+if (fict) {
+  const F = require('./fictional-code');
+  const fictPack = require('./make-fictional-pack').buildFictionalPack();
+  codeMap = F.codeMapper(fictPack, [...core, ...ui].map(m => src(m + '.js'))).codeMap;
+  codeMap.rewrite = (code) => F.rewriteCode(code, codeMap).code;
+}
+const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${codeMap ? codeMap.rewrite(src(m + '.js')) : src(m + '.js')}`).join('\n');
+const css0 = ['styles.css', 'ui85.css', 'ui85-screens.css', 'ui85-fx.css'].filter(f => fs.existsSync(path.join(root, 'app', 'src', f))).map(src).join('\n');
+// edição fictícia: os comentários do CSS saem (citam nomes reais e não aparecem na tela)
+const css = fict ? css0.replace(/\/\*[\s\S]*?\*\//g, '') : css0;
 
 // Fonte oficial da F1 (Formula1 Display): não vem com o jogo (é da Formula One Management).
 // Se os arquivos estiverem em app/assets/fonts (ex.: Formula1-Display-Bold.woff2), o build gera os

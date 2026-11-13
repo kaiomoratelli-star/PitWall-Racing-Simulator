@@ -936,5 +936,62 @@ const REAL_EXTRA = {
    0,
    0
   ]
+  },
+ "famousStaff": {
+  "Adrian Newey": 99,
+  "James Allison": 94,
+  "Pierre Waché": 92,
+  "Toto Wolff": 95,
+  "Andrea Stella": 93,
+  "Peter Prodromou": 92,
+  "Gianpiero Lambiase": 93,
+  "Hannah Schmitz": 92,
+  "Enrico Cardile": 89,
+  "Loïc Serra": 89,
+  "Frédéric Vasseur": 88,
+  "Pat Fry": 88,
+  "James Key": 87,
+  "Pat Symonds": 90,
+  "Mattia Binotto": 87,
+  "Peter Bonnington": 92,
+  "Will Joseph": 90,
+  "Dan Fallows": 89,
+  "Rob Marshall": 91,
+  "Andy Cowell": 92,
+  "Laurent Mekies": 87,
+  "James Vowles": 88,
+  "Jonathan Wheatley": 87,
+  "Ayao Komatsu": 85,
+  "Flavio Briatore": 86,
+  "Zak Brown": 88
+  },
+ "identities": {
+  "alpine": {
+   "2027": {
+    "name": "Gucci Racing Alpine",
+    "fullName": "Gucci Racing Alpine Formula One Team",
+    "titleSponsor": "Gucci",
+    "sponsorsRemove": [
+     "BWT"
+    ],
+    "sponsorsAdd": [
+     "Gucci"
+    ],
+    "ended": "BWT",
+    "status": {
+     "name": "confirmado",
+     "titleSponsor": "confirmado",
+     "colors": "provisório (a pintura de 2027 ainda não foi apresentada)",
+     "value": "não divulgado oficialmente"
+    },
+    "source": "Anúncio oficial da Alpine e da Gucci em 27/05/2026 (media.alpinecars.com; formula1.com)",
+    "verified": "2026-11-06",
+    "note": "A Gucci é title partner e parceira de marca, não proprietária. A inscrição no campeonato segue como Alpine.",
+    "news": {
+     "title": "Alpine vira Gucci Racing Alpine: a Gucci é a nova title partner da equipe",
+     "body": "A partir desta temporada a equipe corre como Gucci Racing Alpine Formula One Team. É a primeira vez que uma casa de moda de luxo assume o title partnership de uma equipe de Fórmula 1. A Gucci substitui a BWT, que deixa o posto de title partner; a equipe segue inscrita como Alpine e pertence ao grupo Renault."
+    }
+   }
+  }
  }
 };

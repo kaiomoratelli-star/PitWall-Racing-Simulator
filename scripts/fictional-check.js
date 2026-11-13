@@ -1,6 +1,7 @@
 // Jogo base fictício (0.9, Onda 3): o jogo inteiro precisa funcionar SEM nenhum dado real (edição gratuita).
 // 1) núcleo: carrega só app/src/core (sem app/data) e joga N temporadas no Manager e no Observador;
-// 2) interface: build --sem-dados-reais, visita todas as telas (lista do ui85-check) nos dois modos,
+// 2) interface: build --edicao=ficticia (regra 19: o banco de dados original com os nomes trocados), visita todas as
+//    telas (lista do ui85-check) nos dois modos, sem nenhum nome real de pessoa, equipe ou marca na tela,
 //    sem erro de página, sem erro registrado pela interface e sem "undefined", "NaN" ou "[object Object]".
 // Depois refaz o build normal. Uso: node scripts/fictional-check.js [temporadas=3]
 'use strict';
@@ -33,8 +34,22 @@ for (const mode of ['manager', 'observer']) {
 
 // 2) interface
 const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'build.js'), ...args], { cwd: root, encoding: 'utf8' });
+// (passo 5, regra 19) nomes reais que nenhuma tela da edição fictícia pode mostrar: pessoas, equipes, marcas, motores,
+// competições e as listas do mundo real (veículos, criadores, montadoras, pneus)
+const REALP = require('./make-data-pack').buildPack().content;
+const GEN = require('./make-fictional-pack').buildFictionalPack().GENERIC;
+// palavras comuns: as que o código do jogo escreve em minúsculas ('marca'): um nome de uma palavra que também é palavra comum não conta
+const CODE_WORDS = new Set();
+for (const m of [...core, ...require('./modules').ui]) (fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8').match(/\p{Ll}+/gu) || []).forEach(w => CODE_WORDS.add(w));
+const isName = (n) => typeof n === 'string' && n.length >= 5 && (n.match(/\p{L}+/gu) || []).some(w => !GEN.has(w.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()));
+const REAL_NAMES = [...new Set([
+  ...REALP.REAL_DB.drivers.map(d => d.name), ...REALP.REAL_DB.teams.flatMap(t => [t.name, t.fullName, t.principal]),
+  ...REALP.REAL_DB.engines.map(e => e.name), ...REALP.REAL_CATS.cats.flatMap(c => [c.name, ...c.teams.map(t => t.name), ...c.drivers.map(d => d.name)]),
+  ...Object.values(REALP.WORLD_LISTS.outlets).map(o => o.name), ...REALP.WORLD_LISTS.creators.map(c => c.name),
+  ...REALP.WORLD_LISTS.mfrCands.map(m => m.name), ...Object.values(REALP.WORLD_LISTS.tyres).map(t => t.name),
+].filter(isName))].filter(n => { const ws = n.match(/\p{L}+/gu) || []; return ws.length > 1 || !CODE_WORDS.has(ws[0].toLowerCase()); });
 (async () => {
-  build(['--sem-dados-reais']);
+  build(['--edicao=ficticia']);
   try {
     const { chromium } = require('playwright');
     const VIEWS = require('./ui85-check-views.json');
@@ -47,11 +62,12 @@ const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'bu
       p.on('requestfailed', q => { if (IMG_RE.test(q.url())) imgBad.push('imagem não encontrada: ' + q.url().replace(/^.*\/app\/dist\//, '')); });
       p.on('requestfinished', q => { const u = q.url().replace(/^.*\/app\/dist\//, ''); if (IMG_RE.test(u) && (u.startsWith('packs/') || (u.startsWith('assets/img/') && !u.startsWith('assets/img/brand/')))) imgBad.push('imagem do mundo real no jogo fictício: ' + u); });
       await p.goto('file://' + path.join(root, 'app', 'dist', 'index.html')); await p.waitForTimeout(300);
-      const r = await p.evaluate(async ({ mode, VIEWS }) => {
+      const r = await p.evaluate(async ({ mode, VIEWS, REAL_NAMES }) => {
         const out = []; const sleep = (ms) => new Promise(r => setTimeout(r, ms));
         const BAD = /\bundefined\b|\bNaN\b|\[object Object\]/;
+        const seenReal = new Set();
         try { closeModal(); } catch (e) { /* sem modal */ }
-        if (typeof REAL_DB !== 'undefined') out.push('o build fictício ainda contém REAL_DB');
+        if (!Pack.installed || Pack.installed.id !== 'pitwall-ficticio') out.push(`a edição fictícia devia instalar o pacote pitwall-ficticio (instalado: ${Pack.installed ? Pack.installed.id : 'nenhum'})`);
         G = Career.create(BASE, { mode, teamId: BASE.teams[0].id, seed: 'ficticio-ui', name: 'Teste' });
         if (G.teamSetup && G.teamSetup.pending && typeof Owners !== 'undefined' && Owners.autoSetup) Owners.autoSetup(G);
         for (let i = 0; i < 3; i++) simulateRound();
@@ -70,10 +86,13 @@ const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'bu
           await sleep(20);
           const txt = document.getElementById('app').innerText;
           const m = BAD.exec(txt); if (m) out.push(`${v}: "${txt.slice(Math.max(0, m.index - 50), m.index + 30).replace(/\s+/g, ' ')}"`);
+          // lugares ficam reais (decisão do dono): circuito, GP e cidade saem do texto antes de procurar nomes
+          let plain = txt; (G.db.tracks || []).forEach(tr => [tr.circuit, tr.gp, tr.place, tr.name].forEach(x => { if (x && x.length > 2) plain = plain.split(x).join(' '); }));
+          for (const n of REAL_NAMES) if (!seenReal.has(n) && plain.includes(n)) { seenReal.add(n); out.push(`${v}: nome real "${n}" na tela`); }
         }
         if (logged() > before) out.push(`${logged() - before} erro(s) registrados pela interface: ${UI.errors.slice(before, before + 3).map(e => e.where + ': ' + e.msg).join(' | ')}`);
         return out;
-      }, { mode, VIEWS });
+      }, { mode, VIEWS, REAL_NAMES });
       r.forEach(x => bad.push(`interface/${mode}: ${x}`));
       errs.slice(0, 5).forEach(x => bad.push(`interface/${mode}: erro de página: ${x}`));
       [...new Set(imgBad)].slice(0, 5).forEach(x => bad.push(`interface/${mode}: ${x}`));
@@ -92,7 +111,7 @@ const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'bu
         try { closeModal(); } catch (e) { /* sem modal */ }
         G = Career.create(BASE, { mode: 'observer', seed: 'ficticio-save' });
         const mine = G, mineJson = JSON.stringify(G);
-        if (G.pack !== null) out.push(`carreira fictícia com G.pack = ${JSON.stringify(G.pack)} (esperado null)`);
+        if (!G.pack || G.pack.id !== 'pitwall-ficticio') out.push(`carreira fictícia com G.pack = ${JSON.stringify(G.pack)} (esperado pitwall-ficticio)`);
         const opened = loadCareer(JSON.parse(old));
         if (opened) out.push('o save da 0.8.7 (dados reais) abriu no jogo fictício');
         if (G !== mine) out.push('o jogo aberto foi trocado mesmo com o save recusado');

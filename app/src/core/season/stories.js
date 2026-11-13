@@ -19,13 +19,8 @@
 const Stories = {};
 
 /* ---------- 1) criadores de conteúdo ---------- */
-Social.CREATORS = [
-  { name: 'GlockDepre', style: 'meme' }, { name: 'Primeira Fila F1', style: 'analise' }, { name: 'Boteco F1', style: 'resenha' },
-  { name: 'Ressaca F1', style: 'resenha' }, { name: 'Rafael Lopes', style: 'analise' }, { name: 'Kevin Nicolas', style: 'resenha' },
-  { name: 'EFFE', style: 'analise' }, { name: 'GP em Casa', style: 'noticia' }, { name: 'Luca Morelli', style: 'noticia' },
-  { name: 'Mariana Becker', style: 'reportagem' }, { name: 'Juliana Cerasolli', style: 'analise' }, { name: 'F1das_frase', style: 'meme' },
-  { name: 'Tiago Mendonça', style: 'analise' }, { name: 'Estagiário da F1', style: 'meme' },
-];
+// (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.creators, app/data/world-lists.js), não no código
+Object.defineProperty(Social, 'CREATORS', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.creators) || [], configurable: true });
 Social.REACT = {
   win: {
     meme: [['{d} venceu e eu já tô chorando no sofá', '{d} won and I am already crying on the sofa'], ['print pra eternidade: {d} no topo do pódio', 'screenshot for eternity: {d} on top of the podium']],
@@ -74,7 +69,7 @@ Social.REPLIES = [['verdade', 'true'], ['concordo demais', 'totally agree'], ['q
 
 Stories.creatorPost = (G, c, text, about, hype = 1, kind) => {
   G.social = G.social || [];
-  const r = localRng(`cr:${G.seed}:${c.name}:${G.social.length}`);
+  const r = localRng(`cr:${G.seed}:${Social.CREATORS.indexOf(c)}:${G.social.length}`);   // (0.9, regra 19) pela posição do criador, não pelo nome
   const likes = Math.round((2500 + r() * 9000) * hype);
   const replies = [0, 1, 2].slice(0, 1 + Math.floor(r() * 2)).map(i => { const f = Social.FANS[Math.floor(r() * Social.FANS.length)]; const RP = kind === 'tribute' ? Social.REPLIES_SOBER : kind === 'scandal' ? Social.REPLIES_SERIOUS : Social.REPLIES; const t = RP[Math.floor(r() * RP.length)]; return { by: f, text: byLang(t[0], t[1]) }; });
   G.social.unshift({ id: (G.seq = (G.seq || 0) + 1), y: G.season ? G.season.year : 0, r: G.season ? G.season.round : 0, by: { kind: 'creator', name: c.name, handle: null, sim: true }, text, kind: 'creator', likes, reposts: Math.round(likes * 0.08), replies, nreplies: Math.round(likes * 0.03) + replies.length, about: about || null });
@@ -82,7 +77,7 @@ Stories.creatorPost = (G, c, text, about, hype = 1, kind) => {
 };
 Stories.react = (G, kind, vars) => {
   const T = Social.REACT[kind]; if (!T) return;
-  const r = localRng(`react:${G.seed}:${kind}:${G.seq || 0}:${vars.d || ''}`);
+  const r = localRng(`react:${G.seed}:${kind}:${G.seq || 0}:${vars.about || ''}`);   // (0.9, regra 19) pelo id, não pelo nome
   const pool = Social.CREATORS.filter(c => T[c.style]);
   const n = kind === 'title' || kind === 'tribute' ? 3 : r() < 0.55 ? 1 : 2;
   const used = new Set();
@@ -201,7 +196,8 @@ Stories.discover = (G, h) => {
 
 /* ---------- 4) ciclo da vida: causas naturais, frequência baixíssima ---------- */
 Stories.qx = (age) => Math.min(0.2, 0.0005 * Math.exp(0.085 * (age - 30))) * 0.25;
-Stories.staffAge = (G, s) => { if (s.born == null) s.born = (s.since || 2026) - (36 + (hashStr(s.id + s.name) % 26)); return G.season.year - s.born; };
+// (0.9, regra 19) sorteios pelo id da pessoa, não pelo nome: o mundo fictício (nomes trocados) joga igual ao real
+Stories.staffAge = (G, s) => { if (s.born == null) s.born = (s.since || 2026) - (36 + (hashStr(s.id) % 26)); return G.season.year - s.born; };
 Stories.yearly = (G, forceWho) => {
   const real = !!(G.options && G.options.realMortality);
   const y = G.season.year;
@@ -210,7 +206,7 @@ Stories.yearly = (G, forceWho) => {
   G.db.drivers.forEach(d => { if (d.retired && !d.dead && d.age >= 55 && (d.regen || real)) cands.push({ kind: 'driver', d, name: d.name, age: d.age, real: !d.regen }); });
   let list;
   if (forceWho) list = [cands.filter(c => !c.real).sort((a, b) => b.age - a.age)[0]].filter(Boolean);
-  else list = cands.filter(c => localRng(`life:${G.seed}:${c.name}:${y}`)() < Stories.qx(c.age));
+  else list = cands.filter(c => localRng(`life:${G.seed}:${c.s ? c.s.id : c.d.id}:${y}`)() < Stories.qx(c.age));
   list.slice(0, 1).forEach(c => Stories.passAway(G, c));
 };
 Stories.passAway = (G, c) => {

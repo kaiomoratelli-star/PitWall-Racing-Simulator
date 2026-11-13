@@ -20,6 +20,9 @@
 'use strict';
 
 const Talent = {};
+// (0.9, regra 19) semente dos sorteios do piloto: o QID do Wikidata, quando existe, ou o id (nunca o nome: o mundo
+// fictício troca os nomes e precisa sortear igual)
+Talent.seedKey = (d) => (d.uid && /^Q[0-9]+$/.test(d.uid) ? d.uid : d.id);
 Talent.TIERS = [
   { id: 'geracional', name: 'Geracional', en: 'Generational', min: 94, max: 96, f1: true },
   { id: 'acima', name: 'Acima da média', en: 'Above average', min: 89, max: 90, f1: true },
@@ -99,7 +102,7 @@ Talent.recenter = (d, target) => {
 };
 Talent.profile = (G, d) => {
   if (d.profiled) return;
-  const r = localRng('perfil:' + (d.pid || d.id));
+  const r = localRng('perfil:' + Talent.seedKey(d));
   const raw0 = d.pace * 0.3 + d.qualifying * 0.1 + d.racecraft * 0.12 + d.consistency * 0.12 + d.tyre * 0.08 + d.wet * 0.05 + d.overtaking * 0.07 + d.defending * 0.06 + (d.start ?? d.pace) * 0.03 + (d.energy ?? d.pace) * 0.03 + (d.adaptability ?? d.pace) * 0.02 + (d.concentration ?? d.pace) * 0.02;
   const off = {};
   Talent.ATTRS.forEach(k => { off[k] = (r() - 0.5) * 5; });
@@ -126,7 +129,7 @@ Talent.profile = (G, d) => {
 /* ---------- aplicação ---------- */
 Talent.assign = (G, d) => {
   if (d.tier && d.ceiling) return;
-  const r = localRng('nivel:' + (d.pid || d.id));
+  const r = localRng('nivel:' + Talent.seedKey(d));
   const table = typeof DRIVER_TIERS !== 'undefined' ? DRIVER_TIERS.f1 : {};
   const ser = typeof DRIVER_TIERS !== 'undefined' && DRIVER_TIERS.series ? DRIVER_TIERS.series[d.id] : null;
   if (table[d.id]) { const t = Talent.byId(table[d.id]); Talent.setCeiling(d, t.min + r() * (t.max - t.min) + (t.id === 'geracional' ? 1 : 0), t.id); }

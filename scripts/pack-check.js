@@ -51,8 +51,10 @@ const cases = [
 for (const [name, mut] of cases) {
   const ctx = fresh();
   ctx.__p = JSON.stringify(mut(clone(real)));
+  // o que existia antes (o núcleo já define NAME_POOL, a reserva): recusar não pode mudar nenhuma dessas variáveis
+  vm.runInContext('globalThis.__before = Object.fromEntries(Object.keys(Pack.GLOBALS).map(k => [k, globalThis[k]]))', ctx);
   const r = vm.runInContext('Pack.install(JSON.parse(__p))', ctx);
-  const leaked = vm.runInContext('Object.keys(Pack.GLOBALS).filter(k => typeof globalThis[k] !== "undefined")', ctx);
+  const leaked = vm.runInContext('Object.keys(Pack.GLOBALS).filter(k => globalThis[k] !== __before[k])', ctx);
   const inst = vm.runInContext('Pack.installed', ctx);
   if (r.ok) bad.push(`${name}: foi aceito`);
   if (leaked.length || inst) bad.push(`${name}: recusado, mas mudou o estado (${leaked.join(', ') || 'Pack.installed'})`);

@@ -18,3 +18,7 @@ const SPONSOR_BRANDS = {
   'Allwyn': ['apostas', 2], 'Stake': ['apostas', 3],
   'BWT': ['indústria', 3], 'Duracell': ['bens de consumo', 2], 'LEGO': ['brinquedos', 2],
 };
+
+/* (0.9) Outras marcas reais que patrocinam o automobilismo, para os patrocínios novos (estava no código, em career-weekend.js).
+   Ficam nos dados para o mundo fictício trocar os nomes junto (regra 19). */
+const SPONSOR_POOL = ["Heineken", "DHL", "AWS", "Lenovo", "Crypto.com", "Rolex", "Salesforce", "Globant", "MSC Cruises", "Qatar Airways", "Emirates", "Allwyn", "LVMH", "Paramount+", "Pepsico", "Kraken", "Tata Communications", "Bitpanda", "Castrol", "Puma", "Ray-Ban", "Estrella Galicia", "Gulf", "Snowflake", "Workday"];

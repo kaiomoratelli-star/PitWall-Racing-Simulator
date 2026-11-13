@@ -44,7 +44,7 @@ const S = {
   ar: { on: 'B D F H J K Kh M N Q R S Sh T Z', v: 'a i u a a', k: 'd l n r s m b h', endL: 'ani awi eri ein ari ouri adi ini', endM: 'id ir an am ad ul', endF: 'a ia ah ina' },
   in: { on: 'B D G J K M N P R S T V Ch Sh', v: 'a i u a e', k: 'd l n r s m v sh', endL: 'an esh ar raj deep avan ani endra', endM: 'av esh ul an it ish', endF: 'a ita ika ini' },
   th: { on: 'B Ch K N P R S T W Th Ph', v: 'a i o u a', k: 'k n p t w', endL: 'chai pong wat sakul thorn porn kul', endM: 'chai pong sak at', endF: 'a porn ya nee' },
-  tr: { on: 'B C D G K M N S T Y Ç Ş', v: 'a e i o u ı', k: 'd l n r s t k y', endL: 'oğlu türk can kaya han soy', endM: 'an er han ur et', endF: 'a e ay nur' },
+  tr: { on: 'B C D G K M N S T Y Ç Ş', v: 'a e i o u e', k: 'd l n r s t k y', endL: 'oğlu türk can kaya han soy', endM: 'an er han ur et', endF: 'a e ay nur' },
   hu: { on: 'B D F G K L M N P S T V Sz', v: 'a e i o u á', k: 'd l n r s t k', endL: 'ás ényi ai ó és ics', endM: 'án or ás os ér', endF: 'a ka ett' },
   gr: { on: 'D G K L M N P S Th Ch St', v: 'a e i o', k: 'd l n r s t k', endL: 'opoulos idis akis atos iou', endM: 'os is as', endF: 'a i ia' },
   ro: { on: 'B C D F G M N P R S T V', v: 'a e i o u', k: 'd l n r s t v', endL: 'escu eanu aru ache', endM: 'u el ian or', endF: 'a ia ela ina' },
@@ -60,22 +60,30 @@ const rngOf = (seed) => { let s = hash(seed) || 1; return () => { s = (s + 0x6D2
 const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/* um nome de pessoa (uma palavra): role 'first' ou 'last'; gender 'M' ou 'F' */
-function personWord(family, role, gender, seed) {
+/* um nome de pessoa (uma palavra): role 'first' ou 'last'; gender 'M' ou 'F'; initial = a letra (a-z) com que o nome
+   tem de começar (a mesma do nome real: o jogo compara iniciais para achar a mesma pessoa e abrevia "L. Hamilton") */
+function personWord(family, role, gender, seed, long, initial) {
   const st = S[family] || S.en;
   const r = rngOf(seed);
+  const I = initial ? initial.toLowerCase() : null;
+  const startsI = (x) => !I || x.toLowerCase().startsWith(I);
+  const pickI = (list) => { const ok = list.filter(startsI); return ok.length ? pick(r, ok) : null; };
   if (st.syl && st.two) {   // chinês e coreano: uma ou duas sílabas
-    const a = pick(r, W(st.syl)), b = pick(r, W(st.syl)).toLowerCase();
-    return role === 'last' ? a : a + b;
+    const a = pickI(W(st.syl)) || cap(I + pick(r, W('a e i o u'))), b = pick(r, W(st.syl)).toLowerCase();
+    return role === 'last' && !long ? a : a + b;
   }
   if (st.syl) {   // japonês
-    const n = 1 + Math.floor(r() * 2);
-    let s = ''; for (let i = 0; i < n; i++) s += pick(r, W(st.syl));
+    const n = 1 + Math.floor(r() * 2) + (long ? 1 : 0);
+    let s = pickI(W(st.syl)) || (I ? I + pick(r, W('a i o u')) : pick(r, W(st.syl)));
+    for (let i = 1; i < n; i++) s += pick(r, W(st.syl));
     return cap(s + pick(r, W(role === 'last' ? st.endL : gender === 'F' ? st.endF : st.endM)));
   }
-  let s = pick(r, W(st.on)) + pick(r, W(st.v));
-  if (role === 'last') { s += pick(r, W(st.k)); if (r() < 0.35) s += pick(r, W(st.v)) + pick(r, W(st.k)); }
-  else if (r() < 0.55) s += pick(r, W(st.k));
+  let s;
+  if (!I) s = pick(r, W(st.on)) + pick(r, W(st.v));
+  else if (VOWELS.includes(I)) s = I + pick(r, W(st.k));                       // começa por vogal: vogal + consoante
+  else s = (pickI(W(st.on)) || I.toUpperCase()) + pick(r, W(st.v));          // consoante inicial da família (ou a própria letra)
+  if (role === 'last') { s += pick(r, W(st.k)); if (long || r() < 0.35) s += pick(r, W(st.v)) + pick(r, W(st.k)); }
+  else if (r() < 0.55 || long) s += pick(r, W(st.k)) + (long ? pick(r, W(st.v)) + pick(r, W(st.k)) : '');
   const end = pick(r, W(role === 'last' ? st.endL : gender === 'F' ? st.endF : st.endM));
   if (endsVowel(s) && startsVowel(end)) s += pick(r, W(st.k));                       // nada de vogal com vogal na emenda
   else if (!endsVowel(s) && !startsVowel(end)) s += pick(r, W(st.v));                // nem consoante com consoante
@@ -101,7 +109,9 @@ function acronym(word, len, attempt) {
   const r = rngOf('sig:' + word + ':' + attempt);
   const L = 'BCDFGHJKLMNPRSTVWXZ', V = 'AEIOU';
   let s = base.slice(0, 1) || pick(r, L.split(''));
-  while (s.length < len) s += pick(r, (s.length % 2 ? V : L).split(''));
+  const ALL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  while (s.length < len) s += pick(r, (attempt > 3 ? ALL : s.length % 2 ? V : L).split(''));
+  if (attempt > 8) s = pick(r, ALL.split('')) + s.slice(1);
   return s.slice(0, len);
 }
 

@@ -96,7 +96,8 @@ Disc.FEMALE = {
   CAN: ['Ella', 'Megan', 'Zoe'], FIN: ['Aino', 'Emma'], SWE: ['Linnea', 'Ebba'], BEL: ['Marie', 'Lisa'], DEN: ['Ida', 'Freja'], POR: ['Inês', 'Mariana'], IND: ['Ananya', 'Diya'],
 };
 Disc.femaleName = (nat) => {
-  const f = Disc.FEMALE[nat] || Disc.FEMALE.GBR;
+  const F = typeof FEMALE_NAMES !== 'undefined' ? FEMALE_NAMES : Disc.FEMALE;   // (0.9) o pacote fictício traz a lista trocada
+  const f = F[nat] || F.GBR;
   const pool = NAME_POOL[nat] || NAME_POOL.GBR;
   return `${RNG.pick(f)} ${RNG.pick(pool.l)}`;
 };
@@ -148,12 +149,7 @@ Disc.init = (G) => {
       for (let i = 0; i < 10 && taken(n); i++) n = Disc.femaleName(d.nat);
       for (let i = 0; taken(n) && i < 25; i++) n = n.replace(/^(\S+)( [A-Z]\.)? /, `$1 ${'ABCDEFGHIJKLMNOPRSTUVWXYZ'[i]}. `);
       d.name = n;
-      // id coerente com o nome (antes ficava o id do nome masculino sorteado: c-logan-parker = "Madison Reed")
-      const ids = new Set(G.db.drivers.filter(o => o !== d).map(o => o.id));
-      let id = 'c-' + Cats.norm(n).replace(/ /g, '-').slice(0, 30);
-      while (ids.has(id)) id += 'x';
-      if (Cats._ids) { Cats._ids.delete(d.id); Cats._ids.add(id); }
-      d.id = id;
+      // (0.9, regra 19) o id fica o do contador da carreira (Cats.makeDriver), e não o do nome: igual nos dois mundos
     }
     return d;
   });
