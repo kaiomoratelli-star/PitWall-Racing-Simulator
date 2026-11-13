@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2   # o commit anterior entra na conferência da versão antes de publicar
 
       - uses: actions/setup-node@v7
         with:
@@ -51,9 +53,55 @@ jobs:
           node scripts/playthrough-check.js 1
           node scripts/browser-save-check.js
           node scripts/i18n-check.js 0
+          node scripts/web-desktop-check.js
 
       - name: Gerar Setup.exe
         run: npm run dist
+
+      # (0.9, E25) quem já joga instala a versão nova por cima: o save da 0.8.7 publicada precisa sobreviver
+      # à instalação sem mudar um byte e abrir na versão nova.
+      - name: Atualização a partir da 0.8.7 publicada (o save não muda e abre na versão nova)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $data = "$env:APPDATA\PitWall Racing Simulator"
+          $exe = "$env:LOCALAPPDATA\Programs\PitWall Racing Simulator\PitWall Racing Simulator.exe"
+          function Install-Silent($setup) {
+            for ($t = 1; $t -le 3; $t++) {
+              $p = Start-Process $setup -ArgumentList '/S' -Wait -PassThru
+              if ($p.ExitCode -eq 0) { break }
+              Write-Host "tentativa ${t}: código $($p.ExitCode)"; Start-Sleep 45
+            }
+            for ($i = 0; $i -lt 300; $i++) {
+              $busy = Get-Process | Where-Object { $_.Name -like 'PitWall-Racing-Simulator-Setup*' }
+              if ((Test-Path $exe) -and !$busy) { break }
+              Start-Sleep 2
+            }
+            if (!(Test-Path $exe)) { throw "instalação não terminou: $setup" }
+          }
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\old" | Out-Null
+          gh release download v0.8.7 --repo "${{ github.repository }}" --pattern '*Setup*.exe' --dir "$env:RUNNER_TEMP\old"
+          $old = Get-ChildItem "$env:RUNNER_TEMP\old\*.exe" | Select-Object -First 1
+          Write-Host "instalando a versão publicada: $($old.Name)"
+          Install-Silent $old.FullName
+          Start-Process $exe -ArgumentList '--smoke-test' -Wait
+          Start-Sleep 2
+          $save = "$data\saves\slot3.json.gz"
+          if (!(Test-Path $save)) { throw "a 0.8.7 não criou o save" }
+          $before = (Get-FileHash $save -Algorithm SHA256).Hash
+          $new = Get-ChildItem release\*.exe | Where-Object { $_.Name -like '*Setup*' } | Select-Object -First 1
+          Write-Host "instalando por cima: $($new.Name)"
+          Install-Silent $new.FullName
+          $after = (Get-FileHash $save -Algorithm SHA256).Hash
+          if ($before -ne $after) { throw "a instalação da versão nova mudou o save da 0.8.7 ($before -> $after)" }
+          Remove-Item "$data\smoke-verify.json" -ErrorAction SilentlyContinue
+          Start-Process $exe -ArgumentList '--smoke-verify' -Wait
+          Start-Sleep 2
+          $v = Get-Content "$data\smoke-verify.json" | ConvertFrom-Json
+          if (!$v.ok) { throw "o save da 0.8.7 não abriu na versão nova: $($v.error)" }
+          Write-Host "Save da 0.8.7 intacto depois da instalação (SHA-256 $before) e aberto na versão $($v.version)."
+          "## Atualização 0.8.7 -> $($v.version)`nSave intacto na instalação (SHA-256 $before) e aberto na versão nova." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
       - name: Instalar silenciosamente e conferir atalhos
         shell: pwsh
@@ -146,23 +194,46 @@ jobs:
         shell: bash
         run: echo "version=$(node -p "require('./package.json').version.replace(/-(\\d+)$/, '.\$1')")" >> "$GITHUB_OUTPUT"
 
+      # (0.9, E25, decisão Q3 = b+) um instalador publicado nunca é trocado. Se a release desta versão já tem o Setup,
+      # nada é publicado (aviso no resumo); se o push mudou o jogo (app/, desktop/ ou package.json) sem subir a versão,
+      # o job falha pedindo a versão nova (x.y.z-1).
+      - name: Conferir a release desta versão
+        id: rel
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ steps.v.outputs.version }}
+        run: |
+          assets=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' 2>/dev/null || true)
+          if ! grep -q 'Setup' <<< "$assets"; then echo "publish=true" >> "$GITHUB_OUTPUT"; echo "Release $TAG sem Setup: será publicada."; exit 0; fi
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          changed=$(git diff --name-only HEAD^ HEAD -- app desktop package.json 2>/dev/null || true)
+          if [ -n "$changed" ]; then
+            echo "::error::A release $TAG já tem o instalador e este push mudou o jogo: suba a versão (x.y.z-1) antes de publicar."
+            { echo "## Publicação bloqueada"; echo "A release \`$TAG\` já tem o instalador e este push mudou:"; echo '```'; echo "$changed"; echo '```'; echo "Suba a versão (x.y.z-1) antes de publicar."; } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "::warning::A release $TAG já tem o instalador; nada foi publicado (o instalador publicado nunca é trocado)."
+          { echo "## Nada publicado"; echo "A release \`$TAG\` já tem o instalador e este push não mudou o jogo."; } >> "$GITHUB_STEP_SUMMARY"
+
       # Nada desatualizado é lançado: qualquer versão nova pendente bloqueia a publicação
       - name: Atualizações pendentes bloqueiam o lançamento
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release')
+        if: steps.rel.outputs.publish == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/freshness-check.js --release
 
       # Cada versão aprovada nos testes acima vira uma release com o Setup.exe para download
       - name: Publicar release
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release')
+        if: steps.rel.outputs.publish == 'true'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.v.outputs.version }}
           target_commitish: ${{ github.sha }}
           name: PitWall Racing Simulator ${{ steps.v.outputs.version }}
           make_latest: true
-          overwrite_files: true
+          overwrite_files: false   # um instalador publicado nunca é trocado (regra 7)
           files: release/*Setup*.exe
           body: |
             **Download:** `PitWall-Racing-Simulator-Setup-${{ steps.v.outputs.version }}.exe` (em Assets, abaixo).

@@ -2,7 +2,7 @@
 
 # PitWall Racing Simulator
 
-**Uma produção Moratelli Game Company (MGC).** Versão atual: **0.8.0**.
+**Uma produção Moratelli Game Company (MGC).** Versão publicada: **0.8.7**. Em desenvolvimento: **0.9** (aprimoramento e reconstrução, branch `v0.9-aprimoramento`; ver [CHANGELOG.md](CHANGELOG.md)).
 
 Simulador de gestão de automobilismo para **Windows 10 e 11 (64 bits)**, em português e inglês.
 
@@ -27,14 +27,23 @@ Não precisa de internet, navegador nem ferramentas de desenvolvimento.
 
 Saves: `%APPDATA%\PitWall Racing Simulator\saves`. São preservados ao atualizar ou desinstalar.
 
+Se a tela piscar, travar ou mostrar falhas de imagem, desligue **Aceleração de hardware** em *Salvar e opções* (vale ao reabrir o jogo).
+
 ## Desenvolver
+Requisitos: **Node.js 26** (LTS ativo; versão em `.nvmrc`) e Windows para gerar o instalador.
 ```
-npm install
-npm run dev        # jogo com ferramentas de desenvolvedor
-npm test           # simulação prolongada com diagnóstico
-npm run test:smoke # testa o aplicativo real
-npm run dist       # gera o instalador (no Windows)
+npm ci                                 # dependências nas versões exatas do package-lock.json
+npm run dev                            # jogo com ferramentas de desenvolvedor
+npm test                               # guardas, privacidade, CI, regras, idiomas e simulação prolongada
+node scripts/determinism-check.js      # as 4 carreiras de referência têm de dar a mesma assinatura
+node scripts/save-compat-check.js      # saves reais da 0.8.4 à 0.8.7 abertos na versão atual
+npm run build && node scripts/ui85-check.js 2   # interface (Playwright)
+npm run test:smoke                     # testa o aplicativo real
+node scripts/perf-check.js 15 --electron        # desempenho da corrida ao vivo no aplicativo
+node scripts/freshness-check.js        # software atualizado e sem avisos de segurança
+npm run dist                           # gera o instalador (no Windows)
 ```
+Guia para o Claude Code em [CLAUDE.md](CLAUDE.md).
 Índice da documentação em [docs/README.md](docs/README.md). Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), regras do projeto em [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) e histórico de versões em [CHANGELOG.md](CHANGELOG.md).
 
 ## Marca

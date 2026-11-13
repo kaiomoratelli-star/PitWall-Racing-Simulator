@@ -11,7 +11,7 @@
     "build": "node scripts/build.js",
     "dev": "node scripts/build.js && electron . --dev",
     "start": "node scripts/build.js && electron .",
-    "test": "node scripts/guard-check.js && node scripts/privacy-check.js && node scripts/check-scope.js && node scripts/storage-check.js && node scripts/schema-check.js 1 && node scripts/rules-check.js && node scripts/lang-parity-check.js 24 && node scripts/sim-test.js 10 1 && node scripts/sim-test.js 4 42 && node scripts/cats-check.js 1",
+    "test": "node scripts/guard-check.js && node scripts/privacy-check.js && node scripts/workflow-check.js && node scripts/docs-check.js && node scripts/check-scope.js && node scripts/storage-check.js && node scripts/schema-check.js 1 && node scripts/rules-check.js && node scripts/lang-parity-check.js 24 && node scripts/sim-test.js 10 1 && node scripts/sim-test.js 4 42 && node scripts/cats-check.js 1",
     "test:cats": "node scripts/cats-check.js 2",
     "test:ui": "node scripts/build.js && node scripts/ui-stress.js 50",
     "test:sim": "node scripts/sim-test.js",
@@ -82,6 +82,7 @@
     "acorn-walk": "8.3.5",
     "electron": "45.3.1",
     "electron-builder": "26.18.0",
+    "js-yaml": "5.5.0",
     "playwright": "1.65.0",
     "resedit": "3.1.0"
   },

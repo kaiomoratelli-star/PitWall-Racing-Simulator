@@ -7,6 +7,28 @@
 - Corrigido: a mesma semente gerava carreiras diferentes conforme a versão do motor JavaScript (Node 20 × 26; o mesmo vale ao trocar o Electron). Três sorteios do núcleo embaralhavam listas com um comparador aleatório: quem entra no leilão por um piloto, os pontos fortes e fracos sorteados no perfil de cada piloto e a ordem dos candidatos a nova equipe. Agora usam um embaralhamento com semente (`shuffleBy`), igual em qualquer motor. As 4 assinaturas de `tests/determinism.json` foram regravadas (iguais no Node 20 e no 26). Saves antigos abrem normalmente; a partir da 0.9, uma carreira segue outro caminho de sorteio que a mesma carreira na 0.8.7.
 - Guarda nova no `guard-check`: um `sort` com comparador aleatório no núcleo faz o `npm test` falhar.
 
+**Plataforma**
+- Electron 33 → **45.3.1** e electron-builder 25 → **26.18.0**; Playwright 1.65.0, acorn 8.19.0, acorn-walk 8.3.5, resedit 3.1.0 e js-yaml 5.5.0, todos em versão exata. **Node.js 26** (LTS ativo) no desenvolvimento e no CI (`.nvmrc` e `engines`). Actions na versão mais nova (checkout e setup-node v7, upload-artifact v7, action-gh-release v3).
+- Avisos de segurança zerados (`npm audit`): o `minimatch` das ferramentas de build vem na versão corrigida.
+- `freshness-check` no CI: falha com Node ou Electron fora de suporte ou com aviso de segurança; antes de lançar, qualquer versão nova pendente também bloqueia. Dependabot semanal na branch de trabalho.
+- Mantidos: `contextIsolation`, `sandbox`, sem `nodeIntegration`, CSP `connect-src 'none'` e saves em `%APPDATA%`. Registro de mensagens da interface no formato do Electron 35+.
+
+**Aceleração de hardware**
+- Ligada por padrão, com a opção **Aceleração de hardware (placa de vídeo)** em *Salvar e opções* para desligar (vale ao reabrir o jogo; fica nas preferências do aplicativo, não no save).
+- A pista do mapa da corrida é desenhada uma vez e reaproveitada; a cada quadro entram só os carros (menos CPU).
+- Medições antes e depois em `docs/perf/` (`scripts/perf-check.js`, também no aplicativo Electron).
+
+**Saves, privacidade e publicação**
+- A conta padrão da tela de perfil não traz mais nome nem e-mail. `privacy-check` no `npm test` falha se o build tiver um endereço de e-mail.
+- Saves de teste da 0.8.7 (Manager entre etapas, Manager no meio da corrida e Observador com 2 temporadas). O teste de compatibilidade aceita saves do Observador e valida o esquema do save.
+- CI: um instalador publicado nunca é trocado. Se a release já tem o Setup, nada é publicado; se o push mudou o jogo sem subir a versão, o CI falha pedindo `x.y.z-1`. Teste novo: instala a 0.8.7 publicada, cria um save, instala a versão nova por cima, confere que o save não mudou e o abre.
+
+**Inglês**
+- Traduzidos: títulos de propostas do Conselho dentro das manchetes de bastidores, rivalidades com batidas, troca de staff, nomes das categorias de base e a fonte da base de pilotos. O teste de idioma passou a exigir zero trechos em português na versão em inglês.
+
+**Documentos**
+- `CLAUDE.md` (guia do projeto), README com a versão e os comandos atuais, ficha `docs/marketing/3-SOBRE-O-JOGO.md` conferida com o código.
+
 ## 0.8.7 — Solidez: nada some, saves seguros, testes que falham (09/11/2026)
 Base: as prioridades P1 a P3 de `docs/AVALIACAO-0.8.6.md`. Relatório completo em `docs/RELATORIO-0.8.7.md`.
 

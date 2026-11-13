@@ -1,7 +1,7 @@
 # Sobre o jogo — ficha de fatos (PitWall Racing Simulator)
 
 > Fonte de verdade para o marketing. Atualize quando o jogo mudar.
-> Última atualização: versão 0.7, novembro de 2026.
+> Última atualização: versão publicada 0.8.7; 0.9 em desenvolvimento (aprimoramento e reconstrução). Novembro de 2026.
 
 ## Identidade
 - **Nome:** PitWall Racing Simulator
@@ -9,13 +9,15 @@
 - **Gênero:** simulador de gestão de automobilismo (monopostos)
 - **Plataforma:** Windows 10 e 11 (64 bits); também existe uma versão de navegador para testes
 - **Idiomas:** português do Brasil e inglês (escolha no próprio jogo)
-- **Preço:** a definir. Hoje é uma versão de desenvolvimento, sem venda; no futuro o jogo será pago.
-- **Situação:** versão 0.7 (em desenvolvimento), com instalador próprio; divulgação pública "em breve"
+- **Preço:** a definir. Hoje é uma versão de desenvolvimento, sem venda.
+- **Edições (planejado, sem data):** uma edição gratuita, com mundo fictício e número limitado de temporadas, e uma edição paga com o jogo completo, editor e mods. Os dados reais (nomes, fotos e marcas) ficam numa base de dados à parte.
+- **Situação:** versão publicada 0.8.7, com instalador próprio; 0.9 em desenvolvimento (aprimoramento e reconstrução); divulgação pública "em breve"
 - **Download:** github.com/kaiomoratelli-star/PitWall-Racing-Simulator (Releases)
 
 ## Modos de jogo
 - **Chefe de equipe (Manager):** você comanda uma equipe de F1 e decide pilotos, staff, desenvolvimento, finanças e estratégia de corrida. Há uma diretoria que cobra resultados e pode demitir.
 - **Observador:** todas as equipes tomam as próprias decisões e você acompanha o campeonato.
+- **Planejado, sem data:** modos de simulação Realista e Arcade, escolhidos ao criar o save. Na versão 1.0, os modos Sandbox (o Observador com controle da FIA e do mundo) e Carreira de Piloto, na edição paga.
 
 ## Ponto de partida real
 - Temporada 2026 com dados reais:
@@ -32,7 +34,7 @@
 ## Pilotos, mercado e equipe técnica
 - (Versão 0.8) Base de quase 1.400 pilotos reais de 41 campeonatos (F1, F2, F3, F1 Academy, IndyCar, Fórmula E, Super Formula, WEC, IMSA, NASCAR, DTM, Stock Car, Supercars, F4s...), com a carreira real de 2022 a 2027. Pilotos da IndyCar, do WEC e de outras séries podem ser contratados.
 - 16 atributos por piloto, 16 estilos de pilotagem e personalidade (ambição, lealdade, temperamento, relação com a mídia).
-- Superlicença com a tabela de pontos da FIA.
+- Superlicença inspirada nas regras de superlicença da FIA.
 - Mercado em ondas, como na vida real:
   - rumores e renovações;
   - aposentadorias anunciadas;
@@ -44,7 +46,7 @@
   - Promoção e rebaixamento de pilotos entre as duas, inclusive no meio do ano.
   - Peças da equipe principal para a irmã.
 - (Versão 0.8) Potencial que muda com o tempo: oscila bastante no kart e na F4 e quase nada em quem já é profissional; sobe com temporadas acima do esperado e estagna a partir dos 27 anos. No modo Manager o potencial nunca aparece como número: os olheiros mostram uma faixa estimada com nível de confiança, que estreita com observação. A estimativa pode errar.
-- (Versão 0.8) Departamento de olheiros: 3 olheiros para observar pilotos de qualquer série, relatório com pontos fortes e recomendação, comparação lado a lado e convite para a academia.
+- (Versão 0.8) Departamento de olheiros: começa com 2 olheiros (máximo de 6), cada um em uma missão por vez, para observar pilotos de qualquer série, relatório com pontos fortes e recomendação, comparação lado a lado e convite para a academia.
 - (Versão 0.8) Mercado mais realista: equipes no vermelho afastam pilotos, estrelas recusam equipes sem perspectiva, empresários abrem ou fecham portas, pilotos fictícios podem trazer patrocínio pessoal (o dinheiro entra no caixa da equipe), a Red Bull prioriza a própria academia e trocar de piloto no meio do ano custa multa.
 - (Versão 0.8) Kart na base da pirâmide: quatro campeonatos regionais com pilotos fictícios de 12 a 15 anos; os melhores sobem para a F4 e alguns chegam à F1 anos depois.
 - (Versão 0.8) Cláusulas de contrato: desempenho (rescisão sem multa se o piloto render muito abaixo do esperado) e saída (o piloto pode ir para uma equipe à frente no campeonato).
@@ -52,7 +54,7 @@
 
 ## Treinos livres e acerto (versão 0.7)
 - Treinos de 60 minutos com relógio: 1, 2 ou 3 sessões, ou o formato da vida real (3 normais, 1 em fim de semana de Sprint).
-- Programas na pista: acerto, simulação de classificação e simulação de corrida; tempo de garagem para cada ajuste; alocação oficial de pneus.
+- Programas na pista: acerto, simulação de classificação e simulação de corrida; tempo de garagem para cada ajuste; alocação de pneus do regulamento.
 - 5 ajustes (asas, suspensão, altura, freio) e 5 sensações do piloto (equilíbrio, frenagem, curvas, tração, retas).
 - O piloto lembra o que disse e só muda de opinião com motivo (tanque cheio, pista emborrachando, calor, vento, pneus gastos).
 - O engenheiro deduz o acerto ideal do que o piloto fala; a janela fica mais precisa a cada saída.
@@ -89,7 +91,7 @@
 ## Circuitos (versão 0.8)
 - Circuitos reais de Grau 2 com traçado real (OpenStreetMap) e vistoria anual para chegar ao Grau 1.
 - Gerador de circuitos que monta a pista trecho a trecho conforme as escolhas.
-- Artes automáticas no estilo das redes (breaking, oficial, resultado, campeão).
+- Artes automáticas no estilo das redes (breaking, anúncio, resultado, campeão).
 - Regulamentos novos embaralham o grid: equipes acertam ou erram o conceito.
 - Licenças de Grau 1 a partir da lista oficial da FIA (04/11/2026); renovações futuras simuladas pelo jogo e marcadas como tal.
 - Circuitos reserva assumem etapas que ficam sem licença.
@@ -102,7 +104,7 @@
 - Safety Car, VSC e bandeira vermelha.
 - Limites de pista e punições.
 - Setores e velocidade máxima.
-- Bateria e modo de ultrapassagem do regulamento 2026.
+- Bateria e modo de ultrapassagem inspirados no regulamento 2026: o carro a menos de 1 s do da frente pode usar a energia extra nas zonas de ultrapassagem, gastando bateria.
 - Tela de corrida com:
   - luzes de largada;
   - torre de tempos;
@@ -114,7 +116,7 @@
 - (Versão 0.8) Torre com número, bandeira, logo e pontos; bordas amarelas no Safety Car; cerimônia de pódio animada.
 - (Versão 0.7) Narração volta a volta: cada ultrapassagem com o local da manobra, defesas, toques, resumo da volta com as brigas e as mudanças de posição.
 - (Versão 0.7) Rádio das equipes: chamada de box, pneus no fim, ordens de equipe, reclamações depois de toques, Safety Car, chuva.
-- (Versão 0.7) Relatório pós-corrida no formato oficial da F1: classificação, volta a volta com filtros, gráfico de posições, pit stops e voltas mais rápidas.
+- (Versão 0.7) Relatório pós-corrida no estilo das transmissões: classificação, volta a volta com filtros, gráfico de posições, pit stops e voltas mais rápidas.
 
 ## Disciplinas (versão 0.8)
 - Monoposto, GT e Endurance: cada piloto tem experiência e rendimento em cada uma, e se adapta melhor ou pior quando troca.
@@ -125,9 +127,10 @@
   - Principais: Fórmula E, IndyCar, WEC (Hypercar) e Super Formula (versão 0.8: IndyCar e WEC);
   - F2 e F3;
   - Fórmula Regional Europeia, do Oriente Médio, das Américas e do Japão;
-  - F4 Italiana, Espanhola, Britânica, E4, F4 Brasil, F4 Estados Unidos e F4 Japonesa.
+  - F4 Italiana, Espanhola, Britânica, E4, F4 Brasil, F4 Estados Unidos, F4 Japonesa, F4 Emirados e F4 Alemã;
+  - F1 Academy, DTM, Stock Car Pro Series e NASCAR Cup Series.
 - No WEC o carro corre com tripulação de 2 ou 3 pilotos, que dividem os pontos; as 24 Horas de Le Mans valem pontos em dobro.
-- Categorias organizadas por ecossistema (rumo à F1, Indy, Super Formula); outras séries da base (F1 Academy, IMSA, NASCAR, DTM, Stock Car...) aparecem como base de dados, com os pilotos e a carreira real.
+- Categorias organizadas por ecossistema (rumo à F1, Indy, Super Formula). Todas as categorias da lista acima são simuladas, com os pilotos e a carreira real.
 - Grids, calendários e classificações reais de 2026.
 - Os jovens evoluem, ganham pontos de superlicença e sobem de categoria até a F1.
 - Novos talentos surgem todos os anos; em testes de 10 a 20 temporadas, pilotos que hoje estão na F4 chegaram a campeões mundiais.
@@ -141,7 +144,7 @@
 ## Base de dados conferida (versão 0.8.2)
 - Uma pessoa, um registro: apelidos e variações de nome reunidos sem misturar homônimos.
 - Grid inicial de 2027 com o grid real de 2026 e os anúncios oficiais; cada vaga mostra se é anunciada, a confirmar ou projeção do jogo.
-- Calendário oficial da F1 2027 e categorias de suporte no mesmo fim de semana.
+- Calendário real da F1 2027 e categorias de suporte no mesmo fim de semana.
 
 ## Mundo vivo
 - Notícias de veículos de imprensa reais, com imagens.
