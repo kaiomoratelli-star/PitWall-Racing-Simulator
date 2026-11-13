@@ -124,7 +124,14 @@ function shellObsHtml(inner) { return inner; }   // substituída em ui85-shell.j
 
 /* ---------- imagens reais (empacotadas na versão desktop) ---------- */
 const ACCENT = '#E10600';
-function imgUrl(p) { return (typeof HAS_IMG !== 'undefined' && HAS_IMG && p) ? 'assets/img/' + p : null; }
+/* (0.9, Onda 3) a arte própria (Pack.BASE_IMG: marca MGC) vem com o jogo base em assets/img; fotos e logos do
+   mundo real vêm na pasta de imagens do Pacote de dados (packs/<id>/img). Sem pacote, não há foto real. */
+function imgUrl(p) {
+  if (typeof HAS_IMG === 'undefined' || !HAS_IMG || !p) return null;
+  if (Pack.BASE_IMG.includes(String(p).split('/')[0])) return 'assets/img/' + p;
+  const base = Pack.imgBase();
+  return base ? base + p : null;
+}
 function initials(name) { return String(name || '?').split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
 function headshot() { return ''; }   // substituída em ui-avatar.js
 function teamLogo(t, cls = '') {

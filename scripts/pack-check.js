@@ -4,6 +4,8 @@
 // (passo 3) Também confere: Pack.boot (o pacote que vem com o jogo), Pack.canOpen (o save só abre com o pacote
 // com que foi criado; saves antigos ficam marcados com o pacote real) e o build (nenhum dado real no código do
 // jogo; o pacote ao lado no desktop e embutido na web, carregado antes do jogo, dá o mesmo mundo de app/data).
+// (passo 4) Imagens: o jogo base leva só a arte própria (Pack.BASE_IMG); toda foto ou logo do registro fica na
+// pasta de imagens do pacote (app/dist/packs/<id>/img).
 // Gera o build (normal e --sem-dados-reais) e deixa o normal no lugar.
 // Uso: node scripts/pack-check.js
 'use strict';
@@ -39,6 +41,7 @@ const cases = [
   ['equipes vazias', p => { p.content.REAL_DB.teams = []; return p; }],
   ['piloto repetido', p => { p.content.REAL_DB.drivers.push(clone(p.content.REAL_DB.drivers[0])); return p; }],
   ['piloto em equipe inexistente', p => { p.content.REAL_DB.drivers[0].team = 'equipe-que-nao-existe'; return p; }],
+  ['pasta de imagens fora do pacote', p => { p.images = '../assets'; return p; }],
 ];
 for (const [name, mut] of cases) {
   const ctx = fresh();
@@ -99,6 +102,13 @@ for (const [name, mut] of cases) {
   const html = path.join(root, 'app', 'dist', 'index.html'), web = path.join(root, 'dist-web', 'pitwall.html');
   const packFile = path.join(root, 'app', 'dist', 'packs', real.id + '.js');
   const PACK_MARK = '(globalThis.PITWALL_PACKS = globalThis.PITWALL_PACKS || []).push(';   // o que wrapPack escreve
+  const { BASE_IMG } = require('./make-data-pack').packConsts();
+  const baseImgCheck = (when) => {
+    const d = path.join(root, 'app', 'dist', 'assets', 'img');
+    const extra = fs.existsSync(d) ? fs.readdirSync(d).filter(e => !BASE_IMG.includes(e)) : [];
+    if (extra.length) bad.push(`${when}: o jogo base (app/dist/assets/img) leva imagens do mundo real: ${extra.join(', ')}`);
+    if (!fs.existsSync(path.join(d, 'brand'))) bad.push(`${when}: o jogo base perdeu a arte própria (assets/img/brand, usada na abertura)`);
+  };
   const mods = require('./modules');
   if (mods.ui[0] !== 'ui/base/packs') bad.push('ui/base/packs precisa ser o primeiro módulo da interface (instala o pacote antes de qualquer tela ler os dados)');
   try {
@@ -120,6 +130,15 @@ for (const [name, mut] of cases) {
       };
       if (worldFrom(false, true) !== worldFrom(true, false)) bad.push('o mundo criado com o pacote do build é diferente do mundo de app/data');
     }
+    // (passo 4) imagens: o jogo base leva só a arte própria; cada foto ou logo registrada está na pasta do pacote
+    if (!real.images) bad.push('o pacote real não tem pasta de imagens');
+    else {
+      const regImgs = (real.content.ASSET_REGISTRY || []).filter(a => a.path.startsWith('assets/img/') && !BASE_IMG.includes(a.path.split('/')[2]));
+      const missing = regImgs.filter(a => !fs.existsSync(path.join(root, 'app', 'dist', 'packs', real.id, real.images, a.path.slice('assets/img/'.length))));
+      if (!regImgs.length) bad.push('o registro do pacote não tem nenhuma imagem do mundo real (o teste não vale)');
+      if (missing.length) bad.push(`${missing.length} imagem(ns) do registro fora da pasta do pacote (ex.: ${missing[0].path})`);
+    }
+    baseImgCheck('build normal');
     const wTag = w.indexOf(PACK_MARK), wMain = w.indexOf('const APP_VERSION');
     if (wTag < 0 || wTag > wMain) bad.push('pitwall.html (web): o pacote embutido precisa vir antes do script do jogo');
     build('--sem-dados-reais');
@@ -127,8 +146,9 @@ for (const [name, mut] of cases) {
     const hf = fs.readFileSync(html, 'utf8');
     if (hf.includes('<script src="packs/') || hf.includes(PACK_MARK)) bad.push('build --sem-dados-reais: o index.html ainda carrega um pacote');
     if (decl(fs.readFileSync(html, 'utf8')).length) bad.push('build --sem-dados-reais: o index.html tem dados reais');
+    baseImgCheck('build --sem-dados-reais');
   } finally { build(); }   // deixa o build normal no lugar
 }
 
 if (bad.length) { console.log(`pack-check: ${bad.length} problema(s)`); bad.forEach(b => console.log('  ✗', b)); process.exit(1); }
-console.log(`pack-check OK · pacote real válido (${Object.keys(real.content).length} conjuntos) · ${cases.length} pacotes inválidos recusados sem mudar nada · boot e abertura de saves conferidos · build sem dados no código, com o pacote ao lado (mesmo mundo de app/data)`);
+console.log(`pack-check OK · pacote real válido (${Object.keys(real.content).length} conjuntos) · ${cases.length} pacotes inválidos recusados sem mudar nada · boot e abertura de saves conferidos · build sem dados no código, com o pacote ao lado (mesmo mundo de app/data) · fotos e logos só na pasta do pacote`);

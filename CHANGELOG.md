@@ -40,9 +40,11 @@
 - O jogo roda inteiro sem nenhum dado real: núcleo e todas as telas, nos modos Manager e Observador (`build --sem-dados-reais`, `fictional-check` no CI).
 
 **Pacote de dados**
-- Formato `pitwall-pack` v1: um JSON versionado com os dados reais (equipes, pilotos, pistas, categorias, história, recordes e o registro das fotos; os arquivos de imagem ainda vão com o jogo). Um pacote inválido é recusado sem mudar nada (`pack-check`: 10 casos).
+- Formato `pitwall-pack` v1: um JSON versionado com os dados reais (equipes, pilotos, pistas, categorias, história, recordes e o registro das fotos) e uma pasta de imagens. Um pacote inválido é recusado sem mudar nada (`pack-check`: 10 casos).
 - Os dados reais saíram do código do jogo. O build grava o Pacote de dados ao lado do jogo (`app/dist/packs/pitwall-dados-reais.js`; na versão web ele vem embutido). O jogo confere e instala o pacote antes de abrir qualquer tela. Sem o pacote, o mundo é o fictício. Se o pacote estiver danificado, o jogo avisa e abre com o mundo fictício.
 - Para quem joga, nada muda: o instalador leva o pacote e o mundo é o mesmo de antes (as 4 assinaturas de determinismo continuam iguais, com e sem o pacote).
+- As fotos e logos do mundo real (rostos, pilotos, equipes, carros, categorias, pistas e fotos das notícias) foram para a pasta de imagens do Pacote de dados (`app/dist/packs/pitwall-dados-reais/img`). O jogo base leva só as bandeiras, as fontes e a marca MGC. Sem o pacote, nenhuma foto real aparece.
+- Teste novo de imagens nas telas: nenhuma imagem pode falhar ao carregar (antes, uma foto que faltava sumia em silêncio), e as fotos do mundo real só podem vir do pacote.
 
 **Saves**
 - O save guarda de qual Pacote de dados o mundo veio (campo novo `pack`, no esquema do save). Saves das versões anteriores ficam marcados com o pacote real e abrem normalmente: os 9 saves de teste (0.8.4 a 0.8.7) abrem com o pacote instalado.

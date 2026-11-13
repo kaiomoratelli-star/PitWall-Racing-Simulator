@@ -42,6 +42,10 @@ const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'bu
     for (const mode of ['manager', 'observer']) {
       const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
       const errs = []; p.on('pageerror', e => errs.push(e.message));
+      // (passo 4) sem pacote: nenhuma imagem falha e nenhuma vem de packs/ ou é foto do mundo real
+      const IMG_RE = /\.(webp|png|jpe?g|svg|gif|avif)(\?|$)/i, imgBad = [];
+      p.on('requestfailed', q => { if (IMG_RE.test(q.url())) imgBad.push('imagem não encontrada: ' + q.url().replace(/^.*\/app\/dist\//, '')); });
+      p.on('requestfinished', q => { const u = q.url().replace(/^.*\/app\/dist\//, ''); if (IMG_RE.test(u) && (u.startsWith('packs/') || (u.startsWith('assets/img/') && !u.startsWith('assets/img/brand/')))) imgBad.push('imagem do mundo real no jogo fictício: ' + u); });
       await p.goto('file://' + path.join(root, 'app', 'dist', 'index.html')); await p.waitForTimeout(300);
       const r = await p.evaluate(async ({ mode, VIEWS }) => {
         const out = []; const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -72,6 +76,7 @@ const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'bu
       }, { mode, VIEWS });
       r.forEach(x => bad.push(`interface/${mode}: ${x}`));
       errs.slice(0, 5).forEach(x => bad.push(`interface/${mode}: erro de página: ${x}`));
+      [...new Set(imgBad)].slice(0, 5).forEach(x => bad.push(`interface/${mode}: ${x}`));
       console.log(`interface/${mode}: ${VIEWS.length} telas visitadas · ${r.length + errs.length} problema(s)`);
       await p.close();
     }

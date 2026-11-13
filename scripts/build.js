@@ -1,6 +1,7 @@
 // Monta o jogo a partir de app/src:
 //   app/dist/index.html  -> versão desktop (fontes locais, CSP, abre por file://)
 //   app/dist/packs/*.js   -> Pacote de dados que vem com o jogo (0.9; sem ele, mundo fictício)
+//   app/dist/packs/<id>/img -> fotos e logos do mundo real (o jogo base leva só bandeiras, fontes e a marca)
 //   dist-web/pitwall.html -> versão artefato web (fontes do Google Fonts; pacote embutido)
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +16,7 @@ const pkg = require('../package.json');
 // --sem-dados-reais: sem pacote nenhum; o mundo vem do gerador fictício. É o que a edição gratuita usa e o que
 // o teste do jogo fictício confere.
 const noReal = process.argv.includes('--sem-dados-reais');
-const { buildPack, wrapPack } = require('./make-data-pack');
+const { buildPack, wrapPack, packConsts, copyPackImages } = require('./make-data-pack');
 const packs = noReal ? [] : [buildPack()];
 const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${src(m + '.js')}`).join('\n');
 const css = ['styles.css', 'ui85.css', 'ui85-screens.css', 'ui85-fx.css'].filter(f => fs.existsSync(path.join(root, 'app', 'src', f))).map(src).join('\n');
@@ -39,10 +40,20 @@ const body = (withImg) => `<div id="app"></div><div id="toasts" aria-live="polit
 const dist = path.join(root, 'app', 'dist');
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(path.join(dist, 'assets'), { recursive: true });
-fs.cpSync(path.join(root, 'app', 'assets'), path.join(dist, 'assets'), { recursive: true });
+// (passo 4) jogo base: bandeiras, fontes e a arte própria (assets/img/brand). As fotos e logos do mundo real
+// vão só na pasta de imagens do Pacote de dados (packs/<id>/img).
+const imgDir = path.join(root, 'app', 'assets', 'img');
+const { BASE_IMG } = packConsts();
+fs.cpSync(path.join(root, 'app', 'assets'), path.join(dist, 'assets'), {
+  recursive: true,
+  filter: (s) => { const rel = path.relative(imgDir, s); return rel === '' || rel.startsWith('..') || BASE_IMG.includes(rel.split(path.sep)[0]); },
+});
 if (packs.length) {
   fs.mkdirSync(path.join(dist, 'packs'), { recursive: true });
-  packs.forEach(p => fs.writeFileSync(path.join(dist, 'packs', p.id + '.js'), wrapPack(p)));
+  packs.forEach(p => {
+    fs.writeFileSync(path.join(dist, 'packs', p.id + '.js'), wrapPack(p));
+    if (p.images) copyPackImages(path.join(dist, 'packs', p.id, p.images));
+  });
 }
 const csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'";
 fs.writeFileSync(path.join(dist, 'index.html'), `<!doctype html>

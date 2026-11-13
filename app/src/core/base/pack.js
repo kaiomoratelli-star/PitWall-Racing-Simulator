@@ -32,6 +32,8 @@ Pack.check = (p) => {
   else if (p.version > Pack.VERSION) errors.push(`pacote da versão ${p.version}, mais nova que este jogo (${Pack.VERSION})`);
   if (!p.id || typeof p.id !== 'string' || !/^[a-z0-9][a-z0-9._-]{1,63}$/.test(p.id)) errors.push('pacote sem identificador válido');
   if (!p.name || typeof p.name !== 'string') errors.push('pacote sem nome');
+  // (passo 4) pasta de imagens do pacote (fotos e logos do mundo real), relativa à pasta do pacote: só um nome simples
+  if (p.images != null && (typeof p.images !== 'string' || !/^[a-z0-9_-]{1,32}$/.test(p.images))) errors.push('pasta de imagens do pacote inválida (use um nome simples, como "img")');
   const c = p.content;
   if (!c || Pack.typeOf(c) !== 'object') { errors.push('pacote sem conteúdo'); return { ok: false, errors, warnings }; }
   Object.keys(c).forEach(k => {
@@ -68,9 +70,15 @@ Pack.install = (p, root) => {
   if (!r.ok) return r;
   const g = root || (typeof globalThis !== 'undefined' ? globalThis : this);
   Object.entries(p.content).forEach(([k, v]) => { g[k] = v; });
-  Pack.installed = { id: p.id, name: p.name, nameEn: p.nameEn || p.name, version: p.version, ref: p.ref || null, license: p.license || null };
+  Pack.installed = { id: p.id, name: p.name, nameEn: p.nameEn || p.name, version: p.version, ref: p.ref || null, license: p.license || null, images: p.images || null };
   return r;
 };
+
+/* (passo 4) onde ficam as imagens do pacote instalado: packs/<id>/<pasta>/ ao lado do jogo; null = pacote sem imagens
+   (ou nenhum pacote). Os caminhos do registro (ASSET_REGISTRY) continuam lógicos ("assets/img/faces/..."). */
+Pack.imgBase = () => (Pack.installed && Pack.installed.images ? `packs/${Pack.installed.id}/${Pack.installed.images}/` : null);
+/* a arte própria do jogo (marca MGC) vem com o jogo base; o resto das imagens é do mundo real e vem no pacote */
+Pack.BASE_IMG = ['brand'];
 
 /* (passo 3) o pacote real que vem com o jogo. Saves de antes do Pacote de dados (até a 0.8.7 e os da 0.9
    anteriores a este passo) foram todos criados com os dados reais embutidos: a migração marca esses saves

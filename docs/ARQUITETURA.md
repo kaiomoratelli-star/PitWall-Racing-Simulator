@@ -40,7 +40,12 @@ app/data/       dados reais: real-db (F1 2026), real-extra (contratos, staff, ac
                 app/dist/packs/pitwall-dados-reais.js (embutido na versão web), que ui/base/packs
                 confere e instala (Pack.boot) antes de qualquer tela. Sem pacote, o mundo é o fictício.
                 O save guarda de qual pacote veio (G.pack) e só abre com ele (Pack.canOpen).
+                As fotos e logos do mundo real (app/assets/img, menos brand/) vão na pasta de imagens do
+                pacote (app/dist/packs/<id>/img); imgUrl (ui-core.js) monta o endereço por Pack.imgBase().
+                Os caminhos do ASSET_REGISTRY continuam lógicos ("assets/img/faces/...").
 app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias).
+                (0.9) No build, só flags/, fonts/ e img/brand/ ficam no jogo base; o resto de img/
+                vai para a pasta de imagens do Pacote de dados.
                 Fonte oficial da F1: copie os arquivos Formula1-Display-*.woff2/.ttf/.otf para
                 app/assets/fonts; o build detecta (Regular 400, Bold 700, Black 900, Wide) e usa nos
                 títulos. Sem eles, vale a Titillium Web Black em caixa alta. A Formula1 Display é da
