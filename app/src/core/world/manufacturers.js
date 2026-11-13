@@ -31,7 +31,10 @@ Object.defineProperty(Mfr, 'CANDS', { get: () => (typeof WORLD_LISTS !== 'undefi
 // (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.mfrGenPool, app/data/world-lists.js), não no código
 Object.defineProperty(Mfr, 'GEN_POOL', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.mfrGenPool) || [], configurable: true });
 /* contratos reais de 2026 (estimados quando não divulgados) */
-Mfr.REAL_CONTRACTS = { mclaren: 2030, williams: 2030, alpine: 2030, haas: 2028, cadillac: 2028, 'racing-bulls': 2030 };
+// (0.9) por id de equipe: fica no Pacote de dados (REAL_EXTRA.engineDeals); sem pacote, vazio
+Object.defineProperty(Mfr, 'REAL_CONTRACTS', { get: () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.engineDeals) || {}, configurable: true });
+/* orçamento de desenvolvimento de cada fabricante do mundo real (REAL_EXTRA.engineDev); os demais, 120 */
+Mfr.devOf = (id) => ((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.engineDev) || {})[id] || 120;
 Mfr.st = (G) => (G.mfr = G.mfr || { list: [], contracts: {}, log: [], tyres: null, seq: 0 });
 Mfr.get = (G, id) => Mfr.st(G).list.find(m => m.id === id) || null;
 Mfr.active = (G) => Mfr.st(G).list.filter(m => m.active);
@@ -44,10 +47,10 @@ Mfr.ensure = (G) => {
   if (!S.list.length) {
     G.db.engines.forEach(e => {
       const w = G.db.teams.find(t => t.engine === e.id && t.works);
-      const dev = e.id === 'mercedes' || e.id === 'ferrari' ? 150 : e.id === 'honda' || e.id === 'audi' ? 140 : 120;
+      const dev = Mfr.devOf(e.id);
       S.list.push({ id: e.id, name: e.name, country: w ? w.country : null, active: true, raw: e.power, reliability: e.reliability, eff: Mfr.REF.eff + (e.power - 90) * 0.4, dev, fee: e.cost || 16, since: null, rep: 60 + (e.power - 86) * 4, real: !!e.real });
     });
-    Mfr.CANDS.forEach(c => S.list.push({ ...c, active: false, raw: null, reliability: null, eff: null, fee: 16, rep: 50, cand: true }));
+    Mfr.CANDS.forEach(({ fixedEntry, ...c }) => S.list.push({ ...c, active: false, raw: null, reliability: null, eff: null, fee: 16, rep: 50, cand: true }));
     G.db.teams.forEach(t => { S.contracts[t.id] = { mid: t.engine, until: t.works ? 2099 : (Mfr.REAL_CONTRACTS[t.id] || (G.db.rules.startYear || 2027) + 2), fee: (Mfr.get(G, t.engine) || {}).fee || 16, works: !!t.works }; });
     Mfr.sync(G);
   }
@@ -160,9 +163,12 @@ Mfr.yearly = (G) => {
   S.list.filter(m => m.cand && !m.active && !m.entering && y >= m.from - 3).forEach(m => {
     const r = localRng(`ment:${G.seed}:${m.id}:${y}`)();
     const regBoost = nextReg - y <= 3 ? 2.2 : 0.6;
-    const fixed = m.id === 'pu-gm' && y >= 2027 && Career.team(G, 'cadillac');
+    // entrada já anunciada no mundo real (WORLD_LISTS.mfrCands[].fixedEntry): a partir do ano marcado, se a equipe parceira
+    // existir, estreia no ano anunciado. Lida pela lista do pacote, para valer também nos saves criados antes do campo existir
+    const fe = (Mfr.CANDS.find(c => c.id === m.id) || {}).fixedEntry;   // (fica fora do save: lida da lista do pacote)
+    const fixed = !!fe && y >= fe.from && !!m.partner && Career.team(G, m.partner);
     if (fixed || r < m.interest * 0.08 * regBoost) {
-      m.entering = Math.max(m.from, fixed ? 2029 : nextReg);
+      m.entering = Math.max(m.from, fixed ? fe.year : nextReg);
       Career.news(G, byLang(`${m.name} confirma motor próprio na F1 a partir de ${m.entering}`, `${m.name} confirms its own F1 power unit from ${m.entering}`), 'tecnica', byLang('O fabricante pode fornecer a equipes clientes ou fechar parceria de fábrica.', 'The manufacturer can supply customer teams or form a works partnership.'), { main: true });
       S.log.unshift({ y, kind: 'anuncio', mid: m.id, year: m.entering });
     }

@@ -23,7 +23,8 @@ Disc.SERIES = {
 };
 Disc.of = (sid) => Disc.SERIES[sid] || 'mono';
 /* exigência do jogador: adaptação instantânea */
-Disc.INSTANT = new Set(['max-verstappen', 'fernando-alonso']);
+// (0.9) traço real por piloto: fica no Pacote de dados (REAL_EXTRA.driverTraits[id].instant); sem pacote, ninguém
+Object.defineProperty(Disc, 'INSTANT', { get: () => new Set(Object.entries((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.driverTraits) || {}).filter(([, t]) => t.instant).map(([id]) => id)), configurable: true });
 /* facilidade de adaptação: de → para */
 Disc.T = { end: { gt: 0.88, mono: 0.5 }, gt: { end: 0.8, mono: 0.38 }, mono: { end: 0.72, gt: 0.6 } };
 

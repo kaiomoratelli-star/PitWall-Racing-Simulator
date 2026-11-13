@@ -12,6 +12,7 @@ const WORLD_LISTS = {
    "interest": 0.9,
    "from": 2029,
    "partner": "cadillac",
+   "fixedEntry": { "from": 2027, "year": 2029 },
    "real": "A GM anunciou motor próprio para a Cadillac a partir de 2029."
   },
   {

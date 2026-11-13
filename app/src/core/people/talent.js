@@ -23,6 +23,8 @@ const Talent = {};
 // (0.9, regra 19) semente dos sorteios do piloto: o QID do Wikidata, quando existe, ou o id (nunca o nome: o mundo
 // fictício troca os nomes e precisa sortear igual)
 Talent.seedKey = (d) => (d.uid && /^Q[0-9]+$/.test(d.uid) ? d.uid : d.id);
+/* (0.9) traço real do piloto (REAL_EXTRA.driverTraits[id]: longevity, instant...). Sem pacote, nenhum */
+Talent.trait = (d, k) => (((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.driverTraits) || {})[d.id] || {})[k];
 Talent.TIERS = [
   { id: 'geracional', name: 'Geracional', en: 'Generational', min: 94, max: 96, f1: true },
   { id: 'acima', name: 'Acima da média', en: 'Above average', min: 89, max: 90, f1: true },
@@ -122,7 +124,7 @@ Talent.profile = (G, d) => {
   // nenhum atributo foge mais de 12 pontos da tendência do piloto (forte é forte, fraco é fraco, sem absurdos)
   Talent.ATTRS.forEach(k => { if (d[k] != null) d[k] = +clamp(d[k] + clamp(off[k] + (prof[k] || 0) * 0.5, -12, 12), 30, 99).toFixed(2); });
   Talent.recenter(d, raw0);
-  d.longevity = d.longevity ?? (['fernando-alonso', 'lewis-hamilton'].includes(d.id) || r() < 0.08);
+  d.longevity = d.longevity ?? (!!Talent.trait(d, 'longevity') || r() < 0.08);
   d.profiled = true;
 };
 

@@ -24,9 +24,10 @@
 
 const Econ = {};
 /* aporte anual estimado dos donos/montadora (US$ mi) */
-Econ.OWNER = { mercedes: 55, ferrari: 85, 'red-bull': 100, mclaren: 30, 'racing-bulls': 80, alpine: 85, haas: 35, audi: 160, williams: 45, 'aston-martin': 95, cadillac: 150 };
+// (0.9) dado do mundo real, por id de equipe: fica no Pacote de dados (REAL_EXTRA.ownerFunds); sem pacote, vazio
+Object.defineProperty(Econ, 'OWNER', { get: () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.ownerFunds) || {}, configurable: true });
 /* bônus histórico de longo prazo (acordos comerciais da categoria) */
-Econ.HERITAGE = { ferrari: 45, mercedes: 15, 'red-bull': 15, mclaren: 10, williams: 10 };
+Object.defineProperty(Econ, 'HERITAGE', { get: () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.heritage) || {}, configurable: true });   // REAL_EXTRA.heritage
 /* gastos que ficam fora do teto */
 Econ.CAP_OUT = new Set(['salário', 'motor', 'mercado', 'marketing', 'multa', 'academia', 'patrimônio', 'receita', 'infraestrutura']);
 

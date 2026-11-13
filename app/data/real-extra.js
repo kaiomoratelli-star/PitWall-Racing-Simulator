@@ -993,5 +993,119 @@ const REAL_EXTRA = {
     }
    }
   }
+ },
+ /* dinheiro anual do dono (US$ mi), por equipe (antes Econ.OWNER no código) */
+ "ownerFunds": {
+  "mercedes": 55,
+  "ferrari": 85,
+  "red-bull": 100,
+  "mclaren": 30,
+  "racing-bulls": 80,
+  "alpine": 85,
+  "haas": 35,
+  "audi": 160,
+  "williams": 45,
+  "aston-martin": 95,
+  "cadillac": 150
+ },
+ /* peso da tradição no prêmio da FOM, por equipe (antes Econ.HERITAGE) */
+ "heritage": {
+  "ferrari": 45,
+  "mercedes": 15,
+  "red-bull": 15,
+  "mclaren": 10,
+  "williams": 10
+ },
+ /* equipe irmã -> equipe-mãe (antes Sisters.REAL) */
+ "sisters": {
+  "racing-bulls": "red-bull"
+ },
+ /* equipe cliente -> [fornecedora, peças em português, peças em inglês] (antes Owners.PARTNERS) */
+ "partsDeals": {
+  "haas": [
+   "ferrari",
+   [
+    "motor",
+    "câmbio",
+    "suspensão",
+    "túnel de vento"
+   ],
+   [
+    "engine",
+    "gearbox",
+    "suspension",
+    "wind tunnel"
+   ]
+  ],
+  "williams": [
+   "mercedes",
+   [
+    "motor",
+    "câmbio",
+    "suspensão traseira"
+   ],
+   [
+    "engine",
+    "gearbox",
+    "rear suspension"
+   ]
+  ],
+  "cadillac": [
+   "ferrari",
+   [
+    "motor",
+    "câmbio"
+   ],
+   [
+    "engine",
+    "gearbox"
+   ]
+  ],
+  "alpine": [
+   "mercedes",
+   [
+    "motor",
+    "câmbio"
+   ],
+   [
+    "engine",
+    "gearbox"
+   ]
+  ]
+ },
+ /* até que ano vai o contrato de motor de cada equipe cliente (antes Mfr.REAL_CONTRACTS) */
+ "engineDeals": {
+  "mclaren": 2030,
+  "williams": 2030,
+  "alpine": 2030,
+  "haas": 2028,
+  "cadillac": 2028,
+  "racing-bulls": 2030
+ },
+ /* orçamento de desenvolvimento de cada fabricante de motor; os demais, 120 (antes no Mfr.ensure) */
+ "engineDev": {
+  "mercedes": 150,
+  "ferrari": 150,
+  "honda": 140,
+  "audi": 140
+ },
+ /* traços reais por piloto: longevity (carreira longa), instant (adaptação imediata a outra disciplina), slTracked (superlicença acompanhada sem ser reserva), noSuperLicence (antes no código: talent, disciplines e data.js) */
+ "driverTraits": {
+  "fernando-alonso": {
+   "longevity": true,
+   "instant": true
+  },
+  "lewis-hamilton": {
+   "longevity": true
+  },
+  "max-verstappen": {
+   "instant": true
+  },
+  "rafael-camara": {
+   "slTracked": true
+  },
+  "freddie-slater": {
+   "noSuperLicence": true
+  }
  }
 };

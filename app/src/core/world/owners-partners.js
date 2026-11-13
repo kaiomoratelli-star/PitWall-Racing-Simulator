@@ -5,7 +5,9 @@
    A transferência de tecnologia é limitada às peças listadas: aproxima um pouco o chassi e a
    confiabilidade da parceira dos da equipe principal, nunca a aerodinâmica. Carro parecido demais
    chama a atenção da FIA (caso "Mercedes rosa" de 2020). Troca de dono ou motor próprio encerra o acordo. */
-Owners.PARTNERS = { haas: ['ferrari', ['motor', 'câmbio', 'suspensão', 'túnel de vento'], ['engine', 'gearbox', 'suspension', 'wind tunnel']], williams: ['mercedes', ['motor', 'câmbio', 'suspensão traseira'], ['engine', 'gearbox', 'rear suspension']], cadillac: ['ferrari', ['motor', 'câmbio'], ['engine', 'gearbox']], alpine: ['mercedes', ['motor', 'câmbio'], ['engine', 'gearbox']] };
+// (0.9) acordos do mundo real (equipe cliente -> [fornecedora, peças PT, peças EN]): ficam no Pacote de dados
+// (REAL_EXTRA.partsDeals); sem pacote, nenhum
+Object.defineProperty(Owners, 'PARTNERS', { get: () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.partsDeals) || {}, configurable: true });
 Owners.partners = (G) => {
   if (!G.partners) {
     G.partners = {};

@@ -306,7 +306,8 @@ function applyRealExtra(db, X) {
       d.contract = { until: c.until, salary: c.salary, option: c.option || null, clauses: c.clauses || [], estimated: !!c.estimated, note: c.note || null, real: true };
     } else if (d.team && d.seat === 'R') { d.contractYears = 0; d.salary = d.salary || 0.5; d.contract = { until: start, estimated: true, note: 'Contrato de reserva estimado' }; }
     if (X.managers && X.managers[d.id]) d.manager = X.managers[d.id];
-    if (d.seat === 'R' || d.id === 'rafael-camara') d.slEligible = d.slEligible ?? (d.id !== 'freddie-slater');
+    const tr = (X.driverTraits || {})[d.id] || {};   // (0.9) traços reais por piloto (antes, os ids no código)
+    if (d.seat === 'R' || tr.slTracked) d.slEligible = d.slEligible ?? !tr.noSuperLicence;
   });
   db.teams.forEach(t => {
     if (X.budgets && X.budgets[t.id]) t.budget = X.budgets[t.id];
