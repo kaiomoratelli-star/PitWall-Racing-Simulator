@@ -75,6 +75,32 @@ const build = (args) => execFileSync(process.execPath, [path.join(__dirname, 'bu
       console.log(`interface/${mode}: ${VIEWS.length} telas visitadas · ${r.length + errs.length} problema(s)`);
       await p.close();
     }
+    // (passo 3) um save criado com os dados reais (0.8.7) não abre no jogo fictício: misturaria o mundo do save
+    // com a falta do pacote. A tela recusa, avisa e o jogo aberto continua o mesmo; um save fictício abre normalmente.
+    {
+      const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+      const errs = []; p.on('pageerror', e => errs.push(e.message));
+      await p.goto('file://' + path.join(root, 'app', 'dist', 'index.html')); await p.waitForTimeout(300);
+      const old = require('zlib').gunzipSync(fs.readFileSync(path.join(root, 'tests', 'saves', '0.8.7-entre-etapas.json.gz'))).toString('utf8');
+      const r = await p.evaluate(async (old) => {
+        const out = [];
+        try { closeModal(); } catch (e) { /* sem modal */ }
+        G = Career.create(BASE, { mode: 'observer', seed: 'ficticio-save' });
+        const mine = G, mineJson = JSON.stringify(G);
+        if (G.pack !== null) out.push(`carreira fictícia com G.pack = ${JSON.stringify(G.pack)} (esperado null)`);
+        const opened = loadCareer(JSON.parse(old));
+        if (opened) out.push('o save da 0.8.7 (dados reais) abriu no jogo fictício');
+        if (G !== mine) out.push('o jogo aberto foi trocado mesmo com o save recusado');
+        const t = document.getElementById('toasts').innerText;
+        if (!/Pacote de dados/.test(t)) out.push(`sem o aviso do Pacote de dados (avisos: "${t.slice(0, 160)}")`);
+        if (!loadCareer(JSON.parse(mineJson))) out.push('um save fictício não abriu no jogo fictício');
+        return out;
+      }, old);
+      r.forEach(x => bad.push(`save/pacote: ${x}`));
+      errs.slice(0, 5).forEach(x => bad.push(`save/pacote: erro de página: ${x}`));
+      console.log(`save/pacote: save da 0.8.7 recusado no jogo fictício · ${r.length + errs.length} problema(s)`);
+      await p.close();
+    }
     await b.close();
   } finally { build([]); }
   if (bad.length) { console.log(`fictional-check: ${bad.length} problema(s)`); bad.slice(0, 40).forEach(x => console.log('  ✗', x)); process.exit(1); }

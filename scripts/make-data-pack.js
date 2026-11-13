@@ -19,13 +19,22 @@ function buildPack() {
   }
   const db = content.REAL_DB || {};
   const pkg = require(path.join(root, 'package.json'));
+  const real = JSON.parse(vm.runInContext('JSON.stringify(Pack.REAL)', ctx));   // id e nome vêm do jogo (core/base/pack.js)
   return {
-    format: 'pitwall-pack', version: 1, id: 'pitwall-dados-reais',
-    name: 'Dados reais (F1 e categorias de base)', nameEn: 'Real-world data (F1 and feeder series)',
+    format: 'pitwall-pack', version: 1, id: real.id,
+    name: real.name, nameEn: real.nameEn,
     ref: db.ref || null, game: pkg.version,
     license: 'Dados de fontes abertas: f1db (CC BY 4.0), Wikipedia (CC BY-SA), Wikidata (CC0), OpenStreetMap (ODbL). Fotos e logos: ver ASSET_REGISTRY.',
     content,
   };
+}
+
+// (passo 3) o pacote como o jogo o carrega: um script que só acrescenta o JSON à lista PITWALL_PACKS
+// (o jogo confere e instala com Pack.boot). Todo "<" vira a sequência de escape do JSON (barra, u003c), para o bloco
+// poder ir embutido no HTML da versão web sem fechar a tag <script> antes da hora.
+function wrapPack(p) {
+  const json = JSON.stringify(p).split('<').join(String.fromCharCode(92) + 'u003c');   // U+2028/2029 já são válidos em string desde o ES2019
+  return `/* PitWall — Pacote de dados "${p.id}" (formato ${p.format} v${p.version}). Gerado por scripts/make-data-pack.js; não editar. */\n(globalThis.PITWALL_PACKS = globalThis.PITWALL_PACKS || []).push(${json});\n`;
 }
 
 if (require.main === module) {
@@ -36,4 +45,4 @@ if (require.main === module) {
   fs.writeFileSync(out, txt);
   console.log(`pacote gerado: ${path.relative(root, out)} · ${Object.keys(p.content).length} conjuntos · ${(txt.length / 1048576).toFixed(1)} MB`);
 }
-module.exports = { buildPack };
+module.exports = { buildPack, wrapPack };

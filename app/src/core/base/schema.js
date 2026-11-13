@@ -19,6 +19,7 @@ const Schema = {
     savedAt: { t: 'number', null: true, by: 'Store.saveGame' },
     rngState: { t: 'number', null: true, by: 'Store.saveGame' },
     mode: { t: 'string', by: 'Career.create', one: ['manager', 'observer'] },
+    pack: { t: 'object', null: true, by: 'Career.create / Migrate (Pacote de dados de origem; null = mundo fictício)' },
     player: { t: 'object', by: 'Career.create' },
     options: { t: 'object', by: 'Career.create' },
     db: { t: 'object', by: 'Career.create (base de dados do universo)' },

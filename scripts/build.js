@@ -1,17 +1,22 @@
 // Monta o jogo a partir de app/src:
 //   app/dist/index.html  -> versão desktop (fontes locais, CSP, abre por file://)
-//   dist-web/pitwall.html -> versão artefato web (fontes do Google Fonts)
+//   app/dist/packs/*.js   -> Pacote de dados que vem com o jogo (0.9; sem ele, mundo fictício)
+//   dist-web/pitwall.html -> versão artefato web (fontes do Google Fonts; pacote embutido)
 const fs = require('fs');
 const path = require('path');
-const { core, ui, data } = require('./modules');
+const { core, ui } = require('./modules');
 const root = path.join(__dirname, '..');
 const src = (f) => fs.readFileSync(path.join(root, 'app', 'src', f), 'utf8');
 const pkg = require('../package.json');
 
-// (0.9, Onda 3) --sem-dados-reais: monta o jogo base sem nenhum dado real (pilotos, equipes, fotos, história);
-// o mundo vem do gerador fictício. É o que a edição gratuita usa e o que o teste do jogo fictício confere.
+// (0.9, Onda 3) os dados reais não entram mais no código do jogo (app/data fica fora do index.html).
+// Eles vão num Pacote de dados à parte: app/dist/packs/pitwall-dados-reais.js no desktop (carregado antes do
+// jogo, que o confere e instala com Pack.boot) e um bloco embutido na versão web, que é um arquivo só.
+// --sem-dados-reais: sem pacote nenhum; o mundo vem do gerador fictício. É o que a edição gratuita usa e o que
+// o teste do jogo fictício confere.
 const noReal = process.argv.includes('--sem-dados-reais');
-const dataJs = noReal ? '' : data.map(m => src(m + '.js')).join('\n');
+const { buildPack, wrapPack } = require('./make-data-pack');
+const packs = noReal ? [] : [buildPack()];
 const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${src(m + '.js')}`).join('\n');
 const css = ['styles.css', 'ui85.css', 'ui85-screens.css', 'ui85-fx.css'].filter(f => fs.existsSync(path.join(root, 'app', 'src', f))).map(src).join('\n');
 
@@ -26,13 +31,19 @@ const f1Css = f1Files.map(f => {
   const fmt = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' }[f.split('.').pop().toLowerCase()];
   return `@font-face{font-family:'${wide ? 'Formula1 Display Wide' : 'Formula1 Display'}';font-weight:${weight};font-style:${/italic/i.test(f) ? 'italic' : 'normal'};font-display:swap;src:url('assets/fonts/${f}') format('${fmt}');}`;
 }).join('\n');
-const body = (withImg) => `<div id="app"></div><div id="toasts" aria-live="polite"></div>\n<script>\nconst APP_VERSION = ${JSON.stringify(pkg.version.replace(/-(\d+)$/, '.$1'))};\nconst HAS_IMG = ${withImg};\n${dataJs}\n${js}\n</script>`;
+// desktop: um <script src> por pacote (arquivo ao lado); web: o mesmo conteúdo embutido
+const packTags = (inline) => packs.map(p => (inline ? `<script>\n${wrapPack(p)}</script>` : `<script src="packs/${p.id}.js"></script>`)).join('\n');
+const body = (withImg) => `<div id="app"></div><div id="toasts" aria-live="polite"></div>\n${packTags(!withImg)}\n<script>\nconst APP_VERSION = ${JSON.stringify(pkg.version.replace(/-(\d+)$/, '.$1'))};\nconst HAS_IMG = ${withImg};\n${js}\n</script>`;
 
 // desktop
 const dist = path.join(root, 'app', 'dist');
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(path.join(dist, 'assets'), { recursive: true });
 fs.cpSync(path.join(root, 'app', 'assets'), path.join(dist, 'assets'), { recursive: true });
+if (packs.length) {
+  fs.mkdirSync(path.join(dist, 'packs'), { recursive: true });
+  packs.forEach(p => fs.writeFileSync(path.join(dist, 'packs', p.id + '.js'), wrapPack(p)));
+}
 const csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'";
 fs.writeFileSync(path.join(dist, 'index.html'), `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8">
@@ -49,4 +60,4 @@ ${body(true)}
 const web = path.join(root, 'dist-web');
 fs.mkdirSync(web, { recursive: true });
 fs.writeFileSync(path.join(web, 'pitwall.html'), `${src('head.html')}\n<style>${css}</style>\n${body(false)}`);
-console.log(`build ok: v${pkg.version.replace(/-(\d+)$/, '.$1')}${noReal ? ' · SEM DADOS REAIS' : ''} ·${(js.length / 1024).toFixed(0)} KB de JS${f1Files.length ? ` · fonte Formula1 Display (${f1Files.length} arquivos)` : ''}`);
+console.log(`build ok: v${pkg.version.replace(/-(\d+)$/, '.$1')}${noReal ? ' · SEM DADOS REAIS' : ` · Pacote de dados: ${packs.map(p => p.id).join(', ')}`} ·${(js.length / 1024).toFixed(0)} KB de JS${f1Files.length ? ` · fonte Formula1 Display (${f1Files.length} arquivos)` : ''}`);

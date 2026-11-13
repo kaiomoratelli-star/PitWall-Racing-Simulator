@@ -81,6 +81,9 @@ function loadCareer(g) {
     const steps = Migrate.run(g);
     if (steps.length) { Store.log('info', 'save migrado: ' + steps.join(', ')); toast(byLang(`Save atualizado para a versão atual (${steps.join(', ')}).`, `Save updated to the current version (${steps.join(', ')}).`), 'good'); }
   } catch (e) { Store.log('error', 'migração: ' + e.message); toast(e.message, 'bad'); return false; }
+  // (0.9, Onda 3) o save só abre com o Pacote de dados com que foi criado (o G aberto não é trocado)
+  const pk = Pack.canOpen(g);
+  if (!pk.ok) { Store.log('error', `save recusado: pacote ${pk.why} (precisa de ${pk.need ? pk.need.id : 'nenhum'}, instalado ${pk.have ? pk.have.id : 'nenhum'})`); toast(packRefusal(pk), 'bad'); return false; }
   if (typeof Schema !== 'undefined') {
     const fixed = Schema.repair(g); if (fixed.length) Store.log('warn', 'save consertado (listas refeitas): ' + fixed.join(', '));
     const r = Schema.check(g);

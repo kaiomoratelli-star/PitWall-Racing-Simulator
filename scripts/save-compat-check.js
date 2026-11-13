@@ -3,11 +3,15 @@
 // conferindo a integridade dos dados a cada etapa. Falha se algo quebrar ou ficar incoerente.
 // (0.9) Saves do Observador também: o jogo continua sem as ações de equipe. O Schema.check precisa passar
 // sem erro depois da migração e no fim.
-// Uso: node scripts/save-compat-check.js [etapas=26]
+// (0.9, Onda 3) --pack: como o jogo carrega hoje — núcleo SEM app/data e o Pacote de dados real instalado
+// (Pack.install); cada save antigo precisa ser marcado com o pacote real e abrir com ele (Pack.canOpen).
+// Uso: node scripts/save-compat-check.js [etapas=26] [--pack]
 const fs = require('fs'), path = require('path'), vm = require('vm'), zlib = require('zlib');
 const root = path.join(__dirname, '..');
 const { core, data } = require('./modules');
-const ROUNDS = +(process.argv[2] || 26);
+const ROUNDS = +(process.argv.slice(2).find(a => /^\d+$/.test(a)) || 26);
+const usePack = process.argv.includes('--pack');
+const packJson = usePack ? JSON.stringify(require('./make-data-pack').buildPack()) : null;
 const dir = path.join(root, 'tests', 'saves');
 const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json.gz')).sort() : [];
 if (!files.length) { console.log('sem saves em tests/saves'); process.exit(1); }
@@ -17,8 +21,13 @@ const missing = REQUIRED.filter(r => !files.includes(r + '.json.gz'));
 if (missing.length) { console.log(`faltam saves de teste em tests/saves: ${missing.join(', ')} (gere com scripts/make-save-fixtures.js)`); process.exit(1); }
 const load = () => {
   const ctx = vm.createContext({ console, Math, JSON, Date, process });
-  for (const m of [...data, ...core]) vm.runInContext(fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
-  vm.runInContext('this.API = { Career, Events, Migrate, RNG, Talks: typeof Talks !== "undefined" ? Talks : null, Parts: typeof Parts !== "undefined" ? Parts : null, SL: typeof SL !== "undefined" ? SL : null, People: typeof People !== "undefined" ? People : null, Schema: typeof Schema !== "undefined" ? Schema : null }', ctx);
+  for (const m of [...(usePack ? [] : data), ...core]) vm.runInContext(fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
+  if (usePack) {
+    ctx.__packJson = packJson;
+    const r = vm.runInContext('Pack.install(JSON.parse(__packJson))', ctx);
+    if (!r.ok) throw new Error('pacote recusado: ' + r.errors.join('; '));
+  }
+  vm.runInContext('this.API = { Pack, Career, Events, Migrate, RNG,Talks: typeof Talks !== "undefined" ? Talks : null, Parts: typeof Parts !== "undefined" ? Parts : null, SL: typeof SL !== "undefined" ? SL : null, People: typeof People !== "undefined" ? People : null, Schema: typeof Schema !== "undefined" ? Schema : null }', ctx);
   return ctx.API;
 };
 const finite = (x) => typeof x === 'number' && isFinite(x);
@@ -38,13 +47,15 @@ function check(API, G, where, fail) {
 }
 let failed = 0;
 for (const f of files) {
-  const API = load(); const { Career, Events, Migrate, RNG, Talks, Parts, SL, Schema } = API;
+  const API = load(); const { Pack, Career, Events, Migrate, RNG, Talks, Parts, SL, Schema } = API;
   const fails = []; const fail = (m) => { if (fails.length < 15) fails.push(m); };
   let G;
   try {
     G = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, f))).toString('utf8'));
     const from = `${G.season.year} etapa ${G.season.round}${G.weekend ? ' (meio da corrida)' : ''}`;
     const steps = Migrate.run(G); RNG.state = G.rngState || G.seed;
+    if (!G.pack || G.pack.id !== Pack.REAL.id) fail(`migração: o save devia ficar marcado com o pacote ${Pack.REAL.id} (ficou ${JSON.stringify(G.pack)})`);
+    if (usePack) { const ok = Pack.canOpen(G); if (!ok.ok) fail(`com o pacote real instalado o save não abre (${ok.why})`); }
     const obs = G.mode === 'observer';
     const schema = (where) => { if (!Schema) return; const r = Schema.check(G); [...r.fatal, ...r.errors].forEach(e => fail(`${where}: Schema: ${e}`)); };
     schema('depois da migração');
@@ -69,5 +80,5 @@ for (const f of files) {
   } catch (e) { fail(`${f}: ${e.message} ${String(e.stack).split('\n')[1] || ''}`); console.log(`${f}: ERRO`); }
   if (fails.length) { failed++; fails.forEach(x => console.log('   ✗', x)); }
 }
-console.log(failed ? `saves: ${failed} com problema` : `saves: todos os ${files.length} OK`);
+console.log((failed ? `saves: ${failed} com problema` : `saves: todos os ${files.length} OK`) + (usePack ? ' · com o Pacote de dados real (núcleo sem app/data)' : ''));
 process.exit(failed ? 1 : 0);

@@ -49,7 +49,8 @@ function run(cfg) {
     }
     Career.endSeason(G);
   }
-  const json = JSON.stringify(G, (k, v) => (k === 'createdAt' || k === 'savedAt' ? undefined : v));   // horários não entram na assinatura
+  // horários e o Pacote de origem (G.pack, metadado do save) não entram na assinatura; o mundo (G.db) entra inteiro
+  const json = JSON.stringify(G, function (k, v) { return k === 'createdAt' || k === 'savedAt' || (this === G && k === 'pack') ? undefined : v; });
   return { hash: crypto.createHash('sha256').update(json).digest('hex').slice(0, 16), kb: Math.round(json.length / 1024), champ: (G.history || []).map(h => h.champion || h.driverChampion || '').join(',').slice(0, 80) };
 }
 const file = path.join(root, 'tests', 'determinism.json');

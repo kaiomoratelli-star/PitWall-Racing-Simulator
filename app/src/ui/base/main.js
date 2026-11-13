@@ -65,6 +65,7 @@ const Smoke = {
 async function boot(hotData) {
   BASE = defaultDb();
   render(); // primeira tela imediata, sem esperar a nuvem
+  packBootNotice();
   if (typeof I18N !== 'undefined') I18N.firstRun();
   await Store.init();
   // ganchos: nenhum código pode ter reescrito uma função do jogo por fora do registro

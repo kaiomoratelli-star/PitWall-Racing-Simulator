@@ -11,11 +11,12 @@ plano da versão: `docs/PLANO-0.9.md`.
 | Comando | O que faz |
 |---|---|
 | `npm test` | guardas, Schema, regras, paridade PT/EN, simulação prolongada e categorias (~4 min) |
-| `npm run build` | gera `app/dist/index.html` |
+| `npm run build` | gera `app/dist/index.html` e o Pacote de dados `app/dist/packs/pitwall-dados-reais.js` (`--sem-dados-reais`: só o mundo fictício) |
 | `node scripts/determinism-check.js` | 4 carreiras com semente fixa; compara as assinaturas com `tests/determinism.json` |
 | `node scripts/determinism-check.js --write` | regrava as assinaturas (só após mudança de jogo aprovada e registrada no CHANGELOG) |
 | `node scripts/ui85-check.js 2` | interface em Playwright/Chromium (precisa do build) |
-| `node scripts/save-compat-check.js` | abre os saves antigos de `tests/saves/` na versão atual |
+| `node scripts/save-compat-check.js` | abre os saves antigos de `tests/saves/` na versão atual (`--pack`: com o Pacote de dados, como o jogo carrega) |
+| `node scripts/fictional-check.js 2` | o jogo inteiro sem dados reais (núcleo e 50 telas) e o save real recusado no fictício (Playwright) |
 | `npm run test:smoke` | abre o aplicativo Electron de verdade |
 | `npm run dist` | gera o instalador NSIS (Windows) |
 

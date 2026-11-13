@@ -68,6 +68,42 @@ Pack.install = (p, root) => {
   if (!r.ok) return r;
   const g = root || (typeof globalThis !== 'undefined' ? globalThis : this);
   Object.entries(p.content).forEach(([k, v]) => { g[k] = v; });
-  Pack.installed = { id: p.id, name: p.name, version: p.version, ref: p.ref || null, license: p.license || null };
+  Pack.installed = { id: p.id, name: p.name, nameEn: p.nameEn || p.name, version: p.version, ref: p.ref || null, license: p.license || null };
   return r;
+};
+
+/* (passo 3) o pacote real que vem com o jogo. Saves de antes do Pacote de dados (até a 0.8.7 e os da 0.9
+   anteriores a este passo) foram todos criados com os dados reais embutidos: a migração marca esses saves
+   com este pacote. */
+Pack.REAL = { id: 'pitwall-dados-reais', name: 'Dados reais (F1 e categorias de base)', nameEn: 'Real-world data (F1 and feeder series)' };
+
+/* pacotes que vêm com o jogo: cada arquivo app/dist/packs/*.js (no desktop) ou bloco embutido (na versão web)
+   só acrescenta o JSON do pacote à lista PITWALL_PACKS. Instala o primeiro válido; os inválidos ficam no
+   relatório e não mudam nada. Lista vazia = mundo fictício (edição gratuita). */
+Pack.boot = (list) => {
+  const packs = Array.isArray(list) ? list : [];
+  const report = { found: packs.length, installed: null, errors: [] };
+  for (const p of packs) {
+    if (Pack.installed) break;
+    const r = Pack.install(p);
+    if (r.ok) report.installed = Pack.installed.id;
+    else report.errors.push(`${(p && p.id) || '?'}: ${r.errors.join('; ')}`);
+  }
+  Pack.bootReport = report;
+  return report;
+};
+
+/* o que o save guarda (G.pack): de qual pacote o mundo veio. null = mundo fictício, sem pacote. */
+Pack.summary = () => (Pack.installed ? { id: Pack.installed.id, name: Pack.installed.name, nameEn: Pack.installed.nameEn, version: Pack.installed.version, ref: Pack.installed.ref } : null);
+
+/* um save só abre com o mesmo pacote com que foi criado: o mundo do save mistura-se com os dados
+   instalados (categorias, histórico, fotos), então um pacote diferente, ou a falta dele, corromperia o universo.
+   Devolve { ok } ou { ok: false, why: 'missing' | 'other' | 'fictional', need, have }. */
+Pack.canOpen = (G) => {
+  const need = G && G.pack ? G.pack : null;
+  const have = Pack.installed;
+  if (!need) return have ? { ok: false, why: 'fictional', need: null, have } : { ok: true };
+  if (!have) return { ok: false, why: 'missing', need, have: null };
+  if (have.id !== need.id) return { ok: false, why: 'other', need, have };
+  return { ok: true };
 };
