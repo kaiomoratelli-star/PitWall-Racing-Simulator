@@ -60,6 +60,9 @@ function localRngNormal(seed) {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
+/* (0.9, ids opacos) fatos de uma pista do mundo real, por id (REAL_EXTRA.trackInfo): compostos, luz, calor, curvas,
+   lista da FIA, calendário atual, clássicos... Sem pacote, {} */
+function trackInfo(id) { return ((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})[id] || {}; }
 function hashStr(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }

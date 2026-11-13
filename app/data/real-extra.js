@@ -1107,5 +1107,631 @@ const REAL_EXTRA = {
   "freddie-slater": {
    "noSuperLicence": true
   }
+ },
+ /* fatos de cada pista do mundo real, por id (antes no código): alloc = compostos da Pirelli em 2026 [duro, médio, macio, 1 = confirmado em fontes] (Engine.ALLOC); light = corrida noturna ou ao entardecer (Engine.NIGHT); heat = calor a mais do deserto, em °C (Engine.DESERT); corners = curvas por setor, para a narração (Narr.CORNERS); fiaName = nome na lista de circuitos da FIA (Circuits.MAP); fiaNote = por que não está na lista (Circuits.NOTE); f1Now = no calendário atual da F1, com Grau 1 (Circuits.F1_NOW); classic = clássico que o Conselho não tira do calendário (Council.CLASSICS); gpName = nome histórico do GP (Council.GP); noSprint = o Conselho nunca propõe sprint ali */
+ "trackInfo": {
+  "melbourne": {
+   "alloc": [
+    3,
+    4,
+    5,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 3"
+    ],
+    [
+     "sequência das curvas 6 e 7",
+     "chicane das curvas 9 e 10"
+    ],
+    [
+     "curva 11",
+     "curva 13",
+     "última curva"
+    ]
+   ],
+   "f1Now": true,
+   "classic": true
+  },
+  "shanghai": {
+   "alloc": [
+    2,
+    3,
+    4,
+    1
+   ],
+   "fiaName": "SHANGHAI INTERNATIONAL",
+   "f1Now": true
+  },
+  "suzuka": {
+   "alloc": [
+    1,
+    2,
+    3,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "Esses",
+     "Dunlop"
+    ],
+    [
+     "Degner",
+     "hairpin",
+     "Spoon"
+    ],
+    [
+     "130R",
+     "chicane Casio"
+    ]
+   ],
+   "fiaName": "SUZUKA",
+   "f1Now": true,
+   "classic": true
+  },
+  "catalunya": {
+   "alloc": [
+    2,
+    3,
+    4,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 3"
+    ],
+    [
+     "Repsol",
+     "Campsa"
+    ],
+    [
+     "La Caixa",
+     "curva final"
+    ]
+   ],
+   "fiaName": "CATALUNYA",
+   "f1Now": true
+  },
+  "silverstone": {
+   "alloc": [
+    1,
+    2,
+    3,
+    1
+   ],
+   "corners": [
+    [
+     "Abbey",
+     "Village",
+     "The Loop",
+     "Aintree"
+    ],
+    [
+     "Brooklands",
+     "Luffield",
+     "Copse",
+     "Maggotts",
+     "Becketts"
+    ],
+    [
+     "Chapel",
+     "Stowe",
+     "Vale",
+     "Club"
+    ]
+   ],
+   "fiaName": "SILVERSTONE GRAND PRIX",
+   "f1Now": true,
+   "classic": true
+  },
+  "austin": {
+   "alloc": [
+    2,
+    3,
+    4,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "Esses"
+    ],
+    [
+     "hairpin da curva 11",
+     "curva 12"
+    ],
+    [
+     "setor do estádio",
+     "curvas 16 a 18"
+    ]
+   ],
+   "fiaName": "CIRCUIT OF THE AMERICAS",
+   "f1Now": true
+  },
+  "montreal": {
+   "alloc": [
+    3,
+    4,
+    5,
+    1
+   ],
+   "corners": [
+    [
+     "curva Senna",
+     "curva 3"
+    ],
+    [
+     "hairpin",
+     "curva 8"
+    ],
+    [
+     "chicane final",
+     "Muro dos Campeões"
+    ]
+   ],
+   "fiaName": "MONTREAL GILLES VILLENEUVE",
+   "f1Now": true,
+   "classic": true
+  },
+  "monza": {
+   "alloc": [
+    3,
+    4,
+    5,
+    1
+   ],
+   "corners": [
+    [
+     "Variante del Rettifilo",
+     "Curva Grande"
+    ],
+    [
+     "Variante della Roggia",
+     "primeira de Lesmo",
+     "segunda de Lesmo"
+    ],
+    [
+     "Variante Ascari",
+     "Curva Alboreto"
+    ]
+   ],
+   "fiaName": "MONZA",
+   "f1Now": true,
+   "classic": true
+  },
+  "miami": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "fiaName": "MIAMI",
+   "f1Now": true
+  },
+  "monaco": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "Sainte Dévote",
+     "Massenet",
+     "Casino"
+    ],
+    [
+     "Mirabeau",
+     "Grand Hotel",
+     "Portier",
+     "túnel"
+    ],
+    [
+     "chicane do Porto",
+     "Tabac",
+     "Piscine",
+     "Rascasse",
+     "Anthony Noghès"
+    ]
+   ],
+   "fiaName": "MONACO",
+   "f1Now": true,
+   "classic": true,
+   "noSprint": true
+  },
+  "spielberg": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "curva Niki Lauda",
+     "Remus"
+    ],
+    [
+     "Schlossgold",
+     "Rauch",
+     "Würth"
+    ],
+    [
+     "Rindt",
+     "Red Bull Mobile"
+    ]
+   ],
+   "fiaName": "RED BULL RING - SPIELBERG",
+   "f1Now": true
+  },
+  "spa-francorchamps": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "corners": [
+    [
+     "La Source",
+     "Eau Rouge",
+     "Raidillon"
+    ],
+    [
+     "Les Combes",
+     "Bruxelles",
+     "Pouhon",
+     "Campus"
+    ],
+    [
+     "Blanchimont",
+     "chicane da Bus Stop"
+    ]
+   ],
+   "fiaName": "SPA-FRANCORCHAMPS",
+   "f1Now": true,
+   "classic": true
+  },
+  "hungaroring": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 2"
+    ],
+    [
+     "chicane das curvas 6 e 7",
+     "curva 11"
+    ],
+    [
+     "curva 13",
+     "curva 14"
+    ]
+   ],
+   "fiaName": "HUNGARORING",
+   "f1Now": true
+  },
+  "zandvoort": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "corners": [
+    [
+     "Tarzan",
+     "Gerlach",
+     "Hugenholtz"
+    ],
+    [
+     "Scheivlak",
+     "Masters",
+     "Hans Ernst"
+    ],
+    [
+     "curva Arie Luyendyk"
+    ]
+   ],
+   "fiaName": "ZANDVOORT",
+   "f1Now": true
+  },
+  "madring": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "fiaName": "MADRID IFEMA",
+   "f1Now": true
+  },
+  "baku": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 3"
+    ],
+    [
+     "trecho do castelo",
+     "curva 12"
+    ],
+    [
+     "reta da orla",
+     "curva 16"
+    ]
+   ],
+   "fiaName": "BAKU",
+   "f1Now": true
+  },
+  "sepang": {
+   "alloc": [
+    1,
+    2,
+    3,
+    0
+   ],
+   "fiaName": "SEPANG"
+  },
+  "marina-bay": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "light": "night",
+   "corners": [
+    [
+     "curva 1",
+     "curva 3",
+     "curva 5"
+    ],
+    [
+     "ponte Anderson",
+     "Esplanade"
+    ],
+    [
+     "curva 16",
+     "última curva"
+    ]
+   ],
+   "fiaName": "SINGAPORE - MARINA BAY",
+   "f1Now": true
+  },
+  "mexico-city": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "heat": -6,
+   "corners": [
+    [
+     "curva 1",
+     "Esses"
+    ],
+    [
+     "curva 12"
+    ],
+    [
+     "Foro Sol",
+     "Peraltada"
+    ]
+   ],
+   "fiaName": "AUTODROMO HERMANOS RODRIGUEZ",
+   "f1Now": true
+  },
+  "interlagos": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "corners": [
+    [
+     "S do Senna",
+     "Curva do Sol"
+    ],
+    [
+     "Descida do Lago",
+     "Ferradura",
+     "Pinheirinho",
+     "Bico de Pato",
+     "Mergulho"
+    ],
+    [
+     "Junção",
+     "Subida dos Boxes"
+    ]
+   ],
+   "fiaName": "INTERLAGOS",
+   "f1Now": true,
+   "classic": true
+  },
+  "las-vegas": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "light": "night",
+   "heat": 2,
+   "corners": [
+    [
+     "curva 1",
+     "curva 5"
+    ],
+    [
+     "reta da Strip",
+     "curva 12"
+    ],
+    [
+     "chicane da curva 14",
+     "curva 17"
+    ]
+   ],
+   "fiaName": "LAS VEGAS GRAND PRIX",
+   "f1Now": true
+  },
+  "lusail": {
+   "alloc": [
+    1,
+    2,
+    3,
+    0
+   ],
+   "light": "night",
+   "heat": 7,
+   "f1Now": true
+  },
+  "yas-marina": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "light": "dusk",
+   "heat": 6,
+   "fiaName": "ABU DHABI - YAS MARINA",
+   "f1Now": true
+  },
+  "bahrain": {
+   "alloc": [
+    1,
+    2,
+    3,
+    0
+   ],
+   "light": "night",
+   "heat": 6,
+   "fiaName": "BAHRAIN",
+   "f1Now": true
+  },
+  "jeddah": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "light": "night",
+   "heat": 6,
+   "corners": [
+    [
+     "curva 1",
+     "curvas rápidas do primeiro setor"
+    ],
+    [
+     "curva 13 inclinada",
+     "curva 22"
+    ],
+    [
+     "curva 27",
+     "reta dos boxes"
+    ]
+   ],
+   "fiaName": "JEDDAH CORNICHE CIRCUIT",
+   "f1Now": true
+  },
+  "imola": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "Tamburello",
+     "Villeneuve"
+    ],
+    [
+     "Tosa",
+     "Piratella",
+     "Acque Minerali"
+    ],
+    [
+     "Variante Alta",
+     "Rivazza"
+    ]
+   ],
+   "fiaName": "IMOLA"
+  },
+  "paul-ricard": {
+   "fiaName": "PAUL RICARD",
+   "gpName": "GP da França"
+  },
+  "hockenheimring": {
+   "fiaName": "HOCKENHEIM GRAND PRIX",
+   "gpName": "GP da Alemanha"
+  },
+  "nurburgring": {
+   "fiaName": "NÜRBURGRING GRAND PRIX",
+   "gpName": "GP da Alemanha"
+  },
+  "portimao": {
+   "fiaName": "ALGARVE",
+   "f1Now": true,
+   "gpName": "GP de Portugal"
+  },
+  "mugello": {
+   "fiaName": "MUGELLO",
+   "gpName": "GP da Toscana"
+  },
+  "magny-cours": {
+   "fiaName": "MAGNY-COURS",
+   "gpName": "GP da França"
+  },
+  "estoril": {
+   "fiaName": "ESTORIL",
+   "gpName": "GP de Portugal"
+  },
+  "indianapolis": {
+   "fiaName": "INDIANAPOLIS GRAND PRIX",
+   "gpName": "GP de Indianápolis"
+  },
+  "buenos-aires": {
+   "fiaName": "BUENOS AIRES",
+   "gpName": "GP da Argentina"
+  },
+  "jacarepagua": {
+   "fiaNote": "Autódromo demolido em 2012.",
+   "gpName": "GP do Rio de Janeiro"
+  },
+  "istanbul": {
+   "fiaNote": "Na lista de 04/11/2026 só aparece um traçado curto (Grau 6R), não o traçado de Grande Prêmio.",
+   "f1Now": true,
+   "gpName": "GP da Turquia"
+  },
+  "kyalami": {
+   "fiaNote": "Não consta na lista de 04/11/2026.",
+   "gpName": "GP da África do Sul"
+  },
+  "watkins-glen": {
+   "fiaNote": "Não consta na lista de 04/11/2026.",
+   "gpName": "GP de Watkins Glen"
+  }
  }
 };
