@@ -85,10 +85,29 @@ const SCREENS = {};  // view -> função que retorna html (e opcional after())
 // (0.8.7) desenhar uma tela nunca pode consumir o sorteio do jogo: senão o resultado da simulação
 // dependeria de quais telas o jogador abriu. Se uma tela sortear ao desenhar, o sorteio é devolvido
 // (a simulação fica igual) e o caso vai para o log e o Diagnóstico; nos testes (UI.strictRng) vira erro.
+// (0.9) Também não pode CRIAR nada no jogo: várias partes do núcleo criam seu estado na primeira leitura
+// (G.market, G.scout, G.partners...). Se uma tela for a primeira a ler, o que ela criou no topo do jogo é
+// desfeito logo depois do desenho (a simulação cria quando for a vez dela) e o caso vai para o log.
+// Os casos dentro de objetos que já existem são tratados na origem, com Draw.on (util.js).
 UI.rngLeaks = [];
+UI.drawLeaks = [];
 function pureHtml(scr) {
   const st = (typeof RNG !== 'undefined') ? RNG.state : null;
-  const h = scr.html();
+  const g0 = typeof G !== 'undefined' && G && typeof G === 'object' ? G : null;
+  const keys0 = g0 ? new Set(Object.keys(g0)) : null;
+  let h;
+  Draw.on = true;   // (0.9) nada do jogo é criado "sob demanda" enquanto a tela é desenhada
+  try { h = scr.html(); } finally {
+    Draw.on = false;
+    if (g0) {
+      const made = Object.keys(g0).filter(k => !keys0.has(k));
+      if (made.length) {
+        made.forEach(k => { delete g0[k]; });
+        const where = UI.view + (UI.params && UI.params.tab ? ':' + UI.params.tab : '') + ' → ' + made.join(', ');
+        if (!UI.drawLeaks.includes(where)) { UI.drawLeaks.push(where); Store.log('warn', `a tela ${where} criou estado do jogo ao desenhar (desfeito)`); }
+      }
+    }
+  }
   if (st !== null && RNG.state !== st) {
     RNG.state = st;
     const where = UI.view + (UI.params && UI.params.tab ? ':' + UI.params.tab : '');

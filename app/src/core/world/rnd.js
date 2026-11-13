@@ -80,11 +80,14 @@ RnD.pool = (G) => {
   const team = Career.team(G);
   const idx = Math.floor(G.season.round / RnD.PERIOD);
   const P = G.atrPool;
+  const left = RnD.PERIOD - (G.season.round % RnD.PERIOD);
   if (!P || P.y !== G.season.year || P.p !== idx) {
     const f = typeof Regs !== 'undefined' ? Regs.atrFactor(G, team.id) : 1;
-    G.atrPool = { y: G.season.year, p: idx, f: +f.toFixed(2), wt: Math.round(RnD.BASE.wt * f), cfd: Math.round(RnD.BASE.cfd * f), wtMax: Math.round(RnD.BASE.wt * f), cfdMax: Math.round(RnD.BASE.cfd * f) };
+    const fresh = { y: G.season.year, p: idx, f: +f.toFixed(2), wt: Math.round(RnD.BASE.wt * f), cfd: Math.round(RnD.BASE.cfd * f), wtMax: Math.round(RnD.BASE.wt * f), cfdMax: Math.round(RnD.BASE.cfd * f) };
+    // (0.9) uma tela só mostra a cota nova; quem a grava é a simulação (o fator ATR depende da posição naquele momento)
+    if (Draw.on) return { ...fresh, renewIn: left };
+    G.atrPool = fresh;
   }
-  const left = RnD.PERIOD - (G.season.round % RnD.PERIOD);
   return { ...G.atrPool, renewIn: left };
 };
 

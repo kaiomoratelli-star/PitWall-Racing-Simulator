@@ -29,6 +29,13 @@
 **Documentos**
 - `CLAUDE.md` (guia do projeto), README com a versão e os comandos atuais, ficha `docs/marketing/3-SOBRE-O-JOGO.md` conferida com o código.
 
+### Correções (regra 6: uma tela nunca muda o jogo)
+- Corrigido: abrir a tela de Olheiros antes do primeiro GP criava o departamento de olheiros com nomes tirados do sorteio do jogo. O resto da carreira saía diferente conforme o jogador abria a tela ou não. A tela agora só lê; os dois primeiros olheiros chegam depois do primeiro GP (ou quando o jogador manda observar um piloto), e a tela avisa isso.
+- Corrigido: abrir a tela de Desenvolvimento antes da simulação gravava a organização da equipe com a reputação daquele instante, e o carro evoluía diferente. O mesmo valia para a cota de túnel e CFD do período e para o empresário dos pilotos (telas de Donos e fichas). As telas agora só mostram esses valores; quem grava é a simulação, no mesmo momento de sempre.
+- Proteção geral: o que uma tela criar no estado do jogo enquanto é desenhada (mercado, olheiros, parcerias, Conselho, casos...) é desfeito logo depois e registrado no log.
+- Teste novo `screen-purity-check` (no CI): a mesma carreira, com a mesma semente, abrindo todas as telas antes do primeiro GP e entre as etapas, e sem abrir nenhuma, termina idêntica (Manager e Observador). Antes das correções, as três carreiras do teste terminavam diferentes.
+- As 4 assinaturas de determinismo continuam iguais: a simulação de quem não abria as telas não mudou.
+
 ### Onda 2 — Dívida técnica (em parte)
 - O redator do paddock sorteia com um gerador local: a versão web e a desktop seguem a mesma sequência de sorteios com a mesma semente (`web-desktop-check` no CI).
 - A frase da vitória na Sprint ganhou a versão em inglês.

@@ -28,9 +28,14 @@ CarDev.capacity = (t) => {
 CarDev.org = (t) => {
   if (t.org == null) {
     const r = localRng('org:' + t.id)();
-    t.org = +clamp(0.35 + ((t.reputation ?? 60) - 55) / 60 + (t.works ? 0.06 : 0) + (r - 0.5) * 0.16, 0.15, 0.95).toFixed(3);
+    const v = +clamp(0.35 + ((t.reputation ?? 60) - 55) / 60 + (t.works ? 0.06 : 0) + (r - 0.5) * 0.16, 0.15, 0.95).toFixed(3);
+    // (0.9) uma tela (cotação de projetos) só mostra o valor: quem grava é a simulação, no mesmo momento de sempre.
+    // Antes, abrir a tela de Desenvolvimento antes da simulação gravava a organização com a reputação daquele
+    // instante, e o carro evoluía diferente conforme o jogador abria a tela.
+    if (Draw.on) return v;
+    t.org = v;
   }
-  if (t.org0 == null) t.org0 = t.org;
+  if (t.org0 == null) { if (Draw.on) return t.org; t.org0 = t.org; }
   return t.org;
 };
 CarDev.orgMul = (t) => 0.75 + 0.5 * CarDev.org(t);

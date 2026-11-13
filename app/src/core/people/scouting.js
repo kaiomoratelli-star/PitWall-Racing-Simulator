@@ -43,6 +43,13 @@ Scouting.state = (G) => {
   }
   return S;
 };
+/* (0.9) só leitura, para as telas (regra 6): nunca cria o departamento. Quem cria é a simulação (Potential.tick,
+   depois do primeiro GP) ou uma ação do jogador. Antes, abrir a tela de Olheiros antes do primeiro GP criava os
+   olheiros com nomes do sorteio do jogo, e a carreira inteira saía diferente. */
+Scouting.view = (G) => {
+  const S = G.scout || {};
+  return { staff: S.staff || [], mkt: S.mkt || [], reports: S.reports || [], ready: !!S.staff };
+};
 Scouting.refreshMarket = (G) => {
   const S = Scouting.state(G);
   S.mkt = Array.from({ length: 6 }, (_, i) => Scouting.genScout(G, 62 + i * 3, `m${G.season.year}${i}`));

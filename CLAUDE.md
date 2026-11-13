@@ -16,6 +16,7 @@ plano da versão: `docs/PLANO-0.9.md`.
 | `node scripts/determinism-check.js --write` | regrava as assinaturas (só após mudança de jogo aprovada e registrada no CHANGELOG) |
 | `node scripts/ui85-check.js 2` | interface em Playwright/Chromium (precisa do build) |
 | `node scripts/save-compat-check.js` | abre os saves antigos de `tests/saves/` na versão atual (`--pack`: com o Pacote de dados, como o jogo carrega) |
+| `node scripts/screen-purity-check.js 3` | regra 6: a mesma carreira abrindo todas as telas e sem abrir nenhuma termina idêntica (Playwright) |
 | `node scripts/fictional-check.js 2` | o jogo inteiro sem dados reais (núcleo e 50 telas) e o save real recusado no fictício (Playwright) |
 | `npm run test:smoke` | abre o aplicativo Electron de verdade |
 | `npm run dist` | gera o instalador NSIS (Windows) |

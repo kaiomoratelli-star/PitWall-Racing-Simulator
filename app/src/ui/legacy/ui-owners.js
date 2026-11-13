@@ -203,7 +203,7 @@ SCREENS.teamSetup = {
     const drows = ds.map(d => {
       const a = Market.driverAccepts(G, d, t, { salary: Market.ask(d), years: 2, role: 1 });
       const where = d.team ? `${byLang('reserva da', 'reserve at')} ${esc(Career.team(G, d.team).name)}` : (typeof Cats !== 'undefined' && Cats.label(G, d)) || d.series || byLang('livre', 'free');
-      return `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}<div class="small muted">${natTag(d.nat)} ${d.age} ${byLang('anos', 'yrs')} · ${esc(where)}</div></td><td class="r num">${driverOverall(d)}</td><td class="r num">${fmtMoney(Market.ask(d))}</td><td class="small">${esc(Silly.agent(G, d).name)}</td><td class="r num ${a.p >= 0.5 ? 'pos' : a.p < 0.25 ? 'neg' : ''}">${Math.round(a.p * 100)}%</td><td><button class="btn sm" data-act="negotiate" data-id="${d.id}">${byLang('Negociar', 'Negotiate')}</button></td></tr>`;
+      return `<tr><td>${headshot(d, 'sm')}</td><td>${dTag(d.id)}<div class="small muted">${natTag(d.nat)} ${d.age} ${byLang('anos', 'yrs')} · ${esc(where)}</div></td><td class="r num">${driverOverall(d)}</td><td class="r num">${fmtMoney(Market.ask(d))}</td><td class="small">${esc(Silly.agentInfo(d).name)}</td><td class="r num ${a.p >= 0.5 ? 'pos' : a.p < 0.25 ? 'neg' : ''}">${Math.round(a.p * 100)}%</td><td><button class="btn sm" data-act="negotiate" data-id="${d.id}">${byLang('Negociar', 'Negotiate')}</button></td></tr>`;
     }).join('');
     const roleRows = Owners.SETUP_ROLES.filter(r => r !== 'engine' || t.works || Staff.get(t, 'engine')).map(role => {
       const cur = Staff.get(t, role);

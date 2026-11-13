@@ -17,14 +17,19 @@
 const Silly = {};
 Silly.AGENCIES = ['Apex Driver Management', 'Northline Sports', 'Grid One Agency', 'Velocity Talent', 'Pole Line Management', 'Corsa Talent Group', 'Paddock Partners', 'Summit Racing Management', 'Delta Motorsport Agency', 'Lumen Sports'];
 Silly.STYLES = { agressivo: [0.06, 0.12], equilibrado: [0.03, 0.08], leal: [0, 0.05] };
-/* empresário do piloto (criado sob demanda) */
-Silly.agent = (G, d) => {
+/* empresário do piloto: o cálculo (só do piloto, sem sorteio). (0.9) As telas usam este, que não grava nada no
+   jogo (regra 6); antes, desenhar a tela de Donos gravava o empresário nos pilotos e o save mudava conforme a tela. */
+Silly.agentInfo = (d) => {
   if (d.agent) return d.agent;
   const real = typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.managers && REAL_EXTRA.managers[d.id];
   const h = hashStr('agent:' + d.id);
   const style = ['agressivo', 'equilibrado', 'equilibrado', 'leal'][h % 4];
   const fee = +(0.05 + (h % 8) / 100).toFixed(2);
-  d.agent = { name: real || Silly.AGENCIES[h % Silly.AGENCIES.length], real: !!real, style, fee };
+  return { name: real || Silly.AGENCIES[h % Silly.AGENCIES.length], real: !!real, style, fee };
+};
+/* empresário do piloto (criado sob demanda pela simulação) */
+Silly.agent = (G, d) => {
+  if (!d.agent) { const a = Silly.agentInfo(d); if (Draw.on) return a; d.agent = a; }   // tela: só lê (regra 6)
   return d.agent;
 };
 Silly.push = (G, d) => (Silly.STYLES[Silly.agent(G, d).style] || Silly.STYLES.equilibrado)[0];   // não depende da carreira (só do piloto)
@@ -186,7 +191,7 @@ Silly.choose = (G, d, talks) => {
     const c = d.contract || {};
     if (d.team && c.bonus) s += byLang(` · bônus: vitória ${fmtMoney(c.bonus.win)}, pódio ${fmtMoney(c.bonus.podium)}, título ${fmtMoney(c.bonus.title)}`, ` · bonuses: win ${fmtMoney(c.bonus.win)}, podium ${fmtMoney(c.bonus.podium)}, title ${fmtMoney(c.bonus.title)}`);
     if (d.team && c.imageRights) s += byLang(` · ${Math.round(c.imageRights * 100)}% dos direitos de imagem com a equipe`, ` · ${Math.round(c.imageRights * 100)}% of image rights with the team`);
-    const ag = Silly.agent(G, d);
+    const ag = Silly.agentInfo(d);   // (0.9) texto da ficha: só lê (regra 6)
     return s + byLang(` · empresário: ${ag.name} (comissão de ${Math.round(ag.fee * 100)}%)`, ` · manager: ${ag.name} (${Math.round(ag.fee * 100)}% commission)`);
   });
   // bônus pagos por resultado

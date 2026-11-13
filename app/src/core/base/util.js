@@ -5,6 +5,10 @@
 
 /* RNG mulberry32 — o estado fica salvo na carreira, então cada carreira
    tem sua própria sequência e o save continua de onde parou. */
+/* (0.9) regra 6 do dono: desenhar uma tela nunca muda o jogo. Enquanto uma tela é desenhada (pureHtml, na
+   interface), Draw.on fica ligado; uma função do núcleo que cria algo "na primeira leitura" (ex.: a organização
+   de uma equipe) devolve o valor sem gravar. Assim o que é criado, e quando, depende só da simulação. */
+const Draw = { on: false };
 const RNG = {
   state: 1,
   seed(s) { this.state = (typeof s === 'number' ? s : hashStr(String(s))) >>> 0 || 1; },
