@@ -15,7 +15,7 @@ const { buildPack } = require('./make-data-pack');
 const { buildFictionalPack } = require('./make-fictional-pack');
 const SEASONS = +(process.argv[2] || 1);
 const real = buildPack();
-const { pack: fict, map, keyOf, protectedPhrases, placeStrings = new Set(), GENERIC, stats } = buildFictionalPack(real);
+const { pack: fict, map, keyOf, GENERIC, stats } = buildFictionalPack(real);
 const bad = [];
 
 function newCareer(pack, cfg) {
@@ -114,13 +114,28 @@ const realList = [...realNames].filter(n => !onlyGenericWord(n)).sort((a, b) => 
 const firstNameWord = (n) => /^\p{L}+$/u.test(n) && (stats.get(keyOf(n)) || {}).first > 0;
 const isLetter = (ch) => !!ch && /\p{L}/u.test(ch);
 const FIRST_LISTS = new Set(['NAME_POOL', 'FEMALE_NAMES', 'NICKNAMES']);
+// lugares que ficam reais (decisão do dono): circuitos conhecidos, cidades das etapas e países, tirados da base real pelo
+// próprio teste (nunca da lista do gerador). Nome de etapa com patrocinador ("Goodyear 400") não é lugar: a marca muda
+const PLACES = new Set();
+const addPl = (v) => { if (typeof v === 'string') { if (v.length >= 3) PLACES.add(v); } else if (Array.isArray(v)) v.forEach(addPl); else if (v && typeof v === 'object') Object.values(v).forEach(addPl); };
+[C0.REAL_DB.tracks, C0.FIA_CIRCUITS, C0.REAL_TRACKS, C0.REAL_HISTORY.circuits, C0.REAL_HISTORY.seasons, C0.REAL_DB.natNames, C0.REAL_DB.calendar,
+  C0.F1_CALENDAR_2027, (C0.TEAM_CANDIDATES || []).map(t => t.base), Object.values(C0.TEAM_LORE || {}).map(l => l.base),
+  Object.values((C0.DRIVERDB_2026 || {}).people || {}).map(p => p.natName)].forEach(addPl);
+// nas categorias, o nome da etapa é lugar, a não ser que tenha marca dentro ("Goodyear 400") ou seja nome de equipe
+// (dado errado da importação: "JHR Developments" no campo de circuito)
+const BRANDS = [...Object.keys(C0.SPONSOR_BRANDS || {}), ...(C0.SPONSOR_POOL || []), ...C0.REAL_DB.teams.flatMap(t => t.sponsors || []), ...C0.REAL_DB.engines.map(e => e.name),
+  ...Object.values((C0.WORLD_LISTS || {}).tyres || {}).map(x => x.name), ...((C0.WORLD_LISTS || {}).mfrCands || []).map(x => x.name)].filter(b => typeof b === 'string' && b.length >= 4);
+const TEAMS0 = new Set(C0.REAL_CATS.cats.flatMap(c => c.teams.map(t => t.name)));
+const hasBrand = (s) => BRANDS.some(b => { const i = s.indexOf(b); return i >= 0 && !/\p{L}/u.test(s[i - 1] || '') && !/\p{L}/u.test(s[i + b.length] || ''); });
+C0.REAL_CATS.cats.forEach(c => (c.calendar || []).forEach(e => { addPl(e.place); if (typeof e.circuit === 'string' && !hasBrand(e.circuit) && !TEAMS0.has(e.circuit)) addPl(e.circuit); }));
+const placeList = [...PLACES].filter(p => /\s/.test(p)).sort((a, b) => b.length - a.length);
 function leaks(G) {
   const found = new Map();
   const scan = (v, at, key) => {
     if (typeof v === 'string') {
       // lugares ficam reais (decisão do dono), mesmo com nome de pessoa: "Nelson Piquet", o autódromo de Brasília
-      if (ATTR.has(key) || /(src|source)$/i.test(key) || v.length < 4 || placeStrings.has(v)) return;
-      let t = v; for (const p of protectedPhrases) if (t.includes(p)) t = t.split(p).join(' ');
+      if (ATTR.has(key) || /(src|source)$/i.test(key) || v.length < 4 || PLACES.has(v)) return;
+      let t = v; for (const p of placeList) if (t.includes(p)) t = t.split(p).join(' ');
       for (const n of realList) {
         if (found.has(n)) continue;
         let i = t.indexOf(n);

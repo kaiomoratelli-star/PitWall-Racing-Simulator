@@ -270,6 +270,37 @@ function buildFictionalPack(realPack) {
   // escada GP (decisão do dono): F1 -> GP1 ... F4 -> GP4; Q1, P1, W17 e outros códigos ficam
   const letterDigit = (ch) => (ch === 'F' ? 'GP' : ch);
 
+  // 3b) nomes de etapa com patrocinador nas categorias ("Goodyear 400", "Firestone Grand Prix of St. Petersburg"): o
+  //     circuito, o GP e a cidade ficam reais (decisão do dono), mas a marca dentro do nome é patrocinador e muda. Só
+  //     quando o nome não é o de um circuito conhecido ("Red Bull Ring" e "Circuit Gilles Villeneuve" ficam).
+  const brandTok = new Set();
+  const addBrand = (s) => words(s).forEach(w => { const k = keyOf(w); if (k.length > 1 && !GENERIC.has(k)) brandTok.add(k); });
+  Object.keys(C.SPONSOR_BRANDS || {}).forEach(addBrand); (C.SPONSOR_POOL || []).forEach(addBrand);
+  C.REAL_DB.teams.forEach(t => (t.sponsors || []).forEach(addBrand)); C.REAL_DB.engines.forEach(e => addBrand(e.name));
+  Object.values((C.WORLD_LISTS || {}).tyres || {}).forEach(x => addBrand(x.name)); ((C.WORLD_LISTS || {}).mfrCands || []).forEach(x => addBrand(x.name));
+  Object.values(C.REAL_EXTRA.identities || {}).forEach(byYear => Object.values(byYear).forEach(id => [id.titleSponsor, ...(id.sponsorsAdd || [])].forEach(x => x && addBrand(x))));
+  Object.values(C.DRIVER_DB.series || {}).forEach(s => addBrand(s.name));
+  const knownCircuits = new Set();
+  [C.REAL_DB.tracks, C.FIA_CIRCUITS, C.REAL_TRACKS, C.REAL_HISTORY.circuits].forEach(src => each(JSON.parse(JSON.stringify(src || {})), '', (s) => { knownCircuits.add(game.norm(s)); return undefined; }));
+  const cl = (orig, fake) => (orig.length > 1 && orig === orig.toUpperCase() ? fake.toUpperCase() : fake.charAt(0).toUpperCase() + fake.slice(1));
+  // palavras de lugar de verdade (circuitos conhecidos, cidades das etapas, países) nunca são marca: "Le Mans" fica
+  const realPlaceWords = new Set([...knownCircuits].flatMap(x => x.split(" ")));
+  C.REAL_CATS.cats.forEach(c => (c.calendar || []).forEach(e => typeof e.place === "string" && words(e.place).forEach(w => realPlaceWords.add(keyOf(w)))));
+  Object.values(C.REAL_DB.natNames || {}).forEach(n => words(n).forEach(w => realPlaceWords.add(keyOf(w))));
+  realPlaceWords.forEach(k => brandTok.delete(k));
+  const eventRename = new Map();
+  C.REAL_CATS.cats.forEach(c => (c.calendar || []).forEach(e => {
+    const s = e.circuit;
+    if (typeof s !== 'string' || eventRename.has(s) || knownCircuits.has(game.norm(s))) return;
+    if (!words(s).some(w => brandTok.has(keyOf(w)) && map.has(keyOf(w)))) return;
+    eventRename.set(s, s.replace(/\p{L}+/gu, (w) => (brandTok.has(keyOf(w)) && map.has(keyOf(w)) ? cl(w, map.get(keyOf(w))) : w)));
+  }));
+  eventRename.forEach((v, k) => placeStrings.delete(k));   // deixam de ser lugar protegido; valem em todo texto (lista forçada, abaixo)
+  // dado errado da importação: nome de equipe no campo de circuito ("JHR Developments" na F4 Britânica) é nome, não lugar
+  const teamNameSet = new Set(C.REAL_CATS.cats.flatMap(c => c.teams.map(t => t.name)));
+  const teamCircuits = new Set();
+  C.REAL_CATS.cats.forEach(c => (c.calendar || []).forEach(e => { if (typeof e.circuit === 'string' && teamNameSet.has(e.circuit)) { teamCircuits.add(e.circuit); placeStrings.delete(e.circuit); } }));
+
   // 4) a troca: mesma função para todos os textos (lugares protegidos; códigos e ids em minúsculas ficam)
   // palavras comuns: as das frases da base e as que o código escreve em minúsculas dentro de frases
   const M = require('./modules');
@@ -285,7 +316,7 @@ function buildFictionalPack(realPack) {
   Object.keys(OVR).forEach(k => COMMON.delete(k));
   const commonOrgPhrases = [...orgStrs].filter(p => /\s/.test(p) && p.length >= 5 && words(p).some(w => COMMON.has(keyOf(w)) && map.has(keyOf(w))))
     .sort((a, b) => b.length - a.length);
-  const protectedPhrases = [...placeStrings].filter(s => words(s).some(w => map.has(keyOf(w))) && !personNames.has(s)).sort((a, b) => b.length - a.length);
+  const protectedPhrases = [...placeStrings].filter(s => /\p{Lu}/u.test(s) && words(s).some(w => map.has(keyOf(w))) && !personNames.has(s)).sort((a, b) => b.length - a.length);
   // marcas escritas só em minúsculas (ex.: patrocinador 'bp'): troca o texto inteiro
   const forced = new Map();
   [...C.REAL_DB.teams.flatMap(t => t.sponsors || []), ...Object.keys(C.SPONSOR_BRANDS || {})].forEach(x => { if (/^[a-z0-9 ]+$/.test(x) && /[a-z]/.test(x)) { const w = (x.match(/[a-z]+/g) || []).find(y => map.has(keyOf(y))); if (w) forced.set(x, x.replace(w, map.get(keyOf(w)).toLowerCase())); } });
@@ -305,7 +336,17 @@ function buildFictionalPack(realPack) {
     if (slugLike(s) && !names) return s;
     const hold = [];
     let t = s;
-    for (const p of protectedPhrases) { if (t.includes(p)) t = t.split(p).join(`\u0000${hold.push(p) - 1}\u0000`); }
+    // lugares protegidos: só a frase inteira, com limite de palavra (antes, "ags" protegia o meio de "Gragson")
+    for (const p of protectedPhrases) {
+      if (!t.includes(p)) continue;
+      let out = '', i = 0, j;
+      while ((j = t.indexOf(p, i)) >= 0) {
+        const okL = !/\p{L}/u.test(t[j - 1] || ''), okR = !/\p{L}/u.test(t[j + p.length] || '');
+        out += t.slice(i, j) + (okL && okR ? `\u0000${hold.push(p) - 1}\u0000` : p);
+        i = j + p.length;
+      }
+      t = out + t.slice(i);
+    }
     const held = hold.length;   // o que vem daqui em diante (escada GP, nomes inteiros) é troca de verdade
     for (const [re, fn] of FORMULA_RULES) t = t.replace(re, (...a) => `\u0000${hold.push(fn(...a)) - 1}\u0000`);
     // nomes forçados (feitos de palavras genéricas) também dentro de textos: o nome inteiro, com limite de palavra;
@@ -375,6 +416,8 @@ function buildFictionalPack(realPack) {
   // frases escolhidas à mão (veículos de imprensa e séries de nome genérico), valem antes de tudo
   const PHRASES = JSON.parse(fs.readFileSync(path.join(__dirname, 'fictional-overrides.json'), 'utf8')).phrases || {};
   for (const [k, v] of Object.entries(PHRASES)) { forced.set(k, v); usedForced.add(v); }
+  eventRename.forEach((v, k) => { forced.set(k, v); usedForced.add(v); });   // nomes de etapa com patrocinador (3b)
+  teamCircuits.forEach(k => { const v = mapName(k); eventRename.set(k, v); forced.set(k, v); usedForced.add(v); });   // equipe no campo de circuito (3b)
   each(JSON.parse(JSON.stringify(C)), '', (s, p) => {
     const f = (list) => inList(list, p);
     if (!(f(ORG) || f(MIXED)) || f(PLACE) || forced.has(s) || natCodes.has(s) || !/\p{L}{2}/u.test(s)) return undefined;
@@ -413,7 +456,7 @@ function buildFictionalPack(realPack) {
     const leaf = leafOf(p);
     if (ID_KEYS.has(leaf)) return undefined;
     if (ATTRIBUTION.has(leaf) || /(src|source)$/i.test(leaf)) return /(src|source)$/i.test(leaf) ? FICT_SOURCE : null;   // fonte e foto: antes até dos lugares
-    if (f(PLACE)) return undefined;
+    if (f(PLACE)) return eventRename.get(s);   // lugar fica; nome de etapa com patrocinador muda a marca (3b)
     const abbr = Object.keys(ABBR).find(pat => inList([pat], p));
     if (abbr) return undefined;   // siglas: depois, a partir do nome fictício
     if (slugLike(s)) return mapText(s);
