@@ -1,6 +1,7 @@
 // Guarda da publicação (0.9, E25; regra 7: instalador publicado nunca é trocado). Roda no npm test.
 // Confere o windows.yml (overwrite_files false, conferência da release antes de publicar, ordem dos passos)
 // e executa o passo "Conferir a release desta versão" com um gh falso em 3 cenários.
+// (0.9) Também falha se um script do package.json tiver 10 ou mais "&&" (o cmd.exe do Windows 11 trava).
 // Uso: node scripts/workflow-check.js
 const fs = require('fs'), path = require('path'), os = require('os'), { spawnSync } = require('child_process');
 const repo = path.join(__dirname, '..');
@@ -49,5 +50,12 @@ for (const sc of scenarios) {
   console.log(`${ok ? 'OK ' : 'ERRO'} ${sc.name}: código ${r.status}, publish=${publish && publish[1]} ${(String(r.stdout || '') + String(r.stderr || '') + (r.error ? r.error.message : '')).trim().split('\n').pop()}`);
   fs.rmSync(dir, { recursive: true, force: true });
 }
-if (!bad) console.log(`workflow-check OK · ${steps.length} passos · publicação protegida nos 3 cenários`);
+// (0.9) scripts do npm: no Windows 11 build 26200 o cmd.exe (que o npm usa) trava sem rodar nada quando a linha
+// tem 10 ou mais "&&". Cadeias longas vão para um executor em Node (ex.: scripts/test-all.js).
+const pkgScripts = require(path.join(repo, 'package.json')).scripts || {};
+Object.entries(pkgScripts).forEach(([k, v]) => {
+  const n = (String(v).match(/&&/g) || []).length;
+  if (n >= 10) { bad++; console.log(`ERRO script npm "${k}" tem ${n} "&&": o cmd.exe do Windows 11 trava com 10 ou mais; use um executor em Node (como scripts/test-all.js)`); }
+});
+if (!bad) console.log(`workflow-check OK · ${steps.length} passos · publicação protegida nos 3 cenários · scripts do npm sem cadeia longa de "&&"`);
 process.exit(bad ? 1 : 0);

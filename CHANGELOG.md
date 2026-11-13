@@ -36,6 +36,9 @@
 - Teste novo `screen-purity-check` (no CI): a mesma carreira, com a mesma semente, abrindo todas as telas antes do primeiro GP e entre as etapas, e sem abrir nenhuma, termina idêntica (Manager e Observador). Antes das correções, as três carreiras do teste terminavam diferentes.
 - As 4 assinaturas de determinismo continuam iguais: a simulação de quem não abria as telas não mudou.
 
+### Ferramentas
+- Corrigido: `npm test` travava no Windows 11 build 26200 sem rodar nada. O `cmd.exe` desse Windows (10.0.26100.9949), que o npm usa para os scripts, trava quando a linha tem 10 ou mais `&&`, e a cadeia do `npm test` tinha 12. Agora o `npm test` chama `scripts/test-all.js`, que roda as mesmas 13 verificações na mesma ordem, para na primeira falha e mostra o tempo de cada uma. O `workflow-check` falha se algum script do `package.json` voltar a ter 10 ou mais `&&`.
+
 ### Onda 2 — Dívida técnica (em parte)
 - O redator do paddock sorteia com um gerador local: a versão web e a desktop seguem a mesma sequência de sorteios com a mesma semente (`web-desktop-check` no CI).
 - A frase da vitória na Sprint ganhou a versão em inglês.
