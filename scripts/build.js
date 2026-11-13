@@ -8,7 +8,10 @@ const root = path.join(__dirname, '..');
 const src = (f) => fs.readFileSync(path.join(root, 'app', 'src', f), 'utf8');
 const pkg = require('../package.json');
 
-const dataJs = data.map(m => src(m + '.js')).join('\n');
+// (0.9, Onda 3) --sem-dados-reais: monta o jogo base sem nenhum dado real (pilotos, equipes, fotos, história);
+// o mundo vem do gerador fictício. É o que a edição gratuita usa e o que o teste do jogo fictício confere.
+const noReal = process.argv.includes('--sem-dados-reais');
+const dataJs = noReal ? '' : data.map(m => src(m + '.js')).join('\n');
 const js = [...core, ...ui].map(m => `/* ---- ${m}.js ---- */\n${src(m + '.js')}`).join('\n');
 const css = ['styles.css', 'ui85.css', 'ui85-screens.css', 'ui85-fx.css'].filter(f => fs.existsSync(path.join(root, 'app', 'src', f))).map(src).join('\n');
 
@@ -46,4 +49,4 @@ ${body(true)}
 const web = path.join(root, 'dist-web');
 fs.mkdirSync(web, { recursive: true });
 fs.writeFileSync(path.join(web, 'pitwall.html'), `${src('head.html')}\n<style>${css}</style>\n${body(false)}`);
-console.log(`build ok: v${pkg.version.replace(/-(\d+)$/, '.$1')} · ${(js.length / 1024).toFixed(0)} KB de JS${f1Files.length ? ` · fonte Formula1 Display (${f1Files.length} arquivos)` : ''}`);
+console.log(`build ok: v${pkg.version.replace(/-(\d+)$/, '.$1')}${noReal ? ' · SEM DADOS REAIS' : ''} ·${(js.length / 1024).toFixed(0)} KB de JS${f1Files.length ? ` · fonte Formula1 Display (${f1Files.length} arquivos)` : ''}`);

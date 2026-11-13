@@ -46,7 +46,7 @@ Staff.init = (G) => {
       engineeringDir: real.designer || real.cto || null, chiefEngineer: real.chiefEngineer || real.trackEngineering || null,
       raceEng1: lineup[0] && (extra.raceEngineers || {})[lineup[0].id], raceEng2: lineup[1] && (extra.raceEngineers || {})[lineup[1].id],
       performance: real.performance, aero: real.aero, strategy: real.strategy || real.strategyChief, chiefMechanic: null,
-      engine: (REAL_EXTRA && REAL_EXTRA.works || []).includes(t.id) ? real.engine : null, operations: real.operations, commercial: real.commercial || real.ceo, marketing: null,
+      engine: (extra.works || []).includes(t.id) ? real.engine : null, operations: real.operations, commercial: real.commercial || real.ceo, marketing: null,
     };
     const ratingOf = (role) => {
       const k = { technical: 'technical', aero: 'aero', strategy: 'strategy', chiefEngineer: 'engineering', performance: 'engineering', raceEng1: 'engineering', raceEng2: 'engineering', engineeringDir: 'technical' }[role];
@@ -54,7 +54,7 @@ Staff.init = (G) => {
       const nm = realName[role];
       return Math.round(clamp((Staff.FAMOUS[nm] || v) + (nm ? 1 : RNG.range(-4, 2)), 55, 99));
     };
-    t.staffList = Object.keys(Staff.ROLES).filter(r => r !== 'engine' || (REAL_EXTRA && (REAL_EXTRA.works || []).includes(t.id))).map(role => {
+    t.staffList = Object.keys(Staff.ROLES).filter(r => r !== 'engine' || (extra.works || []).includes(t.id)).map(role => {
       const name = realName[role] || null;
       const rating = role === 'principal' && t.id === G.player.teamId ? 75 : ratingOf(role);
       return { id: Career.nextId(G, 'sf'), role, name: name || Staff.genName(t.country), real: !!name, rating, salary: Staff.salaryFor(role, rating), until: G.season ? G.season.year + RNG.int(0, 3) : 2028, since: 2026 };

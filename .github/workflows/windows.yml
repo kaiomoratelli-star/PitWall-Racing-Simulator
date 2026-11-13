@@ -54,6 +54,7 @@ jobs:
           node scripts/browser-save-check.js
           node scripts/i18n-check.js 0
           node scripts/web-desktop-check.js
+          node scripts/fictional-check.js 2
 
       - name: Gerar Setup.exe
         run: npm run dist
