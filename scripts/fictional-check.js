@@ -42,12 +42,14 @@ const GEN = require('./make-fictional-pack').buildFictionalPack().GENERIC;
 const CODE_WORDS = new Set();
 for (const m of [...core, ...require('./modules').ui]) (fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8').match(/\p{Ll}+/gu) || []).forEach(w => CODE_WORDS.add(w));
 const isName = (n) => typeof n === 'string' && n.length >= 5 && (n.match(/\p{L}+/gu) || []).some(w => !GEN.has(w.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()));
+// o nome de uma equipe, motor ou categoria nunca é perdoado (o código escreve "williams" e "audi" como id)
+const NEVER = new Set([...REALP.REAL_DB.teams.map(t => t.name), ...REALP.REAL_DB.engines.map(e => e.name), ...REALP.REAL_CATS.cats.map(c => c.name)]);
 const REAL_NAMES = [...new Set([
   ...REALP.REAL_DB.drivers.map(d => d.name), ...REALP.REAL_DB.teams.flatMap(t => [t.name, t.fullName, t.principal]),
   ...REALP.REAL_DB.engines.map(e => e.name), ...REALP.REAL_CATS.cats.flatMap(c => [c.name, ...c.teams.map(t => t.name), ...c.drivers.map(d => d.name)]),
   ...Object.values(REALP.WORLD_LISTS.outlets).map(o => o.name), ...REALP.WORLD_LISTS.creators.map(c => c.name),
   ...REALP.WORLD_LISTS.mfrCands.map(m => m.name), ...Object.values(REALP.WORLD_LISTS.tyres).map(t => t.name),
-].filter(isName))].filter(n => { const ws = n.match(/\p{L}+/gu) || []; return ws.length > 1 || !CODE_WORDS.has(ws[0].toLowerCase()); });
+].filter(isName))].filter(n => { const ws = n.match(/\p{L}+/gu) || []; return ws.length > 1 || NEVER.has(n) || !CODE_WORDS.has(ws[0].toLowerCase()); });
 (async () => {
   build(['--edicao=ficticia']);
   try {
@@ -88,7 +90,10 @@ const REAL_NAMES = [...new Set([
           const m = BAD.exec(txt); if (m) out.push(`${v}: "${txt.slice(Math.max(0, m.index - 50), m.index + 30).replace(/\s+/g, ' ')}"`);
           // lugares ficam reais (decisão do dono): circuito, GP e cidade saem do texto antes de procurar nomes
           let plain = txt; (G.db.tracks || []).forEach(tr => [tr.circuit, tr.gp, tr.place, tr.name].forEach(x => { if (x && x.length > 2) plain = plain.split(x).join(' '); }));
-          for (const n of REAL_NAMES) if (!seenReal.has(n) && plain.includes(n)) { seenReal.add(n); out.push(`${v}: nome real "${n}" na tela`); }
+          // palavra inteira: "Lance Strollin" (o nome fictício, estilo PES) não é o nome real "Lance Stroll"
+          const isL = (ch) => !!ch && /\p{L}/u.test(ch);
+          const hasWord = (t, n) => { for (let i = t.indexOf(n); i >= 0; i = t.indexOf(n, i + 1)) if (!isL(t[i - 1]) && !isL(t[i + n.length])) return true; return false; };
+          for (const n of REAL_NAMES) if (!seenReal.has(n) && hasWord(plain, n)) { seenReal.add(n); out.push(`${v}: nome real "${n}" na tela`); }
         }
         if (logged() > before) out.push(`${logged() - before} erro(s) registrados pela interface: ${UI.errors.slice(before, before + 3).map(e => e.where + ': ' + e.msg).join(' | ')}`);
         return out;

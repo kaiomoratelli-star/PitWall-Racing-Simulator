@@ -14,6 +14,7 @@ fam('fr', 'FRA MON MCO LUX BEL');
 fam('de', 'GER DEU AUT SUI CHE LIE FRG GDR');
 fam('nl', 'NED NLD');
 fam('no', 'SWE NOR DEN DNK FIN ISL EST');
+fam('fi', 'FIN EST');
 fam('sl', 'POL CZE SVK RUS UKR SRB CRO HRV SLO SVN BUL BGR BLR MKD BIH MNE LAT LVA LTU KAZ URS TCH YUG GEO ARM');
 fam('ja', 'JPN');
 fam('zh', 'CHN HKG TPE TWN MAC MAS MYS SGP INA IDN PHI PHL VIE VNM KHM');
@@ -115,4 +116,119 @@ function acronym(word, len, attempt) {
   return s.slice(0, len);
 }
 
-module.exports = { FAMILY, familyOf: (nat) => FAMILY[nat] || 'en', personWord, brandWord, acronym, hash, rngOf };
+// ---------------------------------------------------------------------------------------------------------------
+// Estilo "parecido" (decisão do dono, 13/11/2026: "bem parecido, estilo PES"). O começo da palavra fica igual e só o
+// fim muda: troca a rima da última sílaba (vogal + consoantes finais), troca a última sílaba inteira por um final
+// típico do idioma ou, numa palavra de uma sílaba, acrescenta um final. Ex.: Hamilton -> Hamilford, Leclerc -> Leclair.
+// Quem escolhe entre os candidatos é make-fictional-pack.js (palavra livre, distância e naturalidade).
+// r = rimas (começam por vogal), s = sílabas finais (começam por consoante)
+const ENDS = {
+  en: { r: 'in ey er an ell ard ock ing ett on ow ick ins', s: 'ford ley ton well by son wood field more worth den ham wick ridge shaw ston' },
+  es: { r: 'ez ado ero ino ega iro ales ano era al ar ines on', s: 'res dez ndo rra lla nez ros zo ra go ño' },
+  pt: { r: 'eira inho ado ares elo ino ira ote ano ela ões', s: 'nho lho ra ro sa to des res ta' },
+  it: { r: 'etti ini ello ano one ari ucci ato esi oli ani', s: 'netti rini lli sso zzi tti ni ri ti no to' },
+  fr: { r: 'ard ier eau in ais on et ot ac and ault air elle', s: 'nard tier reau lin gnac zet vet ron vin' },
+  de: { r: 'er ann ert ing en ich ach old inger el', s: 'mann berg ler ner stein hof feld bach ling wald hardt' },
+  nl: { r: 'ers en el ink ijk aan ens oort uis', s: 'sen mans berg kel veld dijk huis stra hout kamp' },
+  no: { r: 'en er und ist ell ing ar as', s: 'son sen berg lund ström dahl gren vik holm stad' },
+  fi: { r: 'inen anen ala ola o i en', s: 'nen la vaara salo mäki nni' },
+  sl: { r: 'ov ev in ski ak ek ic enko uk an', s: 'ski nov vic ček rov lak tov' },
+  ja: { r: 'a i o e u', s: 'kawa mura saki ta ki ra hara yama mi ka ma ga no zawa shima moto' },
+  zh: { r: 'an ang ei ong ao ui en', s: 'wei ming jun hao lin tao feng long rui xin bo kai' },
+  ko: { r: 'an eon ung oo i', s: 'hyun min woo jin seok ho jun' },
+  ar: { r: 'i an ani ari ir ad oud ah', s: 'mi ri di dan san had' },
+  in: { r: 'an esh ar i am av', s: 'raj deep nath preet kumar' },
+  th: { r: 'a on in it', s: 'chai pong sakul porn wat' },
+  tr: { r: 'oğlu an er ay ın ün', s: 'can kaya türk han soy' },
+  hu: { r: 'ás ai ényi os és', s: 'nyi házi csi ló' },
+  gr: { r: 'opoulos idis akis os as is', s: 'poulos dis kis tos' },
+  ro: { r: 'escu eanu an u a', s: 'nescu reanu lescu' },
+  brand: { r: 'ano ia ex on ix o a ara ina ell ard en is us or io', s: 'sen ton ford ley rex tron vel nor dex tek line' },
+};
+const VOW = 'aeiouyáéíóúãõâêôàäöüåæøı';
+// 'y' é vogal, menos no começo e antes de outra vogal (Gasly, Tyrrell; Yuki, Guanyu)
+// o 'u' de "qu" e de "gue/gui" não é vogal (Piquet, Rodríguez)
+const isVowelAt = (w, i) => {
+  const c = w[i]; if (!c) return false;
+  if (c === 'y') return i > 0 && !'aeiouáéíóúãõâêôàäöü'.includes(w[i + 1] || '#');
+  if (c === 'u' && (w[i - 1] === 'q' || (w[i - 1] === 'g' && 'eiéí'.includes(w[i + 1] || '#')))) return false;
+  return VOW.includes(c);
+};
+function vowelGroups(lw) { const g = []; for (let i = 0; i < lw.length;) { if (isVowelAt(lw, i)) { const s = i; while (i < lw.length && isVowelAt(lw, i)) i++; g.push([s, i]); } else i++; } return g; }
+
+/* candidatos parecidos com a palavra (ordem fixa pela semente): [{ w, j }], j = onde começa a parte nova */
+function similarCandidates(word, family, seed) {
+  const E = ENDS[family] || ENDS.en;
+  const lw = word.toLowerCase();
+  const r = rngOf('parecido:' + seed);
+  const mix = (arr) => arr.map(x => [r(), x]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  const g = vowelGroups(lw);
+  const out = [];
+  if (g.length >= 2) {
+    const last = g[g.length - 1], prevEnd = g[g.length - 2][1];
+    const AB = [];
+    W(E.r).forEach(e => AB.push({ w: word.slice(0, last[0]) + e, j: last[0] }));                 // troca a rima
+    W(E.s).forEach(e => {                                                                       // troca a última sílaba
+      AB.push({ w: word.slice(0, prevEnd) + e, j: prevEnd });
+      if (last[0] - prevEnd >= 2) AB.push({ w: word.slice(0, prevEnd + 1) + e, j: prevEnd + 1 });   // Hamil|ford
+    });
+    out.push(...mix(AB));
+  }
+  // acrescenta um final (palavra de uma sílaba; nas outras, só se nada acima servir)
+  const endsV = isVowelAt(lw, lw.length - 1);
+  const C = [];
+  [...W(E.r), ...W(E.s)].forEach(e => { if (endsV !== VOW.includes(e[0])) C.push({ w: word + e, j: word.length }); });
+  out.push(...mix(C));
+  return out;
+}
+
+/* naturalidade: as sequências de 3 letras da emenda em diante (última letra que fica + o final novo) existem em
+   nomes reais (corpus = as próprias palavras da base, por família de idioma; strict = só a família, senão todas);
+   e a emenda não cria grupo de consoantes maior que o da palavra real, letra tripla nem sílaba repetida */
+function makeNatural(corpusByFamily) {
+  const tri = new Map(), all = new Set();
+  for (const [f, words] of Object.entries(corpusByFamily)) {
+    const s = tri.get(f) || new Set();
+    for (const w of words) { const p = '^' + w.toLowerCase() + '$'; for (let i = 0; i + 3 <= p.length; i++) { s.add(p.slice(i, i + 3)); all.add(p.slice(i, i + 3)); } }
+    tri.set(f, s);
+  }
+  const consRun = (s) => { let m = 0, c = 0; for (let i = 0; i < s.length; i++) { if (/\p{L}/u.test(s[i]) && !isVowelAt(s, i)) { c++; m = Math.max(m, c); } else c = 0; } return m; };
+  return (cand, j, family, strict, orig) => {
+    const s = tri.get(family);
+    const use = strict ? (s && s.size > 600 ? s : null) : all;
+    if (!use) return false;
+    const lc = cand.toLowerCase();
+    const p = '^' + lc + '$';
+    for (let i = j; i + 3 <= p.length; i++) if (!use.has(p.slice(i, i + 3))) return false;
+    const win = lc.slice(Math.max(0, j - 3), j + 3);
+    if (/(\p{L})\1\1/u.test(lc) || /(\p{L}{2})\1/u.test(win)) return false;
+    if (orig && consRun(win) > Math.max(2, consRun(orig.toLowerCase()))) return false;
+    return true;
+  };
+}
+
+/* sigla parecida: as primeiras letras ficam, a última muda (vogal por vogal, consoante por consoante) */
+function similarAcronyms(word, seed) {
+  const up = String(word).toUpperCase();
+  const r = rngOf('sigla:' + seed);
+  const mix = (arr) => arr.map(x => [r(), x]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  const V = 'AEIOU', K = 'BCDFGKLMNPRSTVXZ';
+  const swap = (s, i) => mix((V.includes(s[i]) ? V : K).split('').filter(c => c !== s[i])).map(c => s.slice(0, i) + c + s.slice(i + 1));
+  const n = up.length;
+  const longer = n <= 2 ? mix((V + K).split('')).map(c => up + c) : [];   // AG -> AGX quando as de 2 letras acabam
+  return [...swap(up, n - 1), ...(n > 2 ? swap(up, n - 2) : []), ...(n > 2 ? swap(up, 1) : []), ...longer];
+}
+
+/* distância de edição (Levenshtein) */
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+
+module.exports = { FAMILY, familyOf: (nat) => FAMILY[nat] || 'en', personWord, brandWord, acronym, hash, rngOf, similarCandidates, makeNatural, similarAcronyms, lev, ENDS };

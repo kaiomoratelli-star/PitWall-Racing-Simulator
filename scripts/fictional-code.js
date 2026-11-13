@@ -44,17 +44,23 @@ function rewriteCode(src, codeMap) {
    que não são palavras comuns (as que o próprio código escreve em minúsculas dentro de frases) */
 // nomes de competição e organização que trocam sempre, mesmo aparecendo em minúscula em alguma frase do código
 const FORCE_CODE = new Set(['formula', 'fia']);
-function codeMapper(fict, sources) {
-  const { map, stats, keyOf, forced, mapName, real } = fict;
+/* palavras comuns: as que o código escreve em minúsculas dentro de frases (um id sozinho não conta) */
+function codeCommonWords(sources, keyOf) {
   const common = new Set();
   for (const src of sources) {
     let ast; try { ast = acorn.parse(src, { ecmaVersion: 'latest', sourceType: 'script', allowHashBang: true }); } catch (e) { continue; }
     walk.full(ast, (node) => {
       const t = node.type === 'Literal' && typeof node.value === 'string' ? node.value : node.type === 'TemplateElement' ? node.value.cooked : null;
-      if (!t || !/\s/.test(t)) return;   // só frases (um id sozinho em minúsculas não conta como palavra comum)
+      if (!t || !/\s/.test(t)) return;
       (t.match(/\p{Ll}+/gu) || []).forEach(w => common.add(keyOf(w)));
     });
   }
+  FORCE_CODE.forEach(k => common.delete(k));
+  return common;
+}
+function codeMapper(fict, sources) {
+  const { map, stats, keyOf, forced, mapName, real } = fict;
+  const common = codeCommonWords(sources, keyOf);
   const terms = new Map();
   for (const [k, s] of stats) {
     if (!map.has(k) || !s.org) continue;                                  // só palavras de equipe, marca, competição
@@ -81,7 +87,7 @@ function codeMapper(fict, sources) {
   const isL = (ch) => !!ch && /\p{L}/u.test(ch);
   const codeMap = (text) => {
     if (!/\p{Lu}/u.test(text)) return text;
-    let t = text;
+    let t = fict.applyFormula ? fict.applyFormula(text) : text;   // "Fórmula 1" -> GP1 (escada GP)
     for (const p of phrases) {
       if (!t.includes(p)) continue;
       let out = '', i = 0, j;
@@ -89,7 +95,7 @@ function codeMapper(fict, sources) {
       t = out + t.slice(i);
     }
     return t.replace(/\p{L}+/gu, (w, off, all) => {
-      if (w === 'F' && /\d/.test(all.charAt(off + 1) || '') && !isL(all.charAt(off - 1))) return 'V';   // F1, F2, F3, F4
+      if (w === 'F' && /\d/.test(all.charAt(off + 1) || '') && !isL(all.charAt(off - 1))) return 'GP';   // F1 -> GP1 ... F4 -> GP4
       if (w === w.toLowerCase()) return w;
       const k = keyOf(w);
       return terms.has(k) ? caseLike(w, terms.get(k)) : w;
@@ -98,4 +104,4 @@ function codeMapper(fict, sources) {
   return { codeMap, terms };
 }
 
-module.exports = { rewriteCode, codeMapper };
+module.exports = { rewriteCode, codeMapper, codeCommonWords, FORCE_CODE };

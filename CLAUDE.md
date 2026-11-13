@@ -12,7 +12,7 @@ plano da versão: `docs/PLANO-0.9.md`.
 |---|---|
 | `npm test` | guardas, Schema, regras, paridade PT/EN, simulação prolongada e categorias (~4 min) |
 | `npm run build` | gera `app/dist/index.html` e o Pacote de dados `app/dist/packs/pitwall-dados-reais.js` (`--edicao=ficticia`: a edição fictícia, regra 19; `--sem-dados-reais`: sem pacote nenhum) |
-| `node scripts/fictional-world-check.js 2` | regra 19: a mesma carreira no mundo real e no fictício (só os nomes mudam) e nenhum nome real sobrando |
+| `node scripts/fictional-world-check.js 2` | regra 19: o mesmo banco e os mesmos ids no real e no fictício, a carreira fictícia rodando, o estilo dos nomes e nenhum nome real sobrando |
 | `node scripts/determinism-check.js` | 4 carreiras com semente fixa; compara as assinaturas com `tests/determinism.json` |
 | `node scripts/determinism-check.js --write` | regrava as assinaturas (só após mudança de jogo aprovada e registrada no CHANGELOG) |
 | `node scripts/ui85-check.js 2` | interface em Playwright/Chromium (precisa do build) |
@@ -49,7 +49,9 @@ plano da versão: `docs/PLANO-0.9.md`.
 18. Software sempre na versão mais nova com suporte (Node LTS ativo, Electron, dependências, actions).
 19. **Mundo fictício = o banco de dados original, inteiro e idêntico** (todos os pilotos, equipes, competições,
     números e histórico), com **todos os nomes trocados por nomes gerados automaticamente** e **os mesmos IDs**.
-    Nunca um mundo à parte. (Decisão do dono, 13/11/2026.)
+    Nunca um mundo à parte. Nomes "bem parecidos, estilo PES" (o primeiro nome fica, o sobrenome e a equipe mudam
+    só o final: Hamilton → Hamilford, Ferrari → Ferrano) e competições na escada GP (F1 → GP1, FIA → FMA). As corridas
+    no real e no fictício não precisam dar o mesmo resultado; os ids, sim. (Decisões do dono, 13/11/2026.)
 
 ## Regras de engenharia
 - Ganchos com nome (registro de ganchos), nunca embrulhar funções antigas.
