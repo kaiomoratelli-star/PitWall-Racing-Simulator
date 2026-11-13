@@ -62,6 +62,13 @@ function localRngNormal(seed) {
 
 /* (0.9, ids opacos) fatos de uma pista do mundo real, por id (REAL_EXTRA.trackInfo): compostos, luz, calor, curvas,
    lista da FIA, calendário atual, clássicos... Sem pacote, {} */
+/* (0.9, ids opacos) regras e tabelas das séries do mundo real, por id de série (REAL_EXTRA.series): seriesTable('up'),
+   seriesInfo(id), mainSeries() (a série principal) e ladderSeries(n) (o degrau n rumo à principal). Sem pacote, as
+   tabelas ficam vazias e a série principal e os degraus são os do mundo de reserva */
+function seriesTable(k, def) { const S = (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.series) || {}; return S[k] != null ? S[k] : def !== undefined ? def : {}; }
+function seriesInfo(id) { return seriesTable('info')[id] || {}; }
+function mainSeries() { const I = seriesTable('info'); for (const k in I) if (I[k].main) return k; return 'f1'; }   // ids-ok: série principal do mundo de reserva
+function ladderSeries(n) { const I = seriesTable('info'); for (const k in I) if (I[k].ladder === n) return k; return { 1: 'f2', 2: 'f3' }[n] || null; }   // ids-ok: degraus do mundo de reserva
 function trackInfo(id) { return ((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})[id] || {}; }
 function hashStr(str) {
   let h = 2166136261 >>> 0;

@@ -161,9 +161,12 @@ const esc = (x) => x.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
 const ID_ALT = [...ID_SETS].sort((a, b) => b.length - a.length).map(esc).join('|');
 const ID_QUOTED = new RegExp(`(['"\`])(${ID_ALT})\\1`, 'g');
 const ID_KEY = new RegExp(`(?:^|[{,]\\s*)(${ID_ALT})\\s*:(?!:)`, 'g');
+//     Ficam de fora: os passos antigos da migração (core/base/migrate.js convertem saves antigos, com os ids antigos) e as
+//     linhas marcadas "ids-ok: <motivo>" (o mesmo texto usado como outra coisa: nome de tema de foto, tipo de evento do
+//     calendário, chave do save; ou o valor do mundo de reserva, sem pacote).
 const idUses = {};
-order.forEach(m => read(m).split('\n').forEach(l => {
-  if (/^\s*(\/\/|\*|\/\*)/.test(l)) return;
+order.filter(m => m !== 'core/base/migrate').forEach(m => read(m).split('\n').forEach(l => {
+  if (/^\s*(\/\/|\*|\/\*)/.test(l) || /ids-ok/.test(l)) return;
   const code = l.replace(/Career\.nextId\(G,\s*'sf'\)/g, '');   // 'sf' aqui é o prefixo dos ids de staff, não a Super Formula
   const n = (code.match(ID_QUOTED) || []).length + [...code.matchAll(ID_KEY)].filter(x => /^[a-z][a-z0-9]*$/i.test(x[1])).length;
   if (n) idUses[m] = (idUses[m] || 0) + n;

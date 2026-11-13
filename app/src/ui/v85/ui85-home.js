@@ -5,7 +5,6 @@
 'use strict';
 
 const NEWS_TAGS85 = { regulamento: 'Regulamento', paddock: 'Paddock', corrida: 'Corrida', rumor: 'Rumor', mercado: 'Mercado', categorias: 'Categorias', escandalo: 'Escândalo', 'técnica': 'Técnica', tecnica: 'Técnica', campeonato: 'Campeonato' };
-const OUTLET85 = { racefans: 'RaceFans', therace: 'The Race', sky: 'Sky Sports F1', speedcafe: 'Speedcafe', motorsport: 'Motorsport.com', bild: 'Bild', planetf1: 'PlanetF1', telegraaf: 'De Telegraaf', f1: 'Formula1.com', bbc: 'BBC Sport', gazzetta: 'Gazzetta', autosport: 'Autosport', fia: 'FIA', ams: 'Auto Motor und Sport', crash: 'Crash.net', marca: 'Marca', as: 'AS', ole: 'Olé' };
 ACT.choose85 = (el) => { const m = Events.resolve(G, el.dataset.id, +el.dataset.i); if (m) { toast(m.outcome || byLang('Decisão registrada.', 'Decision recorded.')); autosave(); } render(); };
 
 /* ---------------- Central ---------------- */
@@ -56,7 +55,7 @@ function hub85() {
       ${K85.card({ t: byLang('Pendências', 'Pending'), a: bl.length ? `${bl.length} ${byLang('bloqueiam o avanço', 'block progress')} · <a data-act="go" data-v="inbox">${byLang('caixa de entrada', 'inbox')}</a>` : '', body: dec || K85.empty(byLang('Nada pendente. Pode avançar.', 'Nothing pending. You can continue.')) })}
       <div class="h-dcs">${lu.map(dcard).join('')}</div>
       ${K85.grid('1fr 1fr', K85.card({ t: byLang('Próximos dias', 'Coming up'), a: `<a data-act="go" data-v="calendar">${byLang('calendário', 'calendar')}</a>`, body: up.length ? `<div class="h-up">${up.map(x => `<div><span class="n-num">${esc(Time.fmt(x.date))}</span>${K85.tag({ weekend: 'GP', design: byLang('Projeto', 'Design'), part: byLang('Peça', 'Part') }[x.kind] || '•', x.kind === 'weekend' ? 'r' : x.kind === 'part' ? 'g' : 'b')}<span>${esc(x.label)}</span></div>`).join('')}</div>` : K85.empty(byLang('Nada marcado.', 'Nothing scheduled.')) }),
-        K85.card({ t: byLang('Últimas notícias', 'Latest news'), a: `<a data-act="go" data-v="news">${byLang('todas', 'all')}</a>`, flush: true, body: K85.list(news.map(n => ({ title: esc(n.title), sub: `${esc(OUTLET85[n.outlet] || n.outlet || 'Paddock')} · ${esc(NEWS_TAGS85[n.tag] || n.tag || '')}`, do: { act: 'go', v: 'news' } }))) }))}
+        K85.card({ t: byLang('Últimas notícias', 'Latest news'), a: `<a data-act="go" data-v="news">${byLang('todas', 'all')}</a>`, flush: true, body: K85.list(news.map(n => ({ title: esc(n.title), sub: `${esc((Media.OUTLETS[n.outlet] || {}).name || n.outlet || 'Paddock')} · ${esc(NEWS_TAGS85[n.tag] || n.tag || '')}`, do: { act: 'go', v: 'news' } }))) }))}
     </div>
     <div class="n-col">
       ${K85.card({ t: byLang('Pilotos', 'Drivers'), a: `<a data-act="go" data-v="standings">${byLang('classificação', 'standings')}</a>`, body: `<div class="tower">${tower(dTop, r => r.tid === team.id, r => r.nm)}</div>` })}
@@ -87,7 +86,7 @@ function hub85() {
 })();
 
 /* ---------------- Calendário ---------------- */
-const CAL_KIND85 = { f1: ['Fórmula 1', 'Formula 1'], tl: ['Treinos', 'Practice'], q: ['Classificação', 'Qualifying'], sprint: ['Sprint', 'Sprint'], council: ['Conselho da FIA', 'F1 Commission'], rnd: ['Fábrica e P&D', 'Factory and R&D'], market: ['Mercado', 'Market'], f2: ['F2, F3 e F1 Academy', 'F2, F3 and F1 Academy'], fe: ['Fórmula E', 'Formula E'], usa: ['IndyCar e EUA', 'IndyCar and US'], end: ['Endurance', 'Endurance'], other: ['Outras categorias', 'Other series'] };
+const CAL_KIND85 = { f1: ['Fórmula 1', 'Formula 1'], tl: ['Treinos', 'Practice'], q: ['Classificação', 'Qualifying'], sprint: ['Sprint', 'Sprint'], council: ['Conselho da FIA', 'F1 Commission'], rnd: ['Fábrica e P&D', 'Factory and R&D'], market: ['Mercado', 'Market'], f2: ['F2, F3 e F1 Academy', 'F2, F3 and F1 Academy'], fe: ['Fórmula E', 'Formula E'], usa: ['IndyCar e EUA', 'IndyCar and US'], end: ['Endurance', 'Endurance'], other: ['Outras categorias', 'Other series'] };   // ids-ok: tipos de evento do calendário (classes ev-f1, ev-f2...), não ids
 function calEvents85() {
   const ev = [];
   const add = (date, k, t, o = {}) => { if (date) ev.push(Object.assign({ date, k, t }, o)); };
@@ -95,7 +94,7 @@ function calEvents85() {
     const tr = Career.track(G, id); if (!tr) return;
     const race = Time.raceDate(G, i); const done = i < G.season.round;
     const r = G.season.results[i];
-    add(race, 'f1', tr.gp, { round: i, id: tr.id, done, win: r ? r.winner : null });
+    add(race, 'f1', tr.gp, { round: i, id: tr.id, done, win: r ? r.winner : null });   // ids-ok: tipo de evento do calendário
     add(Time.addDays(race, -1), tr.sprint ? 'sprint' : 'q', tr.sprint ? byLang('Sprint e classificação', 'Sprint and qualifying') : byLang('Classificação', 'Qualifying'), { round: i, id: tr.id, done });
     add(Time.addDays(race, -2), 'tl', byLang('Treinos livres', 'Practice'), { round: i, id: tr.id, done });
   });
@@ -103,7 +102,7 @@ function calEvents85() {
   try { RnD.milestones(G).forEach(m => add(m.date, 'rnd', m.label)); } catch (e) { /* sem P&D */ }
   const half = Math.floor(G.season.calendar.length * 0.55);
   add(Time.addDays(Time.raceDate(G, Math.max(0, half - 1)), 2), 'market', byLang('Abre o mercado de pilotos (férias de verão)', 'Driver market opens (summer break)'));
-  const KMAP = { f2: 'f2', f3: 'f2', f1a: 'f2', fe: 'fe', indycar: 'usa', nxt: 'usa', nascup: 'usa', imsa: 'end', wec: 'end', elms: 'end' };
+  const KMAP = seriesTable('calKind');   // (0.9, ids opacos) cor de cada série no calendário: REAL_EXTRA.series.calKind
   (G.cats && G.cats.order || []).forEach(cid => { const c = G.cats.byId[cid]; if (!c || c.enabled === false || !c.season || !c.season.cal) return; c.season.cal.forEach(x => add(x.date, KMAP[cid] || 'other', `${c.short || c.name} · ${x.place || x.circuit || ''}`, { cat: cid })); });
   return ev;
 }
@@ -113,11 +112,11 @@ function calMonth85(ev, ym) {
   const [y, m] = ym.split('-').map(Number);
   const first = new Date(Date.UTC(y, m - 1, 1)); const days = new Date(Date.UTC(y, m, 0)).getUTCDate(); const off = (first.getUTCDay() + 6) % 7;
   const by = {}; ev.filter(e => e.date.startsWith(ym) && !(UI.calOff || {})[e.k]).forEach(e => (by[+e.date.slice(8)] = by[+e.date.slice(8)] || []).push(e));
-  const order = ['f1', 'sprint', 'q', 'tl', 'council', 'rnd', 'market', 'f2', 'fe', 'usa', 'end', 'other'];
+  const order = ['f1', 'sprint', 'q', 'tl', 'council', 'rnd', 'market', 'f2', 'fe', 'usa', 'end', 'other'];   // ids-ok: tipos de evento do calendário
   const cells = []; for (let i = 0; i < off; i++) cells.push('<div class="cd off"></div>');
   for (let d = 1; d <= days; d++) {
     const iso = `${ym}-${String(d).padStart(2, '0')}`; const list = (by[d] || []).sort((a, b) => order.indexOf(a.k) - order.indexOf(b.k));
-    cells.push(`<div class="cd ${iso === G.today ? 'today' : ''} ${G.today && iso < G.today ? 'past' : ''}"><span class="cd-n">${d}</span>${list.slice(0, 4).map(e => `<span class="ev ev-${e.k}${e.done ? ' done' : ''}" ${e.id ? `data-act="go" data-v="calendar" data-p='${esc(JSON.stringify({ tab: 'etapas', sel: e.round }))}'` : ''} title="${esc(e.t)}">${e.k === 'f1' && e.win ? `<b>${esc(dCode(Career.driver(G, e.win)))}</b> ` : ''}${esc(e.t)}</span>`).join('')}${list.length > 4 ? `<span class="ev more">+${list.length - 4}</span>` : ''}</div>`);
+    cells.push(`<div class="cd ${iso === G.today ? 'today' : ''} ${G.today && iso < G.today ? 'past' : ''}"><span class="cd-n">${d}</span>${list.slice(0, 4).map(e => `<span class="ev ev-${e.k}${e.done ? ' done' : ''}" ${e.id ? `data-act="go" data-v="calendar" data-p='${esc(JSON.stringify({ tab: 'etapas', sel: e.round }))}'` : ''} title="${esc(e.t)}">${e.k === 'f1' && e.win ? `<b>${esc(dCode(Career.driver(G, e.win)))}</b> ` : ''}${esc(e.t)}</span>`).join('')}${list.length > 4 ? `<span class="ev more">+${list.length - 4}</span>` : ''}</div>`);   // ids-ok: tipo de evento do calendário
   }
   return `<div class="calg"><div class="cwd">${(byLang('seg ter qua qui sex sáb dom', 'Mon Tue Wed Thu Fri Sat Sun')).split(' ').map(x => `<span>${x}</span>`).join('')}</div><div class="cdays">${cells.join('')}</div></div>`;
 }
@@ -144,7 +143,7 @@ SCREENS.calendar = {
   html() {
     const tab = UI.params.tab || 'mes';
     const ev = calEvents85();
-    const months = [...new Set(ev.filter(e => e.k === 'f1').map(e => e.date.slice(0, 7)))].sort();
+    const months = [...new Set(ev.filter(e => e.k === 'f1').map(e => e.date.slice(0, 7)))].sort();   // ids-ok: tipo de evento do calendário
     const cur = UI.params.m || (G.today && months.includes(G.today.slice(0, 7)) ? G.today.slice(0, 7) : months[0]);
     const mi = months.indexOf(cur);
     const head = K85.head({ t: byLang('Calendário', 'Calendar'), s: `${byLang('Temporada', 'Season')} ${G.season.year} · ${G.season.calendar.length} GPs · ${G.season.round} ${byLang('disputados', 'run')}`, tabs: [['mes', byLang('Mês a mês', 'Month')], ['etapas', byLang('Por etapa', 'By round')]], tab });
@@ -155,7 +154,7 @@ SCREENS.calendar = {
     const nav = `<div class="cal-nav"><button class="x-ibtn" ${mi <= 0 ? 'disabled' : ''} data-act="go" data-v="calendar" data-p='${esc(JSON.stringify({ tab: 'mes', m: months[mi - 1] }))}' aria-label="${byLang('Mês anterior', 'Previous month')}">${svg85('M15 18l-6-6 6-6')}</button><b>${esc(MONTHS_FULL85()[+cur.slice(5) - 1])} ${cur.slice(0, 4)}</b><button class="x-ibtn" ${mi >= months.length - 1 ? 'disabled' : ''} data-act="go" data-v="calendar" data-p='${esc(JSON.stringify({ tab: 'mes', m: months[mi + 1] }))}' aria-label="${byLang('Próximo mês', 'Next month')}">${svg85('M9 6l6 6-6 6')}</button>
       <div class="cal-mt">${months.map(m => `<button class="${m === cur ? 'on' : ''}" data-act="go" data-v="calendar" data-p='${esc(JSON.stringify({ tab: 'mes', m }))}'>${esc(MONTHS_FULL85()[+m.slice(5) - 1].slice(0, 3))}</button>`).join('')}</div></div>`;
     const kinds = Object.keys(CAL_KIND85).filter(k => ev.some(e => e.k === k));
-    const monthGps = ev.filter(e => e.k === 'f1' && e.date.startsWith(cur));
+    const monthGps = ev.filter(e => e.k === 'f1' && e.date.startsWith(cur));   // ids-ok: tipo de evento do calendário
     return head + `<div class="cal-m"><div class="n-card flush">${nav}${calMonth85(ev, cur)}</div>
       <div class="n-col">${K85.card({ t: byLang('Mostrar', 'Show'), body: `<div class="cal-leg">${kinds.map(k => `<button class="${(UI.calOff || {})[k] ? 'off' : ''}" data-act="calF85" data-k="${k}"><i class="ev-${k}"></i>${esc(byLang(...CAL_KIND85[k]))}<span class="n-num n-mu">${ev.filter(e => e.k === k && e.date.startsWith(cur)).length}</span></button>`).join('')}</div>` })}
         ${K85.card({ t: byLang('GPs do mês', 'GPs this month'), flush: true, body: monthGps.length ? K85.list(monthGps.map(e => { const tr = Career.track(G, e.id); return { lead: K85.track(tr, { w: 54, h: 36, pad: 3, start: false }), title: esc(tr.gp), sub: `${esc(Time.fmt(e.date))}${tr.sprint ? ' · Sprint' : ''}`, tail: e.win ? K85.who(e.win, { short: true, flag: false }) : e.round === G.season.round ? K85.tag(byLang('Próxima', 'Next'), 'r') : '', do: { act: 'go', v: 'calendar', p: { tab: 'etapas', sel: e.round } } }; })) : `<div style="padding:12px 16px">${K85.empty(byLang('Sem GP neste mês.', 'No GP this month.'))}</div>` })}</div></div>`;

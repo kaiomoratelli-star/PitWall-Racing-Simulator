@@ -409,7 +409,7 @@ Chaos.afterRace = (G) => {
     const d = Career.driver(G, did); if (!d || d.dead) return;
     const x = r();
     // fatal: ~1 a cada 80–100 anos na F1 moderna
-    if (x < 0.00018 * Chaos.safety(G) * (tr.street ? 1.3 : 1)) return Chaos.fatal(G, d, 'f1', lr.gp);
+    if (x < 0.00018 * Chaos.safety(G) * (tr.street ? 1.3 : 1)) return Chaos.fatal(G, d, mainSeries(), lr.gp);
     if (r() < 0.022 * injMul) Chaos.injure(G, d, r, 'crash', lr.gp);
   });
   // doença ou lesão fora da pista
@@ -428,10 +428,11 @@ Chaos.injure = (G, d, r, how, gp) => {
   if (t && Chaos.mine(G, t)) Career.mail(G, { from: byLang('Departamento médico', 'Medical department'), tag: 'team', important: true, title, body: byLang(`${d.name} está fora por ${n} GP(s). O reserva vai correr; você pode contratar outro piloto no Mercado.`, `${d.name} is out for ${n} GP(s). The reserve will race; you can sign another driver in the Market.`) });
 };
 /* outras categorias: risco maior nas de base e nos ovais, menor nas de turismo */
-Chaos.RISK = { f2: 1, f3: 1.1, freca: 1.2, indycar: 1.6, nxt: 1.3, wec: 0.9, imsa: 0.8, nascup: 0.7, stockcar: 0.8, sf: 0.9, fe: 0.5, dtm: 0.5, kart: 0.6 };
+// (0.9, ids opacos) por série, no Pacote de dados (REAL_EXTRA.series.risk); sem pacote, vazia
+Object.defineProperty(Chaos, 'RISK', { get: () => seriesTable('risk'), configurable: true });
 Chaos.otherSeries = (G, r, injMul) => {
   if (typeof Cats === 'undefined' || !Cats.on(G)) return;
-  const cats = Cats.list(G).filter(c => c.id !== 'f1');
+  const cats = Cats.list(G).filter(c => c.id !== mainSeries());
   cats.forEach(cat => {
     const risk = Chaos.RISK[cat.id] ?? 1;
     // ~1 corrida da categoria entre dois GPs de F1; ~20 carros por corrida
@@ -461,7 +462,7 @@ Chaos.fatal = (G, d, series, gp) => {
   Career.record(G, 'memoria', title, { drivers: [d.id], teams: t ? [t.id] : [] });
   if (typeof Stories !== 'undefined') Stories.react(G, 'tribute', { d: d.name });
   Chaos.log(G, 'fatal', 'acidentes', { did: d.id, series });
-  if (series === 'f1' && tid && seat && seat !== 'R') { const f = Career.aiFillSeat(G, tid, seat); if (f && G.season.standD[f.id] == null) G.season.standD[f.id] = 0; }
+  if (series === mainSeries() && tid && seat && seat !== 'R') { const f = Career.aiFillSeat(G, tid, seat); if (f && G.season.standD[f.id] == null) G.season.standD[f.id] = 0; }
   if (t && Chaos.mine(G, t)) Career.mail(G, { from: byLang('Diretoria', 'Board'), tag: 'board', important: true, title, body: body + byLang(' A equipe toda está de luto. Um piloto substituto foi chamado.', ' The whole team is in mourning. A replacement driver has been called up.') });
 };
 

@@ -26,11 +26,11 @@ Talent.seedKey = (d) => (d.uid && /^Q[0-9]+$/.test(d.uid) ? d.uid : d.id);
 /* (0.9) traço real do piloto (REAL_EXTRA.driverTraits[id]: longevity, instant...). Sem pacote, nenhum */
 Talent.trait = (d, k) => (((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.driverTraits) || {})[d.id] || {})[k];
 Talent.TIERS = [
-  { id: 'geracional', name: 'Geracional', en: 'Generational', min: 94, max: 96, f1: true },
-  { id: 'acima', name: 'Acima da média', en: 'Above average', min: 89, max: 90, f1: true },
-  { id: 'bom', name: 'Bom', en: 'Good', min: 87, max: 88, f1: true },
-  { id: 'mediano', name: 'Mediano', en: 'Average', min: 85, max: 86, f1: true },
-  { id: 'mediocre', name: 'Medíocre', en: 'Mediocre', min: 83, max: 84, f1: true },
+  { id: 'geracional', name: 'Geracional', en: 'Generational', min: 94, max: 96, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'acima', name: 'Acima da média', en: 'Above average', min: 89, max: 90, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'bom', name: 'Bom', en: 'Good', min: 87, max: 88, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'mediano', name: 'Mediano', en: 'Average', min: 85, max: 86, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'mediocre', name: 'Medíocre', en: 'Mediocre', min: 83, max: 84, f1: true },   // ids-ok: f1 = nível de piloto da série principal
   { id: 'vencedor', name: 'Vencedor', en: 'Winner', min: 79, max: 82, desc: 'ganha títulos abaixo da F1' },
   { id: 'pelotao', name: 'Pelotão', en: 'Midfield', min: 75, max: 78, desc: 'meio de grid' },
   { id: 'coadjuvante', name: 'Coadjuvante', en: 'Backmarker', min: 50, max: 74, desc: 'fundo de grid, carreira curta' },

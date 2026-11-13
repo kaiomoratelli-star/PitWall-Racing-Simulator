@@ -1,27 +1,5 @@
 {
  "_leia": "Linha de base dos ids concretos da base escritos no código (ids opacos, fase 1). O guard-check falha se algum arquivo passar destes números. Só regrave ao REMOVER ids do código: node scripts/guard-check.js --ids-write",
- "total": 370,
- "files": {
-  "core/base/migrate": 8,
-  "core/season/career-season-end": 3,
-  "core/world/media": 8,
-  "core/season/cats": 131,
-  "core/people/driverdb": 83,
-  "core/people/talent": 5,
-  "core/people/scouting": 2,
-  "core/season/kart": 9,
-  "core/season/disciplines": 13,
-  "core/season/circuits": 1,
-  "core/people/academy": 7,
-  "core/world/chaos": 15,
-  "core/world/manufacturers": 19,
-  "ui/legacy/ui-scout": 4,
-  "ui/legacy/ui-people": 1,
-  "ui/legacy/ui-circuits": 1,
-  "ui/legacy/ui-cats": 26,
-  "ui/legacy/ui-cards": 2,
-  "ui/v85/ui85-home": 25,
-  "ui/v85/ui85-money": 2,
-  "ui/v85/ui85-news": 5
- }
+ "total": 0,
+ "files": {}
 }

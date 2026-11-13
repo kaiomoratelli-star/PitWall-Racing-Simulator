@@ -24,7 +24,7 @@ function licChip(L, date) {
 }
 function licSrc(L) {
   if (L.src === 'fia') return byLang(`Lista oficial da FIA de ${fmtDay(Circuits.listDate())}`, `Official FIA list of ${fmtDay(Circuits.listDate())}`);
-  if (L.src === 'f1') return byLang(`Calendário oficial da F1: licença de Grau 1 (não aparece na lista da FIA de ${fmtDay(Circuits.listDate())})`, `Official F1 calendar: Grade 1 licence (not on the FIA list of ${fmtDay(Circuits.listDate())})`);
+  if (L.src === 'f1') return byLang(`Calendário oficial da F1: licença de Grau 1 (não aparece na lista da FIA de ${fmtDay(Circuits.listDate())})`, `Official F1 calendar: Grade 1 licence (not on the FIA list of ${fmtDay(Circuits.listDate())})`);   // ids-ok: src 'f1' = licença pelo calendário da série principal
   if (L.src === 'sim') return byLang(`${L.upgrade ? 'Obras e licença' : 'Renovação'} simulada pelo jogo (${L.since}) — não é decisão real da FIA`, `${L.upgrade ? 'Works and licence' : 'Renewal'} simulated by the game (${L.since}) — not a real FIA decision`);
   return L.note || (L.generated ? byLang('Circuito criado no jogo', 'Circuit created in the game') : byLang(`Não consta na lista oficial de ${fmtDay(Circuits.listDate())}`, `Not on the official list of ${fmtDay(Circuits.listDate())}`));
 }

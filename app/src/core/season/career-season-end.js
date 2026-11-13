@@ -131,7 +131,7 @@ Career.genRookie = (G) => {
     personality: { ambition: RNG.int(55, 95), loyalty: RNG.int(20, 70), temper: RNG.int(15, 85), media: RNG.int(10, 50) },
     experience: RNG.int(5, 18), potential: pot, morale: 75, popularity: RNG.int(5, 30), injured: 0, rookie: true, regen: true,
     // carreira de base simulada: os melhores chegam com pontos de superlicença (F2/F3)
-    sl: ovr >= 74 ? [{ y: (G.season ? G.season.year : 2026) - 1, cat: 'f2', pts: ovr >= 76 ? 40 : 30 }, { y: G.season ? G.season.year : 2026, cat: 'f3', pts: 12 }] : [{ y: G.season ? G.season.year : 2026, cat: 'f3', pts: ovr >= 71 ? 20 : 7 }],
+    sl: ovr >= 74 ? [{ y: (G.season ? G.season.year : 2026) - 1, cat: ladderSeries(1), pts: ovr >= 76 ? 40 : 30 }, { y: G.season ? G.season.year : 2026, cat: ladderSeries(2), pts: 12 }] : [{ y: G.season ? G.season.year : 2026, cat: ladderSeries(2), pts: ovr >= 71 ? 20 : 7 }],
     career: { starts: 0, wins: 0, podiums: 0, poles: 0, titles: 0, points: 0 },
   };
 };

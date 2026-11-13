@@ -14,7 +14,7 @@ function whereOf(d) {
   if (d.series && typeof DriverDB !== 'undefined') return DriverDB.seriesName(d.series);
   return 'sem equipe';
 }
-function seriesKey(d) { return d.team ? 'f1' : d.cat || d.series || 'none'; }
+function seriesKey(d) { return d.team ? mainSeries() : d.cat || d.series || 'none'; }
 
 SCREENS.scout = {
   html() {
@@ -26,9 +26,9 @@ SCREENS.scout = {
     const head = `<div class="page-head"><div><div class="eyebrow">${esc(Career.team(G).name)}</div><h1>Olheiros</h1></div><div class="row"><span class="chip">${busy}/${S.staff.length} olheiros em missão</span>${tabs}</div></div>
       <p class="small muted" style="max-width:980px;margin:-4px 0 14px">O nível real de um piloto nunca aparece: o departamento estima o nível e a faixa de potencial. A estimativa melhora com observação; olheiros melhores e da mesma região do piloto erram menos. Pilotos do kart e da F4 são os mais difíceis de avaliar.</p>`
       + (S.ready ? '' : `<p class="small" style="max-width:980px;margin:-6px 0 14px">${byLang('Os dois primeiros olheiros chegam depois do primeiro GP da carreira, ou assim que você mandar observar um piloto.', 'Your first two scouts arrive after the first Grand Prix of the career, or as soon as you send someone to watch a driver.')}</p>`);
-    const where = (s) => { const T = s.task; if (!T) return '<span class="muted">livre</span>'; if (T.type === 'driver') { const d = Career.driver(G, T.target); return `observando ${d ? dTag(d.id) : '—'} · ${Math.max(0, 4 - T.races)} etapa(s) para o relatório`; } if (T.type === 'series') return `cobrindo ${esc(T.target === 'f1' ? 'Fórmula 1' : (Cats.get(G, T.target) || {}).name || DriverDB.seriesName(T.target))} · ${T.races} etapa(s)`; return `procurando talentos: ${esc(byLang(Scouting.REGIONS[T.target].name, Scouting.REGIONS[T.target].en))} · ${T.races} etapa(s)`; };
+    const where = (s) => { const T = s.task; if (!T) return '<span class="muted">livre</span>'; if (T.type === 'driver') { const d = Career.driver(G, T.target); return `observando ${d ? dTag(d.id) : '—'} · ${Math.max(0, 4 - T.races)} etapa(s) para o relatório`; } if (T.type === 'series') return `cobrindo ${esc(T.target === mainSeries() ? 'Fórmula 1' : (Cats.get(G, T.target) || {}).name || DriverDB.seriesName(T.target))} · ${T.races} etapa(s)`; return `procurando talentos: ${esc(byLang(Scouting.REGIONS[T.target].name, Scouting.REGIONS[T.target].en))} · ${T.races} etapa(s)`; };
     if (tab === 'staff') {
-      const seriesOpts = [['f1', 'Fórmula 1'], ...Cats.list(G).map(c => [c.id, c.name])];
+      const seriesOpts = [[mainSeries(), 'Fórmula 1'], ...Cats.list(G).map(c => [c.id, c.name])];
       const regionOpts = Object.entries(Scouting.REGIONS).map(([k, r]) => [k, byLang(r.name, r.en)]);
       const sel = (s) => `<select class="inp" style="width:auto" data-chg="scoutTask" data-id="${s.id}"><option value="">Escolher missão…</option><optgroup label="Cobrir categoria">${seriesOpts.map(([k, l]) => `<option value="series:${k}">${esc(l)}</option>`).join('')}</optgroup><optgroup label="Procurar talentos na região">${regionOpts.map(([k, l]) => `<option value="region:${k}">${esc(l)}</option>`).join('')}</optgroup>${s.task ? '<option value="none">Encerrar a missão</option>' : ''}</select>`;
       return head + `<div class="panel"><div class="panel-h"><h3>Departamento</h3><span class="small muted">${S.staff.length}/${Scouting.MAX} vagas · salários ${fmtMoney(sum(S.staff.map(s => s.salary)))}/ano</span></div><div class="panel-b tight tbl-wrap"><table class="tbl"><thead><tr><th>Olheiro</th><th>Região</th><th class="r">Avaliação</th><th class="r">Salário</th><th>Missão</th><th></th></tr></thead><tbody>
@@ -42,7 +42,7 @@ SCREENS.scout = {
     const f = { s: P.s || '', n: P.n || '', a: +(P.a || 23), q: P.q || '' };
     const pool = G.db.drivers.filter(d => !d.retired && !d.dead && d.team !== G.player.teamId);
     const keys = [...new Set(pool.map(seriesKey))];
-    const label = (k) => (k === 'f1' ? 'Fórmula 1' : k === 'none' ? 'Sem equipe' : Cats.get(G, k) ? Cats.get(G, k).name : typeof DriverDB !== 'undefined' ? DriverDB.seriesName(k) : k);
+    const label = (k) => (k === mainSeries() ? 'Fórmula 1' : k === 'none' ? 'Sem equipe' : Cats.get(G, k) ? Cats.get(G, k).name : typeof DriverDB !== 'undefined' ? DriverDB.seriesName(k) : k);
     const nats = [...new Set(pool.map(d => d.nat))].sort();
     let ds = pool.filter(d => (!f.s || seriesKey(d) === f.s) && (!f.n || d.nat === f.n) && d.age <= f.a && (!f.q || d.name.toLowerCase().includes(f.q.toLowerCase())));
     ds = ds.map(d => ({ d, x: Scouting.tierEst(G, d) })).sort((p, q) => q.x.e.mid - p.x.e.mid);

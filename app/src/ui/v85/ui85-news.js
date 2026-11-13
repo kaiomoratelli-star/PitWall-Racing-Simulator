@@ -19,8 +19,8 @@ const NEWSBANK85 = (() => {
 
 /* tema da notícia: primeiro as palavras do título, depois a etiqueta */
 const NEWSTHEME85 = [
-  [/^F2[: ]|Fórmula 2|Formula 2/i, 'f2'], [/^F3[: ]|Fórmula 3|Formula 3/i, 'f3'], [/^INDY|IndyCar|Indianápolis|Indianapolis/i, 'indycar'], [/^NASCAR/i, 'nascar'],
-  [/^WEC|Le Mans|Endurance/i, 'wec'], [/^FE[: ]|Fórmula E|Formula E|ePrix/i, 'formulae'], [/kart/i, 'karting'],
+  [/^F2[: ]|Fórmula 2|Formula 2/i, 'f2'], [/^F3[: ]|Fórmula 3|Formula 3/i, 'f3'], [/^INDY|IndyCar|Indianápolis|Indianapolis/i, 'indycar'], [/^NASCAR/i, 'nascar'],   // ids-ok: tema de foto do banco de imagens (assets/img/news/<tema>-n), não id
+  [/^WEC|Le Mans|Endurance/i, 'wec'], [/^FE[: ]|Fórmula E|Formula E|ePrix/i, 'formulae'], [/kart/i, 'karting'],   // ids-ok: tema de foto do banco de imagens
   [/chuva|molhad|rain|wet/i, 'rain'], [/safety car|bandeira vermelha|red flag|carro de segurança/i, 'safetycar'], [/batida|acidente|bate |crash|colis|abandona|quebra|falha/i, 'crash'],
   [/box|pit ?stop|parada|pit lane/i, 'pitstop'], [/motor|unidade de potência|power unit|engine/i, 'engine'], [/pneu|tyre|tire|Pirelli/i, 'tyres'],
   [/túnel|tunnel|fábrica|factory|simulador|simulator|atualiza|upgrade|peça|hacker/i, 'factory'], [/torcida|fãs|fans|enquete|poll|público/i, 'fans'],
@@ -31,7 +31,7 @@ const NEWSTHEME85 = [
   [/estrategista|engenheiro|diretor|chefe de|strategist|engineer|principal/i, 'pitwall'], [/mecânic|garagem|garage|equipe de box/i, 'garage'],
   [/patrocin|sponsor|parceri|contrato|acordo/i, 'paddock'],
 ];
-const NEWSTAG85 = { corrida: 'battle', campeonato: 'trophy', mercado: 'paddock', rumor: 'paddock', regulamento: 'fia', escandalo: 'fia', paddock: 'paddock', historia: 'history', rivalidade: 'battle', financas: 'paddock', 'técnica': 'factory', tecnica: 'factory', staff: 'pitwall', categorias: 'f2', equipe: 'garage', geral: 'paddock' };
+const NEWSTAG85 = { corrida: 'battle', campeonato: 'trophy', mercado: 'paddock', rumor: 'paddock', regulamento: 'fia', escandalo: 'fia', paddock: 'paddock', historia: 'history', rivalidade: 'battle', financas: 'paddock', 'técnica': 'factory', tecnica: 'factory', staff: 'pitwall', categorias: 'f2', equipe: 'garage', geral: 'paddock' };   // ids-ok: temas de foto do banco de imagens
 function newsTheme85(n) { const t = n.title || ''; for (const [re, k] of NEWSTHEME85) if (re.test(t) && NEWSBANK85[k]) return k; return NEWSBANK85[NEWSTAG85[n.tag]] ? NEWSTAG85[n.tag] : null; }
 function newsHash85(s) { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return Math.abs(h); }
 function newsPhoto85(n, theme) { const l = NEWSBANK85[theme || newsTheme85(n)]; return l && l.length ? imgUrl(l[newsHash85(n.id + '|' + n.title) % l.length]) : null; }

@@ -19,10 +19,8 @@
 const Academy = {};
 Academy.SEAT = (cat) => {
   if (!cat) return 0;
-  if (cat.id === 'f2') return 2.6;
-  if (cat.id === 'f3') return 1.2;
-  if (cat.id === 'f1a') return 0.15;
-  if (['freca', 'frme', 'fram', 'frj'].includes(cat.id)) return 0.9;
+  const w = seriesInfo(cat.id).academySeat;   // (0.9) custo da vaga por série: REAL_EXTRA.series.info[id].academySeat
+  if (w != null) return w;
   if (cat.tier >= 5) return 0.35;
   return 0;                                         // séries profissionais: a equipe da série paga
 };

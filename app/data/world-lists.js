@@ -444,5 +444,141 @@ const WORLD_LISTS = {
   "racing-bulls": "VisaCashAppRB",
   "audi": "AudiF1",
   "cadillac": "cadillacf1_"
- }
+ },
+ /* veículos de imprensa de cada país (antes Media.BY_NAT) */
+ "outletsByNat": {
+  "BRA": [
+   "ge",
+   "gp"
+  ],
+  "ITA": [
+   "gazzetta",
+   "corriere"
+  ],
+  "ESP": [
+   "marca",
+   "as"
+  ],
+  "FRA": [
+   "lequipe"
+  ],
+  "GER": [
+   "ams",
+   "bild"
+  ],
+  "NED": [
+   "telegraaf"
+  ],
+  "AUS": [
+   "speedcafe"
+  ],
+  "ARG": [
+   "ole"
+  ],
+  "GBR": [
+   "sky",
+   "bbc",
+   "autosport"
+  ],
+  "USA": [
+   "espn"
+  ],
+  "MEX": [
+   "record"
+  ],
+  "NZL": [
+   "nzherald"
+  ]
+ },
+ /* veículos que cobrem cada assunto de notícia (antes Media.BY_TAG) */
+ "outletsByTag": {
+  "corrida": [
+   "f1",
+   "autosport",
+   "motorsport",
+   "therace",
+   "racefans",
+   "sky"
+  ],
+  "campeonato": [
+   "f1",
+   "sky",
+   "bbc",
+   "autosport",
+   "therace"
+  ],
+  "mercado": [
+   "therace",
+   "motorsport",
+   "autosport",
+   "planetf1",
+   "crash"
+  ],
+  "regulamento": [
+   "fia",
+   "f1",
+   "racefans",
+   "therace"
+  ],
+  "paddock": [
+   "planetf1",
+   "crash",
+   "motorsport",
+   "racefans",
+   "therace"
+  ],
+  "equipe": [
+   "motorsport",
+   "autosport",
+   "racefans"
+  ],
+  "escandalo": [
+   "bbc",
+   "therace",
+   "motorsport",
+   "autosport"
+  ],
+  "rumor": [
+   "therace",
+   "motorsport",
+   "autosport",
+   "planetf1",
+   "crash"
+  ],
+  "técnica": [
+   "therace",
+   "autosport",
+   "racefans",
+   "ams"
+  ],
+  "historia": [
+   "f1",
+   "autosport",
+   "therace",
+   "bbc"
+  ],
+  "rivalidade": [
+   "therace",
+   "sky",
+   "planetf1",
+   "crash"
+  ]
+ },
+ /* veículos que publicam rumores nas redes (antes no Social.post) */
+ "rumorOutlets": [
+  "therace",
+  "motorsport",
+  "autosport",
+  "planetf1"
+ ],
+ /* o veículo oficial da série principal (resultados, recordes e títulos nas redes) */
+ "officialOutlet": "f1",
+ /* o perfil oficial que posta quando a postagem não é de piloto nem de equipe */
+ "officialPoster": {
+  "name": "Formula 1",
+  "handle": "F1",
+  "ref": "f1"
+ },
+ /* o veículo das notícias de vitória nas séries profissionais (as de base saem pelo veículo oficial) */
+ "proOutlet": "motorsport"
 };

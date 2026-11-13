@@ -13,17 +13,17 @@
 
 const Kart = {};
 Kart.CHAMPS = [
-  { id: 'eu', name: 'Kart · Europa', nats: ['GBR', 'ITA', 'GER', 'FRA', 'ESP', 'NED', 'FIN', 'POR', 'SWE', 'BEL', 'DEN'], f4: ['f4it', 'f4es', 'f4gb', 'f4de', 'e4'] },
-  { id: 'am', name: 'Kart · Américas', nats: ['USA', 'CAN', 'MEX', 'ARG'], f4: ['f4us'] },
-  { id: 'br', name: 'Kart · Brasil', nats: ['BRA'], f4: ['f4br'] },
-  { id: 'ap', name: 'Kart · Ásia-Pacífico', nats: ['JPN', 'CHN', 'IND', 'AUS'], f4: ['f4jp'] },
+  { id: 'eu', name: 'Kart · Europa', nats: ['GBR', 'ITA', 'GER', 'FRA', 'ESP', 'NED', 'FIN', 'POR', 'SWE', 'BEL', 'DEN'], get f4() { return seriesTable('kartF4')[this.id] || []; } },
+  { id: 'am', name: 'Kart · Américas', nats: ['USA', 'CAN', 'MEX', 'ARG'], get f4() { return seriesTable('kartF4')[this.id] || []; } },
+  { id: 'br', name: 'Kart · Brasil', nats: ['BRA'], get f4() { return seriesTable('kartF4')[this.id] || []; } },
+  { id: 'ap', name: 'Kart · Ásia-Pacífico', nats: ['JPN', 'CHN', 'IND', 'AUS'], get f4() { return seriesTable('kartF4')[this.id] || []; } },
 ];
 Kart.SIZE = { eu: 34, am: 16, br: 14, ap: 16 };
 Kart.on = (G) => !!(G && G.kart && typeof Cats !== 'undefined' && Cats.on(G));
 Kart.drivers = (G, cid) => G.db.drivers.filter(d => d.series === 'kart' && !d.retired && !d.dead && (!cid || (d.kart && d.kart.c === cid)));
 
 Kart.spawn = (G, ch, age) => {
-  const ref = Cats.get(G, ch.f4.find(id => Cats.get(G, id)) || 'f4it') || { id: 'kart', tier: 6, range: [50, 63] };
+  const ref = Cats.get(G, ch.f4.find(id => Cats.get(G, id)) || seriesTable('kartFallback', null)) || { id: 'kart', tier: 6, range: [50, 63] };
   const nat = RNG.pick(ch.nats);
   const ovr = Math.round(clamp(ref.range[0] - 16 + (age - 12) * 3 + RNG.normal(0, 3.5), 30, ref.range[0] - 1));
   // nome único (antes desistia quando o nome sorteado já existia, e o kart encolhia com os anos)

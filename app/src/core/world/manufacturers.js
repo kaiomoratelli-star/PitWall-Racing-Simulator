@@ -252,10 +252,12 @@ Mfr.askWorks = (G, mid) => {
 // (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.tyres, app/data/world-lists.js), não no código
 Object.defineProperty(Mfr, 'TYRES', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.tyres) || {}, configurable: true });
 /* fornecedores das outras categorias (dados reais de 2026) */
-Mfr.SERIES_TYRES = { f2: 'pirelli', f3: 'pirelli', f1a: 'pirelli', freca: 'pirelli', indycar: 'firestone', nxt: 'firestone', fe: 'hankook', sf: 'yokohama', sfl: 'kumho', wec: 'michelin', imsa: 'michelin', elms: 'goodyear', nascup: 'goodyear', nasxf: 'goodyear', nastr: 'goodyear', dtm: 'pirelli', stockcar: 'hankook', supercars: 'dunlop' };
+// (0.9, ids opacos) fornecedor de pneus de cada série: no Pacote de dados (REAL_EXTRA.series.tyres); sem pacote, vazio
+Object.defineProperty(Mfr, 'SERIES_TYRES', { get: () => seriesTable('tyres'), configurable: true });
 Mfr.tyres = (G) => {
   const S = Mfr.st(G);
-  if (!S.tyres) S.tyres = { f1: { id: 'pirelli', until: 2028, since: 2011 }, hist: [{ y: 2011, id: 'pirelli' }], tender: null };
+  if (!S.tyres) S.tyres = { f1: {   // ids-ok: f1 aqui é a chave do contrato de pneus da série principal no save, não um id
+     id: 'pirelli', until: 2028, since: 2011 }, hist: [{ y: 2011, id: 'pirelli' }], tender: null };
   return S.tyres;
 };
 // pneu neutro, sem marca: vale quando o Pacote de dados não traz os fornecedores (mundo sem pacote)

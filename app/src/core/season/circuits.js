@@ -44,7 +44,7 @@ Circuits.lic = (G, id) => {
   if (S.lic[id]) return S.lic[id];
   const f = Circuits.fia(id);
   if (f) return { grade: f.grade, expiry: f.expiry, src: 'fia', width: f.width };
-  if (trackInfo(id).f1Now) return { grade: '1', expiry: '2029-12-31', src: 'f1' };
+  if (trackInfo(id).f1Now) return { grade: '1', expiry: '2029-12-31', src: 'f1' };   // ids-ok: src 'f1' = licença pelo calendário da série principal
   const t = Career.track(G, id);
   return { grade: null, expiry: null, src: 'none', generated: !!(t && t.generated), note: trackInfo(id).fiaNote || null };
 };

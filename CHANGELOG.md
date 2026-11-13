@@ -44,6 +44,14 @@
 ### Ferramentas
 - Corrigido: `npm test` travava no Windows 11 build 26200 sem rodar nada. O `cmd.exe` desse Windows (10.0.26100.9949), que o npm usa para os scripts, trava quando a linha tem 10 ou mais `&&`, e a cadeia do `npm test` tinha 12. Agora o `npm test` chama `scripts/test-all.js`, que roda as mesmas 13 verificações na mesma ordem, para na primeira falha e mostra o tempo de cada uma. O `workflow-check` falha se algum script do `package.json` voltar a ter 10 ou mais `&&`.
 
+### IDs internos opacos — fase 1 (decisão do dono, 13/11/2026)
+O editor futuro vai trabalhar por id, e os ids vão virar códigos opacos (`eqp-`, `pil-`, `cat-`...). Antes disso, o código deixou de escrever ids concretos da base: as regras do mundo real que estavam nele foram para o Pacote de dados, por id, com os mesmos valores. A simulação não muda (as 4 assinaturas de determinismo continuam iguais, com e sem `--pack`).
+- Equipes, pilotos e motores (`REAL_EXTRA`): dinheiro do dono, peso da tradição, equipe irmã, peças compradas de outra equipe, contratos e desenvolvimento de motor, traços de piloto (carreira longa, adaptação imediata, superlicença). A estreia já anunciada da GM com a Cadillac virou dado do candidato.
+- Pistas (`REAL_EXTRA.trackInfo`): compostos da Pirelli, corrida noturna, calor do deserto, curvas da narração, nome na lista da FIA, calendário atual, clássicos, nome histórico do GP e "sem sprint em Mônaco".
+- Séries (`REAL_EXTRA.series`): para onde sobe quem vai bem e de onde vêm os pilotos, profissionais e de inverno, apoio da F1, faixas de nota, superlicença, disciplina, risco de acidente, pneus, kart, grupos da tela de categorias e cor no calendário; e os fatos soltos de cada série (o degrau rumo à principal, custo da vaga para a academia, notícias, quantos sobem, títulos que contam). A imprensa (cobertura por assunto e por país, rumores, perfil oficial) foi para `WORLD_LISTS`.
+- Guarda nova no `guard-check`: conta os ids da base escritos no código e não deixa subir (`tests/ids-in-code.json`, hoje 0; eram 486). Ficam de fora os passos antigos da migração e as linhas marcadas `ids-ok: <motivo>` (o mesmo texto usado como outra coisa, como tipo de evento do calendário ou tema de foto). Com o código de antes, falha.
+- Visual: o nome dos veículos nos cartões da tela inicial vem da lista do pacote (ex.: "La Gazzetta dello Sport" no lugar de "Gazzetta").
+
 ### Onda 2 — Dívida técnica (em parte)
 - O redator do paddock sorteia com um gerador local: a versão web e a desktop seguem a mesma sequência de sorteios com a mesma semente (`web-desktop-check` no CI).
 - A frase da vitória na Sprint ganhou a versão em inglês.
@@ -75,6 +83,9 @@
   - nenhum nome real no pacote nem no jogo;
   - o estilo decidido pelo dono (primeiro nome igual, sobrenome com o mesmo começo, siglas, escada GP).
 - O `fictional-check` passou a testar a edição fictícia: 50 telas nos dois modos sem nenhum nome real na tela (palavra inteira: "Strollin" não é "Stroll"). Nome de equipe, motor ou categoria nunca é perdoado por ser também palavra do código.
+- Corrigido: nomes reais sobravam na edição fictícia porque a proteção dos lugares (que ficam reais) trocava pedaços de palavra. O id "ags" protegia o meio de "Gragson", e o mesmo acontecia com Gianni Morbidelli, Lella Lombardi, John Barber e outros 16. A proteção agora vale só para a frase inteira, com limite de palavra, e só para textos com maiúscula.
+- Nome de etapa com patrocinador nas categorias: a etapa fica, a marca muda ("Goodyear 400" → "Gootek 400", "Firestone Grand Prix of St. Petersburg" → "Firestonor Grand Prix of St. Petersburg"). Os circuitos conhecidos ficam como estão ("Red Bull Ring", "Autódromo Internacional Ayrton Senna"). Um nome de equipe gravado no campo de circuito pela importação ("JHR Developments", F4 Britânica) é trocado como nome.
+- O `fictional-world-check` não confia mais na lista de lugares do gerador: usa a sua, tirada da base real (circuitos, GPs, cidades, países e bases das equipes; nome de etapa com marca ou de equipe não conta como lugar). Com o gerador de antes, falha com 19 nomes reais sobrando.
 
 **Simulação (mudança aprovada pelo dono; assinaturas regravadas uma vez)**
 - Sorteios que usavam o nome da pessoa passaram a usar o id: idade de staff e eventos de vida (`stories.js`), perfil e teto de potencial dos pilotos sem QID (`talent.js`), quantos posts reagem a um fato e os sorteios dos posts (`stories.js`, `media.js`), veículo de cada notícia (`media.js`), reputação e afinidade do empresário (`market-plus.js`, pela ordem do empresário na base). Pilotos gerados pelo jogo ganharam id pelo contador da carreira, e não pelo nome sorteado.

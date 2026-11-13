@@ -1733,5 +1733,736 @@ const REAL_EXTRA = {
    "fiaNote": "Não consta na lista de 04/11/2026.",
    "gpName": "GP de Watkins Glen"
   }
+ },
+ /* regras e tabelas das séries do mundo real, por id de série (antes no código): secondary/pro/up/feeders/rangeFix/support (Cats), ratingRange/slTable/slEstimated/dbPro/dbLate (DriverDB), disc (Disc.SERIES), risk (Chaos.RISK), tyres (Mfr.SERIES_TYRES), kartF4/kartFallback (Kart: a F4 de cada campeonato de kart), uiGroups (grupos da tela de categorias), calKind (cor da série no calendário) e info (fatos soltos: main = a série principal; ladder = degrau rumo à principal; fullTeams/allCars = vagas; academySeat = custo da vaga para a academia; bigNews/winNewsChance = notícias; promoteTop = quantos sobem; notable = título que mantém o piloto na base; fromDec = temporada começa em dezembro do ano anterior; pool/poolMaxYears = de onde vêm os pilotos da série paralela; women = só pilotas; retireDisc = aposentadoria; natFit = afinidade por nacionalidade) */
+ "series": {
+  "secondary": {
+   "frme": true,
+   "e4": true,
+   "f4uae": true
+  },
+  "pro": {
+   "fe": true,
+   "sf": true,
+   "indycar": true,
+   "wec": true,
+   "dtm": true,
+   "stockcar": true,
+   "nascup": true
+  },
+  "up": {
+   "f4de": "freca",
+   "f1a": "freca",
+   "f4uae": "freca",
+   "f4it": "freca",
+   "f4es": "freca",
+   "f4gb": "freca",
+   "e4": "freca",
+   "f4br": "freca",
+   "f4us": "fram",
+   "f4jp": "frj",
+   "freca": "f3",
+   "frme": "f3",
+   "fram": "f3",
+   "frj": "f3",
+   "f3": "f2"
+  },
+  "feeders": {
+   "f2": [
+    "f3",
+    "freca"
+   ],
+   "f3": [
+    "freca",
+    "frme",
+    "fram",
+    "frj",
+    "f4it",
+    "f4es",
+    "f4gb",
+    "f4de"
+   ],
+   "freca": [
+    "f4it",
+    "f4es",
+    "f4gb",
+    "f4de",
+    "e4",
+    "f4br",
+    "f1a",
+    "f4uae"
+   ],
+   "fram": [
+    "f4us"
+   ],
+   "frj": [
+    "f4jp"
+   ],
+   "fe": [
+    "f2",
+    "sf"
+   ],
+   "sf": [
+    "f2",
+    "frj",
+    "f3"
+   ],
+   "dtm": [
+    "wec",
+    "f2",
+    "f3",
+    "freca",
+    "f4it",
+    "f4de",
+    "f4es",
+    "f4gb"
+   ],
+   "stockcar": [
+    "f4br",
+    "fram",
+    "freca",
+    "f3",
+    "f2"
+   ],
+   "nascup": [
+    "f4us",
+    "fram",
+    "indycar"
+   ]
+  },
+  "rangeFix": {
+   "indycar": [
+    70,
+    80
+   ]
+  },
+  "support": {
+   "f2": true,
+   "f3": true,
+   "f1a": true
+  },
+  "ratingRange": {
+   "f1": [
+    80,
+    94
+   ],
+   "indycar": [
+    70,
+    81
+   ],
+   "fe": [
+    75,
+    85
+   ],
+   "sf": [
+    73,
+    83
+   ],
+   "wec": [
+    70,
+    82
+   ],
+   "f2": [
+    72,
+    81
+   ],
+   "imsa": [
+    68,
+    80
+   ],
+   "dtm": [
+    67,
+    79
+   ],
+   "f3": [
+    66,
+    78
+   ],
+   "nxt": [
+    65,
+    76
+   ],
+   "elms": [
+    64,
+    76
+   ],
+   "supercars": [
+    65,
+    77
+   ],
+   "stockcar": [
+    63,
+    76
+   ],
+   "nascup": [
+    64,
+    77
+   ],
+   "nasxf": [
+    61,
+    72
+   ],
+   "nastr": [
+    57,
+    68
+   ],
+   "sfl": [
+    62,
+    72
+   ],
+   "freca": [
+    61,
+    74
+   ],
+   "efo": [
+    60,
+    71
+   ],
+   "gb3": [
+    59,
+    71
+   ],
+   "eurocup3": [
+    58,
+    70
+   ],
+   "frme": [
+    59,
+    72
+   ],
+   "fram": [
+    57,
+    69
+   ],
+   "frj": [
+    56,
+    68
+   ],
+   "froc": [
+    56,
+    68
+   ],
+   "usfpro": [
+    57,
+    69
+   ],
+   "alms": [
+    57,
+    70
+   ],
+   "f1a": [
+    50,
+    65
+   ],
+   "usf2000": [
+    53,
+    65
+   ],
+   "fws": [
+    52,
+    64
+   ],
+   "f4it": [
+    52,
+    66
+   ],
+   "f4es": [
+    52,
+    66
+   ],
+   "f4gb": [
+    52,
+    66
+   ],
+   "e4": [
+    52,
+    65
+   ],
+   "f4br": [
+    50,
+    63
+   ],
+   "f4us": [
+    49,
+    62
+   ],
+   "f4jp": [
+    50,
+    63
+   ],
+   "f4uae": [
+    51,
+    64
+   ],
+   "f4cez": [
+    49,
+    62
+   ],
+   "f4au": [
+    48,
+    61
+   ],
+   "f4de": [
+    50,
+    64
+   ]
+  },
+  "slTable": {
+   "indycar": [
+    40,
+    30,
+    20,
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1
+   ],
+   "wec": [
+    20,
+    16,
+    12,
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1
+   ],
+   "nxt": [
+    15,
+    12,
+    10,
+    7,
+    5,
+    3,
+    2,
+    1,
+    0,
+    0
+   ],
+   "f1a": [
+    10,
+    7,
+    5,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "dtm": [
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "imsa": [
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "f2": [
+    40,
+    40,
+    40,
+    30,
+    20,
+    10,
+    8,
+    6,
+    4,
+    3
+   ],
+   "f3": [
+    30,
+    25,
+    20,
+    15,
+    12,
+    9,
+    7,
+    5,
+    3,
+    2
+   ],
+   "fe": [
+    30,
+    25,
+    20,
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1
+   ],
+   "sf": [
+    25,
+    20,
+    15,
+    10,
+    8,
+    6,
+    5,
+    4,
+    3,
+    2
+   ],
+   "freca": [
+    25,
+    20,
+    15,
+    10,
+    7,
+    5,
+    3,
+    2,
+    1,
+    0
+   ],
+   "usfpro": [
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0
+   ]
+  },
+  "slEstimated": [
+   "nxt",
+   "f1a",
+   "dtm",
+   "imsa",
+   "usfpro",
+   "wec"
+  ],
+  "dbPro": [
+   "indycar",
+   "fe",
+   "sf",
+   "wec",
+   "imsa",
+   "elms",
+   "alms",
+   "nascup",
+   "nasxf",
+   "nastr",
+   "dtm",
+   "stockcar",
+   "supercars",
+   "nxt",
+   "f2",
+   "f3",
+   "sfl"
+  ],
+  "dbLate": [
+   "nascup",
+   "nasxf",
+   "nastr",
+   "stockcar",
+   "supercars",
+   "wec",
+   "imsa",
+   "elms",
+   "alms",
+   "dtm"
+  ],
+  "disc": {
+   "wec": "end",
+   "imsa": "end",
+   "elms": "end",
+   "alms": "end",
+   "dtm": "gt",
+   "stockcar": "gt",
+   "supercars": "gt",
+   "nascup": "gt",
+   "nasxf": "gt",
+   "nastr": "gt"
+  },
+  "risk": {
+   "f2": 1,
+   "f3": 1.1,
+   "freca": 1.2,
+   "indycar": 1.6,
+   "nxt": 1.3,
+   "wec": 0.9,
+   "imsa": 0.8,
+   "nascup": 0.7,
+   "stockcar": 0.8,
+   "sf": 0.9,
+   "fe": 0.5,
+   "dtm": 0.5,
+   "kart": 0.6
+  },
+  "tyres": {
+   "f2": "pirelli",
+   "f3": "pirelli",
+   "f1a": "pirelli",
+   "freca": "pirelli",
+   "indycar": "firestone",
+   "nxt": "firestone",
+   "fe": "hankook",
+   "sf": "yokohama",
+   "sfl": "kumho",
+   "wec": "michelin",
+   "imsa": "michelin",
+   "elms": "goodyear",
+   "nascup": "goodyear",
+   "nasxf": "goodyear",
+   "nastr": "goodyear",
+   "dtm": "pirelli",
+   "stockcar": "hankook",
+   "supercars": "dunlop"
+  },
+  "kartF4": {
+   "eu": [
+    "f4it",
+    "f4es",
+    "f4gb",
+    "f4de",
+    "e4"
+   ],
+   "am": [
+    "f4us"
+   ],
+   "br": [
+    "f4br"
+   ],
+   "ap": [
+    "f4jp"
+   ]
+  },
+  "kartFallback": "f4it",
+  "uiGroups": [
+   [
+    "Monoposto · principais",
+    [
+     "fe",
+     "indycar",
+     "sf"
+    ],
+    true
+   ],
+   [
+    "GT",
+    [
+     "dtm",
+     "stockcar",
+     "nascup"
+    ],
+    true
+   ],
+   [
+    "Endurance",
+    [
+     "wec"
+    ],
+    true
+   ],
+   [
+    "Monoposto · rumo à F1",
+    [
+     "f2",
+     "f3",
+     "f1a"
+    ]
+   ],
+   [
+    "Monoposto · regionais",
+    [
+     "freca",
+     "frme",
+     "fram"
+    ]
+   ],
+   [
+    "Monoposto · Fórmula 4",
+    [
+     "f4it",
+     "f4de",
+     "f4es",
+     "f4gb",
+     "e4",
+     "f4br",
+     "f4uae"
+    ]
+   ],
+   [
+    "Ecossistema Indy",
+    [
+     "f4us"
+    ]
+   ],
+   [
+    "Ecossistema Super Formula",
+    [
+     "frj",
+     "f4jp"
+    ]
+   ]
+  ],
+  "calKind": {
+   "f2": "f2",
+   "f3": "f2",
+   "f1a": "f2",
+   "fe": "fe",
+   "indycar": "usa",
+   "nxt": "usa",
+   "nascup": "usa",
+   "imsa": "end",
+   "wec": "end",
+   "elms": "end"
+  },
+  "info": {
+   "f1": {
+    "main": true
+   },
+   "f2": {
+    "ladder": 1,
+    "fullTeams": true,
+    "academySeat": 2.6,
+    "bigNews": true,
+    "winNewsChance": 0.8,
+    "notable": true
+   },
+   "f3": {
+    "ladder": 2,
+    "fullTeams": true,
+    "academySeat": 1.2,
+    "bigNews": true,
+    "promoteTop": 6,
+    "notable": true
+   },
+   "fe": {
+    "fullTeams": true,
+    "fromDec": true,
+    "notable": true
+   },
+   "sf": {
+   "poolNat": { "JPN": 8 },
+    "notable": true
+   },
+   "freca": {
+    "fullTeams": true,
+    "academySeat": 0.9
+   },
+   "frme": {
+    "fullTeams": true,
+    "academySeat": 0.9,
+    "pool": [
+     "freca",
+     "f3",
+     "f4it",
+     "f4es",
+     "f4gb",
+     "e4"
+    ],
+    "poolMaxYears": {
+     "f3": 1
+    }
+   },
+   "fram": {
+    "academySeat": 0.9
+   },
+   "frj": {
+    "academySeat": 0.9
+   },
+   "f1a": {
+    "academySeat": 0.15,
+    "women": true
+   },
+   "e4": {
+    "pool": [
+     "f4it",
+     "f4es",
+     "f4gb"
+    ]
+   },
+   "f4uae": {
+    "pool": [
+     "f4it",
+     "f4es",
+     "f4gb"
+    ]
+   },
+   "indycar": {
+    "allCars": true,
+    "retireDisc": "oval"
+   },
+   "nascup": {
+    "retireDisc": "stock",
+    "natFit": {
+     "groups": [
+      [
+       [
+        "USA"
+       ],
+       16
+      ],
+      [
+       [
+        "CAN",
+        "MEX",
+        "AUS"
+       ],
+       4
+      ]
+     ],
+     "other": -14
+    }
+   },
+   "stockcar": {
+    "retireDisc": "stock",
+    "natFit": {
+     "groups": [
+      [
+       "SA",
+       14
+      ]
+     ],
+     "other": -8
+    }
+   },
+   "dtm": {
+    "natFit": {
+     "groups": [
+      [
+       "EU",
+       4
+      ]
+     ],
+     "other": -4,
+     "exp": {
+      "end": 6,
+      "gt": 4
+     }
+    }
+   }
+  }
  }
 };

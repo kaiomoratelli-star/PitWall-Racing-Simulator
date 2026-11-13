@@ -17,10 +17,8 @@ Disc.LIST = ['mono', 'gt', 'end'];
 Disc.NAME = { mono: 'Monoposto', gt: 'GT', end: 'Endurance' };
 Disc.NAME_EN = { mono: 'Single-seater', gt: 'GT', end: 'Endurance' };
 Disc.label = (k) => byLang(Disc.NAME[k], Disc.NAME_EN[k]);
-Disc.SERIES = {
-  wec: 'end', imsa: 'end', elms: 'end', alms: 'end',
-  dtm: 'gt', stockcar: 'gt', supercars: 'gt', nascup: 'gt', nasxf: 'gt', nastr: 'gt',
-};
+// (0.9, ids opacos) disciplina de cada série: no Pacote de dados (REAL_EXTRA.series.disc); sem pacote, tudo monoposto
+Object.defineProperty(Disc, 'SERIES', { get: () => seriesTable('disc'), configurable: true });
 Disc.of = (sid) => Disc.SERIES[sid] || 'mono';
 /* exigência do jogador: adaptação instantânea */
 // (0.9) traço real por piloto: fica no Pacote de dados (REAL_EXTRA.driverTraits[id].instant); sem pacote, ninguém
@@ -35,7 +33,7 @@ Disc.exp = (d) => {
   const yrs = { mono: new Set(), gt: new Set(), end: new Set() };
   (d.realSeasons || []).forEach(s => { if (s[4] !== 'anunciado (lista provisória)') yrs[Disc.of(s[1])].add(s[0]); });
   (d.history || []).forEach(h => { if (h.cat) yrs[Disc.of(h.cat)].add(h.y); else if (h.y) yrs.mono.add(h.y); });
-  if (d.career && d.career.starts > 0) yrs.mono.add('f1');
+  if (d.career && d.career.starts > 0) yrs.mono.add(mainSeries());
   if (d.team && d.seat !== 'R') yrs.mono.add('cur');
   const v = { mono: yrs.mono.size, gt: yrs.gt.size, end: yrs.end.size };
   Object.defineProperty(d, '_dx', { value: { k: key, v }, writable: true, configurable: true, enumerable: false });
@@ -83,9 +81,13 @@ Disc.EU = new Set(['GER', 'AUT', 'SUI', 'NED', 'BEL', 'FRA', 'ITA', 'ESP', 'POR'
 Disc.affinity = (G, cat, d) => {
   const e = Disc.exp(d);
   let s = (Disc.fit(d, cat.disc || 'mono') - 0.8) * 30;
-  if (cat.id === 'stockcar') s += Disc.SA.has(d.nat) ? 14 : -8;
-  if (cat.id === 'nascup') s += d.nat === 'USA' ? 16 : ['CAN', 'MEX', 'AUS'].includes(d.nat) ? 4 : -14;
-  if (cat.id === 'dtm') s += (Disc.EU.has(d.nat) ? 4 : -4) + (e.end > 0 ? 6 : 0) + (e.gt > 0 ? 4 : 0);
+  // afinidade por nacionalidade e experiência (REAL_EXTRA.series.info[id].natFit: grupos [nacionalidades ou 'SA'/'EU', bônus],
+  // o bônus dos demais e, se houver, o da experiência em endurance e GT)
+  const nf = seriesInfo(cat.id).natFit;
+  if (nf) {
+    const g = nf.groups.find(([who]) => (typeof who === 'string' ? Disc[who].has(d.nat) : who.includes(d.nat)));
+    s += (g ? g[1] : nf.other) + (nf.exp ? (e.end > 0 ? nf.exp.end : 0) + (e.gt > 0 ? nf.exp.gt : 0) : 0);
+  }
   return s;
 };
 
@@ -110,7 +112,7 @@ Disc.isWoman = (d) => !!d && (d.gender === 'F' || (d.uid && Disc.women().has(d.u
 Disc.init = (G) => {
   G.db.drivers.forEach(d => { if (!d.gender && d.uid && Disc.women().has(d.uid)) d.gender = 'F'; });
   if (G.cats) Object.values(G.cats.byId).forEach(c => { if (!c.disc) c.disc = c.crew ? 'end' : Disc.of(c.id); });
-  G.db.drivers.forEach(d => { if (!d.gender && (d.realSeasons || []).some(s => s[1] === 'f1a')) d.gender = 'F'; });
+  G.db.drivers.forEach(d => { if (!d.gender && (d.realSeasons || []).some(s => seriesInfo(s[1]).women)) d.gender = 'F'; });
   if (G.cats && G.cats.byId.f1a) G.cats.byId.f1a.entries.forEach(e => { const d = Career.driver(G, e.did); if (d) d.gender = 'F'; });
 };
 

@@ -11,13 +11,13 @@ const Media = {};
 /* veículos reais; o país orienta qual veículo cobre cada piloto */
 // (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.outlets, app/data/world-lists.js), não no código
 Object.defineProperty(Media, 'OUTLETS', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.outlets) || {}, configurable: true });
-Media.BY_NAT = { BRA: ['ge', 'gp'], ITA: ['gazzetta', 'corriere'], ESP: ['marca', 'as'], FRA: ['lequipe'], GER: ['ams', 'bild'], NED: ['telegraaf'], AUS: ['speedcafe'], ARG: ['ole'], GBR: ['sky', 'bbc', 'autosport'], USA: ['espn'], MEX: ['record'], NZL: ['nzherald'] };
-Media.BY_TAG = {
-  corrida: ['f1', 'autosport', 'motorsport', 'therace', 'racefans', 'sky'], campeonato: ['f1', 'sky', 'bbc', 'autosport', 'therace'],
-  mercado: ['therace', 'motorsport', 'autosport', 'planetf1', 'crash'], regulamento: ['fia', 'f1', 'racefans', 'therace'],
-  paddock: ['planetf1', 'crash', 'motorsport', 'racefans', 'therace'], equipe: ['motorsport', 'autosport', 'racefans'],
-  escandalo: ['bbc', 'therace', 'motorsport', 'autosport'], rumor: ['therace', 'motorsport', 'autosport', 'planetf1', 'crash'], 'técnica': ['therace', 'autosport', 'racefans', 'ams'], historia: ['f1', 'autosport', 'therace', 'bbc'], rivalidade: ['therace', 'sky', 'planetf1', 'crash'],
-};
+// (0.9, ids opacos) listas do mundo real: no Pacote de dados (WORLD_LISTS.outletsByNat / outletsByTag / rumorOutlets /
+// officialOutlet / officialPoster); sem pacote, a imprensa genérica
+Object.defineProperty(Media, 'BY_NAT', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.outletsByNat) || {}, configurable: true });
+Object.defineProperty(Media, 'BY_TAG', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.outletsByTag) || {}, configurable: true });
+Media.official = () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.officialOutlet) || 'f1';   // ids-ok: o veículo oficial do mundo de reserva
+Media.proOutlet = () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.proOutlet) || 'motorsport';   // ids-ok: o veículo das séries profissionais no mundo de reserva
+Media.officialPoster = () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.officialPoster) || { name: 'Formula 1', handle: 'F1', ref: 'f1' };   // ids-ok: idem
 Media.TAGS = { corrida: 'Corrida', campeonato: 'Campeonato', mercado: 'Mercado', regulamento: 'Regulamento', paddock: 'Paddock', equipe: 'Sua equipe', escandalo: 'Investigação', historia: 'História', rivalidade: 'Rivalidade', geral: 'Geral', financas: 'Finanças', rumor: 'Rumores', 'técnica': 'Técnica', tecnica: 'Técnica', staff: 'Bastidores', categorias: 'Outras categorias' };
 
 /* perfis reais nas redes (fonte: Wikidata P2002 e perfis oficiais) */
@@ -44,7 +44,7 @@ Media.decorate = (G, n, refs = {}) => {
   n.dr = ds.length ? ds : undefined; n.tm = ts.length ? ts : undefined;
   if (refs.tr) n.tr = refs.tr;
   const h = hashStr(n.id);   // (0.9, regra 19) pelo id da notícia, não pelo título (que tem nomes): o veículo é o mesmo nos dois mundos
-  let pool = Media.BY_TAG[n.tag] || Media.BY_TAG.paddock;
+  let pool = Media.BY_TAG[n.tag] || Media.BY_TAG.paddock || [null];   // sem pacote: a imprensa genérica (Media.outlet)
   const d0 = ds[0] && Career.driver(G, ds[0]);
   if (d0 && Media.BY_NAT[d0.nat] && h % 100 < 45) pool = Media.BY_NAT[d0.nat];
   n.outlet = refs.outlet || pool[h % pool.length];
@@ -83,10 +83,10 @@ Social.post = (G, p) => {
   let by;
   if (p.by === 'fan') { const f = Social.FANS[hk % Social.FANS.length]; by = { kind: 'fan', name: f.replace(/_/g, ' '), handle: f }; }
   else if (p.by && Media.OUTLETS[p.by]) by = { kind: 'media', name: Media.OUTLETS[p.by].name, handle: Media.OUTLETS[p.by].handle, ref: p.by };
-  else if (p.kind === 'rumor') { const o = ['therace', 'motorsport', 'autosport', 'planetf1'][hk % 4]; const out = Media.outlet(o); by = { kind: 'media', name: out.name, handle: out.handle, ref: o }; }
+  else if (p.kind === 'rumor') { const ro = (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.rumorOutlets) || [null]; const o = ro[hk % ro.length]; const out = Media.outlet(o); by = { kind: 'media', name: out.name, handle: out.handle, ref: o }; }
   else if (d && p.as !== 'team') by = { kind: 'driver', name: d.name, handle: Media.handle('driver', d), ref: d.id };
   else if (t) by = { kind: 'team', name: t.name, handle: Media.handle('team', t), ref: t.id };
-  else by = { kind: 'media', name: 'Formula 1', handle: 'F1', ref: 'f1' };
+  else by = { kind: 'media', ...Media.officialPoster() };
   const pop = by.kind === 'driver' && d ? (d.popularity || 40) : by.kind === 'team' && t ? t.reputation : by.kind === 'fan' ? 8 : 70;
   const hype = p.hype || 1;
   const likes = Math.round((pop * pop * 18 + 300) * hype * (0.6 + (hk % 80) / 100));
@@ -136,7 +136,7 @@ Media.raceReport = (G, summary, race) => {
   const vic = [byLang('P1! Que corrida. Obrigado, equipe! 🏆', 'P1! What a race. Thank you, team! 🏆'), byLang('Vitória! Carro incrível hoje. Vamos!', 'Win! Incredible car today. Let\'s go!'), byLang(`Que sensação vencer em ${track.place || track.circuit}!`, `What a feeling to win in ${track.place || track.circuit}!`), byLang('Sem palavras. Obrigado a todos na fábrica.', 'No words. Thank you to everyone at the factory.')];
   Social.post(G, { driver: w.id, kind: 'win', text: w.career.wins === 1 ? byLang('Minha primeira vitória na F1. Sonho de criança realizado. Obrigado a todos que acreditaram.', 'My first F1 win. A childhood dream come true. Thank you to everyone who believed.') : vic[hashStr(w.id + m.races) % vic.length], hype: w.career.wins === 1 ? 3 : 1.4 });
   Social.post(G, { team: wt.id, as: 'team', kind: 'win', text: byLang(`VITÓRIA! ${w.name} vence o ${track.gp}! ${p2 && Career.driver(G, cls[1].did).team === wt.id ? 'Dobradinha!! ' : ''}🏁`, `WIN! ${w.name} wins the ${track.gp}! ${p2 && Career.driver(G, cls[1].did).team === wt.id ? 'One-two!! ' : ''}🏁`), hype: 1.2 });
-  Social.post(G, { by: 'f1', kind: 'result', text: `${byLang('RESULTADO', 'RESULT')} — ${track.gp}\n1. ${w.name}\n2. ${p2 ? p2.name : '—'}\n3. ${p3 ? p3.name : '—'}` });
+  Social.post(G, { by: Media.official(), kind: 'result', text: `${byLang('RESULTADO', 'RESULT')} — ${track.gp}\n1. ${w.name}\n2. ${p2 ? p2.name : '—'}\n3. ${p3 ? p3.name : '—'}` });
   cls.filter(c => c.status === 'dnf').slice(0, 2).forEach(c => {
     const d = Career.driver(G, c.did);
     if (d && RNG.chance(0.5)) Social.post(G, { driver: d.id, kind: 'dnf', text: [byLang('Dia difícil. Vamos analisar e voltar mais fortes.', 'Tough day. We will analyse it and come back stronger.'), byLang('Não era o resultado que queríamos. Cabeça erguida.', 'Not the result we wanted. Heads up.'), byLang('Frustrante. Próxima.', 'Frustrating. Next one.')][hashStr(d.id + m.races) % 3] });
@@ -164,7 +164,7 @@ Media.milestones = (G, d, track) => {
     const all = Math.max(...Media.legends().map(x => x.wins), ...G.db.drivers.filter(x => x.id !== d.id).map(x => x.career.wins));
     const top = wins > all;
     Career.news(G, top ? byLang(`${d.name} se torna o maior vencedor da história da Fórmula 1`, `${d.name} becomes the most successful driver in Formula 1 history`) : byLang(`${d.name} supera ${l.name} em vitórias na F1`, `${d.name} passes ${l.name} for F1 wins`), 'historia', byLang(`Agora são ${wins} vitórias${top ? ' — novo recorde absoluto' : `, uma a mais que ${l.name} (${l.wins})`}.`, `Now on ${wins} wins${top ? ' — a new all-time record' : `, one more than ${l.name} (${l.wins})`}.`), { dr: [d.id] });
-    if (top) Social.post(G, { by: 'f1', kind: 'record', text: byLang(`HISTÓRIA. ${d.name} chega a ${wins} vitórias e se torna o maior vencedor de todos os tempos.`, `HISTORY. ${d.name} reaches ${wins} wins and becomes the most successful driver of all time.`), hype: 3 });
+    if (top) Social.post(G, { by: Media.official(), kind: 'record', text: byLang(`HISTÓRIA. ${d.name} chega a ${wins} vitórias e se torna o maior vencedor de todos os tempos.`, `HISTORY. ${d.name} reaches ${wins} wins and becomes the most successful driver of all time.`), hype: 3 });
   });
 };
 
@@ -267,7 +267,7 @@ Media.seasonEnd = (G, summary) => {
   const maxTitles = Math.max(7, ...G.db.drivers.filter(x => x.id !== champ.id).map(x => x.career.titles));
   Career.news(G, titles === 1 ? byLang(`${champ.name} é campeão mundial pela primeira vez`, `${champ.name} is world champion for the first time`) : byLang(`${champ.name} conquista o ${titles}º título mundial`, `${champ.name} wins a ${ordinal(titles)} world title`), 'campeonato', byLang(`${summary.constructorName} fica com o título de construtores de ${summary.year}.${titles > maxTitles ? ' Ninguém na história venceu tantos campeonatos.' : titles === maxTitles ? ' Igualou o recorde de títulos da categoria.' : ''}`, `${summary.constructorName} take the ${summary.year} constructors' title.${titles > maxTitles ? ' Nobody in history has won more championships.' : titles === maxTitles ? ' Equals the series record for titles.' : ''}`), { dr: [champ.id], tm: [summary.constructor], main: true });
   Social.post(G, { driver: champ.id, kind: 'title', text: titles === 1 ? byLang('CAMPEÃO DO MUNDO. Não consigo acreditar. Obrigado a todos.', 'WORLD CHAMPION. I cannot believe it. Thank you all.') : byLang(`Título número ${titles}. Cada um tem um sabor diferente. Obrigado, equipe!`, `Title number ${titles}. Every one tastes different. Thank you, team!`), hype: 4 });
-  Social.post(G, { by: 'f1', kind: 'title', text: byLang(`${champ.name.toUpperCase()}, CAMPEÃO MUNDIAL DE ${summary.year} 🏆`, `${champ.name.toUpperCase()}, ${summary.year} WORLD CHAMPION 🏆`), hype: 3 });
+  Social.post(G, { by: Media.official(), kind: 'title', text: byLang(`${champ.name.toUpperCase()}, CAMPEÃO MUNDIAL DE ${summary.year} 🏆`, `${champ.name.toUpperCase()}, ${summary.year} WORLD CHAMPION 🏆`), hype: 3 });
   // rivalidades esfriam entre temporadas
   const m = Media.mem(G);
   Object.entries(m.rivals).forEach(([k, r]) => { r.score = +(r.score * 0.55).toFixed(2); if (r.score < 1) delete m.rivals[k]; else r.stage = Math.min(r.stage, r.score >= 8 ? 2 : r.score >= 4.5 ? 1 : 0); });
