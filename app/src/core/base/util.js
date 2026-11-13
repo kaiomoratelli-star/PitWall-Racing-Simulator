@@ -76,6 +76,9 @@ const avg = arr => arr.length ? sum(arr) / arr.length : 0;
 const deepClone = o => JSON.parse(JSON.stringify(o));
 const uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
 const byId = (arr, id) => arr.find(x => x.id === id);
+// embaralha com o RNG dado (Fisher–Yates): consome r() sempre na mesma ordem, em qualquer motor JavaScript.
+// Nunca use sort(() => r() - 0.5): o resultado muda com a versão do V8 (Node/Electron).
+const shuffleBy = (arr, r) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

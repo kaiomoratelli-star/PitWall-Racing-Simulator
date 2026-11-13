@@ -8,6 +8,7 @@
 //   5. o manifesto de funcionalidades (tests/features.json) cita uma tela, ação ou função que não existe mais;
 //   6. o estilo antigo de embrulho ou uma redefinição silenciosa de função do jogo;
 //   7. um embrulho guarda uma tela/ação que ainda não existe naquele ponto do build.
+//   9. um sort com comparador aleatório no núcleo (o resultado dependeria do motor JavaScript).
 // Uso: node scripts/guard-check.js
 const fs = require('fs');
 const path = require('path');
@@ -113,5 +114,12 @@ if (fs.existsSync(manPath)) {
 } else warn.push('tests/features.json não existe');
 
 warn.forEach(w => console.log('  aviso:', w));
+// 9. (0.9) determinismo: no núcleo, um sort com comparador que ignora os dois itens (ex.: sort(() => r() - 0.5))
+//    dá resultado que depende do motor JavaScript (o V8 do Node 20 e o do Node 26 embaralham diferente).
+//    Para embaralhar, use shuffleBy(lista, r) (util.js), que consome o RNG sempre na mesma ordem.
+core.forEach(m => read(m).split('\n').forEach((l, i) => {
+  if (/\.sort\(\s*(\(\s*\)\s*=>|function\s*\(\s*\))/.test(l)) errors.push(`${m}.js:${i + 1}: sort com comparador aleatório — o resultado depende do motor JavaScript; use shuffleBy(lista, r)`);
+}));
+
 if (errors.length) { console.log(`guard-check: ${errors.length} problema(s)`); errors.forEach(e => console.log('  ✗', e)); process.exit(1); }
 console.log(`guard-check OK · ${order.length} módulos · ${Object.keys(fnDefs).length} funções · ${actDefs.size} ações · ${used.size} botões conferidos`);

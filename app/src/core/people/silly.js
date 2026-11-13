@@ -115,7 +115,7 @@ Silly.auction = (G, r) => {
     const rivals = G.db.teams.filter(t => t.id !== k.team && t.id !== d.team && !(t.id === pt && !Career.isObs(G))
       && !M.talks.some(x => x.team === t.id && x.driver === d.id)
       && Market.openSeats(G, t).length && Market.ask(d) <= Market.driverBudget(G, t) * 2.4);
-    rivals.slice().sort(() => r() - 0.5).slice(0, 2).forEach(t => {
+    shuffleBy(rivals, r).slice(0, 2).forEach(t => {
       const fit = Market.bestCandidates(G, t, Market.openSeats(G, t)[0].seat).slice(0, 3).some(c => c.d.id === d.id);
       if (!fit || r() > 0.6) return;
       const best = Math.max(...M.talks.filter(x => x.driver === d.id && x.status === 'talks').map(x => x.offer.salary));

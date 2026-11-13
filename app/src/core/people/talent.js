@@ -105,7 +105,7 @@ Talent.profile = (G, d) => {
   Talent.ATTRS.forEach(k => { off[k] = (r() - 0.5) * 5; });
   // o ritmo puro fica perto da nota geral (é o que mais pesa na volta): fortes e fracos vão para os outros atributos
   off.pace = clamp(off.pace, -1.5, 1.5);
-  const pick = Talent.ATTRS.filter(k => k !== 'pace').sort(() => r() - 0.5);
+  const pick = shuffleBy(Talent.ATTRS.filter(k => k !== 'pace'), r);
   pick.slice(0, 2).forEach(k => { off[k] += 4 + r() * 3.5; });   // dois pontos fortes
   pick.slice(2, 4).forEach(k => { off[k] -= 4 + r() * 3.5; });   // dois pontos fracos
   // F1: duelo real com o companheiro (segundos de diferença em classificação e corrida, últimas 3 temporadas)

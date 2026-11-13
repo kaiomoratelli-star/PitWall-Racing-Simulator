@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9 — em desenvolvimento (branch `v0.9-aprimoramento`)
+
+### Onda 1 — Plataforma e rede de segurança
+**Simulação (mudança intencional, assinaturas regravadas uma vez)**
+- Corrigido: a mesma semente gerava carreiras diferentes conforme a versão do motor JavaScript (Node 20 × 26; o mesmo vale ao trocar o Electron). Três sorteios do núcleo embaralhavam listas com um comparador aleatório: quem entra no leilão por um piloto, os pontos fortes e fracos sorteados no perfil de cada piloto e a ordem dos candidatos a nova equipe. Agora usam um embaralhamento com semente (`shuffleBy`), igual em qualquer motor. As 4 assinaturas de `tests/determinism.json` foram regravadas (iguais no Node 20 e no 26). Saves antigos abrem normalmente; a partir da 0.9, uma carreira segue outro caminho de sorteio que a mesma carreira na 0.8.7.
+- Guarda nova no `guard-check`: um `sort` com comparador aleatório no núcleo faz o `npm test` falhar.
+
 ## 0.8.7 — Solidez: nada some, saves seguros, testes que falham (09/11/2026)
 Base: as prioridades P1 a P3 de `docs/AVALIACAO-0.8.6.md`. Relatório completo em `docs/RELATORIO-0.8.7.md`.
 

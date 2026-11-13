@@ -25,7 +25,7 @@ Owners.applications = (G, y) => {
   const r = localRng(`apply:${G.seed}:${y}`);
   const inGrid = new Set(G.db.teams.map(x => x.candidate).filter(Boolean));
   const ok = Owners.cands().filter(c => y >= c.from - 1 && !inGrid.has(c.id) && !Owners.blocked(G, c) && Owners.canApply(S, c, y));
-  for (const c of ok.sort(() => r() - 0.5)) {
+  for (const c of shuffleBy(ok, r)) {
     if (r() < c.interest * 0.07 * Owners.health(G) * (open >= 2 ? 1.6 : 1)) {
       S.apps.push({ cid: c.id, y, stage: 'fia', decide: y + 1 });
       S.cand[c.id] = { status: 'inscrita', y };
