@@ -78,11 +78,17 @@
     }
   },
   "devDependencies": {
-    "acorn": "8.14.0",
-    "acorn-walk": "8.3.4",
-    "electron": "33.2.1",
-    "electron-builder": "25.1.8",
-    "playwright": "1.63.0",
-    "resedit": "2.0.3"
+    "acorn": "8.19.0",
+    "acorn-walk": "8.3.5",
+    "electron": "45.3.1",
+    "electron-builder": "26.18.0",
+    "playwright": "1.65.0",
+    "resedit": "3.1.0"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "overrides": {
+    "minimatch@>=7.0.0 <11.0.1": "11.0.8"
   }
 }

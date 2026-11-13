@@ -1,0 +1,14 @@
+# Versões novas viram PR automático na branch de trabalho (regra 18: software sempre atualizado).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: v0.9-aprimoramento
+    schedule:
+      interval: weekly
+    versioning-strategy: increase
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: v0.9-aprimoramento
+    schedule:
+      interval: weekly

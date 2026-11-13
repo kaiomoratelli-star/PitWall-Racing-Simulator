@@ -78,7 +78,11 @@ function createWindow() {
   // links externos abrem no navegador; navegação interna bloqueada
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
-  win.webContents.on('console-message', (e, level, message, line, source) => { if (level >= 2) log.write(level === 2 ? 'warn' : 'error', `renderer: ${message} (${path.basename(source || '')}:${line})`); });
+  // Electron 35+: os dados vêm no próprio evento e level é texto ('info' | 'warning' | 'error' | 'debug')
+  win.webContents.on('console-message', (e) => {
+    const lvl = e.level === 'warning' ? 'warn' : e.level === 'error' ? 'error' : null;
+    if (lvl) log.write(lvl, `renderer: ${e.message} (${path.basename(e.sourceId || '')}:${e.lineNumber})`);
+  });
   win.webContents.on('render-process-gone', (e, details) => {
     log.error('processo do jogo encerrou: ' + JSON.stringify(details));
     if (smokeMode) return finishSmoke({ ok: false, error: 'render-process-gone ' + details.reason });
