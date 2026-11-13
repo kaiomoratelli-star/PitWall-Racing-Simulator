@@ -8,7 +8,8 @@
 //   5. o manifesto de funcionalidades (tests/features.json) cita uma tela, ação ou função que não existe mais;
 //   6. o estilo antigo de embrulho ou uma redefinição silenciosa de função do jogo;
 //   7. um embrulho guarda uma tela/ação que ainda não existe naquele ponto do build.
-//   9. um sort com comparador aleatório no núcleo (o resultado dependeria do motor JavaScript).
+//   9. um sort com comparador aleatório no núcleo (o resultado dependeria do motor JavaScript);
+//  10. um embrulho antigo de tela/ação a mais que a linha de base de tests/wraps.json (E12).
 // Uso: node scripts/guard-check.js
 const fs = require('fs');
 const path = require('path');
@@ -121,5 +122,24 @@ core.forEach(m => read(m).split('\n').forEach((l, i) => {
   if (/\.sort\(\s*(\(\s*\)\s*=>|function\s*\(\s*\))/.test(l)) errors.push(`${m}.js:${i + 1}: sort com comparador aleatório — o resultado depende do motor JavaScript; use shuffleBy(lista, r)`);
 }));
 
+// 10. (0.9, E12) embrulhos antigos de tela/ação (const old = SCREENS.x; SCREENS.x = ... / ACT.x / CHG.x) não podem
+//     aumentar. A contagem por arquivo fica em tests/wraps.json (linha de base); a conversão dos que existem para
+//     o registro de ganchos vem com as telas novas (Ondas 6 e 7). Código novo: Hooks.around('SCREENS', SCREENS, 'x', 'nome', (next, ...a) => ...).
+//     Ao remover embrulhos, regrave a linha de base: node scripts/guard-check.js --wraps-write
+const WRAP_RE = /=\s*(SCREENS|ACT|CHG)\.\w+(\.html)?\s*[;,)]/;
+const wraps = {};
+order.forEach(m => read(m).split('\n').forEach(l => { if (WRAP_RE.test(l) && !/^\s*(\/\/|\*|\/\*)/.test(l)) wraps[m] = (wraps[m] || 0) + 1; }));
+const wrapTotal = Object.values(wraps).reduce((a, b) => a + b, 0);
+const wrapsFile = path.join(root, 'tests', 'wraps.json');
+if (process.argv.includes('--wraps-write')) {
+  fs.writeFileSync(wrapsFile, JSON.stringify({ _leia: 'Linha de base dos embrulhos antigos de tela/ação (E12). O guard-check falha se algum arquivo passar destes números. Só regrave ao REMOVER embrulhos: node scripts/guard-check.js --wraps-write', total: wrapTotal, files: wraps }, null, 1) + '\n');
+  console.log(`tests/wraps.json gravado: ${wrapTotal} embrulho(s) em ${Object.keys(wraps).length} arquivo(s)`);
+} else if (!fs.existsSync(wrapsFile)) errors.push('tests/wraps.json não existe (linha de base dos embrulhos de tela; gere com --wraps-write)');
+else {
+  const baseW = JSON.parse(fs.readFileSync(wrapsFile, 'utf8'));
+  Object.entries(wraps).forEach(([m, n]) => { const was = (baseW.files || {})[m] || 0; if (n > was) errors.push(`${m}.js: ${n - was} embrulho(s) novo(s) no estilo antigo (= SCREENS.x / ACT.x / CHG.x) — use Hooks.around('SCREENS', SCREENS, 'x', 'nome', (next, ...a) => ...)`); });
+  if (wrapTotal < baseW.total) console.log(`  aviso: embrulhos antigos caíram de ${baseW.total} para ${wrapTotal}: regrave a linha de base (node scripts/guard-check.js --wraps-write)`);
+}
+
 if (errors.length) { console.log(`guard-check: ${errors.length} problema(s)`); errors.forEach(e => console.log('  ✗', e)); process.exit(1); }
-console.log(`guard-check OK · ${order.length} módulos · ${Object.keys(fnDefs).length} funções · ${actDefs.size} ações · ${used.size} botões conferidos`);
+console.log(`guard-check OK · ${order.length} módulos · ${Object.keys(fnDefs).length} funções · ${actDefs.size} ações · ${used.size} botões conferidos · ${wrapTotal} embrulhos antigos (nenhum novo)`);

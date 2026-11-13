@@ -33,7 +33,8 @@
 - O redator do paddock sorteia com um gerador local: a versão web e a desktop seguem a mesma sequência de sorteios com a mesma semente (`web-desktop-check` no CI).
 - A frase da vitória na Sprint ganhou a versão em inglês.
 - Removido de `regs.js` o modelo antigo de unidade de potência, que nunca era executado (o desgaste vem de `parts.js`).
-- Adiados de propósito, para não refazer trabalho: os embrulhos antigos de tela (vão junto com as telas novas) e a consolidação dos módulos sobrepostos (vai junto com a camada de dados e o motor).
+- Guarda nova no `guard-check`: os embrulhos antigos de tela e de ação (`const old = SCREENS.x; SCREENS.x = ...`) não podem aumentar. A contagem por arquivo fica em `tests/wraps.json` (71 hoje, em 41 arquivos); código novo usa o registro de ganchos (`Hooks.around`).
+- Adiados de propósito, para não refazer trabalho: a conversão desses embrulhos de tela (vai junto com as telas novas) e a consolidação dos módulos sobrepostos (vai junto com a camada de dados e o motor).
 
 ### Onda 3 — Camada de dados e edições (em andamento)
 **Jogo base fictício**
