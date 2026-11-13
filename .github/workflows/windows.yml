@@ -43,6 +43,7 @@ jobs:
         run: |
           node scripts/save-compat-check.js 12
           node scripts/determinism-check.js
+          node scripts/determinism-check.js --pack
 
       - name: Testes da interface (Playwright)
         shell: bash

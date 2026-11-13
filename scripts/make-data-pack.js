@@ -1,0 +1,39 @@
+// Gera o Pacote de dados real (0.9, Onda 3) a partir de app/data: um JSON com o conteúdo das variáveis
+// que o jogo usa (REAL_DB, REAL_EXTRA, REAL_CATS...), no formato conferido por Pack.check (core/base/pack.js).
+// Uso: node scripts/make-data-pack.js [saída=dist-pack/pitwall-dados-reais.json]
+// Também é usado como módulo: require('./make-data-pack').buildPack()
+'use strict';
+const fs = require('fs'), path = require('path'), vm = require('vm');
+const root = path.join(__dirname, '..');
+const { data } = require('./modules');
+
+function buildPack() {
+  const ctx = vm.createContext({ console, Math, JSON, Date });
+  for (const m of data) vm.runInContext(fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
+  vm.runInContext(fs.readFileSync(path.join(root, 'app', 'src', 'core', 'base', 'pack.js'), 'utf8'), ctx, { filename: 'pack.js' });
+  const names = vm.runInContext('Object.keys(Pack.GLOBALS)', ctx);
+  const content = {};
+  for (const k of names) {
+    const v = vm.runInContext(`typeof ${k} !== 'undefined' ? JSON.stringify(${k}) : null`, ctx);
+    if (v != null) content[k] = JSON.parse(v);
+  }
+  const db = content.REAL_DB || {};
+  const pkg = require(path.join(root, 'package.json'));
+  return {
+    format: 'pitwall-pack', version: 1, id: 'pitwall-dados-reais',
+    name: 'Dados reais (F1 e categorias de base)', nameEn: 'Real-world data (F1 and feeder series)',
+    ref: db.ref || null, game: pkg.version,
+    license: 'Dados de fontes abertas: f1db (CC BY 4.0), Wikipedia (CC BY-SA), Wikidata (CC0), OpenStreetMap (ODbL). Fotos e logos: ver ASSET_REGISTRY.',
+    content,
+  };
+}
+
+if (require.main === module) {
+  const out = path.resolve(process.argv[2] || path.join(root, 'dist-pack', 'pitwall-dados-reais.json'));
+  const p = buildPack();
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const txt = JSON.stringify(p);
+  fs.writeFileSync(out, txt);
+  console.log(`pacote gerado: ${path.relative(root, out)} · ${Object.keys(p.content).length} conjuntos · ${(txt.length / 1048576).toFixed(1)} MB`);
+}
+module.exports = { buildPack };

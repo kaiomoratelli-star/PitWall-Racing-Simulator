@@ -101,10 +101,12 @@ Disc.femaleName = (nat) => {
   return `${RNG.pick(f)} ${RNG.pick(pool.l)}`;
 };
 /* pilotas: base de pilotos (Wikidata P21) e quem já correu na F1 Academy */
-Disc.WOMEN = typeof DRIVER_WOMEN !== 'undefined' ? new Set(DRIVER_WOMEN) : new Set();
-Disc.isWoman = (d) => !!d && (d.gender === 'F' || (d.uid && Disc.WOMEN.has(d.uid)));
+// (0.9) lido na hora do uso: com o Pacote de dados, a lista chega depois de os módulos carregarem
+Disc.women = () => { if (!Disc._women || Disc._womenSrc !== (typeof DRIVER_WOMEN !== 'undefined' ? DRIVER_WOMEN : null)) { Disc._womenSrc = typeof DRIVER_WOMEN !== 'undefined' ? DRIVER_WOMEN : null; Disc._women = new Set(Disc._womenSrc || []); } return Disc._women; };
+Object.defineProperty(Disc, 'WOMEN', { get: () => Disc.women(), enumerable: true });   // nome antigo, continua valendo
+Disc.isWoman = (d) => !!d && (d.gender === 'F' || (d.uid && Disc.women().has(d.uid)));
 Disc.init = (G) => {
-  G.db.drivers.forEach(d => { if (!d.gender && d.uid && Disc.WOMEN.has(d.uid)) d.gender = 'F'; });
+  G.db.drivers.forEach(d => { if (!d.gender && d.uid && Disc.women().has(d.uid)) d.gender = 'F'; });
   if (G.cats) Object.values(G.cats.byId).forEach(c => { if (!c.disc) c.disc = c.crew ? 'end' : Disc.of(c.id); });
   G.db.drivers.forEach(d => { if (!d.gender && (d.realSeasons || []).some(s => s[1] === 'f1a')) d.gender = 'F'; });
   if (G.cats && G.cats.byId.f1a) G.cats.byId.f1a.entries.forEach(e => { const d = Career.driver(G, e.did); if (d) d.gender = 'F'; });
