@@ -729,6 +729,7 @@ I18N_PATS.unshift(
 // troca de staff. Entram no começo da lista para vir antes da regra genérica de frases longas.
 I18N_PATS.unshift(
   [/^(Behind the scenes: .+ (?:closes ranks (?:in favour of|against)|offers concessions to pass)) "(.+)"$/, (m, a, x) => `${a} "${txIn(x)}"`],
+  [/^([^!]+) vence a corrida Sprint!$/, '$1 wins the Sprint!'],   // E36 (engine.js:596)
   [/^Desde (\d{4}) · (\d+) batida\(s\)( · companheiros de equipe)?$/, (m, y, n, tm) => `Since ${y} · ${n} crash${n === '1' ? '' : 'es'}${tm ? ' · teammates' : ''}`],
   [/^([^.()]+?) contratou ([^.()]+) \(([^,()]+), nível (\d+)\) no lugar de ([^.()]+)\. Motivo: área mais fraca da equipe\.$/, (m, a, b, r, n, o) => `${a} hired ${b} (${txIn(r)}, rating ${n}) to replace ${o}. Reason: the team’s weakest area.`],
   [/^(Real driver database: .+\(source: )(.+)(, checked on [^()]+\)\.)$/, (m, a, s, z) => a + s.replace(/páginas de temporada/g, 'season pages').replace(/ e /g, ' and ') + z],
