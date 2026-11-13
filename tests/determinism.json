@@ -1,21 +1,21 @@
 {
  "obs-a": {
-  "hash": "70ebc8bea4cf59d3",
+  "hash": "467b68c09a077358",
   "kb": 3178,
   "champ": "lewis-hamilton,charles-leclerc,kimi-antonelli"
  },
  "obs-b": {
-  "hash": "e5e58b8e56f47436",
+  "hash": "9b618db89b04a04e",
   "kb": 3044,
   "champ": "george-russell,kimi-antonelli"
  },
  "mgr-mclaren": {
-  "hash": "ccbeb4ce9634a554",
+  "hash": "d0b257b462bf56ef",
   "kb": 3183,
   "champ": "charles-leclerc,george-russell"
  },
  "mgr-haas": {
-  "hash": "74236c9e87092d35",
+  "hash": "9c908a7ae28bdcb4",
   "kb": 3178,
   "champ": "george-russell,kimi-antonelli"
  }

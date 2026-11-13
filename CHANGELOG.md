@@ -36,6 +36,11 @@
 - Teste novo `screen-purity-check` (no CI): a mesma carreira, com a mesma semente, abrindo todas as telas antes do primeiro GP e entre as etapas, e sem abrir nenhuma, termina idêntica (Manager e Observador). Antes das correções, as três carreiras do teste terminavam diferentes.
 - As 4 assinaturas de determinismo continuam iguais: a simulação de quem não abria as telas não mudou.
 
+### Dados
+- F1 2027: Liam Lawson e Arvid Lindblad (Racing Bulls) e Oliver Bearman (Haas) confirmados nas mesmas equipes (informação da MGC, 13/11/2026). Os 22 titulares do grid inicial agora batem com os anunciados (`docs/VERIFICACAO-2027.md`). As confirmações que a fonte pública ainda não tem ficam em `scripts/driverdb-manual.json`, com fonte e data, e são aplicadas por `scripts/driverdb-fixes.js`, que a importação chama no fim.
+- Corrigido: 31 nomes de equipe na base de pilotos apareciam com marcação da Wikipedia na ficha de carreira (ex.: "{{nowrap|Mercedes-AMG Petronas F1 Team}}"). A importação limpa a marcação, e o `pack-check` falha se sobrar alguma.
+- Assinaturas de determinismo regravadas por causa do dado novo: uma temporada inteira com a base antiga e com a nova é idêntica em tudo menos nesses textos e na situação das três vagas.
+
 ### Ferramentas
 - Corrigido: `npm test` travava no Windows 11 build 26200 sem rodar nada. O `cmd.exe` desse Windows (10.0.26100.9949), que o npm usa para os scripts, trava quando a linha tem 10 ou mais `&&`, e a cadeia do `npm test` tinha 12. Agora o `npm test` chama `scripts/test-all.js`, que roda as mesmas 13 verificações na mesma ordem, para na primeira falha e mostra o tempo de cada uma. O `workflow-check` falha se algum script do `package.json` voltar a ter 10 ou mais `&&`.
 

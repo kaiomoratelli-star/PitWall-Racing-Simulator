@@ -145,6 +145,7 @@ def entries(text):
             if not ds: continue
             team = W.plain(r[ct]['text']) if ct is not None and ct < len(r) else last_team
             team = re.sub(r'\s*\(.*?\)\s*', '', team or '').strip()
+            team = re.sub(r'\{\{\s*(?:nowrap|sortname)\s*\|\s*([^{}]*?)\s*\}\}', lambda m: m.group(1).replace('|', ' ').strip(), team).strip()  # (0.9) {{nowrap|...}} sobrava no nome da equipe
             last_team = team or last_team
             nos = [n for part in re.split(r'<br\s*/?>|\n', r[cn]['text'], flags=re.I) for n in re.findall(r'\d+', W.plain(part))[:1]] if cn is not None and cn < len(r) else []
             flags = cell_flags(r[cd]['text'])
@@ -273,6 +274,9 @@ def main():
     meta = {'source': 'Wikipedia (CC BY-SA, páginas de temporada) e Wikidata (CC0)', 'verified': TODAY, 'years': YEARS, 'statusNote': '2022–2025: disputou; 2026: inscrito; 2027: anunciado (lista provisória). Rumores não entram como fato. Vitórias, pódios e poles fora da F1 são contados nas tabelas de resultados (aproximados).'}
     body = '/* gerado por scripts/import_drivers.py — não editar à mão */\nconst DRIVER_DB = ' + json.dumps({'meta': meta, 'series': series_meta, 'drivers': out}, ensure_ascii=False, separators=(',', ':')) + ';\n'
     open(os.path.join(ROOT, 'app', 'data', 'drivers-db.js'), 'w', encoding='utf-8').write(body)
+    # (0.9) correcoes e confirmacoes com fonte que a Wikipedia ainda nao tem (scripts/driverdb-manual.json)
+    import subprocess
+    subprocess.run(['node', os.path.join(ROOT, 'scripts', 'driverdb-fixes.js')], check=True)
     with_dob = sum(1 for d in out if d['dob'])
     print(f'{len(out)} pilotos · {with_dob} com nascimento · {sum(1 for d in out if d["img"])} com foto no Commons · {sum(len(d["seasons"]) for d in out)} temporadas · {len(body) // 1024} KB')
 

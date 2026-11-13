@@ -46,6 +46,9 @@ plano da versão: `docs/PLANO-0.9.md`.
 16. Piloto não morre em acidente (fim de carreira); morte natural de idosos no save como homenagem; nunca menores.
 17. Sempre o dado real mais recente; avisar antes de usar dado antigo.
 18. Software sempre na versão mais nova com suporte (Node LTS ativo, Electron, dependências, actions).
+19. **Mundo fictício = o banco de dados original, inteiro e idêntico** (todos os pilotos, equipes, competições,
+    números e histórico), com **todos os nomes trocados por nomes gerados automaticamente** e **os mesmos IDs**.
+    Nunca um mundo à parte. (Decisão do dono, 13/11/2026.)
 
 ## Regras de engenharia
 - Ganchos com nome (registro de ganchos), nunca embrulhar funções antigas.

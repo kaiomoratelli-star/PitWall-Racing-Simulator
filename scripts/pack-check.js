@@ -27,6 +27,11 @@ const bad = [];
   const r = vm.runInContext('Pack.install(JSON.parse(__p))', ctx);
   if (!r.ok) bad.push('pacote real recusado: ' + r.errors.join('; '));
   else if (vm.runInContext('typeof REAL_DB === "undefined" || REAL_DB.teams.length === 0', ctx)) bad.push('pacote real instalado, mas REAL_DB não ficou disponível');
+  // (0.9) nenhuma marcação de wiki sobrando nos textos (ex.: "{{nowrap|Mercedes-AMG Petronas F1 Team}}" na ficha do piloto)
+  const markup = [];
+  const scan = (v, at) => { if (markup.length >= 5) return; if (typeof v === 'string') { if (/\{\{|\}\}|\[\[|\]\]|<ref|&nbsp;/.test(v)) markup.push(`${at}: ${v.slice(0, 60)}`); } else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) scan(x, at + '.' + k); };
+  scan(real.content, 'pacote');
+  markup.forEach(m => bad.push(`marcação de wiki no texto: ${m}`));
 }
 
 // 2) pacotes inválidos: recusados e nada muda
