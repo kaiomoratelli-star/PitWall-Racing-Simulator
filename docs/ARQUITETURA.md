@@ -27,15 +27,31 @@ app/src/        código do jogo, em pastas por assunto (0.8.7); ordem de carrega
                 academy, silly, people (moral, química), talks (conversas)
   core/world/   media, rnd, cardev, sisters, council, owners (+ entry, hooks, partners), chaos,
                 chaos-catalog, facilities, manufacturers
-  ui/base/      storage (saves: disco, nuvem, navegador; compactação), sound, ui-core, assets,
+  ui/base/      packs (instala o Pacote de dados; primeiro módulo da interface),
+                storage (saves: disco, nuvem, navegador; compactação), sound, ui-core, assets,
                 ui-avatar, i18n, i18n-en, main
   ui/legacy/    telas antigas (ui-*), já com o visual novo
   ui/v85/       casca e telas da 0.8.5 (ui85-*)
   ui/screens/   telas e acréscimos numerados, um assunto por arquivo (01 a 20)
   *.css         estilos (raiz de app/src)
 app/data/       dados reais: real-db (F1 2026), real-extra (contratos, staff, academias),
-                history (1950–hoje), records (recordes e linhagens), team-lore, categories
+                history (1950–hoje), records (recordes e linhagens), team-lore, categories.
+                (0.9) Não entram no código do jogo: o build gera com eles o Pacote de dados
+                app/dist/packs/pitwall-dados-reais.js (embutido na versão web), que ui/base/packs
+                confere e instala (Pack.boot) antes de qualquer tela. Sem pacote, o mundo é o fictício.
+                O save guarda de qual pacote veio (G.pack) e só abre com ele (Pack.canOpen).
+                As fotos e logos do mundo real (app/assets/img, menos brand/) vão na pasta de imagens do
+                pacote (app/dist/packs/<id>/img); imgUrl (ui-core.js) monta o endereço por Pack.imgBase().
+                Os caminhos do ASSET_REGISTRY continuam lógicos ("assets/img/faces/...").
+                Edição fictícia (regra 19): scripts/make-fictional-pack.js gera o pacote pitwall-ficticio
+                (o mesmo banco com os nomes trocados por um dicionário fixo e os mesmos ids);
+                build.js --edicao=ficticia também passa os textos do código pelo dicionário
+                (scripts/fictional-code.js) e tira os comentários. Listas do mundo real que estavam no
+                código ficam em app/data/world-lists.js (WORLD_LISTS) e REAL_EXTRA.
+                Regra para código novo: nenhum nome real no código; sorteio nunca pelo nome (use o id).
 app/assets/     fontes empacotadas (licença OFL) e imagens (pilotos, carros, circuitos, categorias).
+                (0.9) No build, só flags/, fonts/ e img/brand/ ficam no jogo base; o resto de img/
+                vai para a pasta de imagens do Pacote de dados.
                 Fonte oficial da F1: copie os arquivos Formula1-Display-*.woff2/.ttf/.otf para
                 app/assets/fonts; o build detecta (Regular 400, Bold 700, Black 900, Wide) e usa nos
                 títulos. Sem eles, vale a Titillium Web Black em caixa alta. A Formula1 Display é da

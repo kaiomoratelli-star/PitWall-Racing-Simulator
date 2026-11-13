@@ -43,6 +43,13 @@ Scouting.state = (G) => {
   }
   return S;
 };
+/* (0.9) só leitura, para as telas (regra 6): nunca cria o departamento. Quem cria é a simulação (Potential.tick,
+   depois do primeiro GP) ou uma ação do jogador. Antes, abrir a tela de Olheiros antes do primeiro GP criava os
+   olheiros com nomes do sorteio do jogo, e a carreira inteira saía diferente. */
+Scouting.view = (G) => {
+  const S = G.scout || {};
+  return { staff: S.staff || [], mkt: S.mkt || [], reports: S.reports || [], ready: !!S.staff };
+};
 Scouting.refreshMarket = (G) => {
   const S = Scouting.state(G);
   S.mkt = Array.from({ length: 6 }, (_, i) => Scouting.genScout(G, 62 + i * 3, `m${G.season.year}${i}`));
@@ -77,7 +84,7 @@ Scouting.tick = (G) => {
     T.races++;
     let pool = [];
     if (T.type === 'driver') pool = [Career.driver(G, T.target)].filter(Boolean);
-    else if (T.type === 'series') pool = G.db.drivers.filter(d => !d.retired && (T.target === 'f1' ? d.team : d.cat === T.target || d.series === T.target));
+    else if (T.type === 'series') pool = G.db.drivers.filter(d => !d.retired && (T.target === mainSeries() ? d.team : d.cat === T.target || d.series === T.target));
     else if (T.type === 'region') pool = G.db.drivers.filter(d => !d.retired && d.age <= 21 && Scouting.REGIONS[T.target] && Scouting.REGIONS[T.target].nats.includes(d.nat) && d.team !== G.player.teamId);
     const base = T.type === 'driver' ? 0.13 : T.type === 'series' ? 0.035 : 0.025;
     pool.forEach(d => { S.k[d.id] = Math.min(0.85, (S.k[d.id] || 0) + Scouting.gain(s, d, base)); S.judge[d.id] = Math.max(S.judge[d.id] || 0, s.judge); });
@@ -90,7 +97,7 @@ Scouting.digest = (G, s, pool) => {
   const top = pool.filter(d => d.team !== G.player.teamId).map(d => ({ d, e: Potential.estimate(G, d) })).sort((a, b) => b.e.mid - a.e.mid).slice(0, 5);
   if (!top.length) return;
   const T = s.task;
-  const where = T.type === 'region' ? byLang(Scouting.REGIONS[T.target].name, Scouting.REGIONS[T.target].en) : T.target === 'f1' ? 'F1' : ((Cats.get(G, T.target) || {}).name || (typeof DriverDB !== 'undefined' ? DriverDB.seriesName(T.target) : T.target));
+  const where = T.type === 'region' ? byLang(Scouting.REGIONS[T.target].name, Scouting.REGIONS[T.target].en) : T.target === mainSeries() ? 'F1' : ((Cats.get(G, T.target) || {}).name || (typeof DriverDB !== 'undefined' ? DriverDB.seriesName(T.target) : T.target));
   const lines = top.map(x => `${x.d.name} (${x.d.age}, ${x.d.nat}) — ${Scouting.tierLabel(G, x.d)} · ${byLang('potencial', 'potential')} ${x.e.lo}–${x.e.hi}`).join('\n');
   Career.mail(G, { from: byLang('Departamento de olheiros', 'Scouting department'), tag: 'team', title: byLang(`${s.name}: destaques em ${where}`, `${s.name}: standouts in ${where}`), body: lines });
 };

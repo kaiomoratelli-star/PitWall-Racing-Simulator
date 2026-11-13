@@ -41,7 +41,7 @@ Cards.html = (c) => {
   }
   if (c.kind === 'result') {
     const p = c.podium || [];
-    return `<div class="ck ck-result" style="--tc:${col}"><div class="ck-top">${Cards.outletMark(c.outlet || 'f1')}<span class="ck-word">${byLang('RESULTADO', 'RESULT')}</span></div>
+    return `<div class="ck ck-result" style="--tc:${col}"><div class="ck-top">${Cards.outletMark(c.outlet || Media.official())}<span class="ck-word">${byLang('RESULTADO', 'RESULT')}</span></div>
       <div class="ck-pod">${[1, 0, 2].map(i => p[i] ? `<div class="ck-step s${i + 1}">${Cards.pic(p[i], 'sm')}<b>P${i + 1}</b><span>${esc(p[i].name.split(' ').slice(-1)[0].toUpperCase())}</span></div>` : '').join('')}</div>
       <div class="ck-foot"><div class="ck-name">${Cards.upper(c.head)}</div><div class="ck-sub">${Cards.upper(c.sub)}</div></div>${Cards.wm()}</div>`;
   }
@@ -71,7 +71,7 @@ Cards.forPost = (p) => {
     const res = (G.season.results || []).find(r => r.winner === d.id && G.season.year === p.y && r.round === p.r) || G.season.results[G.season.results.length - 1];
     const pod = res && res.cls ? res.cls.slice(0, 3).map(x => Career.driver(G, x.did)).filter(Boolean) : [d];
     const tr = res && Career.track(G, res.trackId);
-    return Cards.html({ kind: 'result', outlet: 'f1', d, t: Career.team(G, d.team), podium: pod, head: tr ? tr.gp : '', sub: `${d.name} ${byLang('vence', 'wins')}` });
+    return Cards.html({ kind: 'result', outlet: Media.official(), d, t: Career.team(G, d.team), podium: pod, head: tr ? tr.gp : '', sub: `${d.name} ${byLang('vence', 'wins')}` });
   }
   return '';
 };

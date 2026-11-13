@@ -31,7 +31,9 @@ Persons.STRIP = /\b(jr|sr|ii|iii|iv)\b\.?/g;
 Persons.tokens = (name) => String(name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/\s*\(.*?\)/g, ' ').replace(/[łŁ]/g, 'l').replace(Persons.STRIP, ' ').replace(/[^a-z]+/g, ' ').trim().split(' ')
   .filter(t => t.length > 1);                                   // iniciais soltas ("Austin J. Hill") não contam
-Persons.canon = (name) => { const t = Persons.tokens(name); if (t.length) t[0] = Persons.NICK[t[0]] || t[0]; return t; };
+// (0.9, regra 19) o pacote fictício traz a própria tabela de apelidos (com os nomes fictícios); sem ela, vale a de cima
+Persons.nick = () => (typeof NICKNAMES !== 'undefined' ? NICKNAMES : Persons.NICK);
+Persons.canon = (name) => { const t = Persons.tokens(name); if (t.length) t[0] = Persons.nick()[t[0]] || t[0]; return t; };
 Persons.key = (name) => Persons.canon(name).join(' ');
 Persons.isQ = (uid) => typeof uid === 'string' && /^Q\d+$/.test(uid);
 Persons.pid = (d) => (Persons.isQ(d.uid) ? d.uid : `n:${Persons.key(d.name)}:${d.dob ? d.dob.slice(0, 4) : '?'}`);

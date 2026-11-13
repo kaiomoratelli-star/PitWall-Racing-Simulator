@@ -365,7 +365,8 @@ Career.SPONSOR_OBJ = {
 };
 
 /* Marcas reais que patrocinam o automobilismo. As da própria equipe vêm primeiro. */
-Career.SPONSOR_POOL = ['Heineken', 'DHL', 'AWS', 'Lenovo', 'Crypto.com', 'Rolex', 'Salesforce', 'Globant', 'MSC Cruises', 'Qatar Airways', 'Emirates', 'Allwyn', 'LVMH', 'Paramount+', 'Pepsico', 'Kraken', 'Tata Communications', 'Bitpanda', 'Castrol', 'Puma', 'Ray-Ban', 'Estrella Galicia', 'Gulf', 'Snowflake', 'Workday'];
+// (0.9, regra 19) as marcas são dado do mundo real: ficam no Pacote de dados (SPONSOR_POOL, sponsor-brands.js)
+Career.sponsorPool = () => (typeof SPONSOR_POOL !== 'undefined' ? SPONSOR_POOL : []);
 /* marca → [segmento, porte] (sponsor-brands.js) */
 Career.brand = (name) => (typeof SPONSOR_BRANDS !== 'undefined' && SPONSOR_BRANDS[name]) || ['outros', 3];
 Career.genSponsors = (G, team, n) => {
@@ -373,14 +374,14 @@ Career.genSponsors = (G, team, n) => {
   const segs = new Set(G.sponsors.map(s => s.seg || Career.brand(s.name)[0]));
   // exclusividade: marca que patrocina outra equipe não fecha com a sua; um patrocinador por segmento
   const taken = new Set(G.db.teams.filter(t => t.id !== team.id).flatMap(t => t.sponsors || []));
-  const pool0 = [...new Set([...(typeof SPONSOR_BRANDS !== 'undefined' ? Object.keys(SPONSOR_BRANDS) : []), ...Career.SPONSOR_POOL])];
+  const pool0 = [...new Set([...(typeof SPONSOR_BRANDS !== 'undefined' ? Object.keys(SPONSOR_BRANDS) : []), ...Career.sponsorPool()])];
   const reachable = (name) => { const [, tier] = Career.brand(name); return tier === 3 || (tier === 2 && team.reputation >= 55) || (tier === 1 && team.reputation >= 75); };
   const own = (team.sponsors || []).filter(x => !used.has(x));
   const out = [];
   for (let i = 0; i < n; i++) {
     const ownLeft = own.filter(x => !used.has(x) && !segs.has(Career.brand(x)[0]));
     const market = pool0.filter(x => !used.has(x) && !taken.has(x) && !segs.has(Career.brand(x)[0]) && reachable(x));
-    const name = ownLeft.length ? ownLeft[0] : market.length ? RNG.pick(market) : RNG.pick(Career.SPONSOR_POOL.filter(x => !used.has(x)));
+    const name = ownLeft.length ? ownLeft[0] : market.length ? RNG.pick(market) : RNG.pick(Career.sponsorPool().filter(x => !used.has(x)));
     if (!name) break;
     used.add(name); segs.add(Career.brand(name)[0]);
     out.push(Career.makeSponsor(G, team, name, undefined, out));

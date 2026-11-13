@@ -15,21 +15,11 @@
 'use strict';
 
 const Circuits = {};
-Circuits.MAP = {
-  shanghai: 'SHANGHAI INTERNATIONAL', suzuka: 'SUZUKA', miami: 'MIAMI', montreal: 'MONTREAL GILLES VILLENEUVE', monaco: 'MONACO', catalunya: 'CATALUNYA',
-  spielberg: 'RED BULL RING - SPIELBERG', silverstone: 'SILVERSTONE GRAND PRIX', 'spa-francorchamps': 'SPA-FRANCORCHAMPS', hungaroring: 'HUNGARORING', zandvoort: 'ZANDVOORT',
-  monza: 'MONZA', madring: 'MADRID IFEMA', baku: 'BAKU', sepang: 'SEPANG', 'marina-bay': 'SINGAPORE - MARINA BAY', austin: 'CIRCUIT OF THE AMERICAS',
-  'mexico-city': 'AUTODROMO HERMANOS RODRIGUEZ', interlagos: 'INTERLAGOS', 'las-vegas': 'LAS VEGAS GRAND PRIX', 'yas-marina': 'ABU DHABI - YAS MARINA', bahrain: 'BAHRAIN',
-  jeddah: 'JEDDAH CORNICHE CIRCUIT', imola: 'IMOLA', 'paul-ricard': 'PAUL RICARD', hockenheimring: 'HOCKENHEIM GRAND PRIX', nurburgring: 'NÜRBURGRING GRAND PRIX',
-  portimao: 'ALGARVE', mugello: 'MUGELLO', 'magny-cours': 'MAGNY-COURS', estoril: 'ESTORIL', indianapolis: 'INDIANAPOLIS GRAND PRIX', 'buenos-aires': 'BUENOS AIRES',
-};
+// (0.9) nome de cada pista na lista da FIA: no Pacote de dados (REAL_EXTRA.trackInfo[id].fiaName). MAP é só o cache
+// do que já foi achado (também pela lista REAL_TRACKS)
+Circuits.MAP = {};
 /* fatos que explicam a ausência na lista (só o que é verificável) */
-Circuits.NOTE = {
-  jacarepagua: 'Autódromo demolido em 2012.',
-  istanbul: 'Na lista de 04/11/2026 só aparece um traçado curto (Grau 6R), não o traçado de Grande Prêmio.',
-  kyalami: 'Não consta na lista de 04/11/2026.',
-  'watkins-glen': 'Não consta na lista de 04/11/2026.',
-};
+Object.defineProperty(Circuits, 'NOTE', { get: () => Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.fiaNote != null).map(([id, v]) => [id, v.fiaNote])), configurable: true });   // REAL_EXTRA.trackInfo[id].fiaNote
 Circuits.REGION = {
   AUS: 'oc', NZL: 'oc', CHN: 'as', JPN: 'as', SGP: 'as', MAS: 'as', KOR: 'as', THA: 'as', IND: 'as', AZE: 'me', BRN: 'me', KSA: 'me', QAT: 'me', UAE: 'me', TUR: 'eu',
   USA: 'am', CAN: 'am', MEX: 'am', BRA: 'am', ARG: 'am', RSA: 'af',
@@ -37,9 +27,10 @@ Circuits.REGION = {
 Circuits.region = (c) => Circuits.REGION[c] || 'eu';
 /* circuitos do calendário atual da F1: todos têm licença de Grau 1 (a lista pode não trazer
    pistas de rua temporárias ou em renovação entre um evento e outro) */
-Circuits.F1_NOW = new Set(['melbourne', 'shanghai', 'suzuka', 'miami', 'montreal', 'monaco', 'catalunya', 'spielberg', 'silverstone', 'spa-francorchamps', 'hungaroring', 'zandvoort', 'monza', 'madring', 'baku', 'marina-bay', 'austin', 'mexico-city', 'interlagos', 'las-vegas', 'lusail', 'yas-marina', 'bahrain', 'jeddah', 'portimao', 'istanbul']);
+Object.defineProperty(Circuits, 'F1_NOW', { get: () => new Set(Object.keys(Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.f1Now != null).map(([id, v]) => [id, v.f1Now])))), configurable: true });   // REAL_EXTRA.trackInfo[id].f1Now
 Circuits.fia = (id) => {
   if (typeof FIA_CIRCUITS === 'undefined') return null;
+  if (!Circuits.MAP[id] && trackInfo(id).fiaName) Circuits.MAP[id] = trackInfo(id).fiaName;
   if (!Circuits.MAP[id] && typeof REAL_TRACKS !== 'undefined') { const r = REAL_TRACKS.list.find(x => x.id === id); if (r) Circuits.MAP[id] = r.fia; }
   const n = Circuits.MAP[id];
   return n ? FIA_CIRCUITS.list.find(r => r.name === n) || null : null;
@@ -53,9 +44,9 @@ Circuits.lic = (G, id) => {
   if (S.lic[id]) return S.lic[id];
   const f = Circuits.fia(id);
   if (f) return { grade: f.grade, expiry: f.expiry, src: 'fia', width: f.width };
-  if (Circuits.F1_NOW.has(id)) return { grade: '1', expiry: '2029-12-31', src: 'f1' };
+  if (trackInfo(id).f1Now) return { grade: '1', expiry: '2029-12-31', src: 'f1' };   // ids-ok: src 'f1' = licença pelo calendário da série principal
   const t = Career.track(G, id);
-  return { grade: null, expiry: null, src: 'none', generated: !!(t && t.generated), note: Circuits.NOTE[id] || null };
+  return { grade: null, expiry: null, src: 'none', generated: !!(t && t.generated), note: trackInfo(id).fiaNote || null };
 };
 Circuits.validOn = (G, id, date) => { const L = Circuits.lic(G, id); return L.grade === '1' && !!L.expiry && L.expiry >= date; };
 

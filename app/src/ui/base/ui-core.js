@@ -85,10 +85,29 @@ const SCREENS = {};  // view -> função que retorna html (e opcional after())
 // (0.8.7) desenhar uma tela nunca pode consumir o sorteio do jogo: senão o resultado da simulação
 // dependeria de quais telas o jogador abriu. Se uma tela sortear ao desenhar, o sorteio é devolvido
 // (a simulação fica igual) e o caso vai para o log e o Diagnóstico; nos testes (UI.strictRng) vira erro.
+// (0.9) Também não pode CRIAR nada no jogo: várias partes do núcleo criam seu estado na primeira leitura
+// (G.market, G.scout, G.partners...). Se uma tela for a primeira a ler, o que ela criou no topo do jogo é
+// desfeito logo depois do desenho (a simulação cria quando for a vez dela) e o caso vai para o log.
+// Os casos dentro de objetos que já existem são tratados na origem, com Draw.on (util.js).
 UI.rngLeaks = [];
+UI.drawLeaks = [];
 function pureHtml(scr) {
   const st = (typeof RNG !== 'undefined') ? RNG.state : null;
-  const h = scr.html();
+  const g0 = typeof G !== 'undefined' && G && typeof G === 'object' ? G : null;
+  const keys0 = g0 ? new Set(Object.keys(g0)) : null;
+  let h;
+  Draw.on = true;   // (0.9) nada do jogo é criado "sob demanda" enquanto a tela é desenhada
+  try { h = scr.html(); } finally {
+    Draw.on = false;
+    if (g0) {
+      const made = Object.keys(g0).filter(k => !keys0.has(k));
+      if (made.length) {
+        made.forEach(k => { delete g0[k]; });
+        const where = UI.view + (UI.params && UI.params.tab ? ':' + UI.params.tab : '') + ' → ' + made.join(', ');
+        if (!UI.drawLeaks.includes(where)) { UI.drawLeaks.push(where); Store.log('warn', `a tela ${where} criou estado do jogo ao desenhar (desfeito)`); }
+      }
+    }
+  }
   if (st !== null && RNG.state !== st) {
     RNG.state = st;
     const where = UI.view + (UI.params && UI.params.tab ? ':' + UI.params.tab : '');
@@ -124,7 +143,14 @@ function shellObsHtml(inner) { return inner; }   // substituída em ui85-shell.j
 
 /* ---------- imagens reais (empacotadas na versão desktop) ---------- */
 const ACCENT = '#E10600';
-function imgUrl(p) { return (typeof HAS_IMG !== 'undefined' && HAS_IMG && p) ? 'assets/img/' + p : null; }
+/* (0.9, Onda 3) a arte própria (Pack.BASE_IMG: marca MGC) vem com o jogo base em assets/img; fotos e logos do
+   mundo real vêm na pasta de imagens do Pacote de dados (packs/<id>/img). Sem pacote, não há foto real. */
+function imgUrl(p) {
+  if (typeof HAS_IMG === 'undefined' || !HAS_IMG || !p) return null;
+  if (Pack.BASE_IMG.includes(String(p).split('/')[0])) return 'assets/img/' + p;
+  const base = Pack.imgBase();
+  return base ? base + p : null;
+}
 function initials(name) { return String(name || '?').split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
 function headshot() { return ''; }   // substituída em ui-avatar.js
 function teamLogo(t, cls = '') {
@@ -327,14 +353,40 @@ function drawTrack(canvas, track, cars, opts = {}) {
   const rect = canvas.getBoundingClientRect();
   if (!rect.width) return;
   if (canvas.width !== Math.round(rect.width * dpr) || canvas.height !== Math.round(rect.height * dpr)) { canvas.width = Math.round(rect.width * dpr); canvas.height = Math.round(rect.height * dpr); }
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, rect.width, rect.height);
   const tp = trackPath(track);
   const pad = opts.pad ?? 28;
   const s = Math.min((rect.width - pad * 2) / tp.w, (rect.height - pad * 2) / tp.h);
   const ox = (rect.width - tp.w * s) / 2, oy = (rect.height - tp.h * s) / 2;
   const P = (p) => [ox + p[0] * s, oy + p[1] * s];
+  // (0.9) a pista (asfalto, linha, setores e largada) é desenhada uma vez numa camada guardada no próprio canvas e
+  // só é refeita quando muda o tamanho, a pista ou o visual; a cada quadro entram só os carros. Redesenhar os traços
+  // grossos da pista em todo quadro prendia a corrida a 30 FPS com a aceleração de hardware ligada.
+  const key = [track.id, canvas.width, canvas.height, dpr, pad, !!opts.wet, opts.outline || '', opts.thick || '', opts.lineColor || ''].join('|');
+  if (!canvas._pwBg || canvas._pwBg.key !== key || canvas._pwBg.tp !== tp) {   // tp muda quando o traçado muda (editor, gerador)
+    const bg = document.createElement('canvas'); bg.width = canvas.width; bg.height = canvas.height;
+    drawTrackBase(bg.getContext('2d'), tp, P, dpr, opts);
+    canvas._pwBg = { key, tp, cv: bg };
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(canvas._pwBg.cv, 0, 0);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  (cars || []).forEach(c => {
+    const q = P(trackPointAt(tp, c.frac));
+    ctx.beginPath(); ctx.arc(q[0], q[1], c.me ? 6.5 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = c.color; ctx.fill();
+    ctx.lineWidth = c.me ? 2.5 : 1.2; ctx.strokeStyle = c.me ? '#ffffff' : '#15151e'; ctx.stroke();
+    if (c.label) {
+      ctx.font = '700 11px "Titillium Web", sans-serif'; ctx.fillStyle = c.me ? '#ffffff' : 'rgba(255,255,255,.75)';
+      ctx.fillText(c.label, q[0] + 8, q[1] - 7);
+    }
+  });
+}
+// parte fixa do mapa: traçado, linha central, setores e largada/chegada
+function drawTrackBase(ctx, tp, P, dpr, opts) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const path = () => { ctx.beginPath(); tp.pts.forEach((p, i) => { const q = P(p); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.closePath(); };
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   if (opts.outline) {
@@ -352,19 +404,6 @@ function drawTrack(canvas, track, cars, opts = {}) {
   const ang = Math.atan2(sf2[1] - sf[1], sf2[0] - sf[0]) + Math.PI / 2;
   ctx.strokeStyle = opts.outline ? '#15151e' : ACCENT; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(sf[0] - Math.cos(ang) * 11, sf[1] - Math.sin(ang) * 11); ctx.lineTo(sf[0] + Math.cos(ang) * 11, sf[1] + Math.sin(ang) * 11); ctx.stroke();
-  if (opts.revealLen != null) {
-    // animação de desenho (tela título)
-  }
-  (cars || []).forEach(c => {
-    const q = P(trackPointAt(tp, c.frac));
-    ctx.beginPath(); ctx.arc(q[0], q[1], c.me ? 6.5 : 5, 0, Math.PI * 2);
-    ctx.fillStyle = c.color; ctx.fill();
-    ctx.lineWidth = c.me ? 2.5 : 1.2; ctx.strokeStyle = c.me ? '#ffffff' : '#15151e'; ctx.stroke();
-    if (c.label) {
-      ctx.font = '700 11px "Titillium Web", sans-serif'; ctx.fillStyle = c.me ? '#ffffff' : 'rgba(255,255,255,.75)';
-      ctx.fillText(c.label, q[0] + 8, q[1] - 7);
-    }
-  });
 }
 
 /* ---------- utilidades de formulários ---------- */

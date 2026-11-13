@@ -48,6 +48,8 @@ Career.create = (baseDb, opts) => {
   if (typeof Econ !== 'undefined') Econ.init({ db, history: [] });
   const G = {
     version: SAVE_VERSION, seed, createdAt: Date.now(), savedAt: null, mode: obs ? 'observer' : 'manager',
+    // (0.9, Onda 3) de qual Pacote de dados o mundo veio (null = mundo fictício); o save só abre com ele
+    pack: typeof Pack !== 'undefined' ? Pack.summary() : null,
     log: [], archive: [],
     player: { name: opts.name || (obs ? 'Observador' : 'Chefe de Equipe'), nat: opts.nat || 'BRA', teamId: obs ? null : opts.teamId, fired: false, careerWins: 0, titles: 0 },
     options: { aiEvents: opts.aiEvents !== false, eventRate: opts.eventRate ?? 1, difficulty: opts.difficulty || 'normal', rainMult: opts.rainMult ?? 1, categories: opts.categories !== false, practiceFormat: opts.practiceFormat || 'real' },

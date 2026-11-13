@@ -19,9 +19,10 @@
 const Council = {};
 Council.MEETS = [0.22, 0.5, 0.78];
 Council.CATS = { tec: 'Técnico', dev: 'Custos e desenvolvimento', esp: 'Esportivo', cir: 'Calendário e circuitos' };
-Council.CLASSICS = new Set(['monaco', 'silverstone', 'monza', 'spa-francorchamps', 'suzuka', 'interlagos', 'montreal', 'melbourne']);
-Council.GP = { 'paul-ricard': 'GP da França', 'magny-cours': 'GP da França', hockenheimring: 'GP da Alemanha', nurburgring: 'GP da Alemanha', portimao: 'GP de Portugal', estoril: 'GP de Portugal', mugello: 'GP da Toscana', istanbul: 'GP da Turquia', jacarepagua: 'GP do Rio de Janeiro', indianapolis: 'GP de Indianápolis', 'buenos-aires': 'GP da Argentina', kyalami: 'GP da África do Sul', 'watkins-glen': 'GP de Watkins Glen' };
-Council.gpName = (t) => (/^GP /.test(t.gp) ? t.gp : (Council.GP[t.id] || `GP de ${t.gp}`));
+// (0.9) por pista, no Pacote de dados (REAL_EXTRA.trackInfo[id].classic / .gpName / .noSprint)
+Object.defineProperty(Council, 'CLASSICS', { get: () => new Set(Object.keys(Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.classic != null).map(([id, v]) => [id, v.classic])))), configurable: true });
+Object.defineProperty(Council, 'GP', { get: () => Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.gpName != null).map(([id, v]) => [id, v.gpName])), configurable: true });
+Council.gpName = (t) => (/^GP /.test(t.gp) ? t.gp : (trackInfo(t.id).gpName || `GP de ${t.gp}`));
 Council.COST = { talk: 8, deal: 4, engine: 10, body: 20, propose: 20 };
 
 Council.ensure = (G) => {
@@ -203,7 +204,7 @@ CT.push({ k: 'sprintMore', cat: 'cir', basis: 'orçamento (custo de mais Sprints
   gen: (G, R, M, r) => {
     const cal = G.db.calendar.map(id => Career.track(G, id)).filter(Boolean);
     if (cal.filter(t => t.sprint).length >= 10) return null;
-    const pool = cal.filter(t => !t.sprint && t.id !== 'monaco');
+    const pool = cal.filter(t => !t.sprint && !trackInfo(t.id).noSprint);
     if (pool.length < 2) return null;
     const a = pool.splice(Math.floor(r() * pool.length), 1)[0], b = pool[Math.floor(r() * pool.length)];
     return { ids: [a.id, b.id], names: [Council.gpName(a), Council.gpName(b)], y: G.season.year + 1 };
@@ -219,7 +220,7 @@ CT.push({ k: 'addTrack', cat: 'cir', basis: 'GP em casa e custo de viagem', prop
     const t = out[Math.floor(r() * out.length)];
     let rep = null;
     if (G.db.calendar.length >= 24) {
-      const cands = G.db.calendar.map(id => Career.track(G, id)).filter(x => x && !Council.CLASSICS.has(x.id)).sort((a, b) => (a.racesHeld || 0) - (b.racesHeld || 0));
+      const cands = G.db.calendar.map(id => Career.track(G, id)).filter(x => x && !trackInfo(x.id).classic).sort((a, b) => (a.racesHeld || 0) - (b.racesHeld || 0));
       if (!cands.length) return null;
       rep = cands[Math.floor(r() * Math.min(4, cands.length))];
     }
@@ -232,7 +233,7 @@ CT.push({ k: 'addTrack', cat: 'cir', basis: 'GP em casa e custo de viagem', prop
 CT.push({ k: 'dropTrack', cat: 'cir', basis: 'GP em casa e custo de viagem', proposer: 'fom',
   gen: (G, R, M, r) => {
     if (G.db.calendar.length <= 20) return null;
-    const cands = G.db.calendar.map(id => Career.track(G, id)).filter(x => x && !Council.CLASSICS.has(x.id)).sort((a, b) => (a.racesHeld || 0) - (b.racesHeld || 0));
+    const cands = G.db.calendar.map(id => Career.track(G, id)).filter(x => x && !trackInfo(x.id).classic).sort((a, b) => (a.racesHeld || 0) - (b.racesHeld || 0));
     if (!cands.length) return null;
     const t = cands[Math.floor(r() * Math.min(5, cands.length))];
     return { id: t.id, name: Council.gpName(t), country: t.country, y: G.season.year + 1, n: G.db.calendar.length - 1 };

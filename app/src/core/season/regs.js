@@ -71,26 +71,8 @@ Regs.applyVersion = (G, year) => {
   return { reset: !!reset };
 };
 
-/* unidades de potência: desgaste por corrida, falha antecipa troca; acima do limite → punição no grid */
-Regs.puTick = (G, race) => {
-  const R = Regs.r(G);
-  const races = G.season.calendar.length;
-  const life = races / Math.max(1, R.puLimit);
-  race.cars.forEach(c => {
-    const d = Career.driver(G, c.did); if (!d) return;
-    d.pu = d.pu && d.pu.y === G.season.year ? d.pu : { y: G.season.year, used: 1, age: 0 };
-    d.pu.age++;
-    const t = Career.team(G, c.tid);
-    const rel = Engine.reliability(G.db, t);
-    const failed = c.status === 'dnf' && /motor|energia|elétrica|potência|Superaquecimento|engine|energy|electric|power|overheat/i.test(c.dnfReason || '');
-    if (failed || d.pu.age >= life * (0.85 + rel / 330)) {
-      d.pu.used++; d.pu.age = 0;
-      if (d.pu.used > R.puLimit) {
-        G.gridPenalties = G.gridPenalties || {};
-        G.gridPenalties[d.id] = Math.min(20, (G.gridPenalties[d.id] || 0) + R.engineGridPenalty);
-        Career.news(G, `${d.name} terá punição de ${R.engineGridPenalty} posições no grid por usar a ${d.pu.used}ª unidade de potência`, 'regulamento');
-        Career.record(G, 'regulamento', `${d.name} excedeu o limite de ${R.puLimit} unidades de potência (${d.pu.used}ª): punição de ${R.engineGridPenalty} posições no próximo grid.`, { drivers: [d.id], teams: [t.id] });
-      }
-    }
-  });
-};
+/* unidades de potência depois da corrida: o modelo é o de peças (motor, turbo, MGU, bateria...) em
+   core/race/parts.js, que assume a base deste gancho (Hooks.base('Regs', Regs, 'puTick', 'parts', ...)).
+   (0.9, E45) o antigo modelo de unidade única que ficava aqui nunca rodava e foi removido; o ponto de entrada
+   continua existindo porque o registro de ganchos precisa de uma função para assumir. */
+Regs.puTick = () => {};

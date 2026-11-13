@@ -28,7 +28,9 @@ Staff.ROLES = {
   marketing: { name: 'Gerente de marketing', salary: [0.2, 1] },
 };
 /* nomes conhecidos ganham um bônus de reputação */
-Staff.FAMOUS = { 'Adrian Newey': 99, 'James Allison': 94, 'Pierre Waché': 92, 'Toto Wolff': 95, 'Andrea Stella': 93, 'Peter Prodromou': 92, 'Gianpiero Lambiase': 93, 'Hannah Schmitz': 92, 'Enrico Cardile': 89, 'Loïc Serra': 89, 'Frédéric Vasseur': 88, 'Pat Fry': 88, 'James Key': 87, 'Pat Symonds': 90, 'Mattia Binotto': 87, 'Peter Bonnington': 92, 'Will Joseph': 90, 'Dan Fallows': 89, 'Rob Marshall': 91, 'Andy Cowell': 92, 'Laurent Mekies': 87, 'James Vowles': 88, 'Jonathan Wheatley': 87, 'Ayao Komatsu': 85, 'Flavio Briatore': 86, 'Zak Brown': 88 };
+// (0.9, regra 19) a nota dos profissionais famosos é dado do mundo real: fica no Pacote de dados (REAL_EXTRA.famousStaff),
+// e não no código, para o mundo fictício trocar os nomes junto. Sem pacote, ninguém é famoso.
+Staff.famous = () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.famousStaff) || {};
 
 Staff.salaryFor = (role, rating) => { const r = Staff.ROLES[role].salary; return +(r[0] + (r[1] - r[0]) * Math.pow(clamp((rating - 60) / 39, 0, 1), 1.6)).toFixed(2); };
 Staff.genName = (nat) => randomName(nat || RNG.pick(NATS));
@@ -46,15 +48,15 @@ Staff.init = (G) => {
       engineeringDir: real.designer || real.cto || null, chiefEngineer: real.chiefEngineer || real.trackEngineering || null,
       raceEng1: lineup[0] && (extra.raceEngineers || {})[lineup[0].id], raceEng2: lineup[1] && (extra.raceEngineers || {})[lineup[1].id],
       performance: real.performance, aero: real.aero, strategy: real.strategy || real.strategyChief, chiefMechanic: null,
-      engine: (REAL_EXTRA && REAL_EXTRA.works || []).includes(t.id) ? real.engine : null, operations: real.operations, commercial: real.commercial || real.ceo, marketing: null,
+      engine: (extra.works || []).includes(t.id) ? real.engine : null, operations: real.operations, commercial: real.commercial || real.ceo, marketing: null,
     };
     const ratingOf = (role) => {
       const k = { technical: 'technical', aero: 'aero', strategy: 'strategy', chiefEngineer: 'engineering', performance: 'engineering', raceEng1: 'engineering', raceEng2: 'engineering', engineeringDir: 'technical' }[role];
       const v = k && t.staff ? t.staff[k] : base;
       const nm = realName[role];
-      return Math.round(clamp((Staff.FAMOUS[nm] || v) + (nm ? 1 : RNG.range(-4, 2)), 55, 99));
+      return Math.round(clamp((Staff.famous()[nm] || v) + (nm ? 1 : RNG.range(-4, 2)), 55, 99));
     };
-    t.staffList = Object.keys(Staff.ROLES).filter(r => r !== 'engine' || (REAL_EXTRA && (REAL_EXTRA.works || []).includes(t.id))).map(role => {
+    t.staffList = Object.keys(Staff.ROLES).filter(r => r !== 'engine' || (extra.works || []).includes(t.id)).map(role => {
       const name = realName[role] || null;
       const rating = role === 'principal' && t.id === G.player.teamId ? 75 : ratingOf(role);
       return { id: Career.nextId(G, 'sf'), role, name: name || Staff.genName(t.country), real: !!name, rating, salary: Staff.salaryFor(role, rating), until: G.season ? G.season.year + RNG.int(0, 3) : 2028, since: 2026 };

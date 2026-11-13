@@ -12,7 +12,7 @@ const Smoke = {
     const step = (s) => { out.steps.push(s); Store.log('info', 'smoke: ' + s); };
     try {
       if (mode === 'test') {
-        NC.mode = 'manager'; NC.teamId = (BASE.teams.find(t => t.id === 'williams') || BASE.teams[BASE.teams.length - 1]).id; NC.slot = 'slot3'; NC.seed = '2027';
+        NC.mode = 'manager'; NC.teamId = BASE.teams[Math.min(8, BASE.teams.length - 1)].id;   // a 9ª equipe da base (Williams no mundo real) NC.slot = 'slot3'; NC.seed = '2027';
         ACT.ncStart(); step('carreira criada (manager)');
         // fluxo do jogador no calendário por dia: resolver decisões e mensagens importantes,
         // "Avançar" até o fim de semana e só então entrar nele
@@ -65,6 +65,7 @@ const Smoke = {
 async function boot(hotData) {
   BASE = defaultDb();
   render(); // primeira tela imediata, sem esperar a nuvem
+  packBootNotice();
   if (typeof I18N !== 'undefined') I18N.firstRun();
   await Store.init();
   // ganchos: nenhum código pode ter reescrito uma função do jogo por fora do registro

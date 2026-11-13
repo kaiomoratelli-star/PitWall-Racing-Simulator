@@ -11,7 +11,7 @@
     "build": "node scripts/build.js",
     "dev": "node scripts/build.js && electron . --dev",
     "start": "node scripts/build.js && electron .",
-    "test": "node scripts/guard-check.js && node scripts/check-scope.js && node scripts/storage-check.js && node scripts/schema-check.js 1 && node scripts/rules-check.js && node scripts/lang-parity-check.js 24 && node scripts/sim-test.js 10 1 && node scripts/sim-test.js 4 42 && node scripts/cats-check.js 1",
+    "test": "node scripts/test-all.js",
     "test:cats": "node scripts/cats-check.js 2",
     "test:ui": "node scripts/build.js && node scripts/ui-stress.js 50",
     "test:sim": "node scripts/sim-test.js",
@@ -78,11 +78,18 @@
     }
   },
   "devDependencies": {
-    "acorn": "8.14.0",
-    "acorn-walk": "8.3.4",
-    "electron": "33.2.1",
-    "electron-builder": "25.1.8",
-    "playwright": "1.63.0",
-    "resedit": "2.0.3"
+    "acorn": "8.19.0",
+    "acorn-walk": "8.3.5",
+    "electron": "45.3.1",
+    "electron-builder": "26.18.0",
+    "js-yaml": "5.5.0",
+    "playwright": "1.65.0",
+    "resedit": "3.1.0"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "overrides": {
+    "minimatch@>=7.0.0 <11.0.1": "11.0.8"
   }
 }

@@ -8,7 +8,7 @@
 NAV.splice(NAV.findIndex(n => n[0] === 'saves') + 1, 0, ['account', 'Perfil e ativação', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0M17 4l2 2 3-3']);
 
 const Account = {
-  DEFAULT: { name: 'Kaio Moratelli', email: 'kaio.moratelli@gmail.com', plan: 'Desenvolvedor', key: '', activated: false },
+  DEFAULT: { name: '', email: '', plan: 'Desenvolvedor', key: '', activated: false },
   PLANS: { Desenvolvedor: 'Acesso completo para desenvolvimento e testes da Moratelli Game Company.' },
   get() { try { return Object.assign({}, Account.DEFAULT, JSON.parse(localStorage.getItem('pw-account') || '{}')); } catch (e) { return { ...Account.DEFAULT }; } },
   set(v) { try { localStorage.setItem('pw-account', JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } },
@@ -21,7 +21,7 @@ function accountHtml() {
   return `<div class="grid g2">
     <div class="panel"><div class="panel-h"><h3>Perfil</h3><span class="chip">${esc(a.plan)}</span></div><div class="panel-b stack">
       <div class="row" style="gap:14px;flex-wrap:nowrap"><span class="hs xl noimg" style="--tc:var(--accent)"><b>${esc(initials(a.name))}</b></span>
-        <div class="stack" style="gap:2px;min-width:0"><b style="font-size:18px">${esc(a.name)}</b><span class="small muted" style="overflow-wrap:anywhere">${esc(a.email)}</span><span class="small">Plano: <b>${esc(a.plan)}</b></span></div></div>
+        <div class="stack" style="gap:2px;min-width:0"><b style="font-size:18px">${esc(a.name || byLang('Sem nome', 'No name'))}</b><span class="small muted" style="overflow-wrap:anywhere">${esc(a.email)}</span><span class="small">Plano: <b>${esc(a.plan)}</b></span></div></div>
       <p class="small muted">${esc(Account.PLANS[a.plan] || '')}</p>
       <label class="field"><span>Nome</span><input class="inp" value="${esc(a.name)}" data-chg="accSet" data-k="name"></label>
       <label class="field"><span>E-mail</span><input class="inp" type="email" value="${esc(a.email)}" data-chg="accSet" data-k="email"></label>

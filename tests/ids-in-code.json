@@ -1,0 +1,5 @@
+{
+ "_leia": "Linha de base dos ids concretos da base escritos no código (ids opacos, fase 1). O guard-check falha se algum arquivo passar destes números. Só regrave ao REMOVER ids do código: node scripts/guard-check.js --ids-write",
+ "total": 0,
+ "files": {}
+}

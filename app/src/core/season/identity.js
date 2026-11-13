@@ -9,29 +9,15 @@
 'use strict';
 
 const Identity = {};
-Identity.SEASON = {
-  alpine: {
-    2027: {
-      name: 'Gucci Racing Alpine',
-      fullName: 'Gucci Racing Alpine Formula One Team',
-      titleSponsor: 'Gucci',
-      sponsorsRemove: ['BWT'],
-      sponsorsAdd: ['Gucci'],
-      ended: 'BWT',
-      status: { name: 'confirmado', titleSponsor: 'confirmado', colors: 'provisório (a pintura de 2027 ainda não foi apresentada)', value: 'não divulgado oficialmente' },
-      source: 'Anúncio oficial da Alpine e da Gucci em 27/05/2026 (media.alpinecars.com; formula1.com)',
-      verified: '2026-11-06',
-      note: 'A Gucci é title partner e parceira de marca, não proprietária. A inscrição no campeonato segue como Alpine.',
-      news: { title: 'Alpine vira Gucci Racing Alpine: a Gucci é a nova title partner da equipe', body: 'A partir desta temporada a equipe corre como Gucci Racing Alpine Formula One Team. É a primeira vez que uma casa de moda de luxo assume o title partnership de uma equipe de Fórmula 1. A Gucci substitui a BWT, que deixa o posto de title partner; a equipe segue inscrita como Alpine e pertence ao grupo Renault.' },
-    },
-  },
-};
+// (0.9, regra 19) as identidades (nome, patrocinadores, notícia) são dado do mundo real: ficam no Pacote de dados
+// (REAL_EXTRA.identities), para o mundo fictício trocar os nomes junto. Sem pacote, nenhuma equipe muda de identidade.
+Identity.season = () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.identities) || {};
 
 /* aplica a identidade vigente no ano; guarda a anterior no histórico da equipe */
 Identity.apply = (G, year) => {
   G.db.teams.forEach(t => {
     if (t.rebranded) return;   // identidade escolhida pela dona da equipe
-    const byYear = Identity.SEASON[t.id];
+    const byYear = Identity.season()[t.id];
     if (!byYear) return;
     const ys = Object.keys(byYear).map(Number).filter(y => y <= year).sort((a, b) => a - b);
     if (!ys.length) return;

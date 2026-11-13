@@ -8,6 +8,10 @@
 //   5. o manifesto de funcionalidades (tests/features.json) cita uma tela, ação ou função que não existe mais;
 //   6. o estilo antigo de embrulho ou uma redefinição silenciosa de função do jogo;
 //   7. um embrulho guarda uma tela/ação que ainda não existe naquele ponto do build.
+//   9. um sort com comparador aleatório no núcleo (o resultado dependeria do motor JavaScript);
+//  10. um embrulho antigo de tela/ação a mais que a linha de base de tests/wraps.json (E12);
+//  11. um id concreto da base (equipe, piloto, motor, pista, categoria) a mais no código que a linha de base de
+//      tests/ids-in-code.json (ids opacos, fase 1).
 // Uso: node scripts/guard-check.js
 const fs = require('fs');
 const path = require('path');
@@ -25,6 +29,13 @@ const files = walk(SRC);
 const listed = new Set([...order, ...data.map(d => d)]);
 files.forEach(f => { if (!listed.has(f) && !['head'].includes(f)) errors.push(`app/src/${f}.js não está em scripts/modules.js (nunca entra no jogo)`); });
 order.forEach(m => { if (!fs.existsSync(path.join(SRC, m + '.js'))) errors.push(`scripts/modules.js cita ${m}.js, que não existe`); });
+
+// 8. (0.9) sintaxe: cada arquivo do jogo precisa compilar sozinho (um erro de sintaxe num arquivo de interface
+//    derruba o jogo inteiro ao abrir, e os testes do núcleo não passam por ele)
+{
+  const vmSyn = require('vm');
+  order.forEach(m => { try { new vmSyn.Script(read(m), { filename: m + '.js' }); } catch (e) { errors.push(`erro de sintaxe em ${m}.js: ${e.message}`); } });
+}
 
 // 1. funções com o mesmo nome
 const fnDefs = {};
@@ -102,9 +113,75 @@ if (fs.existsSync(manPath)) {
   (man.actions || []).forEach(a => { if (!actDefs.has(a)) errors.push(`manifesto: a ação "${a}" sumiu`); });
   const uiAll = ui.map(read).join('\n');
   (man.panels || []).forEach(t => { if (!uiAll.includes(t)) errors.push(`manifesto: o painel "${t}" sumiu da interface`); });
-  (man.functions || []).forEach(f => { const [o, k] = f.includes('.') ? f.split('.') : [null, f]; const re = o ? new RegExp(`\\b${o}\\.${k}\\s*=(?!=)`) : new RegExp(`function ${k}\\s*\\(`); if (!re.test(allSrc)) errors.push(`manifesto: a função "${f}" sumiu`); });
+  // (0.9) uma tabela lida do Pacote de dados por getter (Object.defineProperty) também conta como definida
+  (man.functions || []).forEach(f => { const [o, k] = f.includes('.') ? f.split('.') : [null, f]; const re = o ? new RegExp(`\\b${o}\\.${k}\\s*=(?!=)|Object\\.defineProperty\\(${o},\\s*'${k}'`) : new RegExp(`function ${k}\\s*\\(`); if (!re.test(allSrc)) errors.push(`manifesto: a função "${f}" sumiu`); });
 } else warn.push('tests/features.json não existe');
 
 warn.forEach(w => console.log('  aviso:', w));
+// 9. (0.9) determinismo: no núcleo, um sort com comparador que ignora os dois itens (ex.: sort(() => r() - 0.5))
+//    dá resultado que depende do motor JavaScript (o V8 do Node 20 e o do Node 26 embaralham diferente).
+//    Para embaralhar, use shuffleBy(lista, r) (util.js), que consome o RNG sempre na mesma ordem.
+core.forEach(m => read(m).split('\n').forEach((l, i) => {
+  if (/\.sort\(\s*(\(\s*\)\s*=>|function\s*\(\s*\))/.test(l)) errors.push(`${m}.js:${i + 1}: sort com comparador aleatório — o resultado depende do motor JavaScript; use shuffleBy(lista, r)`);
+}));
+
+// 10. (0.9, E12) embrulhos antigos de tela/ação (const old = SCREENS.x; SCREENS.x = ... / ACT.x / CHG.x) não podem
+//     aumentar. A contagem por arquivo fica em tests/wraps.json (linha de base); a conversão dos que existem para
+//     o registro de ganchos vem com as telas novas (Ondas 6 e 7). Código novo: Hooks.around('SCREENS', SCREENS, 'x', 'nome', (next, ...a) => ...).
+//     Ao remover embrulhos, regrave a linha de base: node scripts/guard-check.js --wraps-write
+const WRAP_RE = /=\s*(SCREENS|ACT|CHG)\.\w+(\.html)?\s*[;,)]/;
+const wraps = {};
+order.forEach(m => read(m).split('\n').forEach(l => { if (WRAP_RE.test(l) && !/^\s*(\/\/|\*|\/\*)/.test(l)) wraps[m] = (wraps[m] || 0) + 1; }));
+const wrapTotal = Object.values(wraps).reduce((a, b) => a + b, 0);
+const wrapsFile = path.join(root, 'tests', 'wraps.json');
+if (process.argv.includes('--wraps-write')) {
+  fs.writeFileSync(wrapsFile, JSON.stringify({ _leia: 'Linha de base dos embrulhos antigos de tela/ação (E12). O guard-check falha se algum arquivo passar destes números. Só regrave ao REMOVER embrulhos: node scripts/guard-check.js --wraps-write', total: wrapTotal, files: wraps }, null, 1) + '\n');
+  console.log(`tests/wraps.json gravado: ${wrapTotal} embrulho(s) em ${Object.keys(wraps).length} arquivo(s)`);
+} else if (!fs.existsSync(wrapsFile)) errors.push('tests/wraps.json não existe (linha de base dos embrulhos de tela; gere com --wraps-write)');
+else {
+  const baseW = JSON.parse(fs.readFileSync(wrapsFile, 'utf8'));
+  Object.entries(wraps).forEach(([m, n]) => { const was = (baseW.files || {})[m] || 0; if (n > was) errors.push(`${m}.js: ${n - was} embrulho(s) novo(s) no estilo antigo (= SCREENS.x / ACT.x / CHG.x) — use Hooks.around('SCREENS', SCREENS, 'x', 'nome', (next, ...a) => ...)`); });
+  if (wrapTotal < baseW.total) console.log(`  aviso: embrulhos antigos caíram de ${baseW.total} para ${wrapTotal}: regrave a linha de base (node scripts/guard-check.js --wraps-write)`);
+}
+
+// 11. (0.9, ids opacos — decisão do dono, 13/11/2026) o código não escreve ids concretos da base (equipes, pilotos,
+//     motores, pistas, categorias): regra do mundo real fica nos dados (REAL_EXTRA, REAL_CATS...), por id. Os ids vão
+//     virar códigos opacos (eqp-, pil-, cat-...) e o editor futuro cria entidades novas; um id escrito no código quebraria.
+//     A contagem por arquivo fica em tests/ids-in-code.json e só pode cair (a fase 1 leva a zero).
+//     Ao remover, regrave: node scripts/guard-check.js --ids-write
+const ID_SETS = (() => {
+  const C = require('./make-data-pack').buildPack().content;
+  const s = new Set([...C.REAL_DB.teams.map(t => t.id), ...C.REAL_DB.drivers.map(d => d.id), ...C.REAL_DB.engines.map(e => e.id),
+    ...C.REAL_DB.tracks.map(t => t.id), ...C.REAL_CATS.cats.map(c => c.id), ...C.REAL_CATS.cats.flatMap(c => c.teams.map(t => t.id)),
+    ...Object.keys(C.DRIVER_DB.series)]);
+  s.delete(undefined); s.delete(null);
+  return s;
+})();
+const esc = (x) => x.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
+const ID_ALT = [...ID_SETS].sort((a, b) => b.length - a.length).map(esc).join('|');
+const ID_QUOTED = new RegExp(`(['"\`])(${ID_ALT})\\1`, 'g');
+const ID_KEY = new RegExp(`(?:^|[{,]\\s*)(${ID_ALT})\\s*:(?!:)`, 'g');
+//     Ficam de fora: os passos antigos da migração (core/base/migrate.js convertem saves antigos, com os ids antigos) e as
+//     linhas marcadas "ids-ok: <motivo>" (o mesmo texto usado como outra coisa: nome de tema de foto, tipo de evento do
+//     calendário, chave do save; ou o valor do mundo de reserva, sem pacote).
+const idUses = {};
+order.filter(m => m !== 'core/base/migrate').forEach(m => read(m).split('\n').forEach(l => {
+  if (/^\s*(\/\/|\*|\/\*)/.test(l) || /ids-ok/.test(l)) return;
+  const code = l.replace(/Career\.nextId\(G,\s*'sf'\)/g, '');   // 'sf' aqui é o prefixo dos ids de staff, não a Super Formula
+  const n = (code.match(ID_QUOTED) || []).length + [...code.matchAll(ID_KEY)].filter(x => /^[a-z][a-z0-9]*$/i.test(x[1])).length;
+  if (n) idUses[m] = (idUses[m] || 0) + n;
+}));
+const idTotal = Object.values(idUses).reduce((a, b) => a + b, 0);
+const idsFile = path.join(root, 'tests', 'ids-in-code.json');
+if (process.argv.includes('--ids-write')) {
+  fs.writeFileSync(idsFile, JSON.stringify({ _leia: 'Linha de base dos ids concretos da base escritos no código (ids opacos, fase 1). O guard-check falha se algum arquivo passar destes números. Só regrave ao REMOVER ids do código: node scripts/guard-check.js --ids-write', total: idTotal, files: idUses }, null, 1) + '\n');
+  console.log(`tests/ids-in-code.json gravado: ${idTotal} id(s) em ${Object.keys(idUses).length} arquivo(s)`);
+} else if (!fs.existsSync(idsFile)) errors.push('tests/ids-in-code.json não existe (linha de base dos ids no código; gere com --ids-write)');
+else {
+  const baseI = JSON.parse(fs.readFileSync(idsFile, 'utf8'));
+  Object.entries(idUses).forEach(([m, n]) => { const was = (baseI.files || {})[m] || 0; if (n > was) errors.push(`${m}.js: ${n - was} id(s) da base novo(s) escrito(s) no código — regra do mundo real vai para os dados (REAL_EXTRA, REAL_CATS...), por id`); });
+  if (idTotal < baseI.total) console.log(`  aviso: ids no código caíram de ${baseI.total} para ${idTotal}: regrave a linha de base (node scripts/guard-check.js --ids-write)`);
+}
+
 if (errors.length) { console.log(`guard-check: ${errors.length} problema(s)`); errors.forEach(e => console.log('  ✗', e)); process.exit(1); }
-console.log(`guard-check OK · ${order.length} módulos · ${Object.keys(fnDefs).length} funções · ${actDefs.size} ações · ${used.size} botões conferidos`);
+console.log(`guard-check OK · ${order.length} módulos · ${Object.keys(fnDefs).length} funções · ${actDefs.size} ações · ${used.size} botões conferidos · ${wrapTotal} embrulhos antigos (nenhum novo) · ${idTotal} ids da base no código (nenhum novo)`);

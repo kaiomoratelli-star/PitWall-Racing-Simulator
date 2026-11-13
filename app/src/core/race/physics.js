@@ -16,38 +16,35 @@ Engine.CPROPS = {
   W: { name: 'Chuva', offset: 0, wear: 1.6, lo: 45, hi: 85, warm: 0.65 },
 };
 /* escolha da Pirelli por circuito em 2026 [duro, médio, macio]; real = confirmada em fontes */
-Engine.ALLOC = {
-  melbourne: [3, 4, 5, 1], shanghai: [2, 3, 4, 1], suzuka: [1, 2, 3, 1], catalunya: [2, 3, 4, 1], silverstone: [1, 2, 3, 1], austin: [2, 3, 4, 1], montreal: [3, 4, 5, 1], monza: [3, 4, 5, 1],
-  miami: [2, 3, 4, 0], monaco: [3, 4, 5, 0], spielberg: [3, 4, 5, 0], 'spa-francorchamps': [2, 3, 4, 0], hungaroring: [3, 4, 5, 0], zandvoort: [2, 3, 4, 0], madring: [2, 3, 4, 0],
-  baku: [3, 4, 5, 0], sepang: [1, 2, 3, 0], 'marina-bay': [3, 4, 5, 0], 'mexico-city': [2, 3, 4, 0], interlagos: [2, 3, 4, 0], 'las-vegas': [3, 4, 5, 0], lusail: [1, 2, 3, 0],
-  'yas-marina': [3, 4, 5, 0], bahrain: [1, 2, 3, 0], jeddah: [2, 3, 4, 0], imola: [3, 4, 5, 0],
-};
+// (0.9) por pista, no Pacote de dados (REAL_EXTRA.trackInfo[id].alloc: [duro, médio, macio, 1 = confirmado]); sem pacote, nenhuma
+Object.defineProperty(Engine, 'ALLOC', { get: () => Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.alloc != null).map(([id, v]) => [id, v.alloc])), configurable: true });
 Engine.alloc = (track) => {
   if (track.alloc) return track.alloc;
-  const a = Engine.ALLOC[track.id];
+  const a = trackInfo(track.id).alloc;
   if (a) return a.slice(0, 3);
   const s = track.tyreStress || 1;
   return s > 1.2 ? [1, 2, 3] : s < 0.85 ? [3, 4, 5] : [2, 3, 4];
 };
-Engine.allocReal = (track) => !!(Engine.ALLOC[track.id] && Engine.ALLOC[track.id][3]);
+Engine.allocReal = (track) => { const a = trackInfo(track.id).alloc; return !!(a && a[3]); };
 Engine.cno = (track, code) => code === 'I' || code === 'W' ? code : Engine.alloc(track)[{ H: 0, M: 1, S: 2 }[code] ?? 1];
 Engine.tprops = (track, code) => Engine.CPROPS[Engine.cno(track, code)] || Engine.CPROPS[3];
 Engine.tyreLabel = (track, code) => code === 'I' || code === 'W' ? TYRES[code].name : `${TYRES[code].name} (${Engine.tprops(track, code).name})`;
 
 /* ---------- clima: latitude, mês, horário ---------- */
-Engine.NIGHT = { bahrain: 'night', jeddah: 'night', 'marina-bay': 'night', 'las-vegas': 'night', lusail: 'night', 'yas-marina': 'dusk' };
-Engine.DESERT = { bahrain: 6, jeddah: 6, lusail: 7, 'yas-marina': 6, 'las-vegas': 2, 'mexico-city': -6 };
+// (0.9) por pista, no Pacote de dados (REAL_EXTRA.trackInfo[id].light / .heat)
+Object.defineProperty(Engine, 'NIGHT', { get: () => Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.light != null).map(([id, v]) => [id, v.light])), configurable: true });
+Object.defineProperty(Engine, 'DESERT', { get: () => Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.heat != null).map(([id, v]) => [id, v.heat])), configurable: true });
 Engine.climate = (track, month) => {
   const lat = track.lat ?? 40;
   const south = lat < 0;
   const a = Math.abs(lat);
   const peak = south ? 1 : 7;
-  const base = 28 - a * 0.35 + (Engine.DESERT[track.id] || 0);
+  const base = 28 - a * 0.35 + (trackInfo(track.id).heat || 0);
   const amp = 2 + a * 0.18;
   const air = base + amp * Math.cos(2 * Math.PI * ((month || 7) - peak) / 12);
-  const time = Engine.NIGHT[track.id] || 'day';
+  const time = trackInfo(track.id).light || 'day';
   const tropical = a < 15;
-  const humidity = clamp((tropical ? 75 : 50) + (track.rain || 0.15) * 60 - (Engine.DESERT[track.id] || 0) * 3, 15, 95);
+  const humidity = clamp((tropical ? 75 : 50) + (track.rain || 0.15) * 60 - (trackInfo(track.id).heat || 0) * 3, 15, 95);
   return { air: +(air - (time === 'night' ? 4 : time === 'dusk' ? 2 : 0)).toFixed(1), time, humidity: Math.round(humidity) };
 };
 Engine.trackTempFrom = (air, time, wet) => +(air + (time === 'night' ? 3 : time === 'dusk' ? 7 : 14) - wet * 12).toFixed(1);

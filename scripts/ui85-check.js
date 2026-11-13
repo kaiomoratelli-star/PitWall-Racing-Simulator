@@ -4,7 +4,8 @@
 //   "undefined", "NaN" ou "[object Object]" na tela e sem rolagem horizontal;
 // - coerência dos números mostrados com os dados do jogo (campeonato, finanças, grid, pódio,
 //   calendário, Mano a Mano);
-// - ordens de rádio numa corrida ao vivo.
+// - ordens de rádio numa corrida ao vivo;
+// - (0.9) imagens: nenhuma falha ao carregar; fotos do mundo real só da pasta do Pacote de dados.
 // uso: node scripts/ui85-check.js [rodadas=7] [arquivo html=app/dist/index.html]
 'use strict';
 const path = require('path');
@@ -13,6 +14,12 @@ const rounds = +(process.argv[2] || 7);
 const file = path.resolve(process.argv[3] || path.join(__dirname, '..', 'app', 'dist', 'index.html'));
 
 const VIEWS = require('./ui85-check-views.json');   // lista compartilhada com o i18n-check
+// (0.9, Onda 3) imagens: nenhuma pode falhar ao carregar (a tela as remove em silêncio); fotos e logos do mundo
+// real só podem vir da pasta do Pacote de dados (packs/<id>/img), nunca do jogo base (assets/img, só a marca própria);
+// com o pacote no build, as fotos dele precisam aparecer.
+const hasPack = require('fs').readFileSync(file, 'utf8').includes('<script src="packs/');
+const IMG_RE = /\.(webp|png|jpe?g|svg|gif|avif)(\?|$)/i;
+const relOf = (u) => decodeURIComponent(u).replace(/^.*?\/(assets|packs)\//, '$1/');
 
 (async () => {
   const b = await chromium.launch();
@@ -23,6 +30,9 @@ const VIEWS = require('./ui85-check-views.json');   // lista compartilhada com o
     const p = await b.newPage({ viewport: { width, height: 900 } });
     const errs = [];
     p.on('pageerror', e => errs.push('pageerror: ' + e.message));
+    const imgs = { ok: [], fail: [] };
+    p.on('requestfinished', r => { if (IMG_RE.test(r.url())) imgs.ok.push(relOf(r.url())); });
+    p.on('requestfailed', r => { if (IMG_RE.test(r.url())) imgs.fail.push(relOf(r.url())); });
     await p.addInitScript(([l, th, nv, sz]) => { try { localStorage.setItem('pw-lang', l); localStorage.setItem('pitwall-ui85', JSON.stringify({ theme: th, nav: nv, motion: 'off', size: sz || 'normal' })); } catch (e) { /* sem armazenamento */ } }, [lang, theme, nav, size]);
     await p.goto('file://' + file); await p.waitForTimeout(300); await p.evaluate(() => { UI.strictRng = true; });
     const res = await p.evaluate(async ({ team, rounds, VIEWS }) => {
@@ -120,7 +130,12 @@ const VIEWS = require('./ui85-check-views.json');   // lista compartilhada com o
       return out;
     }, { team, rounds, VIEWS });
     const bad = [...errs, ...res.bad, ...res.uiErrors, ...res.checks.filter(c => !c[1]).map(c => 'coerência: ' + c[0])];
-    console.log(`[${tag}] ${res.visited || VIEWS.length} telas e abas · ${res.checks.filter(c => c[1]).length}/${res.checks.length} verificações de coerência · ${bad.length ? bad.length + ' problema(s)' : 'sem problemas'}`);
+    [...new Set(imgs.fail)].slice(0, 5).forEach(u => bad.push(`imagem não encontrada: ${u}`));
+    [...new Set(imgs.ok.filter(u => u.startsWith('assets/img/') && !u.startsWith('assets/img/brand/')))].slice(0, 5).forEach(u => bad.push(`foto do mundo real servida pelo jogo base (devia vir do Pacote de dados): ${u}`));
+    const fromPack = imgs.ok.filter(u => u.startsWith('packs/')).length;
+    if (hasPack && !fromPack) bad.push('nenhuma foto do Pacote de dados apareceu nas telas');
+    if (!hasPack && fromPack) bad.push(`build sem pacote carregou ${fromPack} imagem(ns) de packs/`);
+    console.log(`[${tag}] ${res.visited || VIEWS.length} telas e abas · ${res.checks.filter(c => c[1]).length}/${res.checks.length} verificações de coerência · ${imgs.ok.length} imagens (${fromPack} do pacote) · ${bad.length ? bad.length + ' problema(s)' : 'sem problemas'}`);
     bad.slice(0, 25).forEach(x => console.log('   ' + x));
     if (bad.length) fails.push(tag);
     await p.close();

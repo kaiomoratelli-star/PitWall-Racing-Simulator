@@ -1,12 +1,14 @@
 // Gera saves REAIS com o código de versões publicadas (para o teste de compatibilidade de saves).
 // Para cada versão: uma carreira de Manager parada entre etapas (1,5 temporada) e outra parada no meio da corrida.
+// (0.9) Com --obs, também uma carreira do Observador com 2 temporadas inteiras (ex.: 0.8.7=v0.8.7 --obs).
 // Os saves ficam em tests/saves/<versão>-<caso>.json.gz e entram no repositório (o CI usa sem precisar do histórico).
 // Uso: node scripts/make-save-fixtures.js 0.8.4=85bcfdb 0.8.5=bd0c6dc 0.8.6=f7a95f7
 const fs = require('fs'), path = require('path'), vm = require('vm'), os = require('os'), zlib = require('zlib');
 const { execSync } = require('child_process');
 const root = path.join(__dirname, '..');
 const outDir = path.join(root, 'tests', 'saves'); fs.mkdirSync(outDir, { recursive: true });
-for (const arg of process.argv.slice(2)) {
+const withObs = process.argv.includes('--obs');
+for (const arg of process.argv.slice(2).filter(a => !a.startsWith('--'))) {
   const [ver, ref] = arg.split('=');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pitwall-old-'));
   execSync(`git archive ${ref} app/src app/data scripts/modules.js | tar -x -C ${dir}`, { cwd: root });
@@ -21,12 +23,13 @@ for (const arg of process.argv.slice(2)) {
     { id: 'entre-etapas', team: 'williams', seed: 'fx-' + ver, rounds: 34, midRace: false },
     { id: 'meio-da-corrida', team: 'ferrari', seed: 'fx2-' + ver, rounds: 7, midRace: true },
   ];
+  if (withObs) cases.push({ id: 'observador', mode: 'observer', seed: 'fx3-' + ver, seasons: 2, midRace: false });
   for (const c of cases) {
     const { Career, Events, defaultDb, RNG, Owners } = load();
-    const G = Career.create(defaultDb(), { mode: 'manager', teamId: c.team, name: 'Teste', seed: c.seed });
+    const G = Career.create(defaultDb(), { mode: c.mode || 'manager', teamId: c.team, name: 'Teste', seed: c.seed });
     if (G.teamSetup && G.teamSetup.pending && Owners && Owners.autoSetup) Owners.autoSetup(G);
-    for (let i = 0; i < c.rounds; i++) {
-      if (Career.seasonOver(G)) Career.endSeason(G);
+    for (let i = 0, ends = 0; c.seasons ? ends < c.seasons : i < c.rounds; i++) {
+      if (Career.seasonOver(G)) { Career.endSeason(G); if (c.seasons && ++ends >= c.seasons) break; }
       Career.startWeekend(G); Career.finishPractice(G); Career.runQualifying(G); Career.startRace(G); Career.simRaceToEnd(G); Career.finishWeekend(G);
       G.inbox.forEach(m => { if (m.choices && m.resolved == null) Events.resolve(G, m.id, i % m.choices.length); });
     }

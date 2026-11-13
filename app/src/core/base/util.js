@@ -5,6 +5,10 @@
 
 /* RNG mulberry32 — o estado fica salvo na carreira, então cada carreira
    tem sua própria sequência e o save continua de onde parou. */
+/* (0.9) regra 6 do dono: desenhar uma tela nunca muda o jogo. Enquanto uma tela é desenhada (pureHtml, na
+   interface), Draw.on fica ligado; uma função do núcleo que cria algo "na primeira leitura" (ex.: a organização
+   de uma equipe) devolve o valor sem gravar. Assim o que é criado, e quando, depende só da simulação. */
+const Draw = { on: false };
 const RNG = {
   state: 1,
   seed(s) { this.state = (typeof s === 'number' ? s : hashStr(String(s))) >>> 0 || 1; },
@@ -56,6 +60,16 @@ function localRngNormal(seed) {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
+/* (0.9, ids opacos) fatos de uma pista do mundo real, por id (REAL_EXTRA.trackInfo): compostos, luz, calor, curvas,
+   lista da FIA, calendário atual, clássicos... Sem pacote, {} */
+/* (0.9, ids opacos) regras e tabelas das séries do mundo real, por id de série (REAL_EXTRA.series): seriesTable('up'),
+   seriesInfo(id), mainSeries() (a série principal) e ladderSeries(n) (o degrau n rumo à principal). Sem pacote, as
+   tabelas ficam vazias e a série principal e os degraus são os do mundo de reserva */
+function seriesTable(k, def) { const S = (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.series) || {}; return S[k] != null ? S[k] : def !== undefined ? def : {}; }
+function seriesInfo(id) { return seriesTable('info')[id] || {}; }
+function mainSeries() { const I = seriesTable('info'); for (const k in I) if (I[k].main) return k; return 'f1'; }   // ids-ok: série principal do mundo de reserva
+function ladderSeries(n) { const I = seriesTable('info'); for (const k in I) if (I[k].ladder === n) return k; return { 1: 'f2', 2: 'f3' }[n] || null; }   // ids-ok: degraus do mundo de reserva
+function trackInfo(id) { return ((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})[id] || {}; }
 function hashStr(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -76,6 +90,9 @@ const avg = arr => arr.length ? sum(arr) / arr.length : 0;
 const deepClone = o => JSON.parse(JSON.stringify(o));
 const uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
 const byId = (arr, id) => arr.find(x => x.id === id);
+// embaralha com o RNG dado (Fisher–Yates): consome r() sempre na mesma ordem, em qualquer motor JavaScript.
+// Nunca use sort(() => r() - 0.5): o resultado muda com a versão do V8 (Node/Electron).
+const shuffleBy = (arr, r) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -106,8 +123,11 @@ function fmtMoney(m) {
 }
 function ordinal(n) { return `${n}º`; }
 
-/* Nomes para staff, novatos e pilotos gerados — por nacionalidade */
-const NAME_POOL = {
+/* Nomes para staff, novatos e pilotos gerados — por nacionalidade.
+   (0.9, regra 19) "var" e não "const": o Pacote de dados fictício traz a mesma lista com os nomes passados pelo
+   dicionário (Pack.install troca a variável global), para os pilotos gerados também terem nomes fictícios e
+   colidirem com os mesmos nomes do mundo real (o jogo sorteia de novo quando o nome já existe). */
+var NAME_POOL = {
   BRA: { f: ['Lucas', 'Pedro', 'Thiago', 'Bruno', 'Caio', 'Felipe', 'Enzo', 'Vitor', 'Henrique', 'Murilo', 'Beatriz', 'Larissa'], l: ['Silva', 'Souza', 'Andrade', 'Barros', 'Monteiro', 'Pacheco', 'Teixeira', 'Rocha', 'Prado', 'Fontes', 'Bastos'] },
   GBR: { f: ['James', 'Harry', 'Oliver', 'George', 'Jack', 'Alfie', 'Thomas', 'Emily', 'Charlotte'], l: ['Whitmore', 'Hale', 'Carter', 'Bennett', 'Pryce', 'Sutton', 'Lowe', 'Barrow', 'Fenwick'] },
   ITA: { f: ['Marco', 'Andrea', 'Giulio', 'Matteo', 'Davide', 'Riccardo', 'Giulia'], l: ['Rossetti', 'Galli', 'Ferraresi', 'Conti', 'Moretti', 'Bellandi', 'Caruso'] },

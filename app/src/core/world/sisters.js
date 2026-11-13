@@ -14,7 +14,8 @@
 'use strict';
 
 const Sisters = {};
-Sisters.REAL = { 'racing-bulls': 'red-bull' };
+// (0.9) equipe irmã -> equipe-mãe do mundo real: fica no Pacote de dados (REAL_EXTRA.sisters); sem pacote, nenhuma
+Object.defineProperty(Sisters, 'REAL', { get: () => (typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.sisters) || {}, configurable: true });
 
 Sisters.ensure = (G) => {
   if (G.sisters) return G.sisters;

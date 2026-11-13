@@ -179,7 +179,10 @@ ACT.finishWeekend = async () => {
   autosave();
   go('post');
   // evento escrito pela IA (no máximo um por corrida, com chance por frequência)
-  if (G.options.aiEvents && Store.sample && RNG.chance(0.45 * (G.options.eventRate || 1))) {
+  // (0.9, E10) sorteio com gerador local (semente da carreira e da etapa): o redator só existe na versão web e não
+  // pode desviar a sequência de sorteios da simulação; senão a mesma semente dá universos diferentes na web e no desktop.
+  const rAi = localRng(`redator:${G.seed}:${G.season.year}:${G.season.round}`);
+  if (G.options.aiEvents && Store.sample && rAi() < 0.45 * (G.options.eventRate || 1)) {
     const ok = await generateAIEvent(G.season.results[G.season.results.length - 1]);
     if (ok) { toast('Novidade do paddock na caixa de entrada.', 'good'); if (UI.view === 'post') render(); }
   }

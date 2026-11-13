@@ -20,12 +20,17 @@
 'use strict';
 
 const Talent = {};
+// (0.9, regra 19) semente dos sorteios do piloto: o QID do Wikidata, quando existe, ou o id (nunca o nome: o mundo
+// fictício troca os nomes e precisa sortear igual)
+Talent.seedKey = (d) => (d.uid && /^Q[0-9]+$/.test(d.uid) ? d.uid : d.id);
+/* (0.9) traço real do piloto (REAL_EXTRA.driverTraits[id]: longevity, instant...). Sem pacote, nenhum */
+Talent.trait = (d, k) => (((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.driverTraits) || {})[d.id] || {})[k];
 Talent.TIERS = [
-  { id: 'geracional', name: 'Geracional', en: 'Generational', min: 94, max: 96, f1: true },
-  { id: 'acima', name: 'Acima da média', en: 'Above average', min: 89, max: 90, f1: true },
-  { id: 'bom', name: 'Bom', en: 'Good', min: 87, max: 88, f1: true },
-  { id: 'mediano', name: 'Mediano', en: 'Average', min: 85, max: 86, f1: true },
-  { id: 'mediocre', name: 'Medíocre', en: 'Mediocre', min: 83, max: 84, f1: true },
+  { id: 'geracional', name: 'Geracional', en: 'Generational', min: 94, max: 96, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'acima', name: 'Acima da média', en: 'Above average', min: 89, max: 90, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'bom', name: 'Bom', en: 'Good', min: 87, max: 88, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'mediano', name: 'Mediano', en: 'Average', min: 85, max: 86, f1: true },   // ids-ok: f1 = nível de piloto da série principal
+  { id: 'mediocre', name: 'Medíocre', en: 'Mediocre', min: 83, max: 84, f1: true },   // ids-ok: f1 = nível de piloto da série principal
   { id: 'vencedor', name: 'Vencedor', en: 'Winner', min: 79, max: 82, desc: 'ganha títulos abaixo da F1' },
   { id: 'pelotao', name: 'Pelotão', en: 'Midfield', min: 75, max: 78, desc: 'meio de grid' },
   { id: 'coadjuvante', name: 'Coadjuvante', en: 'Backmarker', min: 50, max: 74, desc: 'fundo de grid, carreira curta' },
@@ -99,13 +104,13 @@ Talent.recenter = (d, target) => {
 };
 Talent.profile = (G, d) => {
   if (d.profiled) return;
-  const r = localRng('perfil:' + (d.pid || d.id));
+  const r = localRng('perfil:' + Talent.seedKey(d));
   const raw0 = d.pace * 0.3 + d.qualifying * 0.1 + d.racecraft * 0.12 + d.consistency * 0.12 + d.tyre * 0.08 + d.wet * 0.05 + d.overtaking * 0.07 + d.defending * 0.06 + (d.start ?? d.pace) * 0.03 + (d.energy ?? d.pace) * 0.03 + (d.adaptability ?? d.pace) * 0.02 + (d.concentration ?? d.pace) * 0.02;
   const off = {};
   Talent.ATTRS.forEach(k => { off[k] = (r() - 0.5) * 5; });
   // o ritmo puro fica perto da nota geral (é o que mais pesa na volta): fortes e fracos vão para os outros atributos
   off.pace = clamp(off.pace, -1.5, 1.5);
-  const pick = Talent.ATTRS.filter(k => k !== 'pace').sort(() => r() - 0.5);
+  const pick = shuffleBy(Talent.ATTRS.filter(k => k !== 'pace'), r);
   pick.slice(0, 2).forEach(k => { off[k] += 4 + r() * 3.5; });   // dois pontos fortes
   pick.slice(2, 4).forEach(k => { off[k] -= 4 + r() * 3.5; });   // dois pontos fracos
   // F1: duelo real com o companheiro (segundos de diferença em classificação e corrida, últimas 3 temporadas)
@@ -119,14 +124,14 @@ Talent.profile = (G, d) => {
   // nenhum atributo foge mais de 12 pontos da tendência do piloto (forte é forte, fraco é fraco, sem absurdos)
   Talent.ATTRS.forEach(k => { if (d[k] != null) d[k] = +clamp(d[k] + clamp(off[k] + (prof[k] || 0) * 0.5, -12, 12), 30, 99).toFixed(2); });
   Talent.recenter(d, raw0);
-  d.longevity = d.longevity ?? (['fernando-alonso', 'lewis-hamilton'].includes(d.id) || r() < 0.08);
+  d.longevity = d.longevity ?? (!!Talent.trait(d, 'longevity') || r() < 0.08);
   d.profiled = true;
 };
 
 /* ---------- aplicação ---------- */
 Talent.assign = (G, d) => {
   if (d.tier && d.ceiling) return;
-  const r = localRng('nivel:' + (d.pid || d.id));
+  const r = localRng('nivel:' + Talent.seedKey(d));
   const table = typeof DRIVER_TIERS !== 'undefined' ? DRIVER_TIERS.f1 : {};
   const ser = typeof DRIVER_TIERS !== 'undefined' && DRIVER_TIERS.series ? DRIVER_TIERS.series[d.id] : null;
   if (table[d.id]) { const t = Talent.byId(table[d.id]); Talent.setCeiling(d, t.min + r() * (t.max - t.min) + (t.id === 'geracional' ? 1 : 0), t.id); }

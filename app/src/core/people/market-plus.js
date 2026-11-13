@@ -13,9 +13,8 @@
 'use strict';
 
 const MarketPlus = {};
-MarketPlus.DEFAULT_POLICIES = {
-  'red-bull': { name: 'Red Bull', teams: ['red-bull', 'racing-bulls'], academyWeight: 14, externalPenalty: 9, note: 'Prioridade quase total à Red Bull Junior Team; contratação externa só sem opção à altura.' },
-};
+// (0.9, regra 19) lista do mundo real: fica no Pacote de dados (WORLD_LISTS.groupPolicies, app/data/world-lists.js), não no código
+Object.defineProperty(MarketPlus, 'DEFAULT_POLICIES', { get: () => (typeof WORLD_LISTS !== 'undefined' && WORLD_LISTS.groupPolicies) || {}, configurable: true });
 MarketPlus.policies = (G) => {
   G.db.rules.groupPolicies = G.db.rules.groupPolicies || JSON.parse(JSON.stringify(MarketPlus.DEFAULT_POLICIES));
   return G.db.rules.groupPolicies;
@@ -38,9 +37,16 @@ MarketPlus.init = (G) => {
 /* novatos gerados ao longo dos anos também podem trazer patrocínio */
 MarketPlus.tagNew = (G) => { G.backingDone = false; MarketPlus.init(G); };
 /* empresário: id estável por piloto (os reais vêm de real-extra); reputação e afinidade com cada equipe */
+/* (0.9, regra 19) chave do empresário real pela ordem em que aparece na base (a mesma no mundo fictício, que troca o
+   nome), e não pelo nome: os sorteios de reputação e afinidade saem iguais nos dois mundos */
+MarketPlus._agentIdx = null;
+MarketPlus.agentKey = (name) => {
+  if (!MarketPlus._agentIdx) { MarketPlus._agentIdx = new Map(); Object.values((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.managers) || {}).forEach(n => { if (!MarketPlus._agentIdx.has(n)) MarketPlus._agentIdx.set(n, MarketPlus._agentIdx.size); }); }
+  return MarketPlus._agentIdx.has(name) ? 'agr' + MarketPlus._agentIdx.get(name) : 'agn:' + name;
+};
 MarketPlus.agent = (d) => {
   const name = d.manager ? (typeof d.manager === 'string' ? d.manager : d.manager.name) : null;
-  const key = name || 'ag-' + (hashStr(d.id) % 37);
+  const key = name ? MarketPlus.agentKey(name) : 'ag-' + (hashStr(d.id) % 37);
   const r = localRng('agent:' + key);
   return { key, name: name || null, rep: Math.round(35 + r() * 60) };
 };

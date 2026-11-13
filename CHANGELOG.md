@@ -1,5 +1,101 @@
 # Changelog
 
+## 0.9 — em desenvolvimento (branch `v0.9-aprimoramento`)
+
+### Onda 1 — Plataforma e rede de segurança
+**Simulação (mudança intencional, assinaturas regravadas uma vez)**
+- Corrigido: a mesma semente gerava carreiras diferentes conforme a versão do motor JavaScript (Node 20 × 26; o mesmo vale ao trocar o Electron). Três sorteios do núcleo embaralhavam listas com um comparador aleatório: quem entra no leilão por um piloto, os pontos fortes e fracos sorteados no perfil de cada piloto e a ordem dos candidatos a nova equipe. Agora usam um embaralhamento com semente (`shuffleBy`), igual em qualquer motor. As 4 assinaturas de `tests/determinism.json` foram regravadas (iguais no Node 20 e no 26). Saves antigos abrem normalmente; a partir da 0.9, uma carreira segue outro caminho de sorteio que a mesma carreira na 0.8.7.
+- Guarda nova no `guard-check`: um `sort` com comparador aleatório no núcleo faz o `npm test` falhar.
+
+**Plataforma**
+- Electron 33 → **45.3.1** e electron-builder 25 → **26.18.0**; Playwright 1.65.0, acorn 8.19.0, acorn-walk 8.3.5, resedit 3.1.0 e js-yaml 5.5.0, todos em versão exata. **Node.js 26** (LTS ativo) no desenvolvimento e no CI (`.nvmrc` e `engines`). Actions na versão mais nova (checkout e setup-node v7, upload-artifact v7, action-gh-release v3).
+- Avisos de segurança zerados (`npm audit`): o `minimatch` das ferramentas de build vem na versão corrigida.
+- `freshness-check` no CI: falha com Node ou Electron fora de suporte ou com aviso de segurança; antes de lançar, qualquer versão nova pendente também bloqueia. Dependabot semanal na branch de trabalho.
+- Mantidos: `contextIsolation`, `sandbox`, sem `nodeIntegration`, CSP `connect-src 'none'` e saves em `%APPDATA%`. Registro de mensagens da interface no formato do Electron 35+.
+
+**Aceleração de hardware**
+- Ligada por padrão, com a opção **Aceleração de hardware (placa de vídeo)** em *Salvar e opções* para desligar (vale ao reabrir o jogo; fica nas preferências do aplicativo, não no save).
+- A pista do mapa da corrida é desenhada uma vez e reaproveitada; a cada quadro entram só os carros (menos CPU).
+- Medições antes e depois em `docs/perf/` (`scripts/perf-check.js`, também no aplicativo Electron).
+
+**Saves, privacidade e publicação**
+- A conta padrão da tela de perfil não traz mais nome nem e-mail. `privacy-check` no `npm test` falha se o build tiver um endereço de e-mail.
+- Saves de teste da 0.8.7 (Manager entre etapas, Manager no meio da corrida e Observador com 2 temporadas). O teste de compatibilidade aceita saves do Observador e valida o esquema do save.
+- CI: um instalador publicado nunca é trocado. Se a release já tem o Setup, nada é publicado; se o push mudou o jogo sem subir a versão, o CI falha pedindo `x.y.z-1`. Teste novo: instala a 0.8.7 publicada, cria um save, instala a versão nova por cima, confere que o save não mudou e o abre.
+
+**Inglês**
+- Traduzidos: títulos de propostas do Conselho dentro das manchetes de bastidores, rivalidades com batidas, troca de staff, nomes das categorias de base e a fonte da base de pilotos. O teste de idioma passou a exigir zero trechos em português na versão em inglês.
+
+**Documentos**
+- `CLAUDE.md` (guia do projeto), README com a versão e os comandos atuais, ficha `docs/marketing/3-SOBRE-O-JOGO.md` conferida com o código.
+
+### Correções (regra 6: uma tela nunca muda o jogo)
+- Corrigido: abrir a tela de Olheiros antes do primeiro GP criava o departamento de olheiros com nomes tirados do sorteio do jogo. O resto da carreira saía diferente conforme o jogador abria a tela ou não. A tela agora só lê; os dois primeiros olheiros chegam depois do primeiro GP (ou quando o jogador manda observar um piloto), e a tela avisa isso.
+- Corrigido: abrir a tela de Desenvolvimento antes da simulação gravava a organização da equipe com a reputação daquele instante, e o carro evoluía diferente. O mesmo valia para a cota de túnel e CFD do período e para o empresário dos pilotos (telas de Donos e fichas). As telas agora só mostram esses valores; quem grava é a simulação, no mesmo momento de sempre.
+- Proteção geral: o que uma tela criar no estado do jogo enquanto é desenhada (mercado, olheiros, parcerias, Conselho, casos...) é desfeito logo depois e registrado no log.
+- Teste novo `screen-purity-check` (no CI): a mesma carreira, com a mesma semente, abrindo todas as telas antes do primeiro GP e entre as etapas, e sem abrir nenhuma, termina idêntica (Manager e Observador). Antes das correções, as três carreiras do teste terminavam diferentes.
+- As 4 assinaturas de determinismo continuam iguais: a simulação de quem não abria as telas não mudou.
+
+### Dados
+- F1 2027: Liam Lawson e Arvid Lindblad (Racing Bulls) e Oliver Bearman (Haas) confirmados nas mesmas equipes (informação da MGC, 13/11/2026). Os 22 titulares do grid inicial agora batem com os anunciados (`docs/VERIFICACAO-2027.md`). As confirmações que a fonte pública ainda não tem ficam em `scripts/driverdb-manual.json`, com fonte e data, e são aplicadas por `scripts/driverdb-fixes.js`, que a importação chama no fim.
+- Corrigido: 31 nomes de equipe na base de pilotos apareciam com marcação da Wikipedia na ficha de carreira (ex.: "{{nowrap|Mercedes-AMG Petronas F1 Team}}"). A importação limpa a marcação, e o `pack-check` falha se sobrar alguma.
+- Assinaturas de determinismo regravadas por causa do dado novo: uma temporada inteira com a base antiga e com a nova é idêntica em tudo menos nesses textos e na situação das três vagas.
+
+### Ferramentas
+- Corrigido: `npm test` travava no Windows 11 build 26200 sem rodar nada. O `cmd.exe` desse Windows (10.0.26100.9949), que o npm usa para os scripts, trava quando a linha tem 10 ou mais `&&`, e a cadeia do `npm test` tinha 12. Agora o `npm test` chama `scripts/test-all.js`, que roda as mesmas 13 verificações na mesma ordem, para na primeira falha e mostra o tempo de cada uma. O `workflow-check` falha se algum script do `package.json` voltar a ter 10 ou mais `&&`.
+
+### IDs internos opacos — fase 1 (decisão do dono, 13/11/2026)
+O editor futuro vai trabalhar por id, e os ids vão virar códigos opacos (`eqp-`, `pil-`, `cat-`...). Antes disso, o código deixou de escrever ids concretos da base: as regras do mundo real que estavam nele foram para o Pacote de dados, por id, com os mesmos valores. A simulação não muda (as 4 assinaturas de determinismo continuam iguais, com e sem `--pack`).
+- Equipes, pilotos e motores (`REAL_EXTRA`): dinheiro do dono, peso da tradição, equipe irmã, peças compradas de outra equipe, contratos e desenvolvimento de motor, traços de piloto (carreira longa, adaptação imediata, superlicença). A estreia já anunciada da GM com a Cadillac virou dado do candidato.
+- Pistas (`REAL_EXTRA.trackInfo`): compostos da Pirelli, corrida noturna, calor do deserto, curvas da narração, nome na lista da FIA, calendário atual, clássicos, nome histórico do GP e "sem sprint em Mônaco".
+- Séries (`REAL_EXTRA.series`): para onde sobe quem vai bem e de onde vêm os pilotos, profissionais e de inverno, apoio da F1, faixas de nota, superlicença, disciplina, risco de acidente, pneus, kart, grupos da tela de categorias e cor no calendário; e os fatos soltos de cada série (o degrau rumo à principal, custo da vaga para a academia, notícias, quantos sobem, títulos que contam). A imprensa (cobertura por assunto e por país, rumores, perfil oficial) foi para `WORLD_LISTS`.
+- Guarda nova no `guard-check`: conta os ids da base escritos no código e não deixa subir (`tests/ids-in-code.json`, hoje 0; eram 486). Ficam de fora os passos antigos da migração e as linhas marcadas `ids-ok: <motivo>` (o mesmo texto usado como outra coisa, como tipo de evento do calendário ou tema de foto). Com o código de antes, falha.
+- Visual: o nome dos veículos nos cartões da tela inicial vem da lista do pacote (ex.: "La Gazzetta dello Sport" no lugar de "Gazzetta").
+
+### Onda 2 — Dívida técnica (em parte)
+- O redator do paddock sorteia com um gerador local: a versão web e a desktop seguem a mesma sequência de sorteios com a mesma semente (`web-desktop-check` no CI).
+- A frase da vitória na Sprint ganhou a versão em inglês.
+- Removido de `regs.js` o modelo antigo de unidade de potência, que nunca era executado (o desgaste vem de `parts.js`).
+- Guarda nova no `guard-check`: os embrulhos antigos de tela e de ação (`const old = SCREENS.x; SCREENS.x = ...`) não podem aumentar. A contagem por arquivo fica em `tests/wraps.json` (71 hoje, em 41 arquivos); código novo usa o registro de ganchos (`Hooks.around`).
+- Adiados de propósito, para não refazer trabalho: a conversão desses embrulhos de tela (vai junto com as telas novas) e a consolidação dos módulos sobrepostos (vai junto com a camada de dados e o motor).
+
+### Onda 3 — Camada de dados e edições (em andamento)
+**Jogo base fictício**
+- O jogo roda inteiro sem nenhum dado real: núcleo e todas as telas, nos modos Manager e Observador (`build --sem-dados-reais`, `fictional-check` no CI).
+
+**Pacote de dados**
+- Formato `pitwall-pack` v1: um JSON versionado com os dados reais (equipes, pilotos, pistas, categorias, história, recordes e o registro das fotos) e uma pasta de imagens. Um pacote inválido é recusado sem mudar nada (`pack-check`: 10 casos).
+- Os dados reais saíram do código do jogo. O build grava o Pacote de dados ao lado do jogo (`app/dist/packs/pitwall-dados-reais.js`; na versão web ele vem embutido). O jogo confere e instala o pacote antes de abrir qualquer tela. Sem o pacote, o mundo é o fictício. Se o pacote estiver danificado, o jogo avisa e abre com o mundo fictício.
+- Para quem joga, nada muda: o instalador leva o pacote e o mundo é o mesmo de antes (as 4 assinaturas de determinismo continuam iguais, com e sem o pacote).
+- As fotos e logos do mundo real (rostos, pilotos, equipes, carros, categorias, pistas e fotos das notícias) foram para a pasta de imagens do Pacote de dados (`app/dist/packs/pitwall-dados-reais/img`). O jogo base leva só as bandeiras, as fontes e a marca MGC. Sem o pacote, nenhuma foto real aparece.
+- Teste novo de imagens nas telas: nenhuma imagem pode falhar ao carregar (antes, uma foto que faltava sumia em silêncio), e as fotos do mundo real só podem vir do pacote.
+
+**Mundo fictício (regra 19 do dono, 13/11/2026)**
+- O mundo fictício é o banco de dados original, inteiro e idêntico (todos os pilotos, equipes, competições, números e histórico), com todos os nomes trocados por nomes gerados automaticamente e os mesmos IDs. Decisões do dono: trocam pessoas, equipes, fabricantes, marcas, patrocinadores, veículos de imprensa e competições; circuitos, GPs, cidades e países ficam reais; os nomes são fixos na edição.
+- Pacote de dados `pitwall-ficticio` (gerado por `scripts/make-fictional-pack.js`, sem fotos): um dicionário troca cada palavra própria sempre pela mesma palavra fictícia.
+- Estilo dos nomes (decisão do dono, 13/11/2026: "bem parecido, estilo PES"): o primeiro nome fica; o sobrenome e as palavras de equipe, marca e competição mudam só o final, com terminações do idioma da pessoa (Lewis Hamilton → Lewis Hamilford, Max Verstappen → Max Verstappel, Ferrari → Ferrano, Red Bull → Red Bison, McLaren → McLarsen). A sigla de 3 letras fica quando ainda combina (HAM, VER, RBR). Competições na escada GP: Fórmula 1 → GP1, F2 → GP2, F3 → GP3, F4 → GP4, Fórmula E → GP Elétrico, IndyCar → IndyRace, FIA → FMA. A amostra aprovada pelo dono e os veículos de imprensa ficam em `scripts/fictional-overrides.json`; o resto é gerado, com um filtro de naturalidade (as sequências de letras do final novo existem em nomes reais do mesmo idioma). Palavras comuns ("Pole", "Notícias") só mudam dentro de nomes próprios.
+- `node scripts/build.js --edicao=ficticia` monta a edição fictícia. Os textos escritos no código ("Fórmula 1", "Conselho da FIA", "F2, F3 e F1 Academy"...) passam pelo mesmo dicionário na hora do build, e os comentários saem; o instalador não leva o dicionário nem nenhum nome real.
+- Listas do mundo real que estavam no código foram para os dados (`app/data/world-lists.js` e `REAL_EXTRA`): profissionais famosos do staff, sorteio de patrocinadores, identidade das equipes (Gucci Racing Alpine), montadoras candidatas, pneus, políticas de grupo, criadores de conteúdo, veículos de imprensa e perfis nas redes. No jogo real, nada muda.
+- Teste novo `fictional-world-check` (no `npm test` e no CI). Decisão do dono (13/11): as corridas no real e no fictício não precisam dar o mesmo resultado; o que tem de ser igual são os ids. O teste confere:
+  - o mesmo banco: estrutura, números e ids (3.182 ids);
+  - os mesmos ids ao criar a carreira;
+  - a carreira fictícia rodando duas temporadas, no Observador e no Manager;
+  - nenhum nome real no pacote nem no jogo;
+  - o estilo decidido pelo dono (primeiro nome igual, sobrenome com o mesmo começo, siglas, escada GP).
+- O `fictional-check` passou a testar a edição fictícia: 50 telas nos dois modos sem nenhum nome real na tela (palavra inteira: "Strollin" não é "Stroll"). Nome de equipe, motor ou categoria nunca é perdoado por ser também palavra do código.
+- Corrigido: nomes reais sobravam na edição fictícia porque a proteção dos lugares (que ficam reais) trocava pedaços de palavra. O id "ags" protegia o meio de "Gragson", e o mesmo acontecia com Gianni Morbidelli, Lella Lombardi, John Barber e outros 16. A proteção agora vale só para a frase inteira, com limite de palavra, e só para textos com maiúscula.
+- Nome de etapa com patrocinador nas categorias: a etapa fica, a marca muda ("Goodyear 400" → "Gootek 400", "Firestone Grand Prix of St. Petersburg" → "Firestonor Grand Prix of St. Petersburg"). Os circuitos conhecidos ficam como estão ("Red Bull Ring", "Autódromo Internacional Ayrton Senna"). Um nome de equipe gravado no campo de circuito pela importação ("JHR Developments", F4 Britânica) é trocado como nome.
+- O `fictional-world-check` não confia mais na lista de lugares do gerador: usa a sua, tirada da base real (circuitos, GPs, cidades, países e bases das equipes; nome de etapa com marca ou de equipe não conta como lugar). Com o gerador de antes, falha com 19 nomes reais sobrando.
+
+**Simulação (mudança aprovada pelo dono; assinaturas regravadas uma vez)**
+- Sorteios que usavam o nome da pessoa passaram a usar o id: idade de staff e eventos de vida (`stories.js`), perfil e teto de potencial dos pilotos sem QID (`talent.js`), quantos posts reagem a um fato e os sorteios dos posts (`stories.js`, `media.js`), veículo de cada notícia (`media.js`), reputação e afinidade do empresário (`market-plus.js`, pela ordem do empresário na base). Pilotos gerados pelo jogo ganharam id pelo contador da carreira, e não pelo nome sorteado.
+- Corrigido: a equipe de um piloto nas outras categorias e a força das equipes eram achadas por "contém a primeira palavra". "R-ace GP" (primeira palavra "r") caía em qualquer equipe com a letra r, e "Matt Stone Racing" em "AMattheis Vogel" (421 combinações afetadas). Agora vale o nome inteiro ou uma palavra distintiva em comum (`Cats.sameTeam`).
+- Corrigido: notícias marcavam a equipe Red Bull quando o título citava o circuito "Red Bull Ring" (lugares não contam mais como citação).
+
+**Saves**
+- O save guarda de qual Pacote de dados o mundo veio (campo novo `pack`, no esquema do save). Saves das versões anteriores ficam marcados com o pacote real e abrem normalmente: os 9 saves de teste (0.8.4 a 0.8.7) abrem com o pacote instalado.
+- Um save só abre com o pacote com que foi criado. Um save com dados reais aberto sem o pacote, com outro pacote, ou um save fictício aberto com pacote, é recusado com um aviso, e nada é alterado.
+
 ## 0.8.7 — Solidez: nada some, saves seguros, testes que falham (09/11/2026)
 Base: as prioridades P1 a P3 de `docs/AVALIACAO-0.8.6.md`. Relatório completo em `docs/RELATORIO-0.8.7.md`.
 

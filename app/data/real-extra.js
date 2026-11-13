@@ -936,5 +936,1533 @@ const REAL_EXTRA = {
    0,
    0
   ]
+  },
+ "famousStaff": {
+  "Adrian Newey": 99,
+  "James Allison": 94,
+  "Pierre Waché": 92,
+  "Toto Wolff": 95,
+  "Andrea Stella": 93,
+  "Peter Prodromou": 92,
+  "Gianpiero Lambiase": 93,
+  "Hannah Schmitz": 92,
+  "Enrico Cardile": 89,
+  "Loïc Serra": 89,
+  "Frédéric Vasseur": 88,
+  "Pat Fry": 88,
+  "James Key": 87,
+  "Pat Symonds": 90,
+  "Mattia Binotto": 87,
+  "Peter Bonnington": 92,
+  "Will Joseph": 90,
+  "Dan Fallows": 89,
+  "Rob Marshall": 91,
+  "Andy Cowell": 92,
+  "Laurent Mekies": 87,
+  "James Vowles": 88,
+  "Jonathan Wheatley": 87,
+  "Ayao Komatsu": 85,
+  "Flavio Briatore": 86,
+  "Zak Brown": 88
+  },
+ "identities": {
+  "alpine": {
+   "2027": {
+    "name": "Gucci Racing Alpine",
+    "fullName": "Gucci Racing Alpine Formula One Team",
+    "titleSponsor": "Gucci",
+    "sponsorsRemove": [
+     "BWT"
+    ],
+    "sponsorsAdd": [
+     "Gucci"
+    ],
+    "ended": "BWT",
+    "status": {
+     "name": "confirmado",
+     "titleSponsor": "confirmado",
+     "colors": "provisório (a pintura de 2027 ainda não foi apresentada)",
+     "value": "não divulgado oficialmente"
+    },
+    "source": "Anúncio oficial da Alpine e da Gucci em 27/05/2026 (media.alpinecars.com; formula1.com)",
+    "verified": "2026-11-06",
+    "note": "A Gucci é title partner e parceira de marca, não proprietária. A inscrição no campeonato segue como Alpine.",
+    "news": {
+     "title": "Alpine vira Gucci Racing Alpine: a Gucci é a nova title partner da equipe",
+     "body": "A partir desta temporada a equipe corre como Gucci Racing Alpine Formula One Team. É a primeira vez que uma casa de moda de luxo assume o title partnership de uma equipe de Fórmula 1. A Gucci substitui a BWT, que deixa o posto de title partner; a equipe segue inscrita como Alpine e pertence ao grupo Renault."
+    }
+   }
+  }
+ },
+ /* dinheiro anual do dono (US$ mi), por equipe (antes Econ.OWNER no código) */
+ "ownerFunds": {
+  "mercedes": 55,
+  "ferrari": 85,
+  "red-bull": 100,
+  "mclaren": 30,
+  "racing-bulls": 80,
+  "alpine": 85,
+  "haas": 35,
+  "audi": 160,
+  "williams": 45,
+  "aston-martin": 95,
+  "cadillac": 150
+ },
+ /* peso da tradição no prêmio da FOM, por equipe (antes Econ.HERITAGE) */
+ "heritage": {
+  "ferrari": 45,
+  "mercedes": 15,
+  "red-bull": 15,
+  "mclaren": 10,
+  "williams": 10
+ },
+ /* equipe irmã -> equipe-mãe (antes Sisters.REAL) */
+ "sisters": {
+  "racing-bulls": "red-bull"
+ },
+ /* equipe cliente -> [fornecedora, peças em português, peças em inglês] (antes Owners.PARTNERS) */
+ "partsDeals": {
+  "haas": [
+   "ferrari",
+   [
+    "motor",
+    "câmbio",
+    "suspensão",
+    "túnel de vento"
+   ],
+   [
+    "engine",
+    "gearbox",
+    "suspension",
+    "wind tunnel"
+   ]
+  ],
+  "williams": [
+   "mercedes",
+   [
+    "motor",
+    "câmbio",
+    "suspensão traseira"
+   ],
+   [
+    "engine",
+    "gearbox",
+    "rear suspension"
+   ]
+  ],
+  "cadillac": [
+   "ferrari",
+   [
+    "motor",
+    "câmbio"
+   ],
+   [
+    "engine",
+    "gearbox"
+   ]
+  ],
+  "alpine": [
+   "mercedes",
+   [
+    "motor",
+    "câmbio"
+   ],
+   [
+    "engine",
+    "gearbox"
+   ]
+  ]
+ },
+ /* até que ano vai o contrato de motor de cada equipe cliente (antes Mfr.REAL_CONTRACTS) */
+ "engineDeals": {
+  "mclaren": 2030,
+  "williams": 2030,
+  "alpine": 2030,
+  "haas": 2028,
+  "cadillac": 2028,
+  "racing-bulls": 2030
+ },
+ /* orçamento de desenvolvimento de cada fabricante de motor; os demais, 120 (antes no Mfr.ensure) */
+ "engineDev": {
+  "mercedes": 150,
+  "ferrari": 150,
+  "honda": 140,
+  "audi": 140
+ },
+ /* traços reais por piloto: longevity (carreira longa), instant (adaptação imediata a outra disciplina), slTracked (superlicença acompanhada sem ser reserva), noSuperLicence (antes no código: talent, disciplines e data.js) */
+ "driverTraits": {
+  "fernando-alonso": {
+   "longevity": true,
+   "instant": true
+  },
+  "lewis-hamilton": {
+   "longevity": true
+  },
+  "max-verstappen": {
+   "instant": true
+  },
+  "rafael-camara": {
+   "slTracked": true
+  },
+  "freddie-slater": {
+   "noSuperLicence": true
+  }
+ },
+ /* fatos de cada pista do mundo real, por id (antes no código): alloc = compostos da Pirelli em 2026 [duro, médio, macio, 1 = confirmado em fontes] (Engine.ALLOC); light = corrida noturna ou ao entardecer (Engine.NIGHT); heat = calor a mais do deserto, em °C (Engine.DESERT); corners = curvas por setor, para a narração (Narr.CORNERS); fiaName = nome na lista de circuitos da FIA (Circuits.MAP); fiaNote = por que não está na lista (Circuits.NOTE); f1Now = no calendário atual da F1, com Grau 1 (Circuits.F1_NOW); classic = clássico que o Conselho não tira do calendário (Council.CLASSICS); gpName = nome histórico do GP (Council.GP); noSprint = o Conselho nunca propõe sprint ali */
+ "trackInfo": {
+  "melbourne": {
+   "alloc": [
+    3,
+    4,
+    5,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 3"
+    ],
+    [
+     "sequência das curvas 6 e 7",
+     "chicane das curvas 9 e 10"
+    ],
+    [
+     "curva 11",
+     "curva 13",
+     "última curva"
+    ]
+   ],
+   "f1Now": true,
+   "classic": true
+  },
+  "shanghai": {
+   "alloc": [
+    2,
+    3,
+    4,
+    1
+   ],
+   "fiaName": "SHANGHAI INTERNATIONAL",
+   "f1Now": true
+  },
+  "suzuka": {
+   "alloc": [
+    1,
+    2,
+    3,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "Esses",
+     "Dunlop"
+    ],
+    [
+     "Degner",
+     "hairpin",
+     "Spoon"
+    ],
+    [
+     "130R",
+     "chicane Casio"
+    ]
+   ],
+   "fiaName": "SUZUKA",
+   "f1Now": true,
+   "classic": true
+  },
+  "catalunya": {
+   "alloc": [
+    2,
+    3,
+    4,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 3"
+    ],
+    [
+     "Repsol",
+     "Campsa"
+    ],
+    [
+     "La Caixa",
+     "curva final"
+    ]
+   ],
+   "fiaName": "CATALUNYA",
+   "f1Now": true
+  },
+  "silverstone": {
+   "alloc": [
+    1,
+    2,
+    3,
+    1
+   ],
+   "corners": [
+    [
+     "Abbey",
+     "Village",
+     "The Loop",
+     "Aintree"
+    ],
+    [
+     "Brooklands",
+     "Luffield",
+     "Copse",
+     "Maggotts",
+     "Becketts"
+    ],
+    [
+     "Chapel",
+     "Stowe",
+     "Vale",
+     "Club"
+    ]
+   ],
+   "fiaName": "SILVERSTONE GRAND PRIX",
+   "f1Now": true,
+   "classic": true
+  },
+  "austin": {
+   "alloc": [
+    2,
+    3,
+    4,
+    1
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "Esses"
+    ],
+    [
+     "hairpin da curva 11",
+     "curva 12"
+    ],
+    [
+     "setor do estádio",
+     "curvas 16 a 18"
+    ]
+   ],
+   "fiaName": "CIRCUIT OF THE AMERICAS",
+   "f1Now": true
+  },
+  "montreal": {
+   "alloc": [
+    3,
+    4,
+    5,
+    1
+   ],
+   "corners": [
+    [
+     "curva Senna",
+     "curva 3"
+    ],
+    [
+     "hairpin",
+     "curva 8"
+    ],
+    [
+     "chicane final",
+     "Muro dos Campeões"
+    ]
+   ],
+   "fiaName": "MONTREAL GILLES VILLENEUVE",
+   "f1Now": true,
+   "classic": true
+  },
+  "monza": {
+   "alloc": [
+    3,
+    4,
+    5,
+    1
+   ],
+   "corners": [
+    [
+     "Variante del Rettifilo",
+     "Curva Grande"
+    ],
+    [
+     "Variante della Roggia",
+     "primeira de Lesmo",
+     "segunda de Lesmo"
+    ],
+    [
+     "Variante Ascari",
+     "Curva Alboreto"
+    ]
+   ],
+   "fiaName": "MONZA",
+   "f1Now": true,
+   "classic": true
+  },
+  "miami": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "fiaName": "MIAMI",
+   "f1Now": true
+  },
+  "monaco": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "Sainte Dévote",
+     "Massenet",
+     "Casino"
+    ],
+    [
+     "Mirabeau",
+     "Grand Hotel",
+     "Portier",
+     "túnel"
+    ],
+    [
+     "chicane do Porto",
+     "Tabac",
+     "Piscine",
+     "Rascasse",
+     "Anthony Noghès"
+    ]
+   ],
+   "fiaName": "MONACO",
+   "f1Now": true,
+   "classic": true,
+   "noSprint": true
+  },
+  "spielberg": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "curva Niki Lauda",
+     "Remus"
+    ],
+    [
+     "Schlossgold",
+     "Rauch",
+     "Würth"
+    ],
+    [
+     "Rindt",
+     "Red Bull Mobile"
+    ]
+   ],
+   "fiaName": "RED BULL RING - SPIELBERG",
+   "f1Now": true
+  },
+  "spa-francorchamps": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "corners": [
+    [
+     "La Source",
+     "Eau Rouge",
+     "Raidillon"
+    ],
+    [
+     "Les Combes",
+     "Bruxelles",
+     "Pouhon",
+     "Campus"
+    ],
+    [
+     "Blanchimont",
+     "chicane da Bus Stop"
+    ]
+   ],
+   "fiaName": "SPA-FRANCORCHAMPS",
+   "f1Now": true,
+   "classic": true
+  },
+  "hungaroring": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 2"
+    ],
+    [
+     "chicane das curvas 6 e 7",
+     "curva 11"
+    ],
+    [
+     "curva 13",
+     "curva 14"
+    ]
+   ],
+   "fiaName": "HUNGARORING",
+   "f1Now": true
+  },
+  "zandvoort": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "corners": [
+    [
+     "Tarzan",
+     "Gerlach",
+     "Hugenholtz"
+    ],
+    [
+     "Scheivlak",
+     "Masters",
+     "Hans Ernst"
+    ],
+    [
+     "curva Arie Luyendyk"
+    ]
+   ],
+   "fiaName": "ZANDVOORT",
+   "f1Now": true
+  },
+  "madring": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "fiaName": "MADRID IFEMA",
+   "f1Now": true
+  },
+  "baku": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "curva 1",
+     "curva 3"
+    ],
+    [
+     "trecho do castelo",
+     "curva 12"
+    ],
+    [
+     "reta da orla",
+     "curva 16"
+    ]
+   ],
+   "fiaName": "BAKU",
+   "f1Now": true
+  },
+  "sepang": {
+   "alloc": [
+    1,
+    2,
+    3,
+    0
+   ],
+   "fiaName": "SEPANG"
+  },
+  "marina-bay": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "light": "night",
+   "corners": [
+    [
+     "curva 1",
+     "curva 3",
+     "curva 5"
+    ],
+    [
+     "ponte Anderson",
+     "Esplanade"
+    ],
+    [
+     "curva 16",
+     "última curva"
+    ]
+   ],
+   "fiaName": "SINGAPORE - MARINA BAY",
+   "f1Now": true
+  },
+  "mexico-city": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "heat": -6,
+   "corners": [
+    [
+     "curva 1",
+     "Esses"
+    ],
+    [
+     "curva 12"
+    ],
+    [
+     "Foro Sol",
+     "Peraltada"
+    ]
+   ],
+   "fiaName": "AUTODROMO HERMANOS RODRIGUEZ",
+   "f1Now": true
+  },
+  "interlagos": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "corners": [
+    [
+     "S do Senna",
+     "Curva do Sol"
+    ],
+    [
+     "Descida do Lago",
+     "Ferradura",
+     "Pinheirinho",
+     "Bico de Pato",
+     "Mergulho"
+    ],
+    [
+     "Junção",
+     "Subida dos Boxes"
+    ]
+   ],
+   "fiaName": "INTERLAGOS",
+   "f1Now": true,
+   "classic": true
+  },
+  "las-vegas": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "light": "night",
+   "heat": 2,
+   "corners": [
+    [
+     "curva 1",
+     "curva 5"
+    ],
+    [
+     "reta da Strip",
+     "curva 12"
+    ],
+    [
+     "chicane da curva 14",
+     "curva 17"
+    ]
+   ],
+   "fiaName": "LAS VEGAS GRAND PRIX",
+   "f1Now": true
+  },
+  "lusail": {
+   "alloc": [
+    1,
+    2,
+    3,
+    0
+   ],
+   "light": "night",
+   "heat": 7,
+   "f1Now": true
+  },
+  "yas-marina": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "light": "dusk",
+   "heat": 6,
+   "fiaName": "ABU DHABI - YAS MARINA",
+   "f1Now": true
+  },
+  "bahrain": {
+   "alloc": [
+    1,
+    2,
+    3,
+    0
+   ],
+   "light": "night",
+   "heat": 6,
+   "fiaName": "BAHRAIN",
+   "f1Now": true
+  },
+  "jeddah": {
+   "alloc": [
+    2,
+    3,
+    4,
+    0
+   ],
+   "light": "night",
+   "heat": 6,
+   "corners": [
+    [
+     "curva 1",
+     "curvas rápidas do primeiro setor"
+    ],
+    [
+     "curva 13 inclinada",
+     "curva 22"
+    ],
+    [
+     "curva 27",
+     "reta dos boxes"
+    ]
+   ],
+   "fiaName": "JEDDAH CORNICHE CIRCUIT",
+   "f1Now": true
+  },
+  "imola": {
+   "alloc": [
+    3,
+    4,
+    5,
+    0
+   ],
+   "corners": [
+    [
+     "Tamburello",
+     "Villeneuve"
+    ],
+    [
+     "Tosa",
+     "Piratella",
+     "Acque Minerali"
+    ],
+    [
+     "Variante Alta",
+     "Rivazza"
+    ]
+   ],
+   "fiaName": "IMOLA"
+  },
+  "paul-ricard": {
+   "fiaName": "PAUL RICARD",
+   "gpName": "GP da França"
+  },
+  "hockenheimring": {
+   "fiaName": "HOCKENHEIM GRAND PRIX",
+   "gpName": "GP da Alemanha"
+  },
+  "nurburgring": {
+   "fiaName": "NÜRBURGRING GRAND PRIX",
+   "gpName": "GP da Alemanha"
+  },
+  "portimao": {
+   "fiaName": "ALGARVE",
+   "f1Now": true,
+   "gpName": "GP de Portugal"
+  },
+  "mugello": {
+   "fiaName": "MUGELLO",
+   "gpName": "GP da Toscana"
+  },
+  "magny-cours": {
+   "fiaName": "MAGNY-COURS",
+   "gpName": "GP da França"
+  },
+  "estoril": {
+   "fiaName": "ESTORIL",
+   "gpName": "GP de Portugal"
+  },
+  "indianapolis": {
+   "fiaName": "INDIANAPOLIS GRAND PRIX",
+   "gpName": "GP de Indianápolis"
+  },
+  "buenos-aires": {
+   "fiaName": "BUENOS AIRES",
+   "gpName": "GP da Argentina"
+  },
+  "jacarepagua": {
+   "fiaNote": "Autódromo demolido em 2012.",
+   "gpName": "GP do Rio de Janeiro"
+  },
+  "istanbul": {
+   "fiaNote": "Na lista de 04/11/2026 só aparece um traçado curto (Grau 6R), não o traçado de Grande Prêmio.",
+   "f1Now": true,
+   "gpName": "GP da Turquia"
+  },
+  "kyalami": {
+   "fiaNote": "Não consta na lista de 04/11/2026.",
+   "gpName": "GP da África do Sul"
+  },
+  "watkins-glen": {
+   "fiaNote": "Não consta na lista de 04/11/2026.",
+   "gpName": "GP de Watkins Glen"
+  }
+ },
+ /* regras e tabelas das séries do mundo real, por id de série (antes no código): secondary/pro/up/feeders/rangeFix/support (Cats), ratingRange/slTable/slEstimated/dbPro/dbLate (DriverDB), disc (Disc.SERIES), risk (Chaos.RISK), tyres (Mfr.SERIES_TYRES), kartF4/kartFallback (Kart: a F4 de cada campeonato de kart), uiGroups (grupos da tela de categorias), calKind (cor da série no calendário) e info (fatos soltos: main = a série principal; ladder = degrau rumo à principal; fullTeams/allCars = vagas; academySeat = custo da vaga para a academia; bigNews/winNewsChance = notícias; promoteTop = quantos sobem; notable = título que mantém o piloto na base; fromDec = temporada começa em dezembro do ano anterior; pool/poolMaxYears = de onde vêm os pilotos da série paralela; women = só pilotas; retireDisc = aposentadoria; natFit = afinidade por nacionalidade) */
+ "series": {
+  "secondary": {
+   "frme": true,
+   "e4": true,
+   "f4uae": true
+  },
+  "pro": {
+   "fe": true,
+   "sf": true,
+   "indycar": true,
+   "wec": true,
+   "dtm": true,
+   "stockcar": true,
+   "nascup": true
+  },
+  "up": {
+   "f4de": "freca",
+   "f1a": "freca",
+   "f4uae": "freca",
+   "f4it": "freca",
+   "f4es": "freca",
+   "f4gb": "freca",
+   "e4": "freca",
+   "f4br": "freca",
+   "f4us": "fram",
+   "f4jp": "frj",
+   "freca": "f3",
+   "frme": "f3",
+   "fram": "f3",
+   "frj": "f3",
+   "f3": "f2"
+  },
+  "feeders": {
+   "f2": [
+    "f3",
+    "freca"
+   ],
+   "f3": [
+    "freca",
+    "frme",
+    "fram",
+    "frj",
+    "f4it",
+    "f4es",
+    "f4gb",
+    "f4de"
+   ],
+   "freca": [
+    "f4it",
+    "f4es",
+    "f4gb",
+    "f4de",
+    "e4",
+    "f4br",
+    "f1a",
+    "f4uae"
+   ],
+   "fram": [
+    "f4us"
+   ],
+   "frj": [
+    "f4jp"
+   ],
+   "fe": [
+    "f2",
+    "sf"
+   ],
+   "sf": [
+    "f2",
+    "frj",
+    "f3"
+   ],
+   "dtm": [
+    "wec",
+    "f2",
+    "f3",
+    "freca",
+    "f4it",
+    "f4de",
+    "f4es",
+    "f4gb"
+   ],
+   "stockcar": [
+    "f4br",
+    "fram",
+    "freca",
+    "f3",
+    "f2"
+   ],
+   "nascup": [
+    "f4us",
+    "fram",
+    "indycar"
+   ]
+  },
+  "rangeFix": {
+   "indycar": [
+    70,
+    80
+   ]
+  },
+  "support": {
+   "f2": true,
+   "f3": true,
+   "f1a": true
+  },
+  "ratingRange": {
+   "f1": [
+    80,
+    94
+   ],
+   "indycar": [
+    70,
+    81
+   ],
+   "fe": [
+    75,
+    85
+   ],
+   "sf": [
+    73,
+    83
+   ],
+   "wec": [
+    70,
+    82
+   ],
+   "f2": [
+    72,
+    81
+   ],
+   "imsa": [
+    68,
+    80
+   ],
+   "dtm": [
+    67,
+    79
+   ],
+   "f3": [
+    66,
+    78
+   ],
+   "nxt": [
+    65,
+    76
+   ],
+   "elms": [
+    64,
+    76
+   ],
+   "supercars": [
+    65,
+    77
+   ],
+   "stockcar": [
+    63,
+    76
+   ],
+   "nascup": [
+    64,
+    77
+   ],
+   "nasxf": [
+    61,
+    72
+   ],
+   "nastr": [
+    57,
+    68
+   ],
+   "sfl": [
+    62,
+    72
+   ],
+   "freca": [
+    61,
+    74
+   ],
+   "efo": [
+    60,
+    71
+   ],
+   "gb3": [
+    59,
+    71
+   ],
+   "eurocup3": [
+    58,
+    70
+   ],
+   "frme": [
+    59,
+    72
+   ],
+   "fram": [
+    57,
+    69
+   ],
+   "frj": [
+    56,
+    68
+   ],
+   "froc": [
+    56,
+    68
+   ],
+   "usfpro": [
+    57,
+    69
+   ],
+   "alms": [
+    57,
+    70
+   ],
+   "f1a": [
+    50,
+    65
+   ],
+   "usf2000": [
+    53,
+    65
+   ],
+   "fws": [
+    52,
+    64
+   ],
+   "f4it": [
+    52,
+    66
+   ],
+   "f4es": [
+    52,
+    66
+   ],
+   "f4gb": [
+    52,
+    66
+   ],
+   "e4": [
+    52,
+    65
+   ],
+   "f4br": [
+    50,
+    63
+   ],
+   "f4us": [
+    49,
+    62
+   ],
+   "f4jp": [
+    50,
+    63
+   ],
+   "f4uae": [
+    51,
+    64
+   ],
+   "f4cez": [
+    49,
+    62
+   ],
+   "f4au": [
+    48,
+    61
+   ],
+   "f4de": [
+    50,
+    64
+   ]
+  },
+  "slTable": {
+   "indycar": [
+    40,
+    30,
+    20,
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1
+   ],
+   "wec": [
+    20,
+    16,
+    12,
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1
+   ],
+   "nxt": [
+    15,
+    12,
+    10,
+    7,
+    5,
+    3,
+    2,
+    1,
+    0,
+    0
+   ],
+   "f1a": [
+    10,
+    7,
+    5,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "dtm": [
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "imsa": [
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "f2": [
+    40,
+    40,
+    40,
+    30,
+    20,
+    10,
+    8,
+    6,
+    4,
+    3
+   ],
+   "f3": [
+    30,
+    25,
+    20,
+    15,
+    12,
+    9,
+    7,
+    5,
+    3,
+    2
+   ],
+   "fe": [
+    30,
+    25,
+    20,
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1
+   ],
+   "sf": [
+    25,
+    20,
+    15,
+    10,
+    8,
+    6,
+    5,
+    4,
+    3,
+    2
+   ],
+   "freca": [
+    25,
+    20,
+    15,
+    10,
+    7,
+    5,
+    3,
+    2,
+    1,
+    0
+   ],
+   "usfpro": [
+    10,
+    8,
+    6,
+    4,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0
+   ]
+  },
+  "slEstimated": [
+   "nxt",
+   "f1a",
+   "dtm",
+   "imsa",
+   "usfpro",
+   "wec"
+  ],
+  "dbPro": [
+   "indycar",
+   "fe",
+   "sf",
+   "wec",
+   "imsa",
+   "elms",
+   "alms",
+   "nascup",
+   "nasxf",
+   "nastr",
+   "dtm",
+   "stockcar",
+   "supercars",
+   "nxt",
+   "f2",
+   "f3",
+   "sfl"
+  ],
+  "dbLate": [
+   "nascup",
+   "nasxf",
+   "nastr",
+   "stockcar",
+   "supercars",
+   "wec",
+   "imsa",
+   "elms",
+   "alms",
+   "dtm"
+  ],
+  "disc": {
+   "wec": "end",
+   "imsa": "end",
+   "elms": "end",
+   "alms": "end",
+   "dtm": "gt",
+   "stockcar": "gt",
+   "supercars": "gt",
+   "nascup": "gt",
+   "nasxf": "gt",
+   "nastr": "gt"
+  },
+  "risk": {
+   "f2": 1,
+   "f3": 1.1,
+   "freca": 1.2,
+   "indycar": 1.6,
+   "nxt": 1.3,
+   "wec": 0.9,
+   "imsa": 0.8,
+   "nascup": 0.7,
+   "stockcar": 0.8,
+   "sf": 0.9,
+   "fe": 0.5,
+   "dtm": 0.5,
+   "kart": 0.6
+  },
+  "tyres": {
+   "f2": "pirelli",
+   "f3": "pirelli",
+   "f1a": "pirelli",
+   "freca": "pirelli",
+   "indycar": "firestone",
+   "nxt": "firestone",
+   "fe": "hankook",
+   "sf": "yokohama",
+   "sfl": "kumho",
+   "wec": "michelin",
+   "imsa": "michelin",
+   "elms": "goodyear",
+   "nascup": "goodyear",
+   "nasxf": "goodyear",
+   "nastr": "goodyear",
+   "dtm": "pirelli",
+   "stockcar": "hankook",
+   "supercars": "dunlop"
+  },
+  "kartF4": {
+   "eu": [
+    "f4it",
+    "f4es",
+    "f4gb",
+    "f4de",
+    "e4"
+   ],
+   "am": [
+    "f4us"
+   ],
+   "br": [
+    "f4br"
+   ],
+   "ap": [
+    "f4jp"
+   ]
+  },
+  "kartFallback": "f4it",
+  "uiGroups": [
+   [
+    "Monoposto · principais",
+    [
+     "fe",
+     "indycar",
+     "sf"
+    ],
+    true
+   ],
+   [
+    "GT",
+    [
+     "dtm",
+     "stockcar",
+     "nascup"
+    ],
+    true
+   ],
+   [
+    "Endurance",
+    [
+     "wec"
+    ],
+    true
+   ],
+   [
+    "Monoposto · rumo à F1",
+    [
+     "f2",
+     "f3",
+     "f1a"
+    ]
+   ],
+   [
+    "Monoposto · regionais",
+    [
+     "freca",
+     "frme",
+     "fram"
+    ]
+   ],
+   [
+    "Monoposto · Fórmula 4",
+    [
+     "f4it",
+     "f4de",
+     "f4es",
+     "f4gb",
+     "e4",
+     "f4br",
+     "f4uae"
+    ]
+   ],
+   [
+    "Ecossistema Indy",
+    [
+     "f4us"
+    ]
+   ],
+   [
+    "Ecossistema Super Formula",
+    [
+     "frj",
+     "f4jp"
+    ]
+   ]
+  ],
+  "calKind": {
+   "f2": "f2",
+   "f3": "f2",
+   "f1a": "f2",
+   "fe": "fe",
+   "indycar": "usa",
+   "nxt": "usa",
+   "nascup": "usa",
+   "imsa": "end",
+   "wec": "end",
+   "elms": "end"
+  },
+  "info": {
+   "f1": {
+    "main": true
+   },
+   "f2": {
+    "ladder": 1,
+    "fullTeams": true,
+    "academySeat": 2.6,
+    "bigNews": true,
+    "winNewsChance": 0.8,
+    "notable": true
+   },
+   "f3": {
+    "ladder": 2,
+    "fullTeams": true,
+    "academySeat": 1.2,
+    "bigNews": true,
+    "promoteTop": 6,
+    "notable": true
+   },
+   "fe": {
+    "fullTeams": true,
+    "fromDec": true,
+    "notable": true
+   },
+   "sf": {
+   "poolNat": { "JPN": 8 },
+    "notable": true
+   },
+   "freca": {
+    "fullTeams": true,
+    "academySeat": 0.9
+   },
+   "frme": {
+    "fullTeams": true,
+    "academySeat": 0.9,
+    "pool": [
+     "freca",
+     "f3",
+     "f4it",
+     "f4es",
+     "f4gb",
+     "e4"
+    ],
+    "poolMaxYears": {
+     "f3": 1
+    }
+   },
+   "fram": {
+    "academySeat": 0.9
+   },
+   "frj": {
+    "academySeat": 0.9
+   },
+   "f1a": {
+    "academySeat": 0.15,
+    "women": true
+   },
+   "e4": {
+    "pool": [
+     "f4it",
+     "f4es",
+     "f4gb"
+    ]
+   },
+   "f4uae": {
+    "pool": [
+     "f4it",
+     "f4es",
+     "f4gb"
+    ]
+   },
+   "indycar": {
+    "allCars": true,
+    "retireDisc": "oval"
+   },
+   "nascup": {
+    "retireDisc": "stock",
+    "natFit": {
+     "groups": [
+      [
+       [
+        "USA"
+       ],
+       16
+      ],
+      [
+       [
+        "CAN",
+        "MEX",
+        "AUS"
+       ],
+       4
+      ]
+     ],
+     "other": -14
+    }
+   },
+   "stockcar": {
+    "retireDisc": "stock",
+    "natFit": {
+     "groups": [
+      [
+       "SA",
+       14
+      ]
+     ],
+     "other": -8
+    }
+   },
+   "dtm": {
+    "natFit": {
+     "groups": [
+      [
+       "EU",
+       4
+      ]
+     ],
+     "other": -4,
+     "exp": {
+      "end": 6,
+      "gt": 4
+     }
+    }
+   }
+  }
  }
 };

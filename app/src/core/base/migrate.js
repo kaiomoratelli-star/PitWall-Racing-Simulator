@@ -94,6 +94,9 @@ const Migrate = {
       done.push(`v${v}→v${v + 1}`);
     }
     if (G.version > SAVE_VERSION) throw new Error(`Este save é de uma versão mais nova do jogo (v${G.version}). Atualize o Pit Wall.`);
+    // (0.9, Onda 3) saves de antes do Pacote de dados foram todos criados com os dados reais embutidos.
+    // Não é um passo de versão: não entra em "done" (que vira o aviso "Save atualizado" para o jogador).
+    if (G.pack === undefined && typeof Pack !== 'undefined') G.pack = { ...Pack.REAL, version: null, ref: null, legacy: true };
     return done;
   },
 };

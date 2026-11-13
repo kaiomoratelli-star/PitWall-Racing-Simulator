@@ -1,0 +1,8 @@
+{
+ "_leia": "Correções e confirmações que a importação da Wikipedia (scripts/import_drivers.py) ainda não tem. Cada linha diz a fonte e a data. Aplicadas por scripts/driverdb-fixes.js, que o import_drivers.py chama no fim. Quando a fonte pública publicar o mesmo dado, a linha pode sair.",
+ "seasons": [
+  { "uid": "Q59180330", "name": "Liam Lawson", "entry": { "y": 2027, "s": "f1", "team": "Visa Cash App Racing Bulls F1 Team", "no": "", "status": "anunciado (confirmado pela equipe)", "src": "Informação da MGC (Moratelli Game Company), 13/11/2026", "ver": "2026-11-13" } },
+  { "uid": "Q117035650", "name": "Arvid Lindblad", "entry": { "y": 2027, "s": "f1", "team": "Visa Cash App Racing Bulls F1 Team", "no": "", "status": "anunciado (confirmado pela equipe)", "src": "Informação da MGC (Moratelli Game Company), 13/11/2026", "ver": "2026-11-13" } },
+  { "uid": "Q107023292", "name": "Oliver Bearman", "entry": { "y": 2027, "s": "f1", "team": "TGR Haas F1 Team", "no": "", "status": "anunciado (confirmado pela equipe)", "src": "Informação da MGC (Moratelli Game Company), 13/11/2026", "ver": "2026-11-13" } }
+ ]
+}

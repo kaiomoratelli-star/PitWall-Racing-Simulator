@@ -221,7 +221,7 @@ const ordEn = (n) => `P${n}`;
 Object.assign(I18N_EN, {
   'Interface, narração, rádio e treinos. Notícias e registros já gerados ficam no idioma em que foram escritos.': 'Interface, commentary, radio and practice. News and log entries already generated stay in the language they were written in.',
   'Português (Brasil)': 'Português (Brasil)', 'Dobradinha!!': 'One-two!!', 'Guardar para o próximo ano': 'Save it for next year', 'Descoberta no túnel de vento': 'Wind tunnel breakthrough',
-  'Nova especificação de motor disponível': 'New engine specification available', 'Evento com fãs no meio da semana': 'Midweek fan event', 'Chefe de aerodinâmica': 'Head of aerodynamics',
+  'Nova especificação de motor disponível': 'New engine specification available', 'Evento com fãs no meio da semana': 'Midweek fan event', 'Chefe de aerodinâmica': 'Head of aerodynamics', 'Engenheiro-chefe de pista': 'Chief race engineer',
   'A equipe de aerodinâmica encontrou uma correlação promissora no assoalho. Podemos acelerar o desenvolvimento com turnos extras ou guardar o conceito para o carro do ano que vem.': 'The aerodynamics team found a promising correlation on the floor. We can speed up development with extra shifts or keep the concept for next year’s car.',
   'Federação esclarece regra de limites de pista após polêmica': 'Federation clarifies track limits rule after controversy', 'Rumor: Audi avalia trocar de fornecedor de motor': 'Rumour: Audi considering an engine supplier change',
   'Sem palavras. Obrigado a todos na fábrica.': 'No words. Thank you to everyone at the factory.', 'Dia difícil. Vamos analisar e voltar mais fortes.': 'Tough day. We will analyse and come back stronger.',
@@ -259,7 +259,14 @@ Object.assign(I18N_EN, {
   'Pontos até o 12º lugar (25-18-15-12-10-8-6-5-4-3-2-1)': 'Points down to 12th place (25-18-15-12-10-8-6-5-4-3-2-1)', 'Volta do ponto pela volta mais rápida': 'Return of the fastest lap point',
   'Fim do ponto pela volta mais rápida': 'End of the fastest lap point', 'Comissários mais rigorosos nas disputas roda a roda, já nesta temporada': 'Stricter stewarding of wheel-to-wheel battles, this season',
 });
-const CAT_EN = { 'Fórmula 2': 'Formula 2', 'Fórmula 3': 'Formula 3', 'Fórmula E': 'Formula E' };
+const CAT_EN = { 'Fórmula 2': 'Formula 2', 'Fórmula 3': 'Formula 3', 'Fórmula E': 'Formula E',
+  // (0.9) nomes oficiais em inglês das categorias com nome em português na base
+  'Fórmula Regional Europeia': 'Formula Regional European Championship', 'Fórmula Regional do Oriente Médio': 'Formula Regional Middle East',
+  'Fórmula Regional das Américas': 'Formula Regional Americas', 'Fórmula Regional do Japão': 'Formula Regional Japan', 'F4 Italiana': 'Italian F4',
+  'F4 Espanhola': 'Spanish F4', 'F4 Britânica': 'British F4', 'F4 Brasil': 'F4 Brazil', 'F4 Estados Unidos': 'F4 United States',
+  'F4 Emirados (F4 Oriente Médio)': 'F4 UAE (F4 Middle East)', 'F4 Alemã': 'German F4', 'F4 Japonesa': 'Japanese F4' };
+Object.entries(CAT_EN).forEach(([k, v]) => { if (!I18N_EN[k]) I18N_EN[k] = v; });
+const catEn = (s) => CAT_EN[s] || s;
 const sentEn = [
   [/^(.+) \((.+)\) largou em (\d+)º e venceu em (.+), à frente de (.+) e (.+)$/, '$1 ($2) started P$3 and won at $4, ahead of $5 and $6'],
   [/^Volta mais rápida: (.+) \(volta (\d+)\)$/, 'Fastest lap: $1 (lap $2)'],
@@ -509,7 +516,7 @@ Object.assign(I18N_EN, {
   'Até 21 anos, sem equipe na F1 · nível estimado pelos seus olheiros': 'Up to 21, no F1 seat · level estimated by your scouts', 'piloto gerado': 'generated driver', 'Corre em outra categoria': 'Races in another series', 'sem vaga': 'no seat',
 });
 I18N_PATS.unshift(
-  [/^Plano para (\d{4}): decisão da academia$/, 'Plan for $1: academy decides'], [/^Ficar na (.+) mais um ano$/, 'Stay in $1 another year'], [/^Subir para a (.+)$/, 'Move up to $1'], [/^Trocar para a (.+)$/, 'Switch to $1'],
+  [/^Plano para (\d{4}): decisão da academia$/, 'Plan for $1: academy decides'], [/^Ficar na (.+) mais um ano$/, (m, c) => `Stay in ${catEn(c)} another year`], [/^Subir para a (.+)$/, (m, c) => `Move up to ${catEn(c)}`], [/^Trocar para a (.+)$/, (m, c) => `Switch to ${catEn(c)}`],
   [/^(\d+)\/(\d+) olheiros em missão$/, '$1/$2 scouts on assignment'], [/^(\d+)\/(\d+) vagas · salários (.+)\/ano$/, '$1/$2 slots · salaries $3/year'], [/^avaliação (\d+)$/, 'judging $1'],
   [/^observando (.+) · (\d+) etapa\(s\) para o relatório$/, 'watching $1 · $2 round(s) to the report'], [/^cobrindo (.+) · (\d+) etapa\(s\)$/, 'covering $1 · $2 round(s)'], [/^procurando talentos: (.+) · (\d+) etapa\(s\)$/, 'searching for talent: $1 · $2 round(s)'],
   [/^pot\. (\d+)–(\d+)$/, 'pot. $1–$2'], [/^(.+)\/ano até (\d{4})$/, '$1/year until $2'], [/^Prestígio da academia: (\d+) \(pesa na decisão dos pilotos\)\.$/, 'Academy prestige: $1 (weighs on drivers’ decisions).'],
@@ -519,7 +526,7 @@ I18N_PATS.unshift(
   [/^(\d+) títulos · (\d+) vitórias$/, '$1 titles · $2 wins'], [/^(\d+) título · (\d+) vitórias$/, '$1 title · $2 wins'],
   [/^(\d+) pts · (\d+) etapa\(s\)$/, '$1 pts · $2 round(s)'], [/^(\d+)\/(\d+) etapas · próxima: (.+) \((.+)\)$/, '$1/$2 rounds · next: $3 ($4)'],
   [/^(.+) por GP com o diretor comercial$/, '$1 per GP with the commercial director'], [/^Parceiros reais da equipe:$/, 'Real team partners:'],
-  [/^Não consta na lista de (.+)\.$/, 'Not on the list of $1.'], [/^Switch to (.+)$/, 'Switch to $1'],
+  [/^Não consta na lista de (.+)\.$/, 'Not on the list of $1.'], [/^Switch to (.+)$/, (m, c) => `Switch to ${catEn(c)}`], [/^Move up to (.+)$/, (m, c) => `Move up to ${catEn(c)}`], [/^Stay in (.+) another year$/, (m, c) => `Stay in ${catEn(c)} another year`],
   [/^Projeto e fabricação\. A pesquisa do carro de (\d{4}) abre a partir de (\d+)% da temporada\.$/, 'Design and manufacturing. Research on the $1 car opens from $2% of the season.'],
   [/^Projeto e fabricação: a peça entra no carro assim que fica pronta\.$/, 'Design and manufacturing: the part goes on the car as soon as it is ready.'],
   [/^Só projeto, sem fabricação: rende 35% a mais e entra no carro de (\d{4})\. Ocupa uma vaga como qualquer projeto\.$/, 'Design only, no manufacturing: 35% more gain, goes on the $1 car. Takes a slot like any project.'],
@@ -716,4 +723,14 @@ Object.assign(I18N_EN, {
 I18N_PATS.unshift(
   [/^(\d+) corrida\(s\)$/, '$1 race(s)'], [/^corrida: (.+)$/, 'race: $1'], [/^classificação: (.+)$/, 'qualifying: $1'],
   [/^Desde (\d{4}) · companheiros de equipe$/, 'Since $1 · teammates'], [/^\/(\d+) etapas · próxima:$/, '/$1 rounds · next:'],
+);
+
+// (0.9) textos gerados com um trecho em português dentro de uma frase já em inglês, rivalidades com batidas e
+// troca de staff. Entram no começo da lista para vir antes da regra genérica de frases longas.
+I18N_PATS.unshift(
+  [/^(Behind the scenes: .+ (?:closes ranks (?:in favour of|against)|offers concessions to pass)) "(.+)"$/, (m, a, x) => `${a} "${txIn(x)}"`],
+  [/^([^!]+) vence a corrida Sprint!$/, '$1 wins the Sprint!'],   // E36 (engine.js:596)
+  [/^Desde (\d{4}) · (\d+) batida\(s\)( · companheiros de equipe)?$/, (m, y, n, tm) => `Since ${y} · ${n} crash${n === '1' ? '' : 'es'}${tm ? ' · teammates' : ''}`],
+  [/^([^.()]+?) contratou ([^.()]+) \(([^,()]+), nível (\d+)\) no lugar de ([^.()]+)\. Motivo: área mais fraca da equipe\.$/, (m, a, b, r, n, o) => `${a} hired ${b} (${txIn(r)}, rating ${n}) to replace ${o}. Reason: the team’s weakest area.`],
+  [/^(Real driver database: .+\(source: )(.+)(, checked on [^()]+\)\.)$/, (m, a, s, z) => a + s.replace(/páginas de temporada/g, 'season pages').replace(/ e /g, ' and ') + z],
 );

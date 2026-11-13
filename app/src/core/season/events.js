@@ -98,6 +98,7 @@ Events.TEMPLATES = [
   {
     key: 'sponsor_offer', w: 2.2, cond: (G) => G.sponsors.length < 6 && (typeof Econ === 'undefined' || sum(G.sponsors.map(s => s.perRace)) * G.season.calendar.length < Econ.sponsorPool(Career.team(G)) * 0.95), build: (G, c) => {
       const sp = Career.genSponsors(G, c.team, 1)[0];
+      if (!sp) return null;   // sem marcas no Pacote de dados (mundo sem pacote): não há proposta
       const big = { ...sp, perRace: +(sp.perRace * 1.5).toFixed(2), objective: RNG.pick(['top5', 'podium', 'top10both']) };
       return {
         from: byLang('Departamento comercial', 'Commercial department'), tag: 'money', title: `${byLang('Proposta de patrocínio', 'Sponsorship offer')}: ${sp.name}`,

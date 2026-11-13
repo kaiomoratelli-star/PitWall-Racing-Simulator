@@ -13,6 +13,7 @@ podem citar caminhos de arquivo e decisões que já mudaram.
 | [AVALIACAO-0.8.6.md](AVALIACAO-0.8.6.md) | Avaliação completa com as prioridades P1 a P3 (base da 0.8.7). |
 | [RELATORIO-0.8.7.md](RELATORIO-0.8.7.md) | O que a 0.8.7 entregou, como foi testado e o que ficou para depois. |
 | [RELATORIO-0.8.6.md](RELATORIO-0.8.6.md) | Versão anterior (regras de corrida, pessoas, comissários, motor por componente). |
+| [PLANO-0.9.md](PLANO-0.9.md) | Plano da 0.9 (aprimoramento e reconstrução: Electron novo, pistas, corrida 2D, verdade esportiva do motor, dívida técnica). |
 | [PENDENCIAS-V1.md](PENDENCIAS-V1.md) | Ideias adiadas de propósito até a 1.0. |
 
 ## Relatórios gerados por scripts (sempre atuais)
@@ -43,4 +44,4 @@ atualiza, abre um save real da 0.8.6 no jogo instalado e desinstala sem perder o
 
 - `brand/`, `marketing/`: logos e peças de divulgação.
 - `ui-085/`: protótipos e capturas da interface nova (0.8.5).
-- `historico/`: planos, auditorias, dossiês, roteiros e relatórios das versões 0.8 a 0.8.5.
+- `historico/`: planos, auditorias, dossiês, roteiros e relatórios das versões 0.8 a 0.8.5, e o plano adiado da Carreira de Piloto (`PLANO-0.9-carreira-piloto.md`, fundação guardada na branch `v0.9-piloto`).

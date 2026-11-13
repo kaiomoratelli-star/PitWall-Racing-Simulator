@@ -22,6 +22,21 @@ for (const mode of ['test', 'verify']) {
   if (res.fonts) console.log('   fontes carregadas:', [...new Set(res.fonts)].join(', ') || 'nenhuma');
   if (!res.ok || r.status !== 0) failed = true;
 }
+// (0.9, E8) aceleração de hardware: ligada por padrão; com a preferência desligada, o jogo abre sem GPU e o save continua
+const hwLog = () => { const f = path.join(dataDir, 'logs', 'pitwall.log'); return fs.existsSync(f) ? fs.readFileSync(f, 'utf8').split(/\r?\n/).filter(l => l.includes('aceleração de hardware:')) : []; };
+const hw1 = hwLog();
+if (!hw1.length || !hw1.every(l => l.endsWith('ligada'))) { console.log('[aceleração de hardware] FALHOU: não veio ligada por padrão', hw1.slice(-1)); failed = true; }
+fs.writeFileSync(path.join(dataDir, 'desktop-prefs.json'), JSON.stringify({ hwAccel: false }));
+{
+  fs.rmSync(path.join(dataDir, 'smoke-verify.json'), { force: true });
+  const r = spawnSync(exe, [...appArgs, '--smoke-verify', `--data-dir=${dataDir}`, ...extra], { encoding: 'utf8', timeout: 240000 });
+  const resFile = path.join(dataDir, 'smoke-verify.json');
+  const res = fs.existsSync(resFile) ? JSON.parse(fs.readFileSync(resFile, 'utf8')) : { ok: false };
+  const last = hwLog().slice(-1)[0] || '';
+  const ok = res.ok && r.status === 0 && last.endsWith('desligada');
+  console.log(`[aceleração de hardware] padrão ligada; com a opção desligada: ${ok ? 'OK (abriu sem GPU e reabriu o save)' : 'FALHOU (' + last + ')'}`);
+  if (!ok) failed = true;
+}
 const saves = path.join(dataDir, 'saves');
 console.log('arquivos de save:', fs.existsSync(saves) ? fs.readdirSync(saves).join(', ') : 'nenhum');
 console.log('backups:', fs.existsSync(path.join(saves, 'backups')) ? fs.readdirSync(path.join(saves, 'backups')).length : 0);

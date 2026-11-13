@@ -37,7 +37,7 @@ Entre a 0.8.4 e a 0.8.6, painéis, abas e gráficos sumiram porque uma tela nova
 6. **Campo novo no save (0.8.7):** todo campo de primeiro nível de `G` precisa estar em `Schema.FIELDS` (`app/src/core/base/schema.js`); o `schema-check` falha se aparecer um sem registro.
 7. **Idioma não muda o jogo (0.8.7):** nunca decida uma regra comparando texto traduzido (ex.: o motivo do abandono). O `lang-parity-check` joga a mesma semente em português e em inglês e exige o mesmo resultado.
 8. **Regra nova do regulamento ganha teste em `scripts/rules-check.js`**, que falha se a regra quebrar (não basta medir).
-9. **Antes de publicar:** rode `npm test`, `node scripts/determinism-check.js`, `node scripts/save-compat-check.js`, `node scripts/ui85-check.js 6`, `npm run playthrough`, `node scripts/browser-save-check.js`, `node scripts/i18n-check.js 6` e `npm run test:ui`. Se uma mudança de jogo aprovada mudar a assinatura de determinismo, regrave com `node scripts/determinism-check.js --write` e explique no commit.
+9. **Antes de publicar:** rode `npm test`, `node scripts/determinism-check.js`, `node scripts/save-compat-check.js`, `node scripts/ui85-check.js 6`, `node scripts/screen-purity-check.js 3`, `npm run playthrough`, `node scripts/browser-save-check.js`, `node scripts/i18n-check.js 6` e `npm run test:ui`. Se uma mudança de jogo aprovada mudar a assinatura de determinismo, regrave com `node scripts/determinism-check.js --write` e explique no commit.
 
 ## Estrutura
 - `app/src/`: código do jogo em JS puro, em pastas por assunto (0.8.7). A ordem de carregamento fica em `scripts/modules.js` e o build é `node scripts/build.js`.

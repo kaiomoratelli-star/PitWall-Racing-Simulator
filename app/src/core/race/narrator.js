@@ -7,34 +7,15 @@
 
 const Narr = {};
 /* curvas por setor (aproximado) */
-Narr.CORNERS = {
-  monaco: [['Sainte Dévote', 'Massenet', 'Casino'], ['Mirabeau', 'Grand Hotel', 'Portier', 'túnel'], ['chicane do Porto', 'Tabac', 'Piscine', 'Rascasse', 'Anthony Noghès']],
-  monza: [['Variante del Rettifilo', 'Curva Grande'], ['Variante della Roggia', 'primeira de Lesmo', 'segunda de Lesmo'], ['Variante Ascari', 'Curva Alboreto']],
-  'spa-francorchamps': [['La Source', 'Eau Rouge', 'Raidillon'], ['Les Combes', 'Bruxelles', 'Pouhon', 'Campus'], ['Blanchimont', 'chicane da Bus Stop']],
-  silverstone: [['Abbey', 'Village', 'The Loop', 'Aintree'], ['Brooklands', 'Luffield', 'Copse', 'Maggotts', 'Becketts'], ['Chapel', 'Stowe', 'Vale', 'Club']],
-  suzuka: [['curva 1', 'Esses', 'Dunlop'], ['Degner', 'hairpin', 'Spoon'], ['130R', 'chicane Casio']],
-  interlagos: [['S do Senna', 'Curva do Sol'], ['Descida do Lago', 'Ferradura', 'Pinheirinho', 'Bico de Pato', 'Mergulho'], ['Junção', 'Subida dos Boxes']],
-  zandvoort: [['Tarzan', 'Gerlach', 'Hugenholtz'], ['Scheivlak', 'Masters', 'Hans Ernst'], ['curva Arie Luyendyk']],
-  spielberg: [['curva Niki Lauda', 'Remus'], ['Schlossgold', 'Rauch', 'Würth'], ['Rindt', 'Red Bull Mobile']],
-  montreal: [['curva Senna', 'curva 3'], ['hairpin', 'curva 8'], ['chicane final', 'Muro dos Campeões']],
-  'marina-bay': [['curva 1', 'curva 3', 'curva 5'], ['ponte Anderson', 'Esplanade'], ['curva 16', 'última curva']],
-  baku: [['curva 1', 'curva 3'], ['trecho do castelo', 'curva 12'], ['reta da orla', 'curva 16']],
-  'las-vegas': [['curva 1', 'curva 5'], ['reta da Strip', 'curva 12'], ['chicane da curva 14', 'curva 17']],
-  'mexico-city': [['curva 1', 'Esses'], ['curva 12'], ['Foro Sol', 'Peraltada']],
-  austin: [['curva 1', 'Esses'], ['hairpin da curva 11', 'curva 12'], ['setor do estádio', 'curvas 16 a 18']],
-  jeddah: [['curva 1', 'curvas rápidas do primeiro setor'], ['curva 13 inclinada', 'curva 22'], ['curva 27', 'reta dos boxes']],
-  catalunya: [['curva 1', 'curva 3'], ['Repsol', 'Campsa'], ['La Caixa', 'curva final']],
-  hungaroring: [['curva 1', 'curva 2'], ['chicane das curvas 6 e 7', 'curva 11'], ['curva 13', 'curva 14']],
-  melbourne: [['curva 1', 'curva 3'], ['sequência das curvas 6 e 7', 'chicane das curvas 9 e 10'], ['curva 11', 'curva 13', 'última curva']],
-  imola: [['Tamburello', 'Villeneuve'], ['Tosa', 'Piratella', 'Acque Minerali'], ['Variante Alta', 'Rivazza']],
-};
+// (0.9) por pista, no Pacote de dados (REAL_EXTRA.trackInfo[id].corners); sem pacote, nenhuma
+Object.defineProperty(Narr, 'CORNERS', { get: () => Object.fromEntries(Object.entries(((typeof REAL_EXTRA !== 'undefined' && REAL_EXTRA.trackInfo) || {})).filter(([, v]) => v.corners != null).map(([id, v]) => [id, v.corners])), configurable: true });
 /* preposição certa para cada nome de curva: "na Rascasse", "no túnel", "nos Esses", "nas curvas 6 e 7" */
 Narr.MASC = /^(trecho|setor|túnel|hairpin|S do|Pinheirinho|Bico|Mergulho|Casino|Portier|Tabac|Grand|Muro|130R|Spoon|Degner|Raidillon|Pouhon|Foro|Village|Loop|Club|Bus)/;
 Narr.prep = (c, de) => { const pl = /^(curvas|Esses|primeira|segunda)/.test(c) ? (/^Esses/.test(c) ? 'os' : /^curvas/.test(c) ? 'as' : 'a') : Narr.MASC.test(c) ? 'o' : 'a'; return (de ? 'd' : 'n') + pl; };
 Narr.at = (c) => `${Narr.prep(c)} ${c}`;
 Narr.of = (c) => `${Narr.prep(c, true)} ${c}`;
 Narr.corner = (track, sec, r) => {
-  const c = Narr.CORNERS[track.id];
+  const c = trackInfo(track.id).corners;
   const list = c ? c[sec] : [['curva 1', 'curva 3', 'curva 4'], ['curva 7', 'curva 9', 'curva 10'], ['curva 13', 'curva 14', 'última curva']][sec];
   return list[Math.floor(r() * list.length)];
 };
