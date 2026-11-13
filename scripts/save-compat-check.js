@@ -1,6 +1,8 @@
 // Compatibilidade de saves: abre os saves REAIS de versões publicadas (tests/saves/*.json.gz) na versão atual,
 // passa pela mesma migração do jogo (Migrate.run) e continua jogando uma temporada inteira como Manager,
 // conferindo a integridade dos dados a cada etapa. Falha se algo quebrar ou ficar incoerente.
+// (0.9) Saves do Observador também: o jogo continua sem as ações de equipe. O Schema.check precisa passar
+// sem erro depois da migração e no fim.
 // Uso: node scripts/save-compat-check.js [etapas=26]
 const fs = require('fs'), path = require('path'), vm = require('vm'), zlib = require('zlib');
 const root = path.join(__dirname, '..');
@@ -9,6 +11,10 @@ const ROUNDS = +(process.argv[2] || 26);
 const dir = path.join(root, 'tests', 'saves');
 const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json.gz')).sort() : [];
 if (!files.length) { console.log('sem saves em tests/saves'); process.exit(1); }
+// (0.9, E11) a última versão publicada precisa ter saves de Manager e do Observador
+const REQUIRED = ['0.8.7-entre-etapas', '0.8.7-meio-da-corrida', '0.8.7-observador'];
+const missing = REQUIRED.filter(r => !files.includes(r + '.json.gz'));
+if (missing.length) { console.log(`faltam saves de teste em tests/saves: ${missing.join(', ')} (gere com scripts/make-save-fixtures.js)`); process.exit(1); }
 const load = () => {
   const ctx = vm.createContext({ console, Math, JSON, Date, process });
   for (const m of [...data, ...core]) vm.runInContext(fs.readFileSync(path.join(root, 'app', 'src', m + '.js'), 'utf8'), ctx, { filename: m + '.js' });
@@ -32,13 +38,16 @@ function check(API, G, where, fail) {
 }
 let failed = 0;
 for (const f of files) {
-  const API = load(); const { Career, Events, Migrate, RNG, Talks, Parts, SL } = API;
+  const API = load(); const { Career, Events, Migrate, RNG, Talks, Parts, SL, Schema } = API;
   const fails = []; const fail = (m) => { if (fails.length < 15) fails.push(m); };
   let G;
   try {
     G = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, f))).toString('utf8'));
     const from = `${G.season.year} etapa ${G.season.round}${G.weekend ? ' (meio da corrida)' : ''}`;
     const steps = Migrate.run(G); RNG.state = G.rngState || G.seed;
+    const obs = G.mode === 'observer';
+    const schema = (where) => { if (!Schema) return; const r = Schema.check(G); [...r.fatal, ...r.errors].forEach(e => fail(`${where}: Schema: ${e}`)); };
+    schema('depois da migração');
     // continua a corrida em andamento, se houver
     if (G.weekend && G.weekend.race && !G.weekend.race.finished) { Career.simRaceToEnd(G); Career.finishWeekend(G); }
     else if (G.weekend) { G.weekend = null; }
@@ -48,11 +57,12 @@ for (const f of files) {
       if (Career.seasonOver(G)) { Career.endSeason(G); check(API, G, `virada para ${G.season.year}`, fail); }
       const r = G.season.round;
       Career.startWeekend(G); Career.finishPractice(G); Career.runQualifying(G); Career.startRace(G); Career.simRaceToEnd(G); Career.finishWeekend(G);
-      if (Talks) Career.teamDrivers(G, G.player.teamId).filter(d => d.seat !== 'R').forEach(d => { const t = Talks.start(G, d.id); if (t && t.opts.length) Talks.answer(G, d.id, t.topic, t.opts[r % t.opts.length].k); });
+      if (Talks && !obs) Career.teamDrivers(G, G.player.teamId).filter(d => d.seat !== 'R').forEach(d => { const t = Talks.start(G, d.id); if (t && t.opts.length) Talks.answer(G, d.id, t.topic, t.opts[r % t.opts.length].k); });
       G.inbox.forEach(m => { if (m.choices && m.resolved == null) Events.resolve(G, m.id, r % m.choices.length); });
-      if (Parts && r % 5 === 2) { const d = Career.lineup(G, G.player.teamId)[0]; Parts.pu(G, d); }
+      if (Parts && !obs && r % 5 === 2) { const d = Career.lineup(G, G.player.teamId)[0]; Parts.pu(G, d); }
       check(API, G, `${G.season.year} etapa ${r + 1}`, fail); played++;
     }
+    schema('no fim');
     // o save continua salvável e relível
     const again = JSON.parse(JSON.stringify(G)); Migrate.run(again);
     console.log(`${f}: de ${from} → ${G.season.year} etapa ${G.season.round}${steps.length ? ' · migração ' + steps.join(', ') : ''} · ${played} etapas jogadas · ${fails.length ? 'FALHOU' : 'OK'}`);
